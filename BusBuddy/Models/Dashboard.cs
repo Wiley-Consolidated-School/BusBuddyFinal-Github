@@ -1,11 +1,12 @@
 ﻿using BusBuddy.Db;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace BusBuddy.Models
 {
@@ -77,7 +78,7 @@ namespace BusBuddy.Models
                 connection.Open();
                 using (var command = new SqlCommand())
                 {
-                    SqlDataReader reader;
+                    Microsoft.Data.SqlClient.SqlDataReader reader;
                     command.Connection = connection;
                     //Get Top 5 products
                     command.CommandText = @"select top 5 P.ProductName, sum(OrderItem.Quantity) as Q
