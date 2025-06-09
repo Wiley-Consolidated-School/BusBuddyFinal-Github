@@ -29,9 +29,22 @@ jobs:
         dotnet-version: 8.0.x
         
     # Setup headless display for UI tests with Windows Forms
-    - name: Setup headless display
+    - name: Setup for UI testing
       run: |
+        Write-Host "Setting up environment for UI testing..."
+        # Install chocolatey if not already installed
+        if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        }
+        
+        # Setup virtual display for UI tests
         choco install -y --no-progress xvfb
+        
+        # Add the Windows Forms runtime components
+        $env:COMPlus_EnableWindowsFormsHosting = "1"
+        "COMPlus_EnableWindowsFormsHosting=1" >> $env:GITHUB_ENV
         
     - name: Install SQLite
       run: |
@@ -82,27 +95,33 @@ jobs:
         if (Test-Path "busbuddy.db") {
           Write-Host "Using existing database file"
         } else {
+          Write-Host "Looking for database initializers..."
+          
+          # Try running TestDatabaseInitializer if it exists
           if (Test-Path "TestDatabaseInitializer.cs") {
-            Write-Host "Found TestDatabaseInitializer.cs, running initialization"
-            # Find and run database initializer
-            $initProjects = Get-ChildItem -Path . -Recurse -Include "*Db.csproj","*Database*.csproj" 
-            if ($initProjects) {
-              $initProject = $initProjects | Select-Object -First 1
-              Write-Host "Running database initializer from $($initProject.FullName)"
-              dotnet run --project $initProject.FullName
-            } else {
-              Write-Host "Creating empty database file"
-              sqlite3 busbuddy.db "CREATE TABLE IF NOT EXISTS Version (Id INTEGER PRIMARY KEY, Version TEXT);"
-              sqlite3 busbuddy.db "INSERT INTO Version (Version) VALUES ('1.0.0');"
-            }
+            Write-Host "Found TestDatabaseInitializer.cs at root"
+            dotnet run --project $env:SOLUTION_PATH /init
+          } elseif (Test-Path "TestDb\Program.cs") {
+            Write-Host "Found TestDb\Program.cs"
+            dotnet run --project TestDb\TestDb.csproj
+          } elseif (Test-Path "Db\DatabaseInitializer.cs") {
+            Write-Host "Found Db\DatabaseInitializer.cs"
+            dotnet run --project $env:SOLUTION_PATH /init
           } else {
-            Write-Host "Creating empty database file"
+            Write-Host "No database initializer found, creating empty database file"
             sqlite3 busbuddy.db "CREATE TABLE IF NOT EXISTS Version (Id INTEGER PRIMARY KEY, Version TEXT);"
             sqlite3 busbuddy.db "INSERT INTO Version (Version) VALUES ('1.0.0');"
           }
         }
-        Write-Host "Database setup complete"
-        dir
+        
+        # Verify database exists
+        if (Test-Path "busbuddy.db") {
+          Write-Host "Database setup complete - File exists"
+          dir
+        } else {
+          Write-Host "Error: Database file not created"
+          exit 1
+        }
       
     - name: Publish Application
       run: dotnet publish $env:SOLUTION_PATH -c Release --no-build -o publish
