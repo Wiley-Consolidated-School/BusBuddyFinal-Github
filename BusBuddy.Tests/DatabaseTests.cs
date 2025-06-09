@@ -252,7 +252,8 @@ namespace BusBuddy.Tests
             });
 
             Assert.Contains("FOREIGN KEY constraint failed", ex.Message);
-        }        [Fact]
+        }
+        [Fact]
         public void Database_ShouldInsertAndRetrieveActivity()
         {
             // Arrange

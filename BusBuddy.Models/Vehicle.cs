@@ -2,21 +2,22 @@ using System;
 using System.Collections.Generic;
 
 namespace BusBuddy.Models
-{    public class Vehicle
+{
+    public class Vehicle
     {
         public int Id { get; set; }
         public int VehicleID { get { return Id; } set { Id = value; } } // For backward compatibility
         public string? VehicleNumber { get; set; }
-        
+
         // BusNumber is mapped from database but we don't want it to override VehicleNumber
         // Use a private field to store the database BusNumber value separately
         private string? _busNumber;
-        public string? BusNumber 
-        { 
-            get { return _busNumber ?? VehicleNumber; } 
+        public string? BusNumber
+        {
+            get { return _busNumber ?? VehicleNumber; }
             set { _busNumber = value; } // Store separately, don't override VehicleNumber
         }
-        
+
         public string? Make { get; set; }
         public string? Model { get; set; }
         public int Year { get; set; }

@@ -22,7 +22,7 @@ namespace BusBuddy.Data
             }
         }
 
-        public Vehicle GetVehicleById(int id)
+        public Vehicle? GetVehicleById(int id)
         {
             using (var connection = CreateConnection())
             {

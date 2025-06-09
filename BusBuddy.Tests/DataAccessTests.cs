@@ -56,6 +56,7 @@ namespace BusBuddy.Tests
             var result = mockRepo.Object.GetVehicleById(1);
 
             // Assert
+            Assert.NotNull(result);
             Assert.Equal(1, result.Id);
             Assert.Equal("BUS001", result.VehicleNumber);
         }
@@ -64,7 +65,7 @@ namespace BusBuddy.Tests
         {
             // Arrange
             var mockRepo = new Mock<IVehicleRepo>();
-            mockRepo.Setup(repo => repo.GetVehicleById(999)).Returns((Vehicle)null);
+            mockRepo.Setup(repo => repo.GetVehicleById(999)).Returns((Vehicle?)null);
 
             // Act
             var result = mockRepo.Object.GetVehicleById(999);

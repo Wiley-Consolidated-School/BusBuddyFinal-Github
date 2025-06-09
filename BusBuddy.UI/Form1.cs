@@ -1,4 +1,4 @@
-﻿using BusBuddy.Models;
+using BusBuddy.Models;
 using BusBuddy.Business;
 using System;
 using System.Linq;
