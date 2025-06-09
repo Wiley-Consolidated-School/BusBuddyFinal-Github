@@ -23,13 +23,11 @@ namespace BusBuddy.Tests
             // Assert
             Assert.Contains("Data Source=", connectionString);
             Assert.Contains("Initial Catalog=BusBuddy", connectionString);
-        }
-
-        [Fact]
+        }        [Fact]
         public void VehicleRepository_GetAllVehicles_ShouldReturnList()
         {
             // Arrange
-            var mockRepo = new Mock<IVehicleRepository>();
+            var mockRepo = new Mock<global::BusBuddy.Data.IVehicleRepository>();
             var vehicles = new List<Vehicle>
             {
                 new Vehicle { Id = 1, VehicleNumber = "BUS001", Make = "Mercedes", Model = "Sprinter" },
@@ -88,17 +86,6 @@ namespace BusBuddy.Tests
             var result = mockRepo.Object.AddVehicle(vehicle);
 
             // Assert
-            Assert.Equal(3, result);
-        }
-    }
-
-    // Define interface for mock testing
-    public interface IVehicleRepository
-    {
-        List<Vehicle> GetAllVehicles();
-        Vehicle GetVehicleById(int id);
-        int AddVehicle(Vehicle vehicle);
-        bool UpdateVehicle(Vehicle vehicle);
-        bool DeleteVehicle(int id);
+            Assert.Equal(3, result);        }
     }
 }

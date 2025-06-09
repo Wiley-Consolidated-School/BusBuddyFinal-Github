@@ -15,13 +15,11 @@ namespace BusBuddy.Tests
         // This class has no code, and is never created. Its purpose is simply
         // to be the place to apply [CollectionDefinition] and all the
         // ICollectionFixture<> interfaces.
-    }
-
-    public class DatabaseFixture : IDisposable
+    }    public class DatabaseFixture : IDisposable
     {
         public SqliteConnection Connection { get; private set; }
-        public List<Vehicle> TestVehicles { get; private set; }
-        public List<Driver> TestDrivers { get; private set; }
+        public List<Vehicle> TestVehicles { get; private set; } = new List<Vehicle>();
+        public List<Driver> TestDrivers { get; private set; } = new List<Driver>();
 
         public DatabaseFixture()
         {
@@ -98,12 +96,10 @@ namespace BusBuddy.Tests
                 new Vehicle { Id = 1, VehicleNumber = "BUS001", BusNumber = "B001", Make = "Mercedes", Model = "Sprinter", Year = 2020, SeatingCapacity = 25, FuelType = "Diesel", Status = "Active" },
                 new Vehicle { Id = 2, VehicleNumber = "BUS002", BusNumber = "B002", Make = "Ford", Model = "Transit", Year = 2019, SeatingCapacity = 18, FuelType = "Gasoline", Status = "Maintenance" },
                 new Vehicle { Id = 3, VehicleNumber = "VAN001", BusNumber = "V001", Make = "Toyota", Model = "HiAce", Year = 2021, SeatingCapacity = 12, FuelType = "Diesel", Status = "Active" }
-            };
-
-            TestDrivers = new List<Driver>
+            };            TestDrivers = new List<Driver>
             {
-                new Driver { DriverID = 1, DriverName = "John Smith", DriverPhone = "555-1234", DriverEmail = "john@example.com", Address = "123 Main St", DriversLicenseType = "CDL-B", TrainingComplete = true },
-                new Driver { DriverID = 2, DriverName = "Mary Johnson", DriverPhone = "555-5678", DriverEmail = "mary@example.com", Address = "456 Oak Ave", DriversLicenseType = "CDL-A", TrainingComplete = true }
+                new Driver { DriverID = 1, DriverName = "John Smith", DriverPhone = "555-1234", DriverEmail = "john@example.com", Address = "123 Main St", DriversLicenseType = "CDL-B", TrainingComplete = 1 },
+                new Driver { DriverID = 2, DriverName = "Mary Johnson", DriverPhone = "555-5678", DriverEmail = "mary@example.com", Address = "456 Oak Ave", DriversLicenseType = "CDL-A", TrainingComplete = 1 }
             };
         }
 

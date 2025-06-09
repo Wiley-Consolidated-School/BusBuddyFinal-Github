@@ -3,31 +3,33 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using BusBuddy.Data;
+using BusBuddy.Models;
+using BusBuddy.Business;
 
 namespace BusBuddy.Tests
 {
     public class IntegrationTests
-    {
-        private readonly Mock<BusBuddy.Data.IVehicleRepository> _mockRepo;
+    {        private readonly Mock<IVehicleRepository> _mockRepo;
         
         public IntegrationTests()
         {
-            _mockRepo = new Mock<BusBuddy.Data.IVehicleRepository>();
+            _mockRepo = new Mock<IVehicleRepository>();
         }
         
         [Fact]
         public void VehicleService_GetAllVehicles_ShouldReturnFilteredList()
         {
             // Arrange
-            var vehicles = new List<BusBuddy.Models.Vehicle>
+            var vehicles = new List<Vehicle>
             {
-                new BusBuddy.Models.Vehicle { Id = 1, VehicleNumber = "BUS001", Make = "Mercedes", Year = 2020, Status = "Active" },
-                new BusBuddy.Models.Vehicle { Id = 2, VehicleNumber = "BUS002", Make = "Ford", Year = 2019, Status = "Maintenance" },
-                new BusBuddy.Models.Vehicle { Id = 3, VehicleNumber = "BUS003", Make = "Mercedes", Year = 2021, Status = "Active" }
+                new Vehicle { Id = 1, VehicleNumber = "BUS001", Make = "Mercedes", Year = 2020, Status = "Active" },
+                new Vehicle { Id = 2, VehicleNumber = "BUS002", Make = "Ford", Year = 2019, Status = "Maintenance" },
+                new Vehicle { Id = 3, VehicleNumber = "BUS003", Make = "Mercedes", Year = 2021, Status = "Active" }
             };
             
             _mockRepo.Setup(repo => repo.GetAllVehicles()).Returns(vehicles);
-            var service = new BusBuddy.Business.VehicleService2(_mockRepo.Object);
+            var service = new VehicleService2(_mockRepo.Object);
             
             // Act
             var filteredVehicles = service.GetActiveVehicles();
@@ -41,23 +43,26 @@ namespace BusBuddy.Tests
         [Fact]
         public void VehicleService_AddVehicle_ShouldValidateBeforeAdding()
         {
-            // Arrange            _mockRepo.Setup(repo => repo.AddVehicle(It.IsAny<BusBuddy.Models.Vehicle>())).Returns(1);
-            var service = new BusBuddy.Business.VehicleService2(_mockRepo.Object);
+            // Arrange
+            _mockRepo.Setup(repo => repo.AddVehicle(It.IsAny<Vehicle>())).Returns(1);
+            var service = new VehicleService2(_mockRepo.Object);
             
             // Act & Assert - Invalid vehicle number
-            var invalidVehicle = new BusBuddy.Models.Vehicle { VehicleNumber = "B", Make = "Mercedes", Year = 2022 };
+            var invalidVehicle = new Vehicle { VehicleNumber = "B", Make = "Mercedes", Year = 2022 };
             Assert.False(service.AddVehicle(invalidVehicle));
-              // Act & Assert - Valid vehicle
-            var validVehicle = new BusBuddy.Models.Vehicle { VehicleNumber = "BUS004", Make = "Mercedes", Year = 2022 };
+            
+            // Act & Assert - Valid vehicle
+            var validVehicle = new Vehicle { VehicleNumber = "BUS004", Make = "Mercedes", Year = 2022 };
             Assert.True(service.AddVehicle(validVehicle));
             _mockRepo.Verify(repo => repo.AddVehicle(validVehicle), Times.Once);
         }
         
         [Fact]
         public void VehicleService_DeleteVehicle_ShouldReturnFalseForInvalidId()
-        {            // Arrange
+        {
+            // Arrange
             _mockRepo.Setup(repo => repo.DeleteVehicle(It.Is<int>(id => id > 0))).Returns(true);
-            var service = new BusBuddy.Business.VehicleService2(_mockRepo.Object);
+            var service = new VehicleService2(_mockRepo.Object);
             
             // Act & Assert
             Assert.False(service.DeleteVehicle(0)); // Invalid ID
@@ -68,18 +73,19 @@ namespace BusBuddy.Tests
         
         [Fact]
         public void VehicleService_UpdateVehicle_ShouldValidateBeforeUpdating()
-        {            // Arrange
-            _mockRepo.Setup(repo => repo.UpdateVehicle(It.IsAny<BusBuddy.Models.Vehicle>())).Returns(true);
-            var service = new BusBuddy.Business.VehicleService2(_mockRepo.Object);
+        {
+            // Arrange
+            _mockRepo.Setup(repo => repo.UpdateVehicle(It.IsAny<Vehicle>())).Returns(true);
+            var service = new VehicleService2(_mockRepo.Object);
             
             // Act & Assert - Invalid vehicle
-            var invalidVehicle = new BusBuddy.Models.Vehicle { Id = 1, VehicleNumber = "", Year = 2022 };
+            var invalidVehicle = new Vehicle { Id = 1, VehicleNumber = "", Year = 2022 };
             Assert.False(service.UpdateVehicle(invalidVehicle));
-              // Act & Assert - Valid vehicle
-            var validVehicle = new BusBuddy.Models.Vehicle { Id = 1, VehicleNumber = "BUS001", Year = 2022 };
+            
+            // Act & Assert - Valid vehicle
+            var validVehicle = new Vehicle { Id = 1, VehicleNumber = "BUS001", Year = 2022 };
             Assert.True(service.UpdateVehicle(validVehicle));
             _mockRepo.Verify(repo => repo.UpdateVehicle(validVehicle), Times.Once);
         }
     }
-      // Test classes moved to proper project files
 }
