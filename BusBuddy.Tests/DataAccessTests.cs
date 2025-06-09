@@ -16,14 +16,15 @@ namespace BusBuddy.Tests
         {
             // Arrange
             var mockConnectionString = "Data Source=TestServer;Initial Catalog=BusBuddy;Integrated Security=True";
-            
+
             // Act
             var connectionString = mockConnectionString;
 
             // Assert
             Assert.Contains("Data Source=", connectionString);
             Assert.Contains("Initial Catalog=BusBuddy", connectionString);
-        }        [Fact]
+        }
+        [Fact]
         public void VehicleRepository_GetAllVehicles_ShouldReturnList()
         {
             // Arrange
@@ -42,7 +43,8 @@ namespace BusBuddy.Tests
             Assert.Equal(2, result.Count);
             Assert.Equal("BUS001", result[0].VehicleNumber);
             Assert.Equal("BUS002", result[1].VehicleNumber);
-        }        [Fact]
+        }
+        [Fact]
         public void VehicleRepository_GetVehicleById_ShouldReturnCorrectVehicle()
         {
             // Arrange
@@ -56,7 +58,8 @@ namespace BusBuddy.Tests
             // Assert
             Assert.Equal(1, result.Id);
             Assert.Equal("BUS001", result.VehicleNumber);
-        }        [Fact]
+        }
+        [Fact]
         public void VehicleRepository_GetVehicleById_ShouldReturnNull_WhenNotFound()
         {
             // Arrange
@@ -68,7 +71,8 @@ namespace BusBuddy.Tests
 
             // Assert
             Assert.Null(result);
-        }        [Fact]
+        }
+        [Fact]
         public void VehicleRepository_AddVehicle_ShouldReturnNewId()
         {
             // Arrange
@@ -80,6 +84,7 @@ namespace BusBuddy.Tests
             var result = mockRepo.Object.AddVehicle(vehicle);
 
             // Assert
-            Assert.Equal(3, result);        }
+            Assert.Equal(3, result);
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace BusBuddy.Tests
     public class ConsolidatedTests
     {
         #region UI Tests
-        
+
         [Fact]
         public void FormValidation_ShouldValidateRequiredFields()
         {
@@ -61,7 +61,7 @@ namespace BusBuddy.Tests
         #endregion
 
         #region Model Tests
-        
+
         [Fact]
         public void Vehicle_PropertiesShouldBeSettable()
         {
@@ -110,26 +110,26 @@ namespace BusBuddy.Tests
             Assert.Null(vehicle.FuelType);
             Assert.Null(vehicle.Status);
         }
-        
+
         #endregion
 
         #region Business Logic Tests
-        
+
         [Fact]
         public void VehicleAgeCalculation_ShouldCalculateCorrectly()
         {
             // Arrange
             var currentYear = DateTime.Now.Year;
             var vehicleYear = 2018;
-            
+
             // Act
             var age = currentYear - vehicleYear;
-            
+
             // Assert
             Assert.True(age >= 0);
             Assert.True(age <= 100); // Sanity check
         }
-        
+
         [Theory]
         [InlineData(2020, 2023, 3)]
         [InlineData(2023, 2023, 0)]
@@ -138,11 +138,11 @@ namespace BusBuddy.Tests
         {
             // Act
             var age = currentYear - vehicleYear;
-            
+
             // Assert
             Assert.Equal(expectedAge, age);
         }
-        
+
         [Fact]
         public void VehicleCapacityValidation_ShouldValidateRange()
         {
@@ -150,24 +150,24 @@ namespace BusBuddy.Tests
             var minCapacity = 0;
             var maxCapacity = 100;
             var testCapacity = 25;
-            
+
             // Act
             var isValid = testCapacity >= minCapacity && testCapacity <= maxCapacity;
-            
+
             // Assert
             Assert.True(isValid);
         }
-        
+
         #endregion
 
         #region Data Access Tests
-        
+
         [Fact]
         public void DatabaseConnection_ShouldHaveCorrectConnectionString()
         {
             // Arrange
             var mockConnectionString = "Data Source=TestServer;Initial Catalog=BusBuddy;Integrated Security=True";
-            
+
             // Act
             var connectionString = mockConnectionString;
 
@@ -196,7 +196,7 @@ namespace BusBuddy.Tests
             Assert.Equal("BUS001", result[0].VehicleNumber);
             Assert.Equal("BUS002", result[1].VehicleNumber);
         }
-        
+
         #endregion
     }
 }

@@ -165,7 +165,7 @@ namespace BusBuddy.Tests
         {
             // Act
             var activeVehicles = _fixture.Connection.Query<Vehicle>(
-                "SELECT * FROM Vehicles WHERE Status = @Status", 
+                "SELECT * FROM Vehicles WHERE Status = @Status",
                 new { Status = "Active" }).ToList();
 
             // Assert
@@ -252,9 +252,7 @@ namespace BusBuddy.Tests
             });
 
             Assert.Contains("FOREIGN KEY constraint failed", ex.Message);
-        }
-
-        [Fact]
+        }        [Fact]
         public void Database_ShouldInsertAndRetrieveActivity()
         {
             // Arrange
@@ -300,7 +298,7 @@ namespace BusBuddy.Tests
 
             // Assert
             Assert.Equal(13, tableInfo.Count); // Check column count
-            
+
             // Verify specific columns
             Assert.Contains(tableInfo, col => col.name == "Id" && col.type == "INTEGER" && col.pk == 1);
             Assert.Contains(tableInfo, col => col.name == "VehicleNumber" && col.type == "TEXT" && col.notnull == 1);
@@ -325,7 +323,7 @@ namespace BusBuddy.Tests
 
             // Assert
             Assert.Equal(4, foreignKeys.Count); // Check foreign key count
-            
+
             // Verify specific foreign keys
             Assert.Contains(foreignKeys, fk => fk.table == "Vehicles" && fk.from == "AMVehicleID" && fk.to == "Id");
             Assert.Contains(foreignKeys, fk => fk.table == "Drivers" && fk.from == "AMDriverID" && fk.to == "DriverID");
@@ -337,37 +335,37 @@ namespace BusBuddy.Tests
         public void Database_ShouldHaveCorrectForeignKeyConstraints()
         {
             // Arrange - Using the fixture's connection
-            
+
             // Verify Routes table foreign keys
             var routeForeignKeys = GetForeignKeys("Routes");
             Assert.Contains(routeForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "AMVehicleID" && fk.To == "Id");
             Assert.Contains(routeForeignKeys, fk => fk.Table == "Drivers" && fk.From == "AMDriverID" && fk.To == "DriverID");
             Assert.Contains(routeForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "PMVehicleID" && fk.To == "Id");
             Assert.Contains(routeForeignKeys, fk => fk.Table == "Drivers" && fk.From == "PMDriverID" && fk.To == "DriverID");
-            
+
             // Verify Activities table foreign keys
             var activitiesForeignKeys = GetForeignKeys("Activities");
             Assert.Contains(activitiesForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "AssignedVehicleID" && fk.To == "Id");
             Assert.Contains(activitiesForeignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID" && fk.To == "DriverID");
-            
+
             // Verify Fuel table foreign keys
             var fuelForeignKeys = GetForeignKeys("Fuel");
             Assert.Contains(fuelForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "VehicleFueledID" && fk.To == "Id");
-            
+
             // Verify Maintenance table foreign keys
             var maintenanceForeignKeys = GetForeignKeys("Maintenance");
             Assert.Contains(maintenanceForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "VehicleID" && fk.To == "Id");
-            
+
             // Verify ActivitySchedule table foreign keys
             var schedForeignKeys = GetForeignKeys("ActivitySchedule");
             Assert.Contains(schedForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "ScheduledVehicleID" && fk.To == "Id");
             Assert.Contains(schedForeignKeys, fk => fk.Table == "Drivers" && fk.From == "ScheduledDriverID" && fk.To == "DriverID");
-            
+
             // Verify TimeCard table foreign keys
             var timecardForeignKeys = GetForeignKeys("TimeCard");
             Assert.Contains(timecardForeignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID" && fk.To == "DriverID");
         }
-        
+
         private List<ForeignKeyInfo> GetForeignKeys(string tableName)
         {
             var foreignKeys = new List<ForeignKeyInfo>();
@@ -390,7 +388,7 @@ namespace BusBuddy.Tests
             }
             return foreignKeys;
         }
-        
+
         private class ForeignKeyInfo
         {
             public int Id { get; set; }

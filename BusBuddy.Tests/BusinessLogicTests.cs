@@ -15,15 +15,15 @@ namespace BusBuddy.Tests
             // Arrange
             var currentYear = DateTime.Now.Year;
             var vehicleYear = 2018;
-            
+
             // Act
             var age = currentYear - vehicleYear;
-            
+
             // Assert
             Assert.True(age >= 0);
             Assert.True(age <= 100); // Sanity check
         }
-        
+
         [Theory]
         [InlineData(2020, 2023, 3)]
         [InlineData(2023, 2023, 0)]
@@ -32,11 +32,11 @@ namespace BusBuddy.Tests
         {
             // Act
             var age = currentYear - vehicleYear;
-            
+
             // Assert
             Assert.Equal(expectedAge, age);
         }
-        
+
         [Fact]
         public void VehicleFilter_ShouldFilterByMake()
         {
@@ -47,16 +47,16 @@ namespace BusBuddy.Tests
                 new Vehicle { Id = 2, Make = "Ford" },
                 new Vehicle { Id = 3, Make = "Mercedes" }
             };
-            
+
             // Act
             var filtered = vehicles.FindAll(v => v.Make == "Mercedes");
-            
+
             // Assert
             Assert.Equal(2, filtered.Count);
             Assert.Equal(1, filtered[0].Id);
             Assert.Equal(3, filtered[1].Id);
         }
-        
+
         [Fact]
         public void VehicleFilter_ShouldFilterByYear()
         {
@@ -67,16 +67,16 @@ namespace BusBuddy.Tests
                 new Vehicle { Id = 2, Year = 2018 },
                 new Vehicle { Id = 3, Year = 2022 }
             };
-            
+
             // Act
             var filtered = vehicles.FindAll(v => v.Year >= 2020);
-            
+
             // Assert
             Assert.Equal(2, filtered.Count);
             Assert.Equal(1, filtered[0].Id);
             Assert.Equal(3, filtered[1].Id);
         }
-        
+
         [Fact]
         public void VehicleCapacityValidation_ShouldValidateRange()
         {
@@ -84,14 +84,14 @@ namespace BusBuddy.Tests
             var minCapacity = 0;
             var maxCapacity = 100;
             var testCapacity = 25;
-            
+
             // Act
             var isValid = testCapacity >= minCapacity && testCapacity <= maxCapacity;
-            
+
             // Assert
             Assert.True(isValid);
         }
-        
+
         [Theory]
         [InlineData(-1, 0, 100, false)]
         [InlineData(0, 0, 100, true)]
@@ -102,12 +102,12 @@ namespace BusBuddy.Tests
         {
             // Act
             var isValid = capacity >= min && capacity <= max;
-            
+
             // Assert
             Assert.Equal(expected, isValid);
         }
     }
-    
+
     // Define namespace and class for testing
     namespace BusBuddy.Business
     {
@@ -117,7 +117,7 @@ namespace BusBuddy.Tests
             {
                 return !string.IsNullOrEmpty(vehicleNumber) && vehicleNumber.Length >= 3;
             }
-            
+
             public int CalculateVehicleAge(int vehicleYear)
             {
                 return DateTime.Now.Year - vehicleYear;
