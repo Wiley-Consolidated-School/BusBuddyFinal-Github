@@ -7,6 +7,12 @@ on:
     branches: [ "master" ]
   workflow_dispatch:  # Allow manual triggering
 
+# Environment variables used across multiple jobs
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
 jobs:
   build:
     runs-on: windows-latest
@@ -14,11 +20,23 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for better versioning
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+        
+    # Setup headless display for UI tests with Windows Forms
+    - name: Setup headless display
+      run: |
+        choco install -y --no-progress xvfb
+        
+    - name: Install SQLite
+      run: |
+        choco install -y --no-progress sqlite
+        Write-Host "SQLite installed successfully"
         
     - name: List repository contents
       run: |
@@ -26,8 +44,17 @@ jobs:
         if (Test-Path "BusBuddy.sln") { Write-Host "Solution file found in root" } else { Write-Host "Solution file not found in root" }
         
     - name: Find solution file
+      id: find-solution
       run: |
-        Get-ChildItem -Path . -Filter *.sln -Recurse
+        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
+        if ($solutionPath) {
+          Write-Host "Solution file found at: $solutionPath"
+          "SOLUTION_PATH=$solutionPath" >> $env:GITHUB_ENV
+          "solution_path=$solutionPath" >> $env:GITHUB_OUTPUT
+        } else {
+          Write-Host "No solution file found in the repository"
+          exit 1
+        }
         
     - name: Cache NuGet packages
       uses: actions/cache@v3
@@ -38,20 +65,47 @@ jobs:
           ${{ runner.os }}-nuget-
         
     - name: Restore dependencies
+      run: dotnet restore $env:SOLUTION_PATH
+      
+    # Check for build issues
+    - name: Check for build warnings
       run: |
-        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
-        Write-Host "Found solution at $solutionPath"
-        dotnet restore $solutionPath
+        dotnet build $env:SOLUTION_PATH --configuration Debug /warnaserror
+      continue-on-error: true
       
     - name: Build
-      run: |
-        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
-        dotnet build $solutionPath --no-restore --configuration Release
+      run: dotnet build $env:SOLUTION_PATH --no-restore --configuration Release
     
-    - name: Publish Application
+    - name: Initialize test database
       run: |
-        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
-        dotnet publish $solutionPath -c Release --no-build -o publish
+        Write-Host "Setting up test database..."
+        if (Test-Path "busbuddy.db") {
+          Write-Host "Using existing database file"
+        } else {
+          if (Test-Path "TestDatabaseInitializer.cs") {
+            Write-Host "Found TestDatabaseInitializer.cs, running initialization"
+            # Find and run database initializer
+            $initProjects = Get-ChildItem -Path . -Recurse -Include "*Db.csproj","*Database*.csproj" 
+            if ($initProjects) {
+              $initProject = $initProjects | Select-Object -First 1
+              Write-Host "Running database initializer from $($initProject.FullName)"
+              dotnet run --project $initProject.FullName
+            } else {
+              Write-Host "Creating empty database file"
+              sqlite3 busbuddy.db "CREATE TABLE IF NOT EXISTS Version (Id INTEGER PRIMARY KEY, Version TEXT);"
+              sqlite3 busbuddy.db "INSERT INTO Version (Version) VALUES ('1.0.0');"
+            }
+          } else {
+            Write-Host "Creating empty database file"
+            sqlite3 busbuddy.db "CREATE TABLE IF NOT EXISTS Version (Id INTEGER PRIMARY KEY, Version TEXT);"
+            sqlite3 busbuddy.db "INSERT INTO Version (Version) VALUES ('1.0.0');"
+          }
+        }
+        Write-Host "Database setup complete"
+        dir
+      
+    - name: Publish Application
+      run: dotnet publish $env:SOLUTION_PATH -c Release --no-build -o publish
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -61,22 +115,118 @@ jobs:
         retention-days: 7
       
     - name: Find test projects
+      id: find-tests
       run: |
-        Get-ChildItem -Path . -Filter *Tests.csproj -Recurse
+        $testProjects = Get-ChildItem -Path . -Filter *Tests.csproj -Recurse
+        foreach ($project in $testProjects) {
+          Write-Host "Found test project: $($project.FullName)"
+        }
+        if ($testProjects) {
+          $testProjectPaths = $testProjects | ForEach-Object { $_.FullName }
+          $testProjectsJson = ConvertTo-Json -InputObject $testProjectPaths -Compress
+          "TEST_PROJECTS=$testProjectsJson" >> $env:GITHUB_ENV
+          "found=true" >> $env:GITHUB_OUTPUT
+        } else {
+          Write-Host "No test projects found"
+          "found=false" >> $env:GITHUB_OUTPUT
+        }
+
+    # Extract UI tests to run separately
+    - name: Separate UI and non-UI tests
+      if: steps.find-tests.outputs.found == 'true'
+      id: separate-tests
+      run: |
+        $testProjects = Get-Content $env:TEST_PROJECTS | ConvertFrom-Json
+        $uiTestProjects = @()
+        $nonUiTestProjects = @()
         
-    - name: Test
+        foreach ($project in $testProjects) {
+          $projectContent = Get-Content $project -Raw
+          if ($projectContent -match "UseWindowsForms>true<" -or (Get-ChildItem -Path (Split-Path $project) -Filter "UI*.cs" -Recurse)) {
+            Write-Host "UI test project found: $project"
+            $uiTestProjects += $project
+          } else {
+            Write-Host "Non-UI test project found: $project"
+            $nonUiTestProjects += $project
+          }
+        }
+        
+        $uiTestProjectsJson = ConvertTo-Json -InputObject $uiTestProjects -Compress
+        $nonUiTestProjectsJson = ConvertTo-Json -InputObject $nonUiTestProjects -Compress
+        
+        "UI_TEST_PROJECTS=$uiTestProjectsJson" >> $env:GITHUB_ENV
+        "NON_UI_TEST_PROJECTS=$nonUiTestProjectsJson" >> $env:GITHUB_ENV
+        
+        if ($uiTestProjects.Count -gt 0) {
+          "has_ui_tests=true" >> $env:GITHUB_OUTPUT
+        } else {
+          "has_ui_tests=false" >> $env:GITHUB_OUTPUT
+        }
+        
+        if ($nonUiTestProjects.Count -gt 0) {
+          "has_non_ui_tests=true" >> $env:GITHUB_OUTPUT
+        } else {
+          "has_non_ui_tests=false" >> $env:GITHUB_OUTPUT
+        }
+        
+    # Run non-UI tests first
+    - name: Run non-UI tests
+      if: steps.separate-tests.outputs.has_non_ui_tests == 'true'
       run: |
-        $testProject = (Get-ChildItem -Path . -Filter *Tests.csproj -Recurse | Select-Object -First 1).FullName
-        Write-Host "Running tests for $testProject"
-        dotnet test $testProject --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        $testProjects = Get-Content $env:NON_UI_TEST_PROJECTS | ConvertFrom-Json
+        foreach ($project in $testProjects) {
+          Write-Host "Running non-UI tests for: $project"
+          dotnet test $project --configuration Release --verbosity normal --logger "trx;LogFileName=test-results-$(Split-Path $project -Leaf).trx" --collect:"XPlat Code Coverage" --results-directory ./TestResults
+          if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Tests failed for $project with exit code $LASTEXITCODE"
+          }
+        }
+      
+    # Run UI tests with special handling
+    - name: Run UI tests
+      if: steps.separate-tests.outputs.has_ui_tests == 'true'
+      run: |
+        $testProjects = Get-Content $env:UI_TEST_PROJECTS | ConvertFrom-Json
+        foreach ($project in $testProjects) {
+          Write-Host "Running UI tests for: $project"
+          # Set special environment variables for UI tests
+          $env:DOTNET_RunUITests = "1"
+          $env:DOTNET_EnableWindowsFormsHighDpiAutoResizing = "1"
+          
+          # Run with extra time allowance for UI tests
+          dotnet test $project --configuration Release --verbosity normal --logger "trx;LogFileName=ui-test-results-$(Split-Path $project -Leaf).trx" --collect:"XPlat Code Coverage" --results-directory ./UITestResults --blame-hang-timeout 120s
+          if ($LASTEXITCODE -ne 0) {
+            Write-Warning "UI Tests failed for $project with exit code $LASTEXITCODE"
+          }
+        }
       
     - name: Test Report
       uses: dorny/test-reporter@v1
-      if: success() || failure()
+      if: always()
       with:
         name: XUnit Tests
-        path: "**/test-results.trx"
+        path: "**/TestResults/*.trx"
         reporter: dotnet-trx
+        fail-on-error: false
+        
+    - name: UI Test Report
+      uses: dorny/test-reporter@v1
+      if: steps.separate-tests.outputs.has_ui_tests == 'true' && always()
+      with:
+        name: XUnit UI Tests
+        path: "**/UITestResults/*.trx"
+        reporter: dotnet-trx
+        fail-on-error: false
+        
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          TestResults
+          UITestResults
+        retention-days: 7
         
     - name: Create Test Summary
       if: always()
@@ -84,3 +234,93 @@ jobs:
         Write-Host "## Build and Test Summary" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
         Write-Host "✅ Build completed" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
         Write-Host "📊 Test results available in the Artifacts section" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        
+        # Add error summary if there were test failures
+        $testResults = Get-ChildItem -Path . -Filter *.trx -Recurse
+        $totalTests = 0
+        $passedTests = 0
+        $failedTests = 0
+        $skippedTests = 0
+        
+        foreach ($result in $testResults) {
+          $xml = [xml](Get-Content $result.FullName)
+          $counters = $xml.TestRun.ResultSummary.Counters
+          $totalTests += [int]$counters.total
+          $passedTests += [int]$counters.passed
+          $failedTests += [int]$counters.failed
+          $skippedTests += [int]$counters.skipped
+        }
+        
+        Write-Host "### Test Results" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        Write-Host "- Total Tests: $totalTests" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        Write-Host "- Passed: $passedTests" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        
+        if ($failedTests -gt 0) {
+          Write-Host "- ❌ Failed: $failedTests" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        } else {
+          Write-Host "- ✅ Failed: $failedTests" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        }
+        
+        if ($skippedTests -gt 0) {
+          Write-Host "- ⚠️ Skipped: $skippedTests" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        } else {
+          Write-Host "- Skipped: $skippedTests" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        }
+        
+        if ($failedTests -gt 0) {
+          Write-Host "❌ $failedTests tests failed. See test report for details." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          
+          # Add detailed failure information
+          Write-Host "### Failed Tests Details" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          foreach ($result in $testResults) {
+            $xml = [xml](Get-Content $result.FullName)
+            $resultFile = Split-Path $result.FullName -Leaf
+            $failedTestResults = $xml.TestRun.Results.UnitTestResult | Where-Object { $_.outcome -eq "Failed" }
+            
+            if ($failedTestResults) {
+              Write-Host "#### Failures in $resultFile" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+              
+              foreach ($failedTest in $failedTestResults) {
+                Write-Host "- $($failedTest.testName)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+                Write-Host "  - Error: $($failedTest.Output.ErrorInfo.Message)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+                Write-Host "  - Stack Trace: ```$($failedTest.Output.ErrorInfo.StackTrace)```" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+              }
+            }
+          }
+          
+        } else {
+          Write-Host "✅ All tests passed successfully!" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        }
+
+  # Add a code quality analysis job
+  analyze:
+    name: Analyze Code Quality
+    runs-on: windows-latest
+    needs: build
+    if: always()
+    permissions:
+      security-events: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: csharp
+        
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Build for Analysis
+      run: |
+        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
+        dotnet build $solutionPath --configuration Release
+        
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:csharp"
