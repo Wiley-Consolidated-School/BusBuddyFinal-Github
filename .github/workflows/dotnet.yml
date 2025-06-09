@@ -60,8 +60,7 @@ jobs:
       id: find-solution
       run: |
         $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
-        if ($solutionPath) {
-          Write-Host "Solution file found at: $solutionPath"
+        if ($solutionPath) {          Write-Host "Solution file found at: $solutionPath"
           "SOLUTION_PATH=$solutionPath" >> $env:GITHUB_ENV
           "solution_path=$solutionPath" >> $env:GITHUB_OUTPUT
         } else {
