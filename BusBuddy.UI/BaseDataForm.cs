@@ -61,7 +61,7 @@ namespace BusBuddy.UI
             return comboBox;
         }
         
-        protected Button CreateButton(string text, int x, int y, EventHandler clickHandler = null)
+        protected Button CreateButton(string text, int x, int y, EventHandler? clickHandler = null)
         {
             Button button = new Button();
             button.Text = text;

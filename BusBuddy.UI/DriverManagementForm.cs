@@ -115,7 +115,7 @@ namespace BusBuddy.UI
             _cancelButton = CreateButton("Cancel", 660, 145, (s, e) => CancelEdit(), _editPanel);
         }
         
-        private Label CreateLabel(string text, int x, int y, Control parent = null)
+        private Label CreateLabel(string text, int x, int y, Control? parent = null)
         {
             Label label = new Label();
             label.Text = text;
@@ -130,7 +130,7 @@ namespace BusBuddy.UI
             return label;
         }
         
-        private TextBox CreateTextBox(int x, int y, int width, Control parent = null)
+        private TextBox CreateTextBox(int x, int y, int width, Control? parent = null)
         {
             TextBox textBox = new TextBox();
             textBox.Location = new System.Drawing.Point(x, y);
@@ -144,7 +144,7 @@ namespace BusBuddy.UI
             return textBox;
         }
         
-        private ComboBox CreateComboBox(int x, int y, int width, Control parent = null)
+        private ComboBox CreateComboBox(int x, int y, int width, Control? parent = null)
         {
             ComboBox comboBox = new ComboBox();
             comboBox.Location = new System.Drawing.Point(x, y);
@@ -159,7 +159,7 @@ namespace BusBuddy.UI
             return comboBox;
         }
         
-        private CheckBox CreateCheckBox(string text, int x, int y, Control parent = null)
+        private CheckBox CreateCheckBox(string text, int x, int y, Control? parent = null)
         {
             CheckBox checkBox = new CheckBox();
             checkBox.Text = text;
@@ -174,7 +174,7 @@ namespace BusBuddy.UI
             return checkBox;
         }
         
-        private Button CreateButton(string text, int x, int y, EventHandler clickHandler = null, Control parent = null)
+        private Button CreateButton(string text, int x, int y, EventHandler? clickHandler = null, Control? parent = null)
         {
             Button button = new Button();
             button.Text = text;

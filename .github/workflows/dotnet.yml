@@ -7,6 +7,13 @@ on:
     branches: [ "master" ]
   workflow_dispatch:  # Allow manual triggering
 
+# Add permissions for test reporting
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pull-requests: write
+
 # Environment variables used across multiple jobs
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -27,32 +34,21 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-        
-    # Minimal setup - only install what we actually need
-    - name: Install SQLite (Alternative approach)
+          # Simplified SQLite setup - embedded SQLite works for tests
+    - name: Setup SQLite (Optional)
       run: |
-        Write-Host "Setting up SQLite..."
-        # Try using winget first (modern Windows package manager)
+        Write-Host "Checking SQLite availability..."
+        Write-Host "Note: Tests use embedded SQLite and will work without system SQLite"
+        # Optional: Try to install SQLite if needed for development
         try {
-          winget install --id SQLite.SQLite --silent --accept-source-agreements --accept-package-agreements
-          Write-Host "SQLite installed via winget"
+          if (Get-Command sqlite3 -ErrorAction SilentlyContinue) {
+            Write-Host "✓ SQLite already available"
+          } else {
+            Write-Host "SQLite not found, but tests will use embedded version"
+          }
         }
         catch {
-          Write-Host "Winget failed, trying alternative approach..."
-          # If winget fails, try chocolatey
-          try {
-            if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-              Set-ExecutionPolicy Bypass -Scope Process -Force
-              [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-              Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-            }
-            choco install sqlite -y --no-progress
-            Write-Host "SQLite installed via chocolatey"
-          }
-          catch {
-            Write-Host "Both winget and chocolatey failed, SQLite may need to be handled differently"
-            Write-Host "Continuing without SQLite installation - tests should still work with embedded SQLite"
-          }
+          Write-Host "SQLite check completed - using embedded SQLite for tests"
         }
         
     - name: List repository contents
@@ -69,8 +65,8 @@ jobs:
     - name: Find solution file
       id: find-solution
       run: |
-        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
-        if ($solutionPath) {
+        if (Test-Path "BusBuddy.sln") {
+          $solutionPath = (Resolve-Path "BusBuddy.sln").Path
           Write-Host "Solution file found at: $solutionPath"
           "SOLUTION_PATH=$solutionPath" >> $env:GITHUB_ENV
           "solution_path=$solutionPath" >> $env:GITHUB_OUTPUT
@@ -146,15 +142,16 @@ jobs:
         name: coverage-reports
         path: TestResults/**/coverage.cobertura.xml
         retention-days: 30
-        
-    # Optional: Code coverage reporting (if you want Codecov integration)
+          # Optional: Code coverage reporting (with token for rate limit handling)
     - name: Upload coverage to Codecov
       if: always()
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: TestResults/**/coverage.cobertura.xml
         fail_ci_if_error: false
         verbose: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: Bigessfour/BusBuddyHelper
         
   # Separate job for deployment readiness checks
   deployment-check:
@@ -169,12 +166,11 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
-        
+        dotnet-version: 8.0.x        
     - name: Build Release version
       run: |
-        dotnet restore
-        dotnet build --configuration Release --no-restore
+        dotnet restore BusBuddy.sln
+        dotnet build BusBuddy.sln --configuration Release --no-restore
         
     - name: Create deployment package
       run: |
