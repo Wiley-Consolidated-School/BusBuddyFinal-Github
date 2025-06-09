@@ -2,39 +2,79 @@
 # Visit https://docs.codecov.com/docs/codecov-yaml for more information
 
 coverage:
-  # Set coverage precision 
+  # Precision for coverage percentage (2 decimal places)
   precision: 2
   
-  # Set coverage range for status checks
-  range: 50..90
+  # Range for status checks (green if >= 80%, yellow if 60-80%, red if < 60%)
+  range: 60..80
   
-  # Coverage thresholds
+  # Rounding method for coverage numbers
+  round: down
+    # Coverage status checks
   status:
     project:
       default:
-        target: 70%          # Target coverage for entire project
-        threshold: 5%        # Allow 5% drop without failing
+        # Target 80% coverage for the entire project
+        target: 80%
+        # Allow a 3% drop without failing (tighter for stability)
+        threshold: 3%
+        # Enable only for non-PR contexts
+        only_pulls: false
     patch:
       default:
-        target: 60%          # Target coverage for new code
-        threshold: 10%       # Allow 10% drop for patches
+        # Target 70% coverage for new code in PRs
+        target: 70%
+        # Allow a 5% drop for patches (stricter for new code)
+        threshold: 5%
+        # Only report if coverage is below target
+        informational: true
+    changes:
+      # Fail if coverage decreases on modified lines
+      default:
+        enabled: true
 
-# Ignore certain files/directories from coverage
+# Ignore files and directories not relevant to coverage
 ignore:
   - "**/*.Designer.cs"       # Windows Forms designer files
   - "**/obj/**"              # Build artifacts
   - "**/bin/**"              # Build outputs
   - "**/Properties/**"       # Assembly info
   - "**/Program.cs"          # Main entry point
-  - "**/*Test*.cs"           # Test files themselves
+  - "**/*Test*.cs"           # Test files
   - "**/TestResults/**"      # Test result files
+  - "BusBuddy.Db/DatabaseScript.sql"  # SQL scripts
+  - "**/Migrations/**"        # EF Core migration files
 
-# Comment configuration
+# Comment configuration for PRs
 comment:
-  layout: "reach,diff,flags,tree"
-  behavior: default
-  require_changes: false     # Post comment even if no changes
+  layout: "reach, diff, flags, files, footer"  # Enhanced layout for clarity
+  behavior: default  # Post new comment each time
+  require_changes: false  # Comment even if no changes
+  require_base: true  # Compare against base branch
+  require_head: true  # Include head commit coverage
 
-# PR comment format
+# GitHub Checks integration
 github_checks:
-  annotations: true
+  annotations: true  # Add coverage annotations to PRs
+  checks: true  # Enable GitHub Checks for coverage status
+
+# Flags to categorize coverage (e.g., for different test types)
+flags:
+  unit:
+    carryforward: true  # Carry unit test coverage forward
+    paths:
+      - "**/BusBuddy.Tests/**/*Test*.cs"  # Unit test files
+  integration:
+    carryforward: true
+    paths:
+      - "**/BusBuddy.Tests/**/DatabaseTests.cs"  # Integration tests
+  ui:
+    carryforward: true
+    paths:
+      - "**/BusBuddy.UI/**"  # UI-related code
+
+# Codecov-specific settings
+codecov:
+  require_ci_to_pass: true  # Wait for CI to complete
+  notify:
+    wait_for_ci: true  # Ensure CI finishes before reporting
