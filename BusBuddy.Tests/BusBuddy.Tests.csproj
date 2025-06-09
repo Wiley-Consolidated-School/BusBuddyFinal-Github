@@ -50,9 +50,7 @@
   <ItemGroup>
     <Compile Remove="**/*Fixed.cs" />
     <Compile Remove="**/*.backup.cs" />
-    <!-- Temporarily exclude files with namespace resolution issues until fixed -->
-    <Compile Remove="DataAccessTests.cs" />
-    <Compile Remove="IntegrationTests.cs" />
+    <!-- Re-enabled previously excluded test files with fixed namespace issues -->
     <!-- Removed excessive test file exclusions to enable all tests -->
   </ItemGroup>
 </Project>

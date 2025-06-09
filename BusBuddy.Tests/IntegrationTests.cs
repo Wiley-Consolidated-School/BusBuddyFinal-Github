@@ -3,18 +3,19 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using BusBuddy.Data;
 using BusBuddy.Models;
 using BusBuddy.Business;
+using IVehicleRepo = BusBuddy.Data.IVehicleRepository;
 
 namespace BusBuddy.Tests
 {
     public class IntegrationTests
-    {        private readonly Mock<IVehicleRepository> _mockRepo;
+    {
+        private readonly Mock<IVehicleRepo> _mockRepo;
         
         public IntegrationTests()
         {
-            _mockRepo = new Mock<IVehicleRepository>();
+            _mockRepo = new Mock<IVehicleRepo>();
         }
         
         [Fact]
