@@ -4,7 +4,8 @@ using Xunit;
 namespace BusBuddy.Tests
 {
     public class ReadmeTest
-    {        [Fact]
+    {
+        [Fact]
         public void TestInstructions()
         {
             // This test serves as documentation

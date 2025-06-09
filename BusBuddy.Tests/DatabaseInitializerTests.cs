@@ -107,12 +107,12 @@ namespace BusBuddy.Tests
 
             try
             {
-                // Act
-                DatabaseInitializer.InitializeDatabase();
+            // Act
+            DatabaseInitializer.InitializeDatabase();
 
-                // Assert
-                using (var connection = new SqlConnection(connectionString))
-                {
+            // Assert
+            using (var connection = new SqlConnection(connectionString))
+            {
                     connection.Open();
                     
                     // Verify tables exist
@@ -120,20 +120,20 @@ namespace BusBuddy.Tests
                     Assert.Equal(9, tableCount); // 9 tables should exist
                     
                     // Additional assertions for SQL Server
-                }
+            }
             }
             finally
             {
-                // Cleanup - drop test database
-                using (var connection = new SqlConnection("Server=localhost;Database=master;Trusted_Connection=True;"))
-                {
+            // Cleanup - drop test database
+            using (var connection = new SqlConnection("Server=localhost;Database=master;Trusted_Connection=True;"))
+            {
                     connection.Open();
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "DROP DATABASE IF EXISTS BusBuddyTest";
                         cmd.ExecuteNonQuery();
                     }
-                }
+            }
             }
             */
         }

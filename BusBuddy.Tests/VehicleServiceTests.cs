@@ -56,7 +56,7 @@ namespace BusBuddy.Tests
             var result = !string.IsNullOrEmpty(vehicleNumber) && vehicleNumber.Length >= 3;            // Assert
             Assert.Equal(expected, result);
         }
-        
+
         [Fact]
         public void VehicleService_ShouldHandleNullValues()
         {

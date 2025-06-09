@@ -1,0 +1,45 @@
+version: 2
+updates:
+  # Enable version updates for NuGet
+  - package-ecosystem: "nuget"
+    # Look for NuGet dependency info from the root directory
+    directory: "/"
+    # Check for updates daily for faster response
+    schedule:
+      interval: "daily"
+      time: "06:00"  # Check at 6:00 AM UTC
+      timezone: "America/Denver"  # Align with MDT (UTC-6)
+    # Set reviewers for pull requests
+    reviewers:
+      - "Wiley-Consolidated-School/developers"
+    # Assign to team for tracking
+    assignees:
+      - "Wiley-Consolidated-School/developers"
+    # Allow up to 5 open pull requests for manageability
+    open-pull-requests-limit: 5
+    # Specify labels for pull requests
+    labels:
+      - "dependencies"
+      - "automated"
+      - "security"  # Add for visibility of security updates
+    # Group related updates to reduce PR clutter
+    groups:
+      minor-patches:
+        patterns:
+          - "*"  # Group all minor and patch updates
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+    # Ignore certain updates to avoid breaking changes
+    ignore:
+      # Ignore major version updates for critical packages
+      - dependency-name: "Microsoft.Data.SqlClient"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.Extensions.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "System.Data.SqlClient"
+        update-types: ["version-update:semver-major"]
+    # Commit message preferences
+    commit-message:
+      prefix: "chore"  # Use 'chore' for dependency updates
+      include: "scope"  # Include package name in scope
