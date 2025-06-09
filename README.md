@@ -2,7 +2,7 @@
 Create a Dashboard - C#, SQL Server, WinForms &amp; OOP / By Date Range
 
 [![.NET Build and Test](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/dotnet.yml)
-[![Code Analysis](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/sonarcloud.yml)
+[![Code Quality](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/code-quality.yml/badge.svg)](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/code-quality.yml)
 
 ## Features
 - Bus fleet management
@@ -16,7 +16,7 @@ Create a Dashboard - C#, SQL Server, WinForms &amp; OOP / By Date Range
 This project uses GitHub Actions for continuous integration and deployment:
 
 - **Build and Test**: Automatically builds the application and runs tests on every push and pull request
-- **Code Analysis**: Runs SonarCloud code quality analysis to maintain code standards
+- **Code Quality**: Runs code style checks, static analysis, and generates code coverage reports
 - **Release Creation**: Automatically creates releases with compiled binaries when version tags are pushed
 
 ## Getting Started

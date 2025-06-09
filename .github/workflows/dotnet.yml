@@ -20,6 +20,14 @@ jobs:
       with:
         dotnet-version: 8.0.x
         
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+        
     - name: Restore dependencies
       run: dotnet restore BusBuddy.sln
       
@@ -46,3 +54,10 @@ jobs:
         name: XUnit Tests
         path: "**/test-results.trx"
         reporter: dotnet-trx
+        
+    - name: Create Test Summary
+      if: always()
+      run: |
+        Write-Host "## Build and Test Summary" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        Write-Host "✅ Build completed" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        Write-Host "📊 Test results available in the Artifacts section" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append

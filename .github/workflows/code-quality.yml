@@ -1,0 +1,65 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  analyze:
+    name: Static Code Analysis
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          
+      - name: Restore dependencies
+        run: dotnet restore BusBuddy.sln
+        
+      - name: Build
+        run: dotnet build BusBuddy.sln --no-restore --configuration Release
+      
+      # Add .NET format check to ensure code follows style guidelines
+      - name: Install dotnet format
+        run: dotnet tool install -g dotnet-format
+        
+      - name: Check code formatting
+        run: dotnet format --verify-no-changes --verbosity diagnostic
+      
+      # Run built-in code analysis
+      - name: .NET Code Analysis
+        run: dotnet build BusBuddy.sln /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest
+      
+      # Run tests with code coverage
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+        
+      - name: Test with coverage
+        run: dotnet test BusBuddy.Tests/BusBuddy.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage
+        
+      - name: Generate coverage report
+        run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coveragereport -reporttypes:Html
+        
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: ./coveragereport
+          retention-days: 7
+          
+      # Optional: Add SonarCloud analysis if configured in the future
+      # Uncomment below section when you set up SonarCloud
+      # - name: SonarCloud Scan
+      #   if: false # Change to "${{ secrets.SONAR_TOKEN != '' }}" when you set up SonarCloud
+      #   uses: SonarSource/sonarcloud-github-action@master
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
