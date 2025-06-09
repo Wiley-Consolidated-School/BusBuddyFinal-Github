@@ -1,0 +1,48 @@
+name: .NET Build and Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore BusBuddy.sln
+      
+    - name: Build
+      run: dotnet build BusBuddy.sln --no-restore --configuration Release
+    
+    - name: Publish Application
+      run: dotnet publish BusBuddy.sln -c Release --no-build -o publish
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: BusBuddy-app
+        path: publish/**
+        retention-days: 7
+      
+    - name: Test
+      run: dotnet test BusBuddy.Tests/BusBuddy.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+      
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: XUnit Tests
+        path: "**/test-results.trx"
+        reporter: dotnet-trx
