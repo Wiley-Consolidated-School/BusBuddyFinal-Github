@@ -29,12 +29,13 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for better versioning
-    
+        
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-          # Simplified SQLite setup - embedded SQLite works for tests
+        
+    # Simplified SQLite setup - embedded SQLite works for tests
     - name: Setup SQLite (Optional)
       run: |
         Write-Host "Checking SQLite availability..."
@@ -142,16 +143,15 @@ jobs:
         name: coverage-reports
         path: TestResults/**/coverage.cobertura.xml
         retention-days: 30
-          # Optional: Code coverage reporting (with token for rate limit handling)
+      # Optional: Code coverage reporting (with token for rate limit handling)
     - name: Upload coverage to Codecov
       if: always()
       uses: codecov/codecov-action@v4
       with:
-        file: TestResults/**/coverage.cobertura.xml
+        files: TestResults/**/coverage.cobertura.xml
         fail_ci_if_error: false
         verbose: true
         token: ${{ secrets.CODECOV_TOKEN }}
-        slug: Bigessfour/BusBuddyHelper
         
   # Separate job for deployment readiness checks
   deployment-check:
