@@ -19,14 +19,30 @@ jobs:
         with:
           dotnet-version: 8.0.x
       
+      - name: List repository contents
+        run: |
+          dir
+          if (Test-Path "BusBuddy.sln") { Write-Host "Solution file found in root" } else { Write-Host "Solution file not found in root" }
+          
+      - name: Find solution file
+        run: |
+          Get-ChildItem -Path . -Filter *.sln -Recurse
+      
       - name: Restore dependencies
-        run: dotnet restore BusBuddy.sln
+        run: |
+          $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
+          Write-Host "Found solution at $solutionPath"
+          dotnet restore $solutionPath
       
       - name: Build
-        run: dotnet build BusBuddy.sln --no-restore --configuration Release
+        run: |
+          $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
+          dotnet build $solutionPath --no-restore --configuration Release
       
       - name: Publish Application
-        run: dotnet publish BusBuddy.sln -c Release --no-build -o publish
+        run: |
+          $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
+          dotnet publish $solutionPath -c Release --no-build -o publish
       
       - name: Create Zip Archive
         run: Compress-Archive -Path publish\* -DestinationPath BusBuddy.zip

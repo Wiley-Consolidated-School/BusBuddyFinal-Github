@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -19,6 +19,15 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+        
+    - name: List repository contents
+      run: |
+        dir
+        if (Test-Path "BusBuddy.sln") { Write-Host "Solution file found in root" } else { Write-Host "Solution file not found in root" }
+        
+    - name: Find solution file
+      run: |
+        Get-ChildItem -Path . -Filter *.sln -Recurse
         
     - name: Cache NuGet packages
       uses: actions/cache@v3
@@ -29,13 +38,20 @@ jobs:
           ${{ runner.os }}-nuget-
         
     - name: Restore dependencies
-      run: dotnet restore BusBuddy.sln
+      run: |
+        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
+        Write-Host "Found solution at $solutionPath"
+        dotnet restore $solutionPath
       
     - name: Build
-      run: dotnet build BusBuddy.sln --no-restore --configuration Release
+      run: |
+        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
+        dotnet build $solutionPath --no-restore --configuration Release
     
     - name: Publish Application
-      run: dotnet publish BusBuddy.sln -c Release --no-build -o publish
+      run: |
+        $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
+        dotnet publish $solutionPath -c Release --no-build -o publish
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -44,8 +60,15 @@ jobs:
         path: publish/**
         retention-days: 7
       
+    - name: Find test projects
+      run: |
+        Get-ChildItem -Path . -Filter *Tests.csproj -Recurse
+        
     - name: Test
-      run: dotnet test BusBuddy.Tests/BusBuddy.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+      run: |
+        $testProject = (Get-ChildItem -Path . -Filter *Tests.csproj -Recurse | Select-Object -First 1).FullName
+        Write-Host "Running tests for $testProject"
+        dotnet test $testProject --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
       
     - name: Test Report
       uses: dorny/test-reporter@v1
