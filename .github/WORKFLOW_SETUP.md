@@ -79,6 +79,18 @@ If using branch protection on `master`:
 - Validates release build
 - Saves deployment artifacts (7-day retention)
 
+### Dependabot Auto-Approval
+- **Automated PR Management**: Auto-approves safe patch updates
+- **Safety Checks**: Only patches, excludes critical packages
+- **CI Integration**: Waits for all tests to pass before merging
+- **Smart Commenting**: Explains decisions for transparency
+
+### Security Scanning
+- **Weekly Vulnerability Scans**: Automated dependency security checks
+- **GitHub Integration**: Creates issues for critical findings
+- **Comprehensive Reporting**: Detailed vulnerability and outdated package analysis
+- **PR Integration**: Comments on dependency-related pull requests
+
 ## Troubleshooting
 
 ### No TRX Files Found
@@ -113,8 +125,13 @@ pwsh .\generate-coverage.ps1
 ## Workflow Files
 
 - **Main workflow**: `.github/workflows/dotnet.yml`
+- **Code quality**: `.github/workflows/code-quality.yml`
+- **Release management**: `.github/workflows/release.yml`
+- **Dependabot auto-approval**: `.github/workflows/dependabot-auto-approve.yml`
+- **Security scanning**: `.github/workflows/dependency-security-scan.yml`
 - **Coverage config**: `codecov.yml`
 - **Test settings**: `coverlet.runsettings`
+- **Dependency config**: `.github/dependabot.yml`
 
 ## Support
 

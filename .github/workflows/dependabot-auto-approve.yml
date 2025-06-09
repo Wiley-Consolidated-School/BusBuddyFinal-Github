@@ -1,0 +1,145 @@
+name: Dependabot Auto-Approve
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Security: Only allow Dependabot PRs to trigger this workflow
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  checks: read
+
+jobs:
+  dependabot-auto-approve:
+    runs-on: windows-latest
+    # Only run for Dependabot PRs
+    if: github.actor == 'dependabot[bot]'
+    
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Check if auto-approval is safe
+        id: safety-check
+        run: |
+          # Only auto-approve patch updates for security and low-risk changes
+          $updateType = "${{ steps.metadata.outputs.update-type }}"
+          $dependencyType = "${{ steps.metadata.outputs.dependency-type }}"
+          $packageName = "${{ steps.metadata.outputs.dependency-names }}"
+          
+          Write-Host "🔍 Analyzing Dependabot PR:"
+          Write-Host "  - Update Type: $updateType"
+          Write-Host "  - Dependency Type: $dependencyType"  
+          Write-Host "  - Package: $packageName"
+          
+          # Define auto-approval criteria
+          $safeUpdateTypes = @("version-update:semver-patch")
+          $excludedPackages = @(
+            "Microsoft.Data.SqlClient",
+            "System.Data.SqlClient", 
+            "Microsoft.AspNetCore.*",
+            "Microsoft.Extensions.Hosting.*"
+          )
+          
+          $isAutoApprovable = $false
+          
+          # Check if update type is safe
+          if ($updateType -in $safeUpdateTypes) {
+            Write-Host "✅ Update type '$updateType' is safe for auto-approval"
+            
+            # Check if package is not in exclusion list
+            $isExcluded = $false
+            foreach ($excludedPkg in $excludedPackages) {
+              if ($packageName -like $excludedPkg) {
+                $isExcluded = $true
+                Write-Host "⚠️  Package '$packageName' is in exclusion list"
+                break
+              }
+            }
+            
+            if (-not $isExcluded) {
+              $isAutoApprovable = $true
+              Write-Host "✅ Package '$packageName' is safe for auto-approval"
+            }
+          } else {
+            Write-Host "⚠️  Update type '$updateType' requires manual review"
+          }
+          
+          # Set output for next steps
+          if ($isAutoApprovable) {
+            Write-Host "🚀 PR approved for auto-merge"
+            "auto_approve=true" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "👀 PR requires manual review"
+            "auto_approve=false" >> $env:GITHUB_OUTPUT
+          }
+          
+      - name: Wait for CI checks
+        if: steps.safety-check.outputs.auto_approve == 'true'
+        uses: fountainhead/action-wait-for-check@v1.2.0
+        id: wait-for-checks
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: build
+          ref: ${{ github.event.pull_request.head.sha }}
+          timeoutSeconds: 600  # Wait up to 10 minutes
+          intervalSeconds: 30   # Check every 30 seconds
+          
+      - name: Auto-approve PR
+        if: steps.safety-check.outputs.auto_approve == 'true' && steps.wait-for-checks.outputs.conclusion == 'success'
+        run: |
+          Write-Host "✅ All checks passed, auto-approving Dependabot PR"
+          gh pr review --approve "${{ github.event.pull_request.number }}" --body "🤖 Auto-approved patch update after successful CI checks"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Auto-merge PR
+        if: steps.safety-check.outputs.auto_approve == 'true' && steps.wait-for-checks.outputs.conclusion == 'success'
+        run: |
+          Write-Host "🚀 Auto-merging approved Dependabot PR"
+          gh pr merge "${{ github.event.pull_request.number }}" --auto --squash --delete-branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Comment on manual review required
+        if: steps.safety-check.outputs.auto_approve == 'false'
+        run: |
+          $comment = @"
+          🔍 **Manual Review Required**
+          
+          This Dependabot PR requires manual review because:
+          - Update type: ``${{ steps.metadata.outputs.update-type }}``
+          - Dependency: ``${{ steps.metadata.outputs.dependency-names }}``
+          
+          **Auto-approval criteria:**
+          - ✅ Only patch updates (``version-update:semver-patch``)
+          - ✅ Not in critical package exclusion list
+          - ✅ All CI checks must pass
+          
+          Please review and approve manually if the changes are acceptable.
+          "@
+          
+          gh pr comment "${{ github.event.pull_request.number }}" --body $comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Comment on CI failure
+        if: steps.safety-check.outputs.auto_approve == 'true' && steps.wait-for-checks.outputs.conclusion != 'success'
+        run: |
+          $comment = @"
+          ❌ **Auto-merge Blocked**
+          
+          This Dependabot PR met the criteria for auto-approval but CI checks failed:
+          - Check status: ``${{ steps.wait-for-checks.outputs.conclusion }}``
+          
+          Please investigate the CI failures before merging.
+          "@
+          
+          gh pr comment "${{ github.event.pull_request.number }}" --body $comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
