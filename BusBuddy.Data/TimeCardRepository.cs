@@ -11,7 +11,7 @@ namespace BusBuddy.Data
         public TimeCardRepository() : base()
         {
         }
-        
+
         public List<TimeCard> GetAllTimeCards()
         {
             using (var connection = CreateConnection())
@@ -21,54 +21,54 @@ namespace BusBuddy.Data
                 return timeCards;
             }
         }
-        
+
         public TimeCard GetTimeCardById(int id)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 return connection.QuerySingleOrDefault<TimeCard>(
-                    "SELECT * FROM TimeCard WHERE TimeCardID = @TimeCardID", 
+                    "SELECT * FROM TimeCard WHERE TimeCardID = @TimeCardID",
                     new { TimeCardID = id });
             }
         }
-        
+
         public List<TimeCard> GetTimeCardsByDate(DateTime date)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var timeCards = connection.Query<TimeCard>(
-                    "SELECT * FROM TimeCard WHERE Date = @Date", 
+                    "SELECT * FROM TimeCard WHERE Date = @Date",
                     new { Date = date }).AsList();
                 return timeCards;
             }
         }
-        
+
         public List<TimeCard> GetTimeCardsByDateRange(DateTime startDate, DateTime endDate)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var timeCards = connection.Query<TimeCard>(
-                    "SELECT * FROM TimeCard WHERE Date BETWEEN @StartDate AND @EndDate", 
+                    "SELECT * FROM TimeCard WHERE Date BETWEEN @StartDate AND @EndDate",
                     new { StartDate = startDate, EndDate = endDate }).AsList();
                 return timeCards;
             }
         }
-        
+
         public List<TimeCard> GetTimeCardsByDayType(string dayType)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var timeCards = connection.Query<TimeCard>(
-                    "SELECT * FROM TimeCard WHERE DayType = @DayType", 
+                    "SELECT * FROM TimeCard WHERE DayType = @DayType",
                     new { DayType = dayType }).AsList();
                 return timeCards;
             }
         }
-        
+
         public int AddTimeCard(TimeCard timeCard)
         {
             using (var connection = CreateConnection())
@@ -88,11 +88,11 @@ namespace BusBuddy.Data
                         @TotalTime, @Overtime, @WeeklyTotal, @MonthlyTotal
                     );
                     SELECT CAST(SCOPE_IDENTITY() AS INT)";
-                
+
                 return connection.QuerySingle<int>(sql, timeCard);
             }
         }
-        
+
         public bool UpdateTimeCard(TimeCard timeCard)
         {
             using (var connection = CreateConnection())
@@ -115,12 +115,12 @@ namespace BusBuddy.Data
                         WeeklyTotal = @WeeklyTotal, 
                         MonthlyTotal = @MonthlyTotal
                     WHERE TimeCardID = @TimeCardID";
-                
+
                 var rowsAffected = connection.Execute(sql, timeCard);
                 return rowsAffected > 0;
             }
         }
-        
+
         public bool DeleteTimeCard(int id)
         {
             using (var connection = CreateConnection())

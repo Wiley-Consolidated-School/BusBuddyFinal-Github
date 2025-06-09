@@ -15,7 +15,7 @@ namespace BusBuddy.Models
         public string? DriversLicenseType { get; set; }  // CDL or Passenger
         public int TrainingComplete { get; set; }
         public string? Notes { get; set; }
-        
+
         // Helper property to convert between int and bool
         public bool IsTrainingComplete
         {

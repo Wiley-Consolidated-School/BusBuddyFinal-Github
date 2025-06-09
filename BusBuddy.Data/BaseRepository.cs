@@ -10,13 +10,13 @@ namespace BusBuddy.Data
     {
         protected readonly string _connectionString;
         protected readonly string _providerName;
-        
+
         protected BaseRepository()
         {
             _connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
             _providerName = ConfigurationManager.ConnectionStrings["DefaultConnection"].ProviderName;
         }
-        
+
         protected IDbConnection CreateConnection()
         {
             if (_providerName == "Microsoft.Data.Sqlite")

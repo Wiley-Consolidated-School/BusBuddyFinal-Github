@@ -146,7 +146,8 @@ namespace BusBuddy
             btnCancel.Size = new Size(75, 30);
             btnCancel.Click += btnCancel_Click;
             this.Controls.Add(btnCancel);
-        }        private void LoadVehicleData()
+        }
+        private void LoadVehicleData()
         {
             txtBusNumber.Text = Vehicle.BusNumber ?? string.Empty;
             numYear.Value = Vehicle.Year;
@@ -156,7 +157,8 @@ namespace BusBuddy
             txtVINNumber.Text = Vehicle.VINNumber ?? string.Empty;
             txtLicenseNumber.Text = Vehicle.LicenseNumber ?? string.Empty;
             dtpDateLastInspection.Value = Vehicle.DateLastInspection ?? DateTime.Now;
-        }        private void btnSave_Click(object sender, EventArgs e)
+        }
+        private void btnSave_Click(object sender, EventArgs e)
         {
             Vehicle.BusNumber = txtBusNumber.Text;
             Vehicle.Year = (int)numYear.Value;

@@ -19,7 +19,7 @@ namespace BusBuddy.Business
         private readonly ISchoolCalendarRepository _schoolCalendarRepository;
         private readonly IActivityScheduleRepository _activityScheduleRepository;
         private readonly ITimeCardRepository _timeCardRepository;
-        
+
         public DatabaseHelperService()
         {
             _vehicleRepository = new VehicleRepository();
@@ -32,7 +32,7 @@ namespace BusBuddy.Business
             _activityScheduleRepository = new ActivityScheduleRepository();
             _timeCardRepository = new TimeCardRepository();
         }
-        
+
         public Route GetRouteWithDetails(int routeId)
         {
             var route = _routeRepository.GetRouteById(routeId);
@@ -42,56 +42,56 @@ namespace BusBuddy.Business
                 {
                     route.AMVehicle = _vehicleRepository.GetVehicleById(route.AMVehicleID.Value);
                 }
-                
+
                 if (route.AMDriverID.HasValue)
                 {
                     route.AMDriver = _driverRepository.GetDriverById(route.AMDriverID.Value);
                 }
-                
+
                 if (route.PMVehicleID.HasValue)
                 {
                     route.PMVehicle = _vehicleRepository.GetVehicleById(route.PMVehicleID.Value);
                 }
-                
+
                 if (route.PMDriverID.HasValue)
                 {
                     route.PMDriver = _driverRepository.GetDriverById(route.PMDriverID.Value);
                 }
             }
-            
+
             return route;
         }
-        
+
         public List<Route> GetRoutesWithDetailsByDate(DateTime date)
         {
             var routes = _routeRepository.GetRoutesByDate(date);
-            
+
             foreach (var route in routes)
             {
                 if (route.AMVehicleID.HasValue)
                 {
                     route.AMVehicle = _vehicleRepository.GetVehicleById(route.AMVehicleID.Value);
                 }
-                
+
                 if (route.AMDriverID.HasValue)
                 {
                     route.AMDriver = _driverRepository.GetDriverById(route.AMDriverID.Value);
                 }
-                
+
                 if (route.PMVehicleID.HasValue)
                 {
                     route.PMVehicle = _vehicleRepository.GetVehicleById(route.PMVehicleID.Value);
                 }
-                
+
                 if (route.PMDriverID.HasValue)
                 {
                     route.PMDriver = _driverRepository.GetDriverById(route.PMDriverID.Value);
                 }
             }
-            
+
             return routes;
         }
-        
+
         public Activity GetActivityWithDetails(int activityId)
         {
             var activity = _activityRepository.GetActivityById(activityId);
@@ -101,16 +101,16 @@ namespace BusBuddy.Business
                 {
                     activity.AssignedVehicle = _vehicleRepository.GetVehicleById(activity.AssignedVehicleID.Value);
                 }
-                
+
                 if (activity.DriverID.HasValue)
                 {
                     activity.Driver = _driverRepository.GetDriverById(activity.DriverID.Value);
                 }
             }
-            
+
             return activity;
         }
-        
+
         public Fuel GetFuelRecordWithDetails(int fuelId)
         {
             var fuelRecord = _fuelRepository.GetFuelRecordById(fuelId);
@@ -118,10 +118,10 @@ namespace BusBuddy.Business
             {
                 fuelRecord.VehicleFueled = _vehicleRepository.GetVehicleById(fuelRecord.VehicleFueledID.Value);
             }
-            
+
             return fuelRecord;
         }
-        
+
         public Maintenance GetMaintenanceWithDetails(int maintenanceId)
         {
             var maintenance = _maintenanceRepository.GetMaintenanceById(maintenanceId);
@@ -129,10 +129,10 @@ namespace BusBuddy.Business
             {
                 maintenance.Vehicle = _vehicleRepository.GetVehicleById(maintenance.VehicleID.Value);
             }
-            
+
             return maintenance;
         }
-        
+
         public ActivitySchedule GetActivityScheduleWithDetails(int scheduleId)
         {
             var schedule = _activityScheduleRepository.GetScheduledActivityById(scheduleId);
@@ -142,16 +142,16 @@ namespace BusBuddy.Business
                 {
                     schedule.ScheduledVehicle = _vehicleRepository.GetVehicleById(schedule.ScheduledVehicleID.Value);
                 }
-                
+
                 if (schedule.ScheduledDriverID.HasValue)
                 {
                     schedule.ScheduledDriver = _driverRepository.GetDriverById(schedule.ScheduledDriverID.Value);
                 }
             }
-            
+
             return schedule;
         }
-        
+
         // Get vehicle with all associated records
         public VehicleDetailsViewModel GetVehicleDetails(int vehicleId)
         {
@@ -160,7 +160,7 @@ namespace BusBuddy.Business
             {
                 return null;
             }
-            
+
             var details = new VehicleDetailsViewModel
             {
                 Vehicle = vehicle,
@@ -171,10 +171,10 @@ namespace BusBuddy.Business
                 MaintenanceRecords = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId),
                 ScheduledActivities = _activityScheduleRepository.GetScheduledActivitiesByVehicle(vehicleId)
             };
-            
+
             return details;
         }
-        
+
         // Get driver with all associated records
         public DriverDetailsViewModel GetDriverDetails(int driverId)
         {
@@ -183,7 +183,7 @@ namespace BusBuddy.Business
             {
                 return null;
             }
-            
+
             var details = new DriverDetailsViewModel
             {
                 Driver = driver,
@@ -192,11 +192,11 @@ namespace BusBuddy.Business
                 Activities = _activityRepository.GetActivitiesByDriver(driverId),
                 ScheduledActivities = _activityScheduleRepository.GetScheduledActivitiesByDriver(driverId)
             };
-            
+
             return details;
         }
     }
-    
+
     public class VehicleDetailsViewModel
     {
         public Vehicle Vehicle { get; set; }
@@ -207,7 +207,7 @@ namespace BusBuddy.Business
         public List<Maintenance> MaintenanceRecords { get; set; }
         public List<ActivitySchedule> ScheduledActivities { get; set; }
     }
-    
+
     public class DriverDetailsViewModel
     {
         public Driver Driver { get; set; }

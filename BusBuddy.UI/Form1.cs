@@ -102,7 +102,7 @@ namespace BusBuddy
         private async void LoadVehicleDataAsync()
         {
             if (_vehicleService == null) return;
-            
+
             try
             {
                 var vehicles = await _vehicleService.GetAllVehiclesAsync();
@@ -144,7 +144,7 @@ namespace BusBuddy
 
         private async void btnAddVehicle_Click(object sender, EventArgs e)
         {
-            if (_vehicleService == null) 
+            if (_vehicleService == null)
             {
                 MessageBox.Show("Vehicle service not available", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;

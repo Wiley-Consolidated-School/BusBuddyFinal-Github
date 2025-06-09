@@ -53,11 +53,11 @@ namespace BusBuddy.Tests
         public void ValidateVehicleNumber_Theory_ShouldValidateCorrectly(string vehicleNumber, bool expected)
         {
             // Act
-            var result = !string.IsNullOrEmpty(vehicleNumber) && vehicleNumber.Length >= 3;
-
-            // Assert
+            var result = !string.IsNullOrEmpty(vehicleNumber) && vehicleNumber.Length >= 3;            // Assert
             Assert.Equal(expected, result);
-        }        [Fact]
+        }
+        
+        [Fact]
         public void VehicleService_ShouldHandleNullValues()
         {
             // Arrange

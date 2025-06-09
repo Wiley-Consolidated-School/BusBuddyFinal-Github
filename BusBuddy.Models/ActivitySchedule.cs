@@ -15,7 +15,7 @@ namespace BusBuddy.Models
         public int? ScheduledRiders { get; set; }
         public int? ScheduledDriverID { get; set; }
         public string? Notes { get; set; }
-        
+
         // Navigation properties
         public Vehicle? ScheduledVehicle { get; set; }
         public Driver? ScheduledDriver { get; set; }

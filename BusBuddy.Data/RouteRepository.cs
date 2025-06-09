@@ -11,7 +11,7 @@ namespace BusBuddy.Data
         public RouteRepository() : base()
         {
         }
-        
+
         public List<Route> GetAllRoutes()
         {
             using (var connection = CreateConnection())
@@ -21,54 +21,54 @@ namespace BusBuddy.Data
                 return routes;
             }
         }
-        
+
         public Route GetRouteById(int id)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 return connection.QuerySingleOrDefault<Route>(
-                    "SELECT * FROM Routes WHERE RouteID = @RouteID", 
+                    "SELECT * FROM Routes WHERE RouteID = @RouteID",
                     new { RouteID = id });
             }
         }
-        
+
         public List<Route> GetRoutesByDate(DateTime date)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var routes = connection.Query<Route>(
-                    "SELECT * FROM Routes WHERE Date = @Date", 
+                    "SELECT * FROM Routes WHERE Date = @Date",
                     new { Date = date }).AsList();
                 return routes;
             }
         }
-        
+
         public List<Route> GetRoutesByDriver(int driverId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var routes = connection.Query<Route>(
-                    "SELECT * FROM Routes WHERE AMDriverID = @DriverID OR PMDriverID = @DriverID", 
+                    "SELECT * FROM Routes WHERE AMDriverID = @DriverID OR PMDriverID = @DriverID",
                     new { DriverID = driverId }).AsList();
                 return routes;
             }
         }
-        
+
         public List<Route> GetRoutesByVehicle(int vehicleId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var routes = connection.Query<Route>(
-                    "SELECT * FROM Routes WHERE AMVehicleID = @VehicleID OR PMVehicleID = @VehicleID", 
+                    "SELECT * FROM Routes WHERE AMVehicleID = @VehicleID OR PMVehicleID = @VehicleID",
                     new { VehicleID = vehicleId }).AsList();
                 return routes;
             }
         }
-        
+
         public int AddRoute(Route route)
         {
             using (var connection = CreateConnection())
@@ -86,11 +86,11 @@ namespace BusBuddy.Data
                         @PMVehicleID, @PMBeginMiles, @PMEndMiles, @PMRiders, @PMDriverID
                     );
                     SELECT CAST(SCOPE_IDENTITY() AS INT)";
-                
+
                 return connection.QuerySingle<int>(sql, route);
             }
         }
-        
+
         public bool UpdateRoute(Route route)
         {
             using (var connection = CreateConnection())
@@ -111,12 +111,12 @@ namespace BusBuddy.Data
                         PMRiders = @PMRiders, 
                         PMDriverID = @PMDriverID
                     WHERE RouteID = @RouteID";
-                
+
                 var rowsAffected = connection.Execute(sql, route);
                 return rowsAffected > 0;
             }
         }
-        
+
         public bool DeleteRoute(int id)
         {
             using (var connection = CreateConnection())

@@ -9,13 +9,11 @@ namespace BusBuddy.Tests
 {
     public class VehicleRepositoryTests : IDisposable
     {
-        private readonly SqliteConnection _connection;
-
-        public VehicleRepositoryTests()
+        private readonly SqliteConnection _connection;        public VehicleRepositoryTests()
         {
             _connection = new SqliteConnection("Data Source=:memory:");
             _connection.Open();
-            
+
             // Create test table
             _connection.Execute(@"
                 CREATE TABLE Vehicles (
@@ -33,16 +31,16 @@ namespace BusBuddy.Tests
         public void CreateVehicle_ShouldReturnId_WhenValidData()
         {
             // Arrange
-            var vehicleData = new 
-            { 
-                VehicleNumber = "BUS001", 
-                Make = "Ford", 
-                Model = "Transit", 
-                Year = 2020, 
-                Mileage = 50000, 
-                Status = "Active" 
+            var vehicleData = new
+            {
+                VehicleNumber = "BUS001",
+                Make = "Ford",
+                Model = "Transit",
+                Year = 2020,
+                Mileage = 50000,
+                Status = "Active"
             };
-            
+
             // Act
             var id = _connection.QuerySingle<int>(@"
                 INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Mileage, Status) 

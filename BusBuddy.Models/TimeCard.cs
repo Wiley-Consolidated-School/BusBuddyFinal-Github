@@ -21,7 +21,7 @@ namespace BusBuddy.Models
         public decimal? WeeklyTotal { get; set; }
         public decimal? MonthlyTotal { get; set; }
         public string? Notes { get; set; }
-        
+
         // Navigation property
         public Driver? Driver { get; set; }
     }

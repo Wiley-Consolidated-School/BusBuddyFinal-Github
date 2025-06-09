@@ -13,7 +13,7 @@ namespace BusBuddy.Models
         public decimal? FuelAmount { get; set; }
         public decimal? FuelCost { get; set; }
         public string? Notes { get; set; }
-        
+
         // Navigation property
         public Vehicle? VehicleFueled { get; set; }
     }

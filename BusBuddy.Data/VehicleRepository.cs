@@ -11,7 +11,7 @@ namespace BusBuddy.Data
         public VehicleRepository() : base()
         {
         }
-        
+
         public List<Vehicle> GetAllVehicles()
         {
             using (var connection = CreateConnection())
@@ -21,7 +21,7 @@ namespace BusBuddy.Data
                 return vehicles;
             }
         }
-        
+
         public Vehicle GetVehicleById(int id)
         {
             using (var connection = CreateConnection())
@@ -30,7 +30,7 @@ namespace BusBuddy.Data
                 return connection.QuerySingleOrDefault<Vehicle>("SELECT * FROM Vehicles WHERE Id = @Id", new { Id = id });
             }
         }
-        
+
         public int AddVehicle(Vehicle vehicle)
         {
             using (var connection = CreateConnection())
@@ -40,11 +40,11 @@ namespace BusBuddy.Data
                     INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Capacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
                     VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
                     SELECT CAST(SCOPE_IDENTITY() AS INT)";
-                
+
                 return connection.QuerySingle<int>(sql, vehicle);
             }
         }
-        
+
         public bool UpdateVehicle(Vehicle vehicle)
         {
             using (var connection = CreateConnection())
@@ -63,12 +63,12 @@ namespace BusBuddy.Data
                         LicenseNumber = @LicenseNumber,
                         DateLastInspection = @DateLastInspection
                     WHERE Id = @Id";
-                
+
                 var rowsAffected = connection.Execute(sql, vehicle);
                 return rowsAffected > 0;
             }
         }
-        
+
         public bool DeleteVehicle(int id)
         {
             using (var connection = CreateConnection())

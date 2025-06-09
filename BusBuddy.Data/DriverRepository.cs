@@ -11,7 +11,7 @@ namespace BusBuddy.Data
         public DriverRepository() : base()
         {
         }
-        
+
         public List<Driver> GetAllDrivers()
         {
             using (var connection = CreateConnection())
@@ -21,35 +21,35 @@ namespace BusBuddy.Data
                 return drivers;
             }
         }
-        
+
         public Driver GetDriverById(int id)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 return connection.QuerySingleOrDefault<Driver>(
-                    "SELECT * FROM Drivers WHERE DriverID = @DriverID", 
+                    "SELECT * FROM Drivers WHERE DriverID = @DriverID",
                     new { DriverID = id });
             }
         }
-        
+
         public List<Driver> GetDriversByLicenseType(string licenseType)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var drivers = connection.Query<Driver>(
-                    "SELECT * FROM Drivers WHERE DriversLicenseType = @LicenseType", 
+                    "SELECT * FROM Drivers WHERE DriversLicenseType = @LicenseType",
                     new { LicenseType = licenseType }).AsList();
                 return drivers;
             }
         }
-        
+
         public int AddDriver(Driver driver)
         {
             using (var connection = CreateConnection())
             {
-                connection.Open();                var sql = @"
+                connection.Open(); var sql = @"
                     INSERT INTO Drivers (
                         DriverName, DriverPhone, DriverEmail, 
                         Address, City, State, Zip, 
@@ -61,11 +61,11 @@ namespace BusBuddy.Data
                         @DriversLicenseType, @TrainingComplete, @Notes
                     );
                     SELECT CAST(SCOPE_IDENTITY() AS INT)";
-                
+
                 return connection.QuerySingle<int>(sql, driver);
             }
         }
-        
+
         public bool UpdateDriver(Driver driver)
         {
             using (var connection = CreateConnection())
@@ -83,12 +83,12 @@ namespace BusBuddy.Data
                         TrainingComplete = @TrainingComplete,
                         Notes = @Notes
                     WHERE DriverID = @DriverID";
-                
+
                 var rowsAffected = connection.Execute(sql, driver);
                 return rowsAffected > 0;
             }
         }
-        
+
         public bool DeleteDriver(int id)
         {
             using (var connection = CreateConnection())

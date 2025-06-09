@@ -8,12 +8,12 @@ namespace BusBuddy.UI
     {
         protected readonly ErrorProvider _errorProvider;
         protected readonly DatabaseHelperService _databaseService;
-        
+
         public BaseDataForm()
         {
             _errorProvider = new ErrorProvider();
             _databaseService = new DatabaseHelperService();
-            
+
             // Set common form properties
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -21,7 +21,7 @@ namespace BusBuddy.UI
             this.MinimizeBox = false;
             this.Size = new System.Drawing.Size(800, 600);
         }
-        
+
         protected Label CreateLabel(string text, int x, int y)
         {
             Label label = new Label();
@@ -31,7 +31,7 @@ namespace BusBuddy.UI
             this.Controls.Add(label);
             return label;
         }
-        
+
         protected TextBox CreateTextBox(int x, int y, int width = 200)
         {
             TextBox textBox = new TextBox();
@@ -40,7 +40,7 @@ namespace BusBuddy.UI
             this.Controls.Add(textBox);
             return textBox;
         }
-        
+
         protected DateTimePicker CreateDatePicker(int x, int y, int width = 200)
         {
             DateTimePicker picker = new DateTimePicker();
@@ -50,7 +50,7 @@ namespace BusBuddy.UI
             this.Controls.Add(picker);
             return picker;
         }
-        
+
         protected ComboBox CreateComboBox(int x, int y, int width = 200)
         {
             ComboBox comboBox = new ComboBox();
@@ -60,7 +60,7 @@ namespace BusBuddy.UI
             this.Controls.Add(comboBox);
             return comboBox;
         }
-        
+
         protected Button CreateButton(string text, int x, int y, EventHandler? clickHandler = null)
         {
             Button button = new Button();
@@ -74,7 +74,7 @@ namespace BusBuddy.UI
             this.Controls.Add(button);
             return button;
         }
-        
+
         protected DataGridView CreateDataGridView(int x, int y, int width, int height)
         {
             DataGridView grid = new DataGridView();
@@ -89,7 +89,7 @@ namespace BusBuddy.UI
             this.Controls.Add(grid);
             return grid;
         }
-        
+
         protected CheckBox CreateCheckBox(string text, int x, int y)
         {
             CheckBox checkBox = new CheckBox();
@@ -99,7 +99,7 @@ namespace BusBuddy.UI
             this.Controls.Add(checkBox);
             return checkBox;
         }
-        
+
         protected GroupBox CreateGroupBox(string text, int x, int y, int width, int height)
         {
             GroupBox groupBox = new GroupBox();
@@ -109,28 +109,28 @@ namespace BusBuddy.UI
             this.Controls.Add(groupBox);
             return groupBox;
         }
-        
+
         protected void ShowSuccessMessage(string message)
         {
             MessageBox.Show(message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-        
+
         protected void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-        
+
         protected void ShowWarningMessage(string message)
         {
             MessageBox.Show(message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
-        
+
         protected bool ConfirmDelete()
         {
-            return MessageBox.Show("Are you sure you want to delete this record?", "Confirm Delete", 
+            return MessageBox.Show("Are you sure you want to delete this record?", "Confirm Delete",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
         }
-        
+
         protected bool ValidateForm()
         {
             // This should be overridden by derived classes to provide specific validation

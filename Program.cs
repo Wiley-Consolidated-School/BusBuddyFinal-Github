@@ -14,7 +14,7 @@ namespace BusBuddy
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            
+
             // Initialize database
             try
             {
@@ -22,10 +22,10 @@ namespace BusBuddy
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize database: {ex.Message}", "Database Error", 
+                MessageBox.Show($"Failed to initialize database: {ex.Message}", "Database Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            
+
             // Use the MainForm instead of Form1
             Application.Run(new MainForm());
         }

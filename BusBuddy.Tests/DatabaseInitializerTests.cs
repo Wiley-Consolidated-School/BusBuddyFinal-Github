@@ -13,7 +13,8 @@ using Moq;
 using System.Threading;
 
 namespace BusBuddy.Tests
-{    public class DatabaseInitializerTests
+{
+    public class DatabaseInitializerTests
     {
         private readonly string TestSqliteDbPath;
 
@@ -21,7 +22,8 @@ namespace BusBuddy.Tests
         {
             // Use a unique filename for each test instance to avoid locking issues
             TestSqliteDbPath = $"test_busbuddy_{Guid.NewGuid():N}.db";
-        }[Fact]
+        }
+        [Fact]
         public void DatabaseInitializer_ShouldCreateSqliteTables()
         {
             // Arrange
@@ -42,19 +44,19 @@ namespace BusBuddy.Tests
                 using (var connection = new SqliteConnection(connectionString))
                 {
                     connection.Open();
-                    
+
                     // Verify tables exist
                     var requiredTables = new List<string> {
-                        "Vehicles", "Drivers", "Routes", "Activities", "Fuel", 
+                        "Vehicles", "Drivers", "Routes", "Activities", "Fuel",
                         "Maintenance", "SchoolCalendar", "ActivitySchedule", "TimeCard"
                     };
-                    
+
                     foreach (var table in requiredTables)
                     {
                         var tableExists = TableExists(connection, table);
                         Assert.True(tableExists, $"Table {table} does not exist");
                     }
-                    
+
                     // Verify indexes exist
                     var requiredIndexes = new List<string> {
                         "idx_routes_date", "idx_routes_driver", "idx_routes_vehicle",
@@ -65,7 +67,7 @@ namespace BusBuddy.Tests
                         "idx_activityschedule_date", "idx_activityschedule_driver", "idx_activityschedule_vehicle",
                         "idx_timecard_date", "idx_timecard_daytype", "idx_timecard_driver"
                     };
-                    
+
                     foreach (var index in requiredIndexes)
                     {
                         var indexExists = IndexExists(connection, index);
@@ -79,7 +81,7 @@ namespace BusBuddy.Tests
                     Assert.Contains(vehicleColumns, c => c.Name == "Make" && c.Type == "TEXT");
                     Assert.Contains(vehicleColumns, c => c.Name == "Model" && c.Type == "TEXT");
                     Assert.Contains(vehicleColumns, c => c.Name == "Year" && c.Type == "INTEGER");
-                    Assert.Contains(vehicleColumns, c => c.Name == "SeatingCapacity" && c.Type == "INTEGER");                    Assert.Contains(vehicleColumns, c => c.Name == "FuelType" && c.Type == "TEXT");
+                    Assert.Contains(vehicleColumns, c => c.Name == "SeatingCapacity" && c.Type == "INTEGER"); Assert.Contains(vehicleColumns, c => c.Name == "FuelType" && c.Type == "TEXT");
                     Assert.Contains(vehicleColumns, c => c.Name == "Status" && c.Type == "TEXT");
                 }
             }
@@ -96,7 +98,7 @@ namespace BusBuddy.Tests
             // This test would need a SQL Server instance to test against
             // For demo purposes, it's marked as Skip
             // In a real environment, you would use a Docker container or test instance
-            
+
             // Example code for SQL Server test:
             /*
             // Arrange
@@ -134,7 +136,8 @@ namespace BusBuddy.Tests
                 }
             }
             */
-        }        [Fact]
+        }
+        [Fact]
         public void DatabaseInitializer_ShouldVerifyForeignKeyConstraints_InSqlite()
         {
             // Arrange
@@ -155,7 +158,7 @@ namespace BusBuddy.Tests
                 using (var connection = new SqliteConnection(connectionString))
                 {
                     connection.Open();
-                    
+
                     // Verify foreign keys are enabled
                     using (var cmd = connection.CreateCommand())
                     {
@@ -163,42 +166,44 @@ namespace BusBuddy.Tests
                         var foreignKeysEnabled = Convert.ToInt32(cmd.ExecuteScalar()) == 1;
                         Assert.True(foreignKeysEnabled, "Foreign keys should be enabled");
                     }
-                    
+
                     // Verify Routes table foreign keys
                     var routeForeignKeys = GetForeignKeys(connection, "Routes");
                     Assert.Contains(routeForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "AMVehicleID" && fk.To == "Id");
                     Assert.Contains(routeForeignKeys, fk => fk.Table == "Drivers" && fk.From == "AMDriverID" && fk.To == "DriverID");
                     Assert.Contains(routeForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "PMVehicleID" && fk.To == "Id");
                     Assert.Contains(routeForeignKeys, fk => fk.Table == "Drivers" && fk.From == "PMDriverID" && fk.To == "DriverID");
-                    
+
                     // Verify Activities table foreign keys
                     var activitiesForeignKeys = GetForeignKeys(connection, "Activities");
                     Assert.Contains(activitiesForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "AssignedVehicleID" && fk.To == "Id");
                     Assert.Contains(activitiesForeignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID" && fk.To == "DriverID");
-                    
+
                     // Verify Fuel table foreign keys
                     var fuelForeignKeys = GetForeignKeys(connection, "Fuel");
                     Assert.Contains(fuelForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "VehicleFueledID" && fk.To == "Id");
-                    
+
                     // Verify Maintenance table foreign keys
                     var maintenanceForeignKeys = GetForeignKeys(connection, "Maintenance");
                     Assert.Contains(maintenanceForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "VehicleID" && fk.To == "Id");
-                    
+
                     // Verify ActivitySchedule table foreign keys
                     var schedForeignKeys = GetForeignKeys(connection, "ActivitySchedule");
                     Assert.Contains(schedForeignKeys, fk => fk.Table == "Vehicles" && fk.From == "ScheduledVehicleID" && fk.To == "Id");
                     Assert.Contains(schedForeignKeys, fk => fk.Table == "Drivers" && fk.From == "ScheduledDriverID" && fk.To == "DriverID");
-                    
+
                     // Verify TimeCard table foreign keys
                     var timecardForeignKeys = GetForeignKeys(connection, "TimeCard");
-                    Assert.Contains(timecardForeignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID" && fk.To == "DriverID");                }
+                    Assert.Contains(timecardForeignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID" && fk.To == "DriverID");
+                }
             }
             finally
             {
                 // Cleanup
                 CleanupTestDb(TestSqliteDbPath);
             }
-        }        [Fact]
+        }
+        [Fact]
         public void DatabaseInitializer_ShouldVerifyAllTablesAndIndexes_InSqlite()
         {
             // Arrange
@@ -219,21 +224,21 @@ namespace BusBuddy.Tests
                 using (var connection = new SqliteConnection(connectionString))
                 {
                     connection.Open();
-                    
+
                     // Get all tables in the database
                     var tables = GetAllTables(connection);
-                    
+
                     // Check for all required tables
                     var requiredTables = new[] {
                         "Vehicles", "Drivers", "Routes", "Activities", "Fuel",
                         "Maintenance", "SchoolCalendar", "ActivitySchedule", "TimeCard"
                     };
-                    
+
                     foreach (var table in requiredTables)
                     {
                         Assert.Contains(table, tables);
                     }
-                    
+
                     // Check for all required indexes
                     var requiredIndexes = new[] {
                         "idx_routes_date", "idx_routes_driver", "idx_routes_vehicle",
@@ -244,13 +249,13 @@ namespace BusBuddy.Tests
                         "idx_activityschedule_date", "idx_activityschedule_driver", "idx_activityschedule_vehicle",
                         "idx_timecard_date", "idx_timecard_daytype", "idx_timecard_driver"
                     };
-                    
+
                     var indexes = GetAllIndexes(connection);
                     foreach (var index in requiredIndexes)
                     {
                         Assert.Contains(index, indexes);
                     }
-                    
+
                     // Check all tables have correct structure
                     VerifyVehiclesTableStructure(connection);
                     VerifyDriversTableStructure(connection);
@@ -262,7 +267,8 @@ namespace BusBuddy.Tests
                     VerifyActivityScheduleTableStructure(connection);
                     VerifyTimeCardTableStructure(connection);
                 }
-            }            finally
+            }
+            finally
             {
                 // Cleanup
                 CleanupTestDb(TestSqliteDbPath);
@@ -306,7 +312,7 @@ namespace BusBuddy.Tests
         private static void VerifyVehiclesTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "Vehicles");
-            
+
             Assert.Equal(13, columns.Count);
             Assert.Contains(columns, c => c.Name == "Id" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "VehicleNumber" && c.Type == "TEXT" && c.NotNull);
@@ -326,7 +332,7 @@ namespace BusBuddy.Tests
         private static void VerifyDriversTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "Drivers");
-            
+
             Assert.Equal(11, columns.Count);
             Assert.Contains(columns, c => c.Name == "DriverID" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "DriverName" && c.Type == "TEXT");
@@ -344,7 +350,7 @@ namespace BusBuddy.Tests
         private static void VerifyRoutesTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "Routes");
-            
+
             Assert.Equal(14, columns.Count);
             Assert.Contains(columns, c => c.Name == "RouteID" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "Date" && c.Type == "TEXT" && c.NotNull);
@@ -360,7 +366,7 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "PMRiders" && c.Type == "INTEGER");
             Assert.Contains(columns, c => c.Name == "PMDriverID" && c.Type == "INTEGER");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-            
+
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "Routes");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "AMVehicleID");
@@ -372,7 +378,7 @@ namespace BusBuddy.Tests
         private static void VerifyActivitiesTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "Activities");
-            
+
             Assert.Equal(11, columns.Count);
             Assert.Contains(columns, c => c.Name == "ActivityID" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "Date" && c.Type == "TEXT");
@@ -385,7 +391,7 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "AssignedVehicleID" && c.Type == "INTEGER");
             Assert.Contains(columns, c => c.Name == "DriverID" && c.Type == "INTEGER");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-            
+
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "Activities");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "AssignedVehicleID");
@@ -395,7 +401,7 @@ namespace BusBuddy.Tests
         private static void VerifyFuelTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "Fuel");
-            
+
             Assert.Equal(9, columns.Count);
             Assert.Contains(columns, c => c.Name == "FuelID" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "FuelDate" && c.Type == "TEXT");
@@ -406,7 +412,7 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "FuelAmount" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "FuelCost" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-            
+
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "Fuel");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "VehicleFueledID");
@@ -415,7 +421,7 @@ namespace BusBuddy.Tests
         private static void VerifyMaintenanceTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "Maintenance");
-            
+
             Assert.Equal(8, columns.Count);
             Assert.Contains(columns, c => c.Name == "MaintenanceID" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "Date" && c.Type == "TEXT");
@@ -425,7 +431,7 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "Vendor" && c.Type == "TEXT");
             Assert.Contains(columns, c => c.Name == "RepairCost" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-            
+
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "Maintenance");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "VehicleID");
@@ -434,7 +440,7 @@ namespace BusBuddy.Tests
         private static void VerifySchoolCalendarTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "SchoolCalendar");
-            
+
             Assert.Equal(7, columns.Count);
             Assert.Contains(columns, c => c.Name == "CalendarID" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "Date" && c.Type == "TEXT");
@@ -448,7 +454,7 @@ namespace BusBuddy.Tests
         private static void VerifyActivityScheduleTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "ActivitySchedule");
-            
+
             Assert.Equal(11, columns.Count);
             Assert.Contains(columns, c => c.Name == "ScheduleID" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "Date" && c.Type == "TEXT");
@@ -461,7 +467,7 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "ScheduledRiders" && c.Type == "INTEGER");
             Assert.Contains(columns, c => c.Name == "ScheduledDriverID" && c.Type == "INTEGER");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-            
+
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "ActivitySchedule");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "ScheduledVehicleID");
@@ -471,7 +477,7 @@ namespace BusBuddy.Tests
         private static void VerifyTimeCardTableStructure(SqliteConnection connection)
         {
             var columns = GetTableColumns(connection, "TimeCard");
-            
+
             Assert.Equal(18, columns.Count);
             Assert.Contains(columns, c => c.Name == "TimeCardID" && c.Type == "INTEGER" && c.IsPrimaryKey);
             Assert.Contains(columns, c => c.Name == "DriverID" && c.Type == "INTEGER");
@@ -491,7 +497,7 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "WeeklyHours" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "MonthlyTotal" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-            
+
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "TimeCard");
             Assert.Contains(foreignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID");
@@ -508,7 +514,7 @@ namespace BusBuddy.Tests
                     // Force garbage collection to release any connections
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
-                    
+
                     // Try to delete with retries
                     int retries = 3;
                     while (retries > 0)
@@ -540,16 +546,16 @@ namespace BusBuddy.Tests
             // This is a simplified approach for testing
             // In a real environment, you might use a test configuration or mocking
             var mockConnectionStringSettings = new ConnectionStringSettings("DefaultConnection", connectionString, providerName);
-            
+
             // Use reflection to modify the static ConfigurationManager settings
             var configType = typeof(ConfigurationManager);
             var connectionsProperty = configType.GetProperty("ConnectionStrings", BindingFlags.Static | BindingFlags.NonPublic);
-            
+
             if (connectionsProperty != null)
             {
                 var connectionsCollection = new ConnectionStringSettingsCollection();
                 connectionsCollection.Add(mockConnectionStringSettings);
-                
+
                 var internalCollection = configType.GetNestedType("ConnectionStringSettingsCollection", BindingFlags.NonPublic);
                 if (internalCollection != null)
                 {
@@ -590,7 +596,8 @@ namespace BusBuddy.Tests
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
-                    {                        columns.Add(new ColumnInfo
+                    {
+                        columns.Add(new ColumnInfo
                         {
                             Name = reader["name"]?.ToString() ?? string.Empty,
                             Type = reader["type"]?.ToString() ?? string.Empty,
@@ -612,7 +619,8 @@ namespace BusBuddy.Tests
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
-                    {                        foreignKeys.Add(new ForeignKeyInfo
+                    {
+                        foreignKeys.Add(new ForeignKeyInfo
                         {
                             Id = Convert.ToInt32(reader["id"] ?? 0),
                             Table = reader["table"]?.ToString() ?? string.Empty,
@@ -624,13 +632,14 @@ namespace BusBuddy.Tests
             }
             return foreignKeys;
         }
-          private class ForeignKeyInfo
+        private class ForeignKeyInfo
         {
             public int Id { get; set; }
             public string Table { get; set; } = string.Empty;
             public string From { get; set; } = string.Empty;
             public string To { get; set; } = string.Empty;
-        }private class ColumnInfo
+        }
+        private class ColumnInfo
         {
             public string Name { get; set; } = string.Empty;
             public string Type { get; set; } = string.Empty;

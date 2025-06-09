@@ -11,7 +11,7 @@ namespace BusBuddy.Models
         public string? Description { get; set; }
         public int RouteNeeded { get; set; }
         public string? Notes { get; set; }
-        
+
         // Helper property to convert between int and bool
         public bool IsRouteNeeded
         {

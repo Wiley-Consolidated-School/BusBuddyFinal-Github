@@ -16,7 +16,7 @@ namespace BusBuddy.Models
         public int SeatingCapacity { get { return Capacity; } set { Capacity = value; } } // For backward compatibility
         public string? FuelType { get; set; }
         public string? Status { get; set; }
-        
+
         // Adding missing properties that are used in VehicleForm
         public string? VINNumber { get; set; }
         public string? LicenseNumber { get; set; }
