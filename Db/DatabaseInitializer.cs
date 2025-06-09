@@ -13,8 +13,29 @@ namespace BusBuddy.Db
     {
         public static void InitializeDatabase()
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
-            var providerName = ConfigurationManager.ConnectionStrings["DefaultConnection"].ProviderName;
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["DefaultConnection"];
+            if (connectionStringSettings == null)
+            {
+                throw new InvalidOperationException("DefaultConnection connection string not found in configuration.");
+            }
+            
+            var connectionString = connectionStringSettings.ConnectionString;
+            var providerName = connectionStringSettings.ProviderName;
+            
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("Connection string cannot be null or empty.");
+            }
+            
+            InitializeDatabase(connectionString, providerName);
+        }
+        
+        public static void InitializeDatabase(string connectionString, string providerName)
+        {
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("Connection string cannot be null or empty.");
+            }
             
             if (providerName == "Microsoft.Data.Sqlite")
             {
@@ -79,7 +100,9 @@ namespace BusBuddy.Db
                     }
                 }
             }
-        }        private static void ExecuteSqlServerScript(SqlConnection connection)
+        }
+        
+        private static void ExecuteSqlServerScript(SqlConnection connection)
         {
             string sqlServerScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BusBuddy.Data", "DatabaseScript.SqlServer.sql");
             
@@ -262,7 +285,8 @@ namespace BusBuddy.Db
             // Validate indexes exist
             ValidateSqlServerIndexes(connection);
         }
-          private static void ValidateSqlServerIndexes(SqlConnection connection)
+        
+        private static void ValidateSqlServerIndexes(SqlConnection connection)
         {
             var requiredIndexes = new List<string> {
                 "idx_routes_date", "idx_routes_driver", "idx_routes_vehicle",

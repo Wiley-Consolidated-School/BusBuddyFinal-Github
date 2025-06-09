@@ -10,14 +10,18 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Configuration;
 using Moq;
+using System.Threading;
 
 namespace BusBuddy.Tests
-{
-    public class DatabaseInitializerTests
+{    public class DatabaseInitializerTests
     {
-        private const string TestSqliteDbPath = "test_busbuddy.db";
+        private readonly string TestSqliteDbPath;
 
-        [Fact]
+        public DatabaseInitializerTests()
+        {
+            // Use a unique filename for each test instance to avoid locking issues
+            TestSqliteDbPath = $"test_busbuddy_{Guid.NewGuid():N}.db";
+        }[Fact]
         public void DatabaseInitializer_ShouldCreateSqliteTables()
         {
             // Arrange
@@ -27,12 +31,12 @@ namespace BusBuddy.Tests
             }
 
             string connectionString = $"Data Source={TestSqliteDbPath}";
-            SetupConnectionString("Microsoft.Data.Sqlite", connectionString);
+            // Don't override the configuration - let it use the App.config
 
             try
             {
                 // Act
-                DatabaseInitializer.InitializeDatabase();
+                DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
 
                 // Assert
                 using (var connection = new SqliteConnection(connectionString))
@@ -75,18 +79,14 @@ namespace BusBuddy.Tests
                     Assert.Contains(vehicleColumns, c => c.Name == "Make" && c.Type == "TEXT");
                     Assert.Contains(vehicleColumns, c => c.Name == "Model" && c.Type == "TEXT");
                     Assert.Contains(vehicleColumns, c => c.Name == "Year" && c.Type == "INTEGER");
-                    Assert.Contains(vehicleColumns, c => c.Name == "SeatingCapacity" && c.Type == "INTEGER");
-                    Assert.Contains(vehicleColumns, c => c.Name == "FuelType" && c.Type == "TEXT");
+                    Assert.Contains(vehicleColumns, c => c.Name == "SeatingCapacity" && c.Type == "INTEGER");                    Assert.Contains(vehicleColumns, c => c.Name == "FuelType" && c.Type == "TEXT");
                     Assert.Contains(vehicleColumns, c => c.Name == "Status" && c.Type == "TEXT");
                 }
             }
             finally
             {
                 // Cleanup
-                if (File.Exists(TestSqliteDbPath))
-                {
-                    File.Delete(TestSqliteDbPath);
-                }
+                CleanupTestDb(TestSqliteDbPath);
             }
         }
 
@@ -134,9 +134,7 @@ namespace BusBuddy.Tests
                 }
             }
             */
-        }
-
-        [Fact]
+        }        [Fact]
         public void DatabaseInitializer_ShouldVerifyForeignKeyConstraints_InSqlite()
         {
             // Arrange
@@ -146,12 +144,12 @@ namespace BusBuddy.Tests
             }
 
             string connectionString = $"Data Source={TestSqliteDbPath}";
-            SetupConnectionString("Microsoft.Data.Sqlite", connectionString);
+            // Don't override the configuration - let it use the App.config
 
             try
             {
                 // Act
-                DatabaseInitializer.InitializeDatabase();
+                DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
 
                 // Assert
                 using (var connection = new SqliteConnection(connectionString))
@@ -193,20 +191,14 @@ namespace BusBuddy.Tests
                     
                     // Verify TimeCard table foreign keys
                     var timecardForeignKeys = GetForeignKeys(connection, "TimeCard");
-                    Assert.Contains(timecardForeignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID" && fk.To == "DriverID");
-                }
+                    Assert.Contains(timecardForeignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID" && fk.To == "DriverID");                }
             }
             finally
             {
                 // Cleanup
-                if (File.Exists(TestSqliteDbPath))
-                {
-                    File.Delete(TestSqliteDbPath);
-                }
+                CleanupTestDb(TestSqliteDbPath);
             }
-        }
-
-        [Fact]
+        }        [Fact]
         public void DatabaseInitializer_ShouldVerifyAllTablesAndIndexes_InSqlite()
         {
             // Arrange
@@ -216,12 +208,12 @@ namespace BusBuddy.Tests
             }
 
             string connectionString = $"Data Source={TestSqliteDbPath}";
-            SetupConnectionString("Microsoft.Data.Sqlite", connectionString);
+            // Don't override the configuration - let it use the App.config
 
             try
             {
                 // Act
-                DatabaseInitializer.InitializeDatabase();
+                DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
 
                 // Assert
                 using (var connection = new SqliteConnection(connectionString))
@@ -270,14 +262,10 @@ namespace BusBuddy.Tests
                     VerifyActivityScheduleTableStructure(connection);
                     VerifyTimeCardTableStructure(connection);
                 }
-            }
-            finally
+            }            finally
             {
                 // Cleanup
-                if (File.Exists(TestSqliteDbPath))
-                {
-                    File.Delete(TestSqliteDbPath);
-                }
+                CleanupTestDb(TestSqliteDbPath);
             }
         }
 
@@ -500,6 +488,7 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "TotalTime" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "Overtime" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "WeeklyTotal" && c.Type == "REAL");
+            Assert.Contains(columns, c => c.Name == "WeeklyHours" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "MonthlyTotal" && c.Type == "REAL");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
             
@@ -509,6 +498,42 @@ namespace BusBuddy.Tests
         }
 
         #region Helper Methods
+
+        private static void CleanupTestDb(string dbPath)
+        {
+            try
+            {
+                if (File.Exists(dbPath))
+                {
+                    // Force garbage collection to release any connections
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    
+                    // Try to delete with retries
+                    int retries = 3;
+                    while (retries > 0)
+                    {
+                        try
+                        {
+                            File.Delete(dbPath);
+                            break;
+                        }
+                        catch (IOException)
+                        {
+                            retries--;
+                            if (retries > 0)
+                            {
+                                Thread.Sleep(100);
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore cleanup errors in tests
+            }
+        }
 
         private static void SetupConnectionString(string providerName, string connectionString)
         {

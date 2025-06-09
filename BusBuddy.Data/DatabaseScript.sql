@@ -143,6 +143,7 @@ CREATE TABLE TimeCard (
     TotalTime REAL,
     Overtime REAL,
     WeeklyTotal REAL,
+    WeeklyHours REAL,
     MonthlyTotal REAL,
     Notes TEXT,
     FOREIGN KEY (DriverID) REFERENCES Drivers(DriverID)

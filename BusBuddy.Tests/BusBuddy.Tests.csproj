@@ -25,9 +25,17 @@
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="Moq" Version="4.20.69" />
   </ItemGroup>
-  
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\busbuddy.csproj" />
+  </ItemGroup>
+    <ItemGroup>
+    <None Include="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\BusBuddy.Data\**\*">
+      <Link>BusBuddy.Data\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   
   <!-- The following section was causing duplicate compile items and has been removed:
