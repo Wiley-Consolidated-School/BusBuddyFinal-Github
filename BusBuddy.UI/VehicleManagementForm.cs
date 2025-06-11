@@ -285,14 +285,14 @@ namespace BusBuddy.UI
             }
 
             // Populate fields
-            _vehicleNumberTextBox.Text = _currentVehicle.VehicleNumber;
-            _busNumberTextBox.Text = _currentVehicle.BusNumber;
-            _makeTextBox.Text = _currentVehicle.Make;
-            _modelTextBox.Text = _currentVehicle.Model;
+            _vehicleNumberTextBox.Text = _currentVehicle.VehicleNumber ?? string.Empty;
+            _busNumberTextBox.Text = _currentVehicle.BusNumber ?? string.Empty;
+            _makeTextBox.Text = _currentVehicle.Make ?? string.Empty;
+            _modelTextBox.Text = _currentVehicle.Model ?? string.Empty;
             _yearTextBox.Text = _currentVehicle.Year.ToString();
             _seatingCapacityTextBox.Text = _currentVehicle.SeatingCapacity.ToString();
-            _vinTextBox.Text = _currentVehicle.VINNumber;
-            _licenseNumberTextBox.Text = _currentVehicle.LicenseNumber;
+            _vinTextBox.Text = _currentVehicle.VINNumber ?? string.Empty;
+            _licenseNumberTextBox.Text = _currentVehicle.LicenseNumber ?? string.Empty;
             if (_currentVehicle.DateLastInspection.HasValue)
             {
                 _lastInspectionDatePicker.Value = _currentVehicle.DateLastInspection.Value;
@@ -302,8 +302,8 @@ namespace BusBuddy.UI
                 _lastInspectionDatePicker.Value = DateTime.Today;
             }
 
-            _fuelTypeComboBox.SelectedItem = _currentVehicle.FuelType;
-            _statusComboBox.SelectedItem = _currentVehicle.Status;
+            _fuelTypeComboBox.SelectedItem = _currentVehicle.FuelType ?? string.Empty;
+            _statusComboBox.SelectedItem = _currentVehicle.Status ?? string.Empty;
 
             _editPanel.Visible = true;
         }

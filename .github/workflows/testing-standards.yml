@@ -25,7 +25,7 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Check code formatting
-      run: dotnet format --verify-no-changes --verbosity minimal
+      run: dotnet format BusBuddy.sln --verify-no-changes --verbosity minimal
 
     - name: Run tests with coverage
       run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed"
