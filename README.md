@@ -61,12 +61,31 @@ BusBuddy/
    dotnet run --project . --configuration Release
    ```
 
-### Database Setup
+## 🗄️ Database Setup
 
-The application uses SQLite by default with automatic database creation. For SQL Server:
+### SQLite (Default)
+- The app uses SQLite by default. No setup required; the database file will be created automatically.
 
-1. Update the connection string in `App.config`
-2. Run the database initialization scripts in `Db/`
+### SQL Server (Optional)
+1. Start a SQL Server instance (local or Docker):
+   ```pwsh
+   docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
+   ```
+2. Run the setup script to initialize the database:
+   ```pwsh
+   cd Db
+   ./setup.ps1 -SqlServer localhost -User sa -Password YourStrong@Passw0rd -Script setup.sql
+   ```
+3. In `BusBuddy.Tests/App.config`, comment out the SQLite connection string and uncomment the SQL Server one.
+
+### Schema & ERD
+- See [`Db/SCHEMA.md`](Db/SCHEMA.md) for a full schema reference.
+- (ER diagram: `Db/ERD.png` to be added)
+
+### Troubleshooting
+- Ensure SQL Server is running and accessible.
+- For Docker, use `localhost,1433` as the server.
+- If you see connection errors, check firewall and authentication settings.
 
 ## 🧪 Testing
 
