@@ -1,10 +1,4 @@
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\bin\Debug\net8.0-windows\CoverletSourceRootsMapping_BusBuddy.Tests
-C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.csproj.AssemblyReference.cache
-C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.AssemblyInfoInputs.cache
-C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.AssemblyInfo.cs
-C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.csproj.CoreCompileInputs.cache
-C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.sourcelink.json
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\bin\Debug\net8.0-windows\testhost.dll
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\bin\Debug\net8.0-windows\BusBuddy.deps.json
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\bin\Debug\net8.0-windows\BusBuddy.runtimeconfig.json
@@ -189,6 +183,12 @@ C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\bin\Debug\net8.0-window
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\bin\Debug\net8.0-windows\BusBuddy.dll
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\bin\Debug\net8.0-windows\BusBuddy.pdb
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\bin\Debug\net8.0-windows\BusBuddy.dll.config
+C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.csproj.AssemblyReference.cache
+C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.AssemblyInfoInputs.cache
+C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.AssemblyInfo.cs
+C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.csproj.CoreCompileInputs.cache
+C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.sourcelink.json
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.E77C5147.Up2Date
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\BusBuddy.Tests.dll
 C:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.Tests\obj\Debug\net8.0-windows\refint\BusBuddy.Tests.dll

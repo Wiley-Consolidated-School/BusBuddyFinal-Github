@@ -276,13 +276,13 @@ namespace BusBuddy.UI
 
             _isEditing = true;
             int selectedId = (int)_vehicleGrid.SelectedRows[0].Cells["Id"].Value;
-            _currentVehicle = _vehicleRepository.GetVehicleById(selectedId);
-
-            if (_currentVehicle == null)
+            var vehicle = _vehicleRepository.GetVehicleById(selectedId);
+            if (vehicle == null)
             {
                 ShowErrorMessage("Could not find the selected vehicle.");
                 return;
             }
+            _currentVehicle = vehicle;
 
             // Populate fields
             _vehicleNumberTextBox.Text = _currentVehicle.VehicleNumber ?? string.Empty;
