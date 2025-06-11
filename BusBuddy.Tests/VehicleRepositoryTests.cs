@@ -43,7 +43,7 @@ namespace BusBuddy.Tests
 
             // Act
             var id = _connection.QuerySingle<int>(@"
-            INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Mileage, Status) 
+            INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Mileage, Status)
             VALUES (@VehicleNumber, @Make, @Model, @Year, @Mileage, @Status);
             SELECT last_insert_rowid();", vehicleData);
 
@@ -56,7 +56,7 @@ namespace BusBuddy.Tests
         {
             // Arrange
             _connection.Execute(@"
-            INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Mileage, Status) 
+            INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Mileage, Status)
             VALUES ('BUS001', 'Ford', 'Transit', 2020, 50000, 'Active')");
 
             // Act
@@ -73,7 +73,7 @@ namespace BusBuddy.Tests
         {
             // Arrange
             _connection.Execute(@"
-            INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Mileage, Status) 
+            INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Mileage, Status)
             VALUES ('BUS001', 'Ford', 'Transit', 2020, 50000, 'Active')");
 
             // Act

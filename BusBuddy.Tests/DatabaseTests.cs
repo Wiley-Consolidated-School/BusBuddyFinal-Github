@@ -130,7 +130,7 @@ namespace BusBuddy.Tests
 
             // Act
             var rowsAffected = _fixture.Connection.Execute(@"
-                UPDATE Vehicles 
+                UPDATE Vehicles
                 SET Status = @Status, SeatingCapacity = @SeatingCapacity
                 WHERE Id = @Id",
                 updateVehicle);
@@ -211,7 +211,7 @@ namespace BusBuddy.Tests
 
             // Act
             var rowsAffected = _fixture.Connection.Execute(@"
-                INSERT INTO Routes (Date, RouteName, AMVehicleID, AMDriverID, AMBeginMiles, AMEndMiles, AMRiders, 
+                INSERT INTO Routes (Date, RouteName, AMVehicleID, AMDriverID, AMBeginMiles, AMEndMiles, AMRiders,
                                     PMVehicleID, PMDriverID, PMBeginMiles, PMEndMiles, PMRiders, Notes)
                 VALUES (@Date, @RouteName, @AMVehicleID, @AMDriverID, @AMBeginMiles, @AMEndMiles, @AMRiders,
                         @PMVehicleID, @PMDriverID, @PMBeginMiles, @PMEndMiles, @PMRiders, @Notes)",
@@ -273,7 +273,7 @@ namespace BusBuddy.Tests
 
             // Act
             var rowsAffected = _fixture.Connection.Execute(@"
-                INSERT INTO Activities (Date, ActivityType, Destination, LeaveTime, EventTime, ReturnTime, 
+                INSERT INTO Activities (Date, ActivityType, Destination, LeaveTime, EventTime, ReturnTime,
                                         RequestedBy, AssignedVehicleID, DriverID, Notes)
                 VALUES (@Date, @ActivityType, @Destination, @LeaveTime, @EventTime, @ReturnTime,
                         @RequestedBy, @AssignedVehicleID, @DriverID, @Notes)",

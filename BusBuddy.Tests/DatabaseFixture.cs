@@ -68,10 +68,10 @@ namespace BusBuddy.Tests
                 cmd.CommandText = @"
                     INSERT INTO Vehicles (VehicleNumber, BusNumber, Make, Model, Year, SeatingCapacity, FuelType, Status)
                     VALUES ('BUS001', 'B001', 'Mercedes', 'Sprinter', 2020, 25, 'Diesel', 'Active');
-                    
+
                     INSERT INTO Vehicles (VehicleNumber, BusNumber, Make, Model, Year, SeatingCapacity, FuelType, Status)
                     VALUES ('BUS002', 'B002', 'Ford', 'Transit', 2019, 18, 'Gasoline', 'Maintenance');
-                    
+
                     INSERT INTO Vehicles (VehicleNumber, BusNumber, Make, Model, Year, SeatingCapacity, FuelType, Status)
                     VALUES ('VAN001', 'V001', 'Toyota', 'HiAce', 2021, 12, 'Diesel', 'Active');
                 ";
@@ -84,7 +84,7 @@ namespace BusBuddy.Tests
                 cmd.CommandText = @"
                     INSERT INTO Drivers (DriverName, DriverPhone, DriverEmail, Address, DriversLicenseType, TrainingComplete)
                     VALUES ('John Smith', '555-1234', 'john@example.com', '123 Main St', 'CDL-B', 1);
-                    
+
                     INSERT INTO Drivers (DriverName, DriverPhone, DriverEmail, Address, DriversLicenseType, TrainingComplete)
                     VALUES ('Mary Johnson', '555-5678', 'mary@example.com', '456 Oak Ave', 'CDL-A', 1);
                 ";

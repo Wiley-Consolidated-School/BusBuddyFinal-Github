@@ -19,6 +19,8 @@ namespace BusBuddy.Tests
             // 1. Run the cleanup-tests.bat script in the root folder
             // 2. Rebuild the solution
 
+            // Normalize all line endings to Unix-style (\n)
+
             Assert.True(true);
         }
     }
