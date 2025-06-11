@@ -1,0 +1,42 @@
+#!/bin/sh
+# BusBuddy Pre-commit Hook - Enforces Testing Standards
+
+echo "Running BusBuddy pre-commit checks..."
+
+# 1. Verify all tests pass
+echo "🧪 Running tests..."
+dotnet test --configuration Release --logger "console;verbosity=minimal" --no-restore
+if [ $? -ne 0 ]; then
+    echo "❌ Tests failed. Please fix failing tests before committing."
+    exit 1
+fi
+
+# 2. Check code formatting
+echo "🎨 Checking code formatting..."
+dotnet format --verify-no-changes --verbosity minimal
+if [ $? -ne 0 ]; then
+    echo "❌ Code formatting issues found. Run 'dotnet format' and try again."
+    exit 1
+fi
+
+# 3. Verify test naming conventions
+echo "📝 Checking test naming conventions..."
+TEST_FILES=$(find . -name "*Test*.cs" -o -name "*Tests.cs")
+BAD_NAMES=$(grep -E "public void (Test|test)[0-9]|public void [a-z]" $TEST_FILES || true)
+if [ ! -z "$BAD_NAMES" ]; then
+    echo "❌ Found test methods with poor naming:"
+    echo "$BAD_NAMES"
+    echo "Please use pattern: MethodName_Scenario_ExpectedBehavior"
+    exit 1
+fi
+
+# 4. Check for [STAThread] on UI tests
+echo "🖥️  Checking UI test threading..."
+UI_TESTS_WITHOUT_STA=$(grep -L "\[STAThread\]" BusBuddy.Tests/*UI*.cs 2>/dev/null || true)
+if [ ! -z "$UI_TESTS_WITHOUT_STA" ]; then
+    echo "⚠️  UI test files should have [STAThread] attribute:"
+    echo "$UI_TESTS_WITHOUT_STA"
+fi
+
+echo "✅ All pre-commit checks passed!"
+exit 0

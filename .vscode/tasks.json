@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "build BusBuddy",
+			"command": "dotnet build BusBuddy.sln",
+			"group": "build",
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "test BusBuddy",
+			"command": "dotnet test BusBuddy.sln",
+			"group": "test",
+			"problemMatcher": ["$msCompile"]
+		}
+	]
+}

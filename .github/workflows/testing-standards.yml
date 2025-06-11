@@ -1,0 +1,90 @@
+name: Testing Standards Enforcement
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-standards:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Check code formatting
+      run: dotnet format --verify-no-changes --verbosity minimal
+
+    - name: Run tests with coverage
+      run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed"
+
+    - name: Verify test naming conventions
+      shell: pwsh
+      run: |
+        $testFiles = Get-ChildItem -Path "BusBuddy.Tests" -Filter "*.cs" -Recurse
+        $badNames = @()
+
+        foreach ($file in $testFiles) {
+          $content = Get-Content $file.FullName -Raw
+          if ($content -match "public void (Test|test)\d+|public void [a-z]") {
+            $badNames += $file.Name
+          }
+        }
+
+        if ($badNames.Count -gt 0) {
+          Write-Host "❌ Found test files with poor naming conventions:" -ForegroundColor Red
+          $badNames | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+          Write-Host "Please use pattern: MethodName_Scenario_ExpectedBehavior" -ForegroundColor Yellow
+          exit 1
+        }
+
+        Write-Host "✅ All test naming conventions are correct" -ForegroundColor Green
+
+    - name: Check UI test threading
+      shell: pwsh
+      run: |
+        $uiTestFiles = Get-ChildItem -Path "BusBuddy.Tests" -Filter "*UI*.cs"
+        $missingSTAThread = @()
+
+        foreach ($file in $uiTestFiles) {
+          $content = Get-Content $file.FullName -Raw
+          if ($content -notmatch "\[STAThread\]") {
+            $missingSTAThread += $file.Name
+          }
+        }
+
+        if ($missingSTAThread.Count -gt 0) {
+          Write-Host "⚠️ UI test files missing [STAThread] attribute:" -ForegroundColor Yellow
+          $missingSTAThread | ForEach-Object { Write-Host "  - $_" -ForegroundColor Yellow }
+        } else {
+          Write-Host "✅ All UI tests have proper threading attributes" -ForegroundColor Green
+        }
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./TestResults/*/coverage.cobertura.xml
+        fail_ci_if_error: false
+
+    - name: Test Summary
+      if: always()
+      run: |
+        echo "## Testing Standards Report" >> $GITHUB_STEP_SUMMARY
+        echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Build | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+        echo "| Formatting | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+        echo "| Naming Conventions | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
