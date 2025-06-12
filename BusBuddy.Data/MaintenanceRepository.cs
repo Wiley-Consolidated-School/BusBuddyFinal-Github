@@ -76,14 +76,14 @@ namespace BusBuddy.Data
                 connection.Open();
                 var sql = @"
                     INSERT INTO Maintenance (
-                        Date, VehicleID, OdometerReading, 
+                        Date, VehicleID, OdometerReading,
                         MaintenanceCompleted, Vendor, RepairCost
                     )
                     VALUES (
-                        @Date, @VehicleID, @OdometerReading, 
+                        @Date, @VehicleID, @OdometerReading,
                         @MaintenanceCompleted, @Vendor, @RepairCost
                     );
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid()";
 
                 return connection.QuerySingle<int>(sql, maintenance);
             }
@@ -95,12 +95,12 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = @"
-                    UPDATE Maintenance 
-                    SET Date = @Date, 
-                        VehicleID = @VehicleID, 
-                        OdometerReading = @OdometerReading, 
-                        MaintenanceCompleted = @MaintenanceCompleted, 
-                        Vendor = @Vendor, 
+                    UPDATE Maintenance
+                    SET Date = @Date,
+                        VehicleID = @VehicleID,
+                        OdometerReading = @OdometerReading,
+                        MaintenanceCompleted = @MaintenanceCompleted,
+                        Vendor = @Vendor,
                         RepairCost = @RepairCost
                     WHERE MaintenanceID = @MaintenanceID";
 

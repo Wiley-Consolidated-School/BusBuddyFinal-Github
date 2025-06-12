@@ -39,7 +39,7 @@ namespace BusBuddy.Data
                 var sql = @"
                     INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Capacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
                     VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid();";
 
                 return connection.QuerySingle<int>(sql, vehicle);
             }
@@ -51,13 +51,13 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = @"
-                    UPDATE Vehicles 
-                    SET VehicleNumber = @VehicleNumber, 
-                        Make = @Make, 
-                        Model = @Model, 
-                        Year = @Year, 
-                        Capacity = @Capacity, 
-                        FuelType = @FuelType, 
+                    UPDATE Vehicles
+                    SET VehicleNumber = @VehicleNumber,
+                        Make = @Make,
+                        Model = @Model,
+                        Year = @Year,
+                        Capacity = @Capacity,
+                        FuelType = @FuelType,
                         Status = @Status,
                         VINNumber = @VINNumber,
                         LicenseNumber = @LicenseNumber,

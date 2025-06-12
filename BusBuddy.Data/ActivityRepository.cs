@@ -76,16 +76,16 @@ namespace BusBuddy.Data
                 connection.Open();
                 var sql = @"
                     INSERT INTO Activities (
-                        Date, ActivityType, Destination, 
-                        LeaveTime, EventTime, RequestedBy, 
+                        Date, ActivityType, Destination,
+                        LeaveTime, EventTime, RequestedBy,
                         AssignedVehicleID, DriverID
                     )
                     VALUES (
-                        @Date, @ActivityType, @Destination, 
-                        @LeaveTime, @EventTime, @RequestedBy, 
+                        @Date, @ActivityType, @Destination,
+                        @LeaveTime, @EventTime, @RequestedBy,
                         @AssignedVehicleID, @DriverID
                     );
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid()";
 
                 return connection.QuerySingle<int>(sql, activity);
             }
@@ -97,14 +97,14 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = @"
-                    UPDATE Activities 
-                    SET Date = @Date, 
-                        ActivityType = @ActivityType, 
-                        Destination = @Destination, 
-                        LeaveTime = @LeaveTime, 
-                        EventTime = @EventTime, 
-                        RequestedBy = @RequestedBy, 
-                        AssignedVehicleID = @AssignedVehicleID, 
+                    UPDATE Activities
+                    SET Date = @Date,
+                        ActivityType = @ActivityType,
+                        Destination = @Destination,
+                        LeaveTime = @LeaveTime,
+                        EventTime = @EventTime,
+                        RequestedBy = @RequestedBy,
+                        AssignedVehicleID = @AssignedVehicleID,
                         DriverID = @DriverID
                     WHERE ActivityID = @ActivityID";
 

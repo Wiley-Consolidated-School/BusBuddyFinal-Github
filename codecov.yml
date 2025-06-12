@@ -4,10 +4,10 @@
 coverage:
   # Precision for coverage percentage (2 decimal places)
   precision: 2
-  
+
   # Range for status checks (green if >= 80%, yellow if 60-80%, red if < 60%)
   range: 60..80
-  
+
   # Rounding method for coverage numbers
   round: down
     # Coverage status checks

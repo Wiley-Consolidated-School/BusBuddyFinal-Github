@@ -11,75 +11,75 @@ jobs:
   analyze:
     name: Static Code Analysis
     runs-on: windows-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-          
+
       - name: List repository contents
         run: |
           dir
           if (Test-Path "BusBuddy.sln") { Write-Host "Solution file found in root" } else { Write-Host "Solution file not found in root" }
-          
+
       - name: Find solution file
         run: |
           Get-ChildItem -Path . -Filter *.sln -Recurse
-          
+
       - name: Restore dependencies
         run: |
           $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
           Write-Host "Found solution at $solutionPath"
           dotnet restore $solutionPath
-        
+
       - name: Build
         run: |
           $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
           dotnet build $solutionPath --no-restore --configuration Release
-      
+
       # Add .NET format check to ensure code follows style guidelines
       - name: Install dotnet format
         run: dotnet tool install -g dotnet-format
-        
+
       - name: Check code formatting
         run: |
           $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
           dotnet format $solutionPath --verify-no-changes --verbosity diagnostic
-      
+
       # Run built-in code analysis
       - name: .NET Code Analysis
         run: |
           $solutionPath = (Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1).FullName
           dotnet build $solutionPath /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest
-      
+
       # Run tests with code coverage
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
-        
+
       - name: Find test projects
         run: |
           Get-ChildItem -Path . -Filter *Tests.csproj -Recurse
-          
+
       - name: Test with coverage
         run: |
           $testProject = (Get-ChildItem -Path . -Filter *Tests.csproj -Recurse | Select-Object -First 1).FullName
           Write-Host "Running tests for $testProject"
           dotnet test $testProject --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage
-        
+
       - name: Generate coverage report
         run: reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coveragereport -reporttypes:Html
-        
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
           path: ./coveragereport
           retention-days: 7
-          
+
       # Optional: Add SonarCloud analysis if configured in the future
       # Uncomment below section when you set up SonarCloud
       # - name: SonarCloud Scan

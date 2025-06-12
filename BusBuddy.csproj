@@ -10,18 +10,18 @@
     <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604</NoWarn>
     <StartupObject>BusBuddy.Program</StartupObject>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Remove="BusBuddy.Tests\**" />
     <EmbeddedResource Remove="BusBuddy.Tests\**" />
     <None Remove="BusBuddy.Tests\**" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -34,7 +34,7 @@
     <Folder Include="Models\" />
     <Folder Include="UI\" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
@@ -45,5 +45,5 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
   </ItemGroup>
-  
+
 </Project>

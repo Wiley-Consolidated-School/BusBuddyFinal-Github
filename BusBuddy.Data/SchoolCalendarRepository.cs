@@ -39,8 +39,8 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var calendarEntries = connection.Query<SchoolCalendar>(
-                    @"SELECT * FROM SchoolCalendar 
-                      WHERE (Date BETWEEN @StartDate AND @EndDate) 
+                    @"SELECT * FROM SchoolCalendar
+                      WHERE (Date BETWEEN @StartDate AND @EndDate)
                          OR (EndDate IS NOT NULL AND EndDate BETWEEN @StartDate AND @EndDate)
                          OR (Date <= @StartDate AND EndDate >= @EndDate)",
                     new { StartDate = startDate, EndDate = endDate }).AsList();
@@ -84,7 +84,7 @@ namespace BusBuddy.Data
                     VALUES (
                         @Date, @EndDate, @Category, @Description, @RouteNeeded
                     );
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid()";
 
                 return connection.QuerySingle<int>(sql, calendarEntry);
             }
@@ -96,11 +96,11 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = @"
-                    UPDATE SchoolCalendar 
-                    SET Date = @Date, 
-                        EndDate = @EndDate, 
-                        Category = @Category, 
-                        Description = @Description, 
+                    UPDATE SchoolCalendar
+                    SET Date = @Date,
+                        EndDate = @EndDate,
+                        Category = @Category,
+                        Description = @Description,
                         RouteNeeded = @RouteNeeded
                     WHERE CalendarID = @CalendarID";
 

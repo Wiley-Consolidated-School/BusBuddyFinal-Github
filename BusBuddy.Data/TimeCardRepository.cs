@@ -76,18 +76,18 @@ namespace BusBuddy.Data
                 connection.Open();
                 var sql = @"
                     INSERT INTO TimeCard (
-                        Date, DayType, 
-                        AMClockIn, LunchClockOut, LunchClockIn, PMClockOut, 
+                        Date, DayType,
+                        AMClockIn, LunchClockOut, LunchClockIn, PMClockOut,
                         RouteAMClockOut, RouteAMClockIn, RoutePMClockOut, RoutePMClockIn,
                         TotalTime, Overtime, WeeklyTotal, MonthlyTotal
                     )
                     VALUES (
-                        @Date, @DayType, 
-                        @AMClockIn, @LunchClockOut, @LunchClockIn, @PMClockOut, 
+                        @Date, @DayType,
+                        @AMClockIn, @LunchClockOut, @LunchClockIn, @PMClockOut,
                         @RouteAMClockOut, @RouteAMClockIn, @RoutePMClockOut, @RoutePMClockIn,
                         @TotalTime, @Overtime, @WeeklyTotal, @MonthlyTotal
                     );
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid();";
 
                 return connection.QuerySingle<int>(sql, timeCard);
             }
@@ -99,20 +99,20 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = @"
-                    UPDATE TimeCard 
-                    SET Date = @Date, 
-                        DayType = @DayType, 
-                        AMClockIn = @AMClockIn, 
-                        LunchClockOut = @LunchClockOut, 
-                        LunchClockIn = @LunchClockIn, 
-                        PMClockOut = @PMClockOut, 
-                        RouteAMClockOut = @RouteAMClockOut, 
-                        RouteAMClockIn = @RouteAMClockIn, 
-                        RoutePMClockOut = @RoutePMClockOut, 
+                    UPDATE TimeCard
+                    SET Date = @Date,
+                        DayType = @DayType,
+                        AMClockIn = @AMClockIn,
+                        LunchClockOut = @LunchClockOut,
+                        LunchClockIn = @LunchClockIn,
+                        PMClockOut = @PMClockOut,
+                        RouteAMClockOut = @RouteAMClockOut,
+                        RouteAMClockIn = @RouteAMClockIn,
+                        RoutePMClockOut = @RoutePMClockOut,
                         RoutePMClockIn = @RoutePMClockIn,
-                        TotalTime = @TotalTime, 
-                        Overtime = @Overtime, 
-                        WeeklyTotal = @WeeklyTotal, 
+                        TotalTime = @TotalTime,
+                        Overtime = @Overtime,
+                        WeeklyTotal = @WeeklyTotal,
                         MonthlyTotal = @MonthlyTotal
                     WHERE TimeCardID = @TimeCardID";
 

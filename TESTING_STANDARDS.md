@@ -23,7 +23,7 @@ public void UITestHelpers_FindControl_WhenControlExists_ShouldReturnCorrectContr
 [Fact]
 public void TestMainForm() // Too vague
 
-[Fact] 
+[Fact]
 public void MainFormTest() // Doesn't describe scenario or expectation
 
 [Fact]
@@ -43,11 +43,11 @@ public void MockVehicleForm_WhenFieldsAreEmpty_ShouldPreventSave()
     using var form = new MockVehicleForm();
     var busNumberField = UITestHelpers.FindControl<TextBox>(form, "txtBusNumber");
     var saveButton = UITestHelpers.FindButtonByText(form, "Save");
-    
+
     // Act - Perform the action being tested
     busNumberField!.Text = "";
     var canSave = ValidateForm(form);
-    
+
     // Assert - Verify the expected outcome
     Assert.False(canSave);
     Assert.NotNull(saveButton);
@@ -88,7 +88,7 @@ public class UIComponentTests
 // ✅ Good - No database dependencies
 using var form = new MockVehicleManagementForm();
 
-// ❌ Bad - Real form with database dependencies  
+// ❌ Bad - Real form with database dependencies
 using var form = new VehicleManagementForm(); // This will fail in test environment
 ```
 
@@ -139,11 +139,11 @@ public void Chart_WhenDataLoaded_ShouldRenderCorrectly()
     // Arrange - Create form with chart
     using var form = new Form1();
     form.Show();
-    
+
     // Act - Allow rendering time
     Application.DoEvents();
     Thread.Sleep(100);
-    
+
     // Assert - Verify visual elements
     var chart = UITestHelpers.FindControl<Chart>(form, "chartTopProducts");
     Assert.NotNull(chart);
@@ -179,9 +179,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run code formatting
-dotnet format --verify-no-changes
+dotnet format BusBuddy.sln --verify-no-changes
 if [ $? -ne 0 ]; then
-    echo "Code formatting issues found. Run 'dotnet format' and try again."
+    echo "Code formatting issues found. Run 'dotnet format BusBuddy.sln' and try again."
     exit 1
 fi
 ```

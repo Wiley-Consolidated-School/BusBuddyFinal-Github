@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\busbuddy.csproj": {}
+    "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\BusBuddy.csproj": {}
   },
   "projects": {
-    "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\busbuddy.csproj": {
+    "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\BusBuddy.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\busbuddy.csproj",
+        "projectUniqueName": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\BusBuddy.csproj",
         "projectName": "BusBuddy",
-        "projectPath": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\busbuddy.csproj",
+        "projectPath": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\BusBuddy.csproj",
         "packagesPath": "C:\\Users\\steve.mckitrick\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\obj\\",
         "projectStyle": "PackageReference",

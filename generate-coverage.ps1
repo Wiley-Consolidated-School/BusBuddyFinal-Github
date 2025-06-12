@@ -26,7 +26,7 @@ if ($coverageFiles.Count -eq 0) {
 }
 
 Write-Host "✅ Coverage files generated:" -ForegroundColor Green
-$coverageFiles | ForEach-Object { 
+$coverageFiles | ForEach-Object {
     Write-Host "  📄 $($_.FullName)" -ForegroundColor Cyan
 }
 
@@ -48,18 +48,18 @@ if (Test-Path "TestResults\CoverageReport\index.html") {
     Write-Host "✅ Coverage report generated successfully!" -ForegroundColor Green
     Write-Host "📖 Open this file to view the report:" -ForegroundColor Cyan
     Write-Host "   $(Resolve-Path 'TestResults\CoverageReport\index.html')" -ForegroundColor White
-    
+
     # Parse coverage percentage from Cobertura XML
     [xml]$coverage = Get-Content $coveragePath
     $lineRate = [math]::Round([double]$coverage.coverage.'line-rate' * 100, 2)
     $branchRate = [math]::Round([double]$coverage.coverage.'branch-rate' * 100, 2)
-    
+
     Write-Host "`n📊 Coverage Summary:" -ForegroundColor Green
     Write-Host "   Line Coverage:   $lineRate%" -ForegroundColor White
     Write-Host "   Branch Coverage: $branchRate%" -ForegroundColor White
     Write-Host "   Total Lines:     $($coverage.coverage.'lines-valid')" -ForegroundColor Gray
     Write-Host "   Covered Lines:   $($coverage.coverage.'lines-covered')" -ForegroundColor Gray
-    
+
     # Ask if user wants to open the report
     $response = Read-Host "`nWould you like to open the coverage report in your browser? (y/N)"
     if ($response -eq 'y' -or $response -eq 'Y') {

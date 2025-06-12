@@ -387,8 +387,8 @@ namespace BusBuddy.Db
                                     var alterStatement = $@"
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'FK_{tableName}_{columnName}_{refTableName}') AND parent_object_id = OBJECT_ID(N'{tableName}'))
 BEGIN
-    ALTER TABLE {tableName} 
-    ADD CONSTRAINT FK_{tableName}_{columnName}_{refTableName} 
+    ALTER TABLE {tableName}
+    ADD CONSTRAINT FK_{tableName}_{columnName}_{refTableName}
     FOREIGN KEY ({columnName}) REFERENCES {refTableName}({refColumnName});
 END";
 

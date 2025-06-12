@@ -1,8 +1,8 @@
--- BusBuddy Enhanced Database Schema SQL Script
+-- BusBuddy Enhanced Database Schema SQL Script (SQLite3 compatible)
 
--- Vehicles Table (existing but updated with new columns)
-CREATE TABLE Vehicles (
-    Id INTEGER PRIMARY KEY,
+-- Vehicles Table
+CREATE TABLE IF NOT EXISTS Vehicles (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
     VehicleNumber TEXT NOT NULL,
     BusNumber TEXT,
     Make TEXT,
@@ -12,13 +12,11 @@ CREATE TABLE Vehicles (
     VINNumber TEXT,
     LicenseNumber TEXT,
     DateLastInspection TEXT,
-    FuelType TEXT,
-    Status TEXT,
     Notes TEXT
 );
 
 -- Drivers Table
-CREATE TABLE Drivers (
+CREATE TABLE IF NOT EXISTS Drivers (
     DriverID INTEGER PRIMARY KEY AUTOINCREMENT,
     DriverName TEXT,
     DriverPhone TEXT,
@@ -33,7 +31,7 @@ CREATE TABLE Drivers (
 );
 
 -- Routes Table
-CREATE TABLE Routes (
+CREATE TABLE IF NOT EXISTS Routes (
     RouteID INTEGER PRIMARY KEY AUTOINCREMENT,
     Date TEXT NOT NULL,
     RouteName TEXT,
@@ -55,7 +53,7 @@ CREATE TABLE Routes (
 );
 
 -- Activities Table
-CREATE TABLE Activities (
+CREATE TABLE IF NOT EXISTS Activities (
     ActivityID INTEGER PRIMARY KEY AUTOINCREMENT,
     Date TEXT,
     ActivityType TEXT,
@@ -72,7 +70,7 @@ CREATE TABLE Activities (
 );
 
 -- Fuel Table
-CREATE TABLE Fuel (
+CREATE TABLE IF NOT EXISTS Fuel (
     FuelID INTEGER PRIMARY KEY AUTOINCREMENT,
     FuelDate TEXT,
     FuelLocation TEXT,
@@ -86,7 +84,7 @@ CREATE TABLE Fuel (
 );
 
 -- Maintenance Table
-CREATE TABLE Maintenance (
+CREATE TABLE IF NOT EXISTS Maintenance (
     MaintenanceID INTEGER PRIMARY KEY AUTOINCREMENT,
     Date TEXT,
     VehicleID INTEGER,
@@ -99,7 +97,7 @@ CREATE TABLE Maintenance (
 );
 
 -- School Calendar Table
-CREATE TABLE SchoolCalendar (
+CREATE TABLE IF NOT EXISTS SchoolCalendar (
     CalendarID INTEGER PRIMARY KEY AUTOINCREMENT,
     Date TEXT,
     EndDate TEXT,
@@ -110,7 +108,7 @@ CREATE TABLE SchoolCalendar (
 );
 
 -- Activity Schedule Table
-CREATE TABLE ActivitySchedule (
+CREATE TABLE IF NOT EXISTS ActivitySchedule (
     ScheduleID INTEGER PRIMARY KEY AUTOINCREMENT,
     Date TEXT,
     TripType TEXT,
@@ -127,7 +125,7 @@ CREATE TABLE ActivitySchedule (
 );
 
 -- Time Card Table
-CREATE TABLE TimeCard (
+CREATE TABLE IF NOT EXISTS TimeCard (
     TimeCardID INTEGER PRIMARY KEY AUTOINCREMENT,
     DriverID INTEGER,
     Date TEXT,

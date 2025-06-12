@@ -88,16 +88,16 @@ namespace BusBuddy.Data
                 connection.Open();
                 var sql = @"
                     INSERT INTO ActivitySchedule (
-                        Date, TripType, ScheduledVehicleID, 
-                        ScheduledDestination, ScheduledLeaveTime, 
+                        Date, TripType, ScheduledVehicleID,
+                        ScheduledDestination, ScheduledLeaveTime,
                         ScheduledEventTime, ScheduledRiders, ScheduledDriverID
                     )
                     VALUES (
-                        @Date, @TripType, @ScheduledVehicleID, 
-                        @ScheduledDestination, @ScheduledLeaveTime, 
+                        @Date, @TripType, @ScheduledVehicleID,
+                        @ScheduledDestination, @ScheduledLeaveTime,
                         @ScheduledEventTime, @ScheduledRiders, @ScheduledDriverID
                     );
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid();";
 
                 return connection.QuerySingle<int>(sql, scheduledActivity);
             }
@@ -109,14 +109,14 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = @"
-                    UPDATE ActivitySchedule 
-                    SET Date = @Date, 
-                        TripType = @TripType, 
-                        ScheduledVehicleID = @ScheduledVehicleID, 
-                        ScheduledDestination = @ScheduledDestination, 
-                        ScheduledLeaveTime = @ScheduledLeaveTime, 
-                        ScheduledEventTime = @ScheduledEventTime, 
-                        ScheduledRiders = @ScheduledRiders, 
+                    UPDATE ActivitySchedule
+                    SET Date = @Date,
+                        TripType = @TripType,
+                        ScheduledVehicleID = @ScheduledVehicleID,
+                        ScheduledDestination = @ScheduledDestination,
+                        ScheduledLeaveTime = @ScheduledLeaveTime,
+                        ScheduledEventTime = @ScheduledEventTime,
+                        ScheduledRiders = @ScheduledRiders,
                         ScheduledDriverID = @ScheduledDriverID
                     WHERE ScheduleID = @ScheduleID";
 

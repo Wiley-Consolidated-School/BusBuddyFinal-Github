@@ -13,9 +13,9 @@ fi
 
 # 2. Check code formatting
 echo "🎨 Checking code formatting..."
-dotnet format --verify-no-changes --verbosity minimal
+dotnet format BusBuddy.sln --verify-no-changes --verbosity minimal
 if [ $? -ne 0 ]; then
-    echo "❌ Code formatting issues found. Run 'dotnet format' and try again."
+    echo "❌ Code formatting issues found. Run 'dotnet format BusBuddy.sln' and try again."
     exit 1
 fi
 

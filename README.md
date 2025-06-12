@@ -8,7 +8,7 @@ A comprehensive school bus management system built with .NET 8 and Windows Forms
 ## 🚌 Features
 
 - **Vehicle Management**: Track buses, maintenance records, and fuel consumption
-- **Driver Management**: Manage driver information, licenses, and training records  
+- **Driver Management**: Manage driver information, licenses, and training records
 - **Route Planning**: Organize and schedule bus routes for optimal efficiency
 - **Activity Tracking**: Monitor special trips and extracurricular activities
 - **Time Card Management**: Track driver hours and overtime calculations
@@ -23,7 +23,7 @@ The application follows a layered architecture pattern:
 ```
 BusBuddy/
 ├── BusBuddy.UI/          # Windows Forms user interface
-├── BusBuddy.Business/    # Business logic and services  
+├── BusBuddy.Business/    # Business logic and services
 ├── BusBuddy.Data/        # Data access layer and repositories
 ├── BusBuddy.Models/      # Domain models and entities
 ├── BusBuddy.Tests/       # Unit and integration tests
@@ -140,7 +140,7 @@ reportgenerator -reports:"TestResults\**\coverage.cobertura.xml" -targetdir:"Tes
 We use Codecov to track test coverage and maintain code quality:
 
 - **Coverage reports** generated on every CI run
-- **PR comments** with coverage changes  
+- **PR comments** with coverage changes
 - **Coverage trends** tracked over time
 - **Quality gates** ensure coverage standards
 
@@ -159,7 +159,7 @@ We use Codecov to track test coverage and maintain code quality:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`) 
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ### Code Standards
@@ -168,6 +168,43 @@ We use Codecov to track test coverage and maintain code quality:
 - Maintain test coverage above 70%
 - All tests must pass before merging
 - Use meaningful commit messages
+
+### Code Formatting
+
+- Run `dotnet format BusBuddy.sln` to format code according to project standards
+- Verify formatting with `dotnet format BusBuddy.sln --verify-no-changes`
+- CI pipeline will enforce code formatting standards
+
+### Pre-Commit Screening
+
+The project uses pre-commit hooks to ensure code quality:
+
+1. **Install pre-commit**:
+   ```
+   pip install pre-commit
+   ```
+
+2. **Install the hook**:
+   ```
+   pre-commit install
+   ```
+
+3. **Update pre-commit config**:
+   ```
+   pre-commit migrate-config
+   ```
+
+3. **Pre-commit checks include**:
+   - Code formatting verification
+   - Unit tests execution
+   - Test coverage (70%+ threshold)
+   - Code secrets detection
+
+4. **Fix common issues**:
+   - Formatting: `dotnet format BusBuddy.sln`
+   - Tests: Fix failing tests in BusBuddy.Tests
+   - Coverage: Add more unit tests to increase coverage
+   - Secrets: Move sensitive data to secure storage
 
 ## 📈 Monitoring & Reporting
 

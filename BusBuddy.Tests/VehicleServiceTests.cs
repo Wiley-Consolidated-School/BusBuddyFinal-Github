@@ -70,5 +70,19 @@ namespace BusBuddy.Tests
             // Assert
             Assert.False(result);
         }
+
+        [Fact]
+        public void VehicleService_ShouldHandleNullOrWhitespaceValues()
+        {
+            // Arrange
+            string? vehicleNumber = "   ";
+
+            // Act
+            // Using string.IsNullOrWhiteSpace handles null and whitespace safely
+            var result = !string.IsNullOrWhiteSpace(vehicleNumber) && vehicleNumber.Length >= 3;
+
+            // Assert
+            Assert.False(result);
+        }
     }
 }

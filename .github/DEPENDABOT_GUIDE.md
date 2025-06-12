@@ -7,7 +7,7 @@ This document explains the enhanced Dependabot configuration for the BusBuddy pr
 The BusBuddy project now includes a comprehensive dependency management system with:
 
 1. **Daily Dependabot Updates** - Automated dependency monitoring
-2. **Smart Auto-Approval** - Safe automation of low-risk updates  
+2. **Smart Auto-Approval** - Safe automation of low-risk updates
 3. **Security Scanning** - Weekly vulnerability detection
 4. **Team Integration** - Proper assignment and review workflows
 

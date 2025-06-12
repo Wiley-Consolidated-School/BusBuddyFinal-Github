@@ -25,18 +25,18 @@ jobs:
   security-scan:
     runs-on: windows-latest
     name: Security Vulnerability Scan
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Full history for better analysis
-          
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-          
+
       - name: Find solution file
         id: find-solution
         run: |
@@ -47,38 +47,38 @@ jobs:
             Write-Host "❌ Solution file not found"
             exit 1
           }
-          
+
       - name: Restore dependencies
         run: |
           Write-Host "📦 Restoring NuGet packages..."
           dotnet restore $env:SOLUTION_PATH --verbosity normal
-          
+
       - name: Install security scanning tools
         run: |
           Write-Host "🔧 Installing security scanning tools..."
-          
+
           # Install .NET security scanning tools
           dotnet tool install --global dotnet-outdated-tool
           dotnet tool install --global security-scan
-          
+
           # Update tool list
           dotnet tool list --global
-          
+
       - name: Run .NET dependency audit
         id: dotnet-audit
         run: |
           Write-Host "🔍 Running .NET dependency vulnerability scan..."
-          
+
           # Create audit report directory
           if (-not (Test-Path "SecurityReports")) {
             New-Item -ItemType Directory -Path "SecurityReports"
           }
-          
+
           try {
             # Run dotnet list package --vulnerable
             Write-Host "📋 Checking for vulnerable packages..."
             $vulnerableOutput = dotnet list package --vulnerable --include-transitive 2>&1
-            
+
             if ($LASTEXITCODE -eq 0) {
               Write-Host "✅ No known vulnerabilities found"
               $vulnerableOutput | Out-File -FilePath "SecurityReports\vulnerable-packages.txt"
@@ -88,21 +88,20 @@ jobs:
               $vulnerableOutput | Out-File -FilePath "SecurityReports\vulnerable-packages.txt"
               "vulnerabilities_found=true" >> $env:GITHUB_OUTPUT
             }
-            
+
             # Run dotnet list package --outdated
             Write-Host "📋 Checking for outdated packages..."
             $outdatedOutput = dotnet list package --outdated --include-transitive 2>&1
             $outdatedOutput | Out-File -FilePath "SecurityReports\outdated-packages.txt"
-            
-          } catch {
-            Write-Host "❌ Error during security scan: $_"
+              } catch {
+            Write-Host "❌ Error during security scan: $($_.Exception.Message)"
             "vulnerabilities_found=unknown" >> $env:GITHUB_OUTPUT
           }
-          
+
       - name: Run additional security checks
         run: |
           Write-Host "🛡️  Running additional security checks..."
-          
+
           # Check for hardcoded secrets patterns
           Write-Host "🔐 Scanning for potential secrets..."
           $secretPatterns = @(
@@ -111,171 +110,171 @@ jobs:
             'secret\s*[=:]\s*["\'][^"\']+["\']',
             'connectionstring\s*[=:]\s*["\'][^"\']+["\']'
           )
-          
+
           $secretsFound = $false
           foreach ($pattern in $secretPatterns) {
-            $matches = Get-ChildItem -Path . -Include "*.cs","*.config","*.json" -Recurse | 
+            $matches = Get-ChildItem -Path . -Include "*.cs","*.config","*.json" -Recurse |
                       Select-String -Pattern $pattern -CaseSensitive:$false
             if ($matches) {
               Write-Host "⚠️  Potential secrets found matching pattern: $pattern"
               $secretsFound = $true
             }
           }
-          
+
           if (-not $secretsFound) {
             Write-Host "✅ No obvious hardcoded secrets detected"
           }
-          
-          # Check for SQL injection patterns  
+
+          # Check for SQL injection patterns
           Write-Host "💉 Scanning for potential SQL injection vulnerabilities..."
           $sqlPatterns = @(
             'ExecuteNonQuery\([^)]*\+[^)]*\)',
             'ExecuteScalar\([^)]*\+[^)]*\)',
             'SqlCommand\([^)]*\+[^)]*\)'
           )
-          
+
           $sqlIssuesFound = $false
           foreach ($pattern in $sqlPatterns) {
-            $matches = Get-ChildItem -Path . -Include "*.cs" -Recurse | 
+            $matches = Get-ChildItem -Path . -Include "*.cs" -Recurse |
                       Select-String -Pattern $pattern -CaseSensitive:$false
             if ($matches) {
               Write-Host "⚠️  Potential SQL injection risk found"
               $sqlIssuesFound = $true
             }
           }
-          
+
           if (-not $sqlIssuesFound) {
             Write-Host "✅ No obvious SQL injection patterns detected"
           }
-          
+
       - name: Generate security report
         run: |
           Write-Host "📊 Generating security scan report..."
-          
+
           $reportDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
           $report = @"
           # 🛡️ Security Scan Report
-          
-          **Generated**: $reportDate  
-          **Repository**: ${{ github.repository }}  
-          **Branch**: ${{ github.ref_name }}  
+
+          **Generated**: $reportDate
+          **Repository**: ${{ github.repository }}
+          **Branch**: ${{ github.ref_name }}
           **Commit**: ${{ github.sha }}
-          
+
           ## 📦 Package Vulnerability Scan
-          
+
           **Status**: $(if ("${{ steps.dotnet-audit.outputs.vulnerabilities_found }}" -eq "true") { "⚠️ Vulnerabilities Found" } elseif ("${{ steps.dotnet-audit.outputs.vulnerabilities_found }}" -eq "false") { "✅ No Vulnerabilities" } else { "❓ Scan Incomplete" })
-          
+
           ### Vulnerable Packages
           ``````
           $(if (Test-Path "SecurityReports\vulnerable-packages.txt") { Get-Content "SecurityReports\vulnerable-packages.txt" | Out-String } else { "No vulnerability data available" })
           ``````
-          
-          ### Outdated Packages  
+
+          ### Outdated Packages
           ``````
           $(if (Test-Path "SecurityReports\outdated-packages.txt") { Get-Content "SecurityReports\outdated-packages.txt" | Out-String } else { "No outdated package data available" })
           ``````
-          
+
           ## 🔧 Recommendations
-          
+
           1. **Review vulnerable packages** and update to secure versions
           2. **Monitor security advisories** for packages in use
           3. **Enable Dependabot security updates** for automated patching
           4. **Run security scans regularly** in CI/CD pipeline
-          
+
           ## 📞 Next Steps
-          
+
           - Update vulnerable packages using Dependabot or manual updates
           - Review code for security best practices
           - Consider additional security tools like CodeQL
-          
+
           ---
           *This report was generated automatically by the Dependency Security Scan workflow*
           "@
-          
+
           $report | Out-File -FilePath "SecurityReports\security-report.md"
-          
+
       - name: Upload security reports
         uses: actions/upload-artifact@v4
         with:
           name: security-scan-reports
           path: SecurityReports/
           retention-days: 30
-          
+
       - name: Comment on PR (if applicable)
         if: github.event_name == 'pull_request'
         run: |
           if ("${{ steps.dotnet-audit.outputs.vulnerabilities_found }}" -eq "true") {
             $comment = @"
             🛡️ **Security Scan Results**
-            
+
             ⚠️ **Vulnerabilities Detected**
-            
-            The dependency security scan has identified potential vulnerabilities in this PR. 
+
+            The dependency security scan has identified potential vulnerabilities in this PR.
             Please review the security report in the workflow artifacts.
-            
+
             **Actions Required:**
             1. Review vulnerable packages identified
-            2. Update to secure versions if available  
+            2. Update to secure versions if available
             3. Assess risk if no patches available
-            
+
             **Report Location:** Check the workflow artifacts for detailed scan results.
             "@
-            
+
             gh pr comment "${{ github.event.pull_request.number }}" --body $comment
           } else {
             $comment = @"
             🛡️ **Security Scan Results**
-            
+
             ✅ **No Vulnerabilities Detected**
-            
+
             The dependency security scan completed successfully with no known vulnerabilities found.
             "@
-            
+
             gh pr comment "${{ github.event.pull_request.number }}" --body $comment
           }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Create security issue (if vulnerabilities found)
         if: github.event_name == 'schedule' && steps.dotnet-audit.outputs.vulnerabilities_found == 'true'
         run: |
           $issueTitle = "🛡️ Security Vulnerabilities Detected - $(Get-Date -Format 'yyyy-MM-dd')"
           $issueBody = @"
           # 🚨 Security Alert: Vulnerabilities Detected
-          
+
           The weekly security scan has identified vulnerabilities in project dependencies.
-          
-          **Scan Date**: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")  
+
+          **Scan Date**: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
           **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          
+
           ## 📊 Summary
-          
+
           Please review the detailed security report in the workflow artifacts and take appropriate action.
-          
+
           ## 🔧 Immediate Actions Required
-          
+
           1. **Review Security Report**: Download artifacts from the workflow run
-          2. **Assess Risk Level**: Determine criticality of each vulnerability  
+          2. **Assess Risk Level**: Determine criticality of each vulnerability
           3. **Update Dependencies**: Apply security patches where available
           4. **Monitor Progress**: Track resolution of each identified issue
-          
+
           ## 📋 Checklist
-          
+
           - [ ] Downloaded and reviewed security scan report
-          - [ ] Identified critical vs. low-risk vulnerabilities  
+          - [ ] Identified critical vs. low-risk vulnerabilities
           - [ ] Updated packages with available security patches
           - [ ] Documented any accepted risks for unfixed issues
           - [ ] Verified fixes with follow-up scan
-          
+
           ---
-          
+
           **Note**: This issue was created automatically by the security scan workflow.
           "@
-          
+
           gh issue create --title $issueTitle --body $issueBody --label "security,dependencies,automated"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Security scan summary
         run: |
           Write-Host "📋 Security Scan Complete"
@@ -283,7 +282,7 @@ jobs:
           Write-Host "Vulnerabilities Found: ${{ steps.dotnet-audit.outputs.vulnerabilities_found }}"
           Write-Host "Reports Generated: SecurityReports/"
           Write-Host "Artifacts Uploaded: security-scan-reports"
-          
+
           if ("${{ steps.dotnet-audit.outputs.vulnerabilities_found }}" -eq "true") {
             Write-Host "⚠️  ACTION REQUIRED: Review security report and update vulnerable packages"
           } else {

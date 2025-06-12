@@ -63,16 +63,16 @@ namespace BusBuddy.Data
             {
                 connection.Open(); var sql = @"
                     INSERT INTO Fuel (
-                        FuelDate, FuelLocation, VehicleFueledID, 
+                        FuelDate, FuelLocation, VehicleFueledID,
                         VehicleOdometerReading, FuelType, FuelAmount,
                         FuelCost, Notes
                     )
                     VALUES (
-                        @FuelDate, @FuelLocation, @VehicleFueledID, 
+                        @FuelDate, @FuelLocation, @VehicleFueledID,
                         @VehicleOdometerReading, @FuelType, @FuelAmount,
                         @FuelCost, @Notes
                     );
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid()";
 
                 return connection.QuerySingle<int>(sql, fuelRecord);
             }
@@ -83,11 +83,11 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open(); var sql = @"
-                    UPDATE Fuel 
-                    SET FuelDate = @FuelDate, 
-                        FuelLocation = @FuelLocation, 
-                        VehicleFueledID = @VehicleFueledID, 
-                        VehicleOdometerReading = @VehicleOdometerReading, 
+                    UPDATE Fuel
+                    SET FuelDate = @FuelDate,
+                        FuelLocation = @FuelLocation,
+                        VehicleFueledID = @VehicleFueledID,
+                        VehicleOdometerReading = @VehicleOdometerReading,
                         FuelType = @FuelType,
                         FuelAmount = @FuelAmount,
                         FuelCost = @FuelCost,

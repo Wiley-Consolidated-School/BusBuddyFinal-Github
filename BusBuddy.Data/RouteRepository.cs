@@ -76,16 +76,16 @@ namespace BusBuddy.Data
                 connection.Open();
                 var sql = @"
                     INSERT INTO Routes (
-                        Date, RouteName, 
+                        Date, RouteName,
                         AMVehicleID, AMBeginMiles, AMEndMiles, AMRiders, AMDriverID,
                         PMVehicleID, PMBeginMiles, PMEndMiles, PMRiders, PMDriverID
                     )
                     VALUES (
-                        @Date, @RouteName, 
+                        @Date, @RouteName,
                         @AMVehicleID, @AMBeginMiles, @AMEndMiles, @AMRiders, @AMDriverID,
                         @PMVehicleID, @PMBeginMiles, @PMEndMiles, @PMRiders, @PMDriverID
                     );
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid()";
 
                 return connection.QuerySingle<int>(sql, route);
             }
@@ -97,18 +97,18 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = @"
-                    UPDATE Routes 
-                    SET Date = @Date, 
+                    UPDATE Routes
+                    SET Date = @Date,
                         RouteName = @RouteName,
-                        AMVehicleID = @AMVehicleID, 
-                        AMBeginMiles = @AMBeginMiles, 
-                        AMEndMiles = @AMEndMiles, 
-                        AMRiders = @AMRiders, 
+                        AMVehicleID = @AMVehicleID,
+                        AMBeginMiles = @AMBeginMiles,
+                        AMEndMiles = @AMEndMiles,
+                        AMRiders = @AMRiders,
                         AMDriverID = @AMDriverID,
-                        PMVehicleID = @PMVehicleID, 
-                        PMBeginMiles = @PMBeginMiles, 
-                        PMEndMiles = @PMEndMiles, 
-                        PMRiders = @PMRiders, 
+                        PMVehicleID = @PMVehicleID,
+                        PMBeginMiles = @PMBeginMiles,
+                        PMEndMiles = @PMEndMiles,
+                        PMRiders = @PMRiders,
                         PMDriverID = @PMDriverID
                     WHERE RouteID = @RouteID";
 

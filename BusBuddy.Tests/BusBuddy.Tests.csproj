@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>false</UseWPF>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
     <PackageReference Include="xunit" Version="2.4.2" />
@@ -37,7 +37,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
+
   <!-- The following section was causing duplicate compile items and has been removed:
   <ItemGroup>
     <Compile Include="BasicTests.cs" />
@@ -52,5 +52,13 @@
     <Compile Remove="**/*.backup.cs" />
     <!-- Re-enabled previously excluded test files with fixed namespace issues -->
     <!-- Removed excessive test file exclusions to enable all tests -->
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Db/DatabaseScript.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

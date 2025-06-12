@@ -51,16 +51,16 @@ namespace BusBuddy.Data
             {
                 connection.Open(); var sql = @"
                     INSERT INTO Drivers (
-                        DriverName, DriverPhone, DriverEmail, 
-                        Address, City, State, Zip, 
+                        DriverName, DriverPhone, DriverEmail,
+                        Address, City, State, Zip,
                         DriversLicenseType, TrainingComplete, Notes
                     )
                     VALUES (
-                        @DriverName, @DriverPhone, @DriverEmail, 
-                        @Address, @City, @State, @Zip, 
+                        @DriverName, @DriverPhone, @DriverEmail,
+                        @Address, @City, @State, @Zip,
                         @DriversLicenseType, @TrainingComplete, @Notes
                     );
-                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    SELECT last_insert_rowid()";
 
                 return connection.QuerySingle<int>(sql, driver);
             }
@@ -71,15 +71,15 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                var sql = @"                    UPDATE Drivers 
-                    SET DriverName = @DriverName, 
-                        DriverPhone = @DriverPhone, 
-                        DriverEmail = @DriverEmail, 
-                        Address = @Address, 
-                        City = @City, 
-                        State = @State, 
-                        Zip = @Zip, 
-                        DriversLicenseType = @DriversLicenseType, 
+                var sql = @"                    UPDATE Drivers
+                    SET DriverName = @DriverName,
+                        DriverPhone = @DriverPhone,
+                        DriverEmail = @DriverEmail,
+                        Address = @Address,
+                        City = @City,
+                        State = @State,
+                        Zip = @Zip,
+                        DriversLicenseType = @DriversLicenseType,
                         TrainingComplete = @TrainingComplete,
                         Notes = @Notes
                     WHERE DriverID = @DriverID";

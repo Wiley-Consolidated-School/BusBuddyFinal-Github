@@ -1,0 +1,40 @@
+repos:
+  - repo: local
+    hooks:
+      # Check C# code formatting
+      - id: dotnet-format
+        name: Check C# code formatting
+        entry: dotnet format BusBuddy.sln --verify-no-changes
+        language: system
+        pass_filenames: false
+        files: '\\.(cs|csproj|sln)$'
+
+      # Run tests
+      - id: dotnet-test
+        name: Run unit tests
+        entry: dotnet test BusBuddy.sln --configuration Release
+        language: system
+        pass_filenames: false
+        files: '\\.(cs|csproj|sln)$'
+
+      # Check test coverage
+      - id: dotnet-coverage
+        name: Check test coverage (70% threshold)
+        entry: pwsh.exe -File ./check-coverage.ps1
+        language: system
+        pass_filenames: false
+        files: '\\.(cs|csproj|sln)$'
+
+      # Check for secrets in code
+      - id: detect-secrets
+        name: Scan for secrets
+        entry: pwsh.exe -File ./detect-secrets.ps1
+        language: system
+        pass_filenames: false
+        files: '\\.(cs|config|xml|json)$'
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer

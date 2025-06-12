@@ -25,18 +25,18 @@ env:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for better versioning
-        
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-        
+
     # Simplified SQLite setup - embedded SQLite works for tests
     - name: Setup SQLite (Optional)
       run: |
@@ -53,18 +53,19 @@ jobs:
         catch {
           Write-Host "SQLite check completed - using embedded SQLite for tests"
         }
-        
+
     - name: List repository contents
       run: |
         Write-Host "Repository contents:"
         Get-ChildItem -Force | Format-Table -AutoSize
-        if (Test-Path "BusBuddy.sln") { 
-          Write-Host "✓ Solution file found in root" 
-        } else { 
+        if (Test-Path "BusBuddy.sln") {
+          Write-Host "✓ Solution file found in root"
+        } else {
           Write-Host "✗ Solution file not found in root, searching subdirectories..."
           Get-ChildItem -Recurse -Filter "*.sln" | ForEach-Object { Write-Host "Found: $($_.FullName)" }
         }
-          - name: Find solution file
+
+    - name: Find solution file
       id: find-solution
       run: |
         # First check root directory
@@ -88,7 +89,7 @@ jobs:
             exit 1
           }
         }
-        
+
     - name: Cache NuGet packages
       uses: actions/cache@v3
       with:
@@ -96,13 +97,13 @@ jobs:
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
-        
+
     - name: Restore dependencies
       run: dotnet restore $env:SOLUTION_PATH
-      
+
     - name: Build
       run: dotnet build $env:SOLUTION_PATH --no-restore --configuration Release
-    
+
     # Create TestResults directory to ensure it exists
     - name: Create TestResults directory
       run: |
@@ -112,12 +113,12 @@ jobs:
         } else {
           Write-Host "TestResults directory already exists"
         }
-        
+
     # Run tests with proper TRX generation and error handling
     - name: Run tests
       run: |
         Write-Host "Running tests with TRX output..."
-        
+
         # Ensure TestResults directory exists
         if (-not (Test-Path "TestResults")) {
           New-Item -ItemType Directory -Path "TestResults" -Force
@@ -131,15 +132,15 @@ jobs:
           "--results-directory", "TestResults",
           "--collect:XPlat Code Coverage"
         )
-        
+
         # Add runsettings if available
         if (Test-Path "coverlet.runsettings") {
           $testArgs += @("--settings", "coverlet.runsettings")
           Write-Host "Using coverlet.runsettings for code coverage configuration"
         }
-        
+
         & dotnet @testArgs
-        
+
         # Verify and report on generated files
         Write-Host "`n📁 TestResults directory contents:"
         if (Test-Path "TestResults") {
@@ -148,7 +149,7 @@ jobs:
             Write-Host "  $relativePath"
           }
         }
-        
+
         # Verify TRX files specifically
         $trxFiles = Get-ChildItem "TestResults" -Filter "*.trx" -Recurse
         if ($trxFiles) {
@@ -157,7 +158,7 @@ jobs:
         } else {
           Write-Host "`n⚠️  No TRX files found - test reporting may be affected"
         }
-        
+
         # Verify coverage files
         $coverageFiles = Get-ChildItem "TestResults" -Filter "coverage.cobertura.xml" -Recurse
         if ($coverageFiles) {
@@ -166,7 +167,7 @@ jobs:
         } else {
           Write-Host "`n⚠️  No coverage files found"
         }
-        
+
     # Upload test results as artifacts (always runs)
     - name: Upload test results
       if: always()
@@ -185,7 +186,7 @@ jobs:
         reporter: dotnet-trx
         fail-on-error: false
         fail-on-empty: false
-        
+
     # Upload coverage reports
     - name: Upload coverage reports
       if: always()
@@ -193,7 +194,7 @@ jobs:
       with:
         name: coverage-reports
         path: TestResults/**/coverage.cobertura.xml
-        retention-days: 30      # Code coverage reporting with token validation  
+        retention-days: 30      # Code coverage reporting with token validation
     - name: Upload coverage to Codecov
       if: always() && github.actor != 'dependabot[bot]'
       uses: codecov/codecov-action@v4
@@ -201,19 +202,19 @@ jobs:
         files: TestResults/**/coverage.cobertura.xml
         fail_ci_if_error: false
         verbose: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+        # token: ${{ secrets.CODECOV_TOKEN }}  # Uncomment and set this secret in GitHub repo settings if required
         flags: unittests,integration
         name: codecov-umbrella
         env_vars: OS,DOTNET_VERSION
       continue-on-error: true
-      
+
     # Coverage summary for reference
     - name: Coverage Summary
       if: always()
       run: |
         Write-Host "📊 Coverage files generated:"
         if (Test-Path "TestResults") {
-          Get-ChildItem "TestResults" -Recurse -Filter "*.xml" | ForEach-Object { 
+          Get-ChildItem "TestResults" -Recurse -Filter "*.xml" | ForEach-Object {
             Write-Host "  - $($_.Name) ($($_.Length) bytes)"
           }
         }
@@ -221,30 +222,30 @@ jobs:
         Write-Host "💡 To configure Codecov uploads:"
         Write-Host "   1. Get token from https://codecov.io/gh/your-org/your-repo/settings"
         Write-Host "   2. Add CODECOV_TOKEN secret in repository Settings > Secrets"
-        
+
   # Separate job for deployment readiness checks
   deployment-check:
     runs-on: windows-latest
     needs: build
     if: github.ref == 'refs/heads/master'
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x        
+        dotnet-version: 8.0.x
     - name: Build Release version
       run: |
         dotnet restore BusBuddy.sln
         dotnet build BusBuddy.sln --configuration Release --no-restore
-        
+
     - name: Create deployment package
       run: |
         dotnet publish --configuration Release --output ./deploy/
-        
+
     - name: Upload deployment artifacts
       uses: actions/upload-artifact@v4
       with:
