@@ -5,7 +5,7 @@ using BusBuddy.Models;
 using BusBuddy.Business;
 using BusBuddy.Data;
 
-namespace BusBuddy.UI
+namespace BusBuddy.UI.Views
 {
     public class RouteManagementForm : BaseDataForm
     {
@@ -49,6 +49,7 @@ namespace BusBuddy.UI
 
         public RouteManagementForm()
         {
+            this.Size = new System.Drawing.Size(1200, 900); // Increased size for more data visibility
             _routeRepository = new RouteRepository();
             _vehicleRepository = new VehicleRepository();
             _driverRepository = new DriverRepository();
@@ -60,24 +61,43 @@ namespace BusBuddy.UI
         private void InitializeComponent()
         {
             this.Text = "Route Management";
-            this.Size = new System.Drawing.Size(1000, 700);
+            this.Size = new System.Drawing.Size(1200, 900);
 
-            // Create filter controls
+            // Create buttons
+            _addButton = CreateButton("Add New", 20, 20, (s, e) => AddNewRoute());
+            _editButton = CreateButton("Edit", 130, 20, (s, e) => EditSelectedRoute());
+            _deleteButton = CreateButton("Delete", 240, 20, (s, e) => DeleteSelectedRoute());
+            _detailsButton = CreateButton("Details", 350, 20, (s, e) => ViewRouteDetails());
+
+            // Create search/filter controls as needed (if present)
             CreateLabel("Filter by Date:", 20, 25);
             _dateFilterPicker = CreateDatePicker(120, 20, 150);
             _filterButton = CreateButton("Filter", 280, 20, (s, e) => FilterRoutes());
             _clearFilterButton = CreateButton("Clear", 390, 20, (s, e) => ClearFilter());
 
-            // Create main grid
-            _routeGrid = CreateDataGridView(20, 60, 950, 300);
+            // Create main grid (move down to leave space for buttons)
+            _routeGrid = new DataGridView();
+            _routeGrid.Location = new System.Drawing.Point(20, 60);
+            _routeGrid.Size = new System.Drawing.Size(1150, 650);
+            _routeGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+
+            // DataGridView dynamic settings
+            _routeGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            _routeGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            _routeGrid.AllowUserToResizeColumns = true;
+            _routeGrid.AllowUserToResizeRows = true;
+            _routeGrid.ScrollBars = ScrollBars.Both;
+
+            // Hide primary key column if present
+            _routeGrid.DataBindingComplete += (s, e) => {
+                if (_routeGrid.Columns.Contains("Id"))
+                    _routeGrid.Columns["Id"].Visible = false;
+            };
+
+            this.Controls.Add(_routeGrid);
+
             _routeGrid.CellDoubleClick += (s, e) => EditSelectedRoute();
             _routeGrid.SelectionChanged += RouteGrid_SelectionChanged;
-
-            // Create buttons
-            _addButton = CreateButton("Add New", 20, 370, (s, e) => AddNewRoute());
-            _editButton = CreateButton("Edit", 130, 370, (s, e) => EditSelectedRoute());
-            _deleteButton = CreateButton("Delete", 240, 370, (s, e) => DeleteSelectedRoute());
-            _detailsButton = CreateButton("Details", 350, 370, (s, e) => ViewRouteDetails());
 
             // Initialize edit panel (hidden initially)
             InitializeEditPanel();
@@ -87,12 +107,13 @@ namespace BusBuddy.UI
             _deleteButton.Enabled = false;
             _detailsButton.Enabled = false;
         }
+
         private void InitializeEditPanel()
         {
             _editPanel = new Panel();
             _editPanel.BorderStyle = BorderStyle.FixedSingle;
-            _editPanel.Location = new System.Drawing.Point(20, 410);
-            _editPanel.Size = new System.Drawing.Size(950, 230);
+            _editPanel.Location = new System.Drawing.Point(20, 770);
+            _editPanel.Size = new System.Drawing.Size(1150, 230);
             _editPanel.Visible = false;
             this.Controls.Add(_editPanel);
 

@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using BusBuddy.Business;
 using BusBuddy.UI;
+using BusBuddy.UI.Views;
 
 namespace BusBuddy
 {
@@ -96,8 +97,10 @@ namespace BusBuddy
             // Create dashboard area
             Panel dashboardPanel = new Panel();
             dashboardPanel.BorderStyle = BorderStyle.FixedSingle;
-            dashboardPanel.Location = new System.Drawing.Point(50, 200);
-            dashboardPanel.Size = new System.Drawing.Size(900, 450);
+            dashboardPanel.Location = new System.Drawing.Point(20, 120);
+            dashboardPanel.Size = new System.Drawing.Size(this.ClientSize.Width - 40, this.ClientSize.Height - 160);
+            dashboardPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+            dashboardPanel.AutoScroll = true; // Enable scrolling if content overflows
             this.Controls.Add(dashboardPanel);
 
             // Add dashboard title
@@ -108,12 +111,20 @@ namespace BusBuddy
             dashboardTitle.Location = new System.Drawing.Point(10, 10);
             dashboardPanel.Controls.Add(dashboardTitle);
 
-            // Add buttons for quick access
-            CreateDashboardButton(dashboardPanel, "Manage Vehicles", 10, 60, () => OpenVehicleManagement());
-            CreateDashboardButton(dashboardPanel, "Manage Drivers", 180, 60, () => OpenDriverManagement());
-            CreateDashboardButton(dashboardPanel, "Manage Routes", 350, 60, () => OpenRouteManagement());
-            CreateDashboardButton(dashboardPanel, "Manage Activities", 520, 60, () => OpenActivityManagement());
-            CreateDashboardButton(dashboardPanel, "View Reports", 690, 60, () => OpenRouteReports());
+            // Dynamically size and position dashboard buttons based on panel size
+            int buttonWidth = 180;
+            int buttonSpacing = 30;
+            int totalButtons = 6;
+            int totalWidth = (buttonWidth * totalButtons) + (buttonSpacing * (totalButtons - 1));
+            int panelCenter = (dashboardPanel.Width - totalWidth) / 2;
+            if (panelCenter < 0) panelCenter = 10;
+
+            CreateDashboardButton(dashboardPanel, "Manage Vehicles", panelCenter + (0 * (buttonWidth + buttonSpacing)), 60, () => OpenVehicleManagement());
+            CreateDashboardButton(dashboardPanel, "Manage Drivers", panelCenter + (1 * (buttonWidth + buttonSpacing)), 60, () => OpenDriverManagement());
+            CreateDashboardButton(dashboardPanel, "Manage Routes", panelCenter + (2 * (buttonWidth + buttonSpacing)), 60, () => OpenRouteManagement());
+            CreateDashboardButton(dashboardPanel, "Manage Activities", panelCenter + (3 * (buttonWidth + buttonSpacing)), 60, () => OpenActivityManagement());
+            CreateDashboardButton(dashboardPanel, "Manage Fuel", panelCenter + (4 * (buttonWidth + buttonSpacing)), 60, () => OpenFuelManagement());
+            CreateDashboardButton(dashboardPanel, "View Reports", panelCenter + (5 * (buttonWidth + buttonSpacing)), 60, () => OpenRouteReports());
         }
 
         private void CreateDashboardButton(Panel parent, string text, int x, int y, Action clickAction)
@@ -151,32 +162,50 @@ namespace BusBuddy
 
         private void OpenActivityManagement()
         {
-            MessageBox.Show("Activity Management form will be implemented", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var activityForm = new ActivityManagementForm())
+            {
+                activityForm.ShowDialog();
+            }
         }
 
         private void OpenFuelManagement()
         {
-            MessageBox.Show("Fuel Management form will be implemented", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var fuelForm = new FuelManagementForm())
+            {
+                fuelForm.ShowDialog();
+            }
         }
 
         private void OpenMaintenanceManagement()
         {
-            MessageBox.Show("Maintenance Management form will be implemented", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var maintenanceForm = new MaintenanceManagementForm())
+            {
+                maintenanceForm.ShowDialog();
+            }
         }
 
         private void OpenCalendarManagement()
         {
-            MessageBox.Show("School Calendar Management form will be implemented", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var calendarForm = new SchoolCalendarManagementForm())
+            {
+                calendarForm.ShowDialog();
+            }
         }
 
         private void OpenScheduleManagement()
         {
-            MessageBox.Show("Activity Schedule Management form will be implemented", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var scheduleForm = new ActivityScheduleManagementForm())
+            {
+                scheduleForm.ShowDialog();
+            }
         }
 
         private void OpenTimeCardManagement()
         {
-            MessageBox.Show("Time Card Management form will be implemented", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var timeCardForm = new TimeCardManagementForm())
+            {
+                timeCardForm.ShowDialog();
+            }
         }
 
         private void OpenRouteReports()

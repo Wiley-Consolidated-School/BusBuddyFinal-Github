@@ -5,7 +5,7 @@ using BusBuddy.Models;
 using BusBuddy.Business;
 using BusBuddy.Data;
 
-namespace BusBuddy.UI
+namespace BusBuddy.UI.Views
 {
     public class VehicleManagementForm : BaseDataForm
     {
@@ -48,11 +48,7 @@ namespace BusBuddy.UI
         private void InitializeComponent()
         {
             this.Text = "Vehicle Management";
-
-            // Create main grid
-            _vehicleGrid = CreateDataGridView(20, 60, 750, 300);
-            _vehicleGrid.CellDoubleClick += (s, e) => EditSelectedVehicle();
-            _vehicleGrid.SelectionChanged += VehicleGrid_SelectionChanged;
+            this.Size = new System.Drawing.Size(1200, 900);
 
             // Create buttons
             _addButton = CreateButton("Add New", 20, 20, (s, e) => AddNewVehicle());
@@ -64,6 +60,29 @@ namespace BusBuddy.UI
             CreateLabel("Search:", 500, 25);
             _searchBox = CreateTextBox(550, 20, 150);
             _searchButton = CreateButton("Search", 710, 20, (s, e) => SearchVehicles());
+
+            // Create main grid (move down to leave space for buttons)
+            _vehicleGrid = new DataGridView();
+            _vehicleGrid.Location = new System.Drawing.Point(20, 60);
+            _vehicleGrid.Size = new System.Drawing.Size(1150, 650);
+            _vehicleGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+
+            // DataGridView dynamic settings
+            _vehicleGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            _vehicleGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            _vehicleGrid.AllowUserToResizeColumns = true;
+            _vehicleGrid.AllowUserToResizeRows = true;
+            _vehicleGrid.ScrollBars = ScrollBars.Both;
+            // Hide primary key column if present
+            _vehicleGrid.DataBindingComplete += (s, e) => {
+                if (_vehicleGrid.Columns.Contains("Id"))
+                    _vehicleGrid.Columns["Id"].Visible = false;
+            };
+
+            this.Controls.Add(_vehicleGrid);
+
+            _vehicleGrid.CellDoubleClick += (s, e) => EditSelectedVehicle();
+            _vehicleGrid.SelectionChanged += VehicleGrid_SelectionChanged;
 
             // Initialize edit panel (hidden initially)
             InitializeEditPanel();

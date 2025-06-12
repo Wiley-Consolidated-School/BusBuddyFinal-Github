@@ -5,7 +5,7 @@ $schemaPath = "BusBuddy.Data/DatabaseScript.sql"
 $dbPath = "BusBuddy.Tests/bin/Debug/net8.0-windows/test_busbuddy.db"
 
 # Remove any existing test database
-i f (Test-Path $dbPath) {
+if (Test-Path $dbPath) {
     Remove-Item $dbPath -Force
 }
 
@@ -30,5 +30,29 @@ if ($sqliteExe) {
     } catch {
         $errorMsg = $_.Exception.Message
         Write-Error "Could not create database. Please install sqlite3.exe or System.Data.SQLite. $errorMsg"
+    }
+}
+
+# After schema creation, insert seed data for tests
+$seedPath = "BusBuddy.Data/TestSeedData.sql"
+if (Test-Path $seedPath) {
+    if ($sqliteExe) {
+        & sqlite3 $dbPath ".read $seedPath"
+        Write-Host "Test seed data inserted using sqlite3.exe."
+    } else {
+        try {
+            $connStr = "Data Source=$dbPath;Version=3;"
+            $conn = New-Object System.Data.SQLite.SQLiteConnection $connStr
+            $conn.Open()
+            $script = Get-Content $seedPath -Raw
+            $cmd = $conn.CreateCommand()
+            $cmd.CommandText = $script
+            $cmd.ExecuteNonQuery()
+            $conn.Close()
+            Write-Host "Test seed data inserted using System.Data.SQLite."
+        } catch {
+            $errorMsg = $_.Exception.Message
+            Write-Error "Could not insert test seed data. $errorMsg"
+        }
     }
 }

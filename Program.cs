@@ -27,7 +27,9 @@ namespace BusBuddy
             }
 
             // Use the MainForm instead of Form1
-            Application.Run(new MainForm());
+            var mainForm = new MainForm();
+            mainForm.WindowState = FormWindowState.Maximized;
+            Application.Run(mainForm);
         }
     }
 }

@@ -5,7 +5,7 @@ using BusBuddy.Models;
 using BusBuddy.Business;
 using BusBuddy.Data;
 
-namespace BusBuddy.UI
+namespace BusBuddy.UI.Views
 {
     public class DriverManagementForm : BaseDataForm
     {
@@ -46,11 +46,7 @@ namespace BusBuddy.UI
         private void InitializeComponent()
         {
             this.Text = "Driver Management";
-
-            // Create main grid
-            _driverGrid = CreateDataGridView(20, 60, 750, 300);
-            _driverGrid.CellDoubleClick += (s, e) => EditSelectedDriver();
-            _driverGrid.SelectionChanged += DriverGrid_SelectionChanged;
+            this.Size = new System.Drawing.Size(1200, 900);
 
             // Create buttons
             _addButton = CreateButton("Add New", 20, 20, (s, e) => AddNewDriver());
@@ -62,6 +58,30 @@ namespace BusBuddy.UI
             CreateLabel("Search:", 500, 25);
             _searchBox = CreateTextBox(550, 20, 150);
             _searchButton = CreateButton("Search", 710, 20, (s, e) => SearchDrivers());
+
+            // Create main grid (move down to leave space for buttons)
+            _driverGrid = new DataGridView();
+            _driverGrid.Location = new System.Drawing.Point(20, 60);
+            _driverGrid.Size = new System.Drawing.Size(1150, 650);
+            _driverGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+
+            // DataGridView dynamic settings
+            _driverGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            _driverGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            _driverGrid.AllowUserToResizeColumns = true;
+            _driverGrid.AllowUserToResizeRows = true;
+            _driverGrid.ScrollBars = ScrollBars.Both;
+
+            // Hide primary key column if present
+            _driverGrid.DataBindingComplete += (s, e) => {
+                if (_driverGrid.Columns.Contains("DriverID"))
+                    _driverGrid.Columns["DriverID"].Visible = false;
+            };
+
+            this.Controls.Add(_driverGrid);
+
+            _driverGrid.CellDoubleClick += (s, e) => EditSelectedDriver();
+            _driverGrid.SelectionChanged += DriverGrid_SelectionChanged;
 
             // Initialize edit panel (hidden initially)
             InitializeEditPanel();

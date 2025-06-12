@@ -1,3 +1,20 @@
+-- BusBuddy Database Schema
+--
+-- Maintained for test and production compatibility
+--
+-- Last updated: June 12, 2025
+--
+-- 13 tables, including Vehicles (with FuelType, Status columns), Fuel, etc.
+--
+-- To update test data, see TestSeedData.sql and BusBuddy.Tests/TestBase.cs
+
+-- NOTE: This script is for SQLite only. For SQL Server, use DatabaseScript.SqlServer.sql.
+--
+-- SQLite supports 'CREATE TABLE IF NOT EXISTS', but SQL Server does not.
+-- If you see errors about 'IF NOT EXISTS', you are using the wrong script for SQL Server.
+--
+-- To initialize the test database, use this file with SQLite3.
+
 -- BusBuddy Enhanced Database Schema SQL Script (SQLite3 compatible)
 
 -- Vehicles Table
@@ -12,7 +29,9 @@ CREATE TABLE IF NOT EXISTS Vehicles (
     VINNumber TEXT,
     LicenseNumber TEXT,
     DateLastInspection TEXT,
-    Notes TEXT
+    Notes TEXT,
+    FuelType TEXT, -- Added for schema compatibility
+    Status TEXT    -- Added for schema compatibility
 );
 
 -- Drivers Table

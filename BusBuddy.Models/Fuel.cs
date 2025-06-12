@@ -6,7 +6,7 @@ namespace BusBuddy.Models
     {
         public int FuelID { get; set; }
         public DateTime? FuelDate { get; set; }
-        public string? FuelLocation { get; set; }  // Key Pumps, Gas Station
+        public string FuelLocation { get; set; }
         public int? VehicleFueledID { get; set; }
         public decimal? VehicleOdometerReading { get; set; }
         public string? FuelType { get; set; }  // Gasoline, Diesel
