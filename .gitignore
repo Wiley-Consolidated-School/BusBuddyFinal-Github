@@ -16,9 +16,12 @@
 # Mono auto generated files
 mono_crash.*
 
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+test_busbuddy.db
+
 [Rr]elease/
 [Rr]eleases/
 x64/
@@ -399,3 +402,5 @@ FodyWeavers.xsd
 
 # SQLite database file - uncomment if needed
 # *.db
+
+
