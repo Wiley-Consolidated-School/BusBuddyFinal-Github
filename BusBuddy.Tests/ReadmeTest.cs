@@ -3,11 +3,11 @@ using Xunit;
 
 namespace BusBuddy.Tests
 {
-    public class ReadmeTest
-    {
-        [Fact]
-        public void TestInstructions()
-        {
+            public class ReadmeTest
+            {
+            [Fact]
+            public void TestInstructions()
+            {
             // This test serves as documentation
 
             // To run all tests:
@@ -22,6 +22,6 @@ namespace BusBuddy.Tests
             // Normalize all line endings to Unix-style (\n)
 
             Assert.True(true);
-        }
-    }
+            }
+            }
 }

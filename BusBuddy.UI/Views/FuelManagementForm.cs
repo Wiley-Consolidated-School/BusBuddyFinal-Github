@@ -44,9 +44,11 @@ namespace BusBuddy.UI.Views
         private Fuel _currentFuel;
         private bool _isEditing = false;
 
-        public FuelManagementForm()
+        public FuelManagementForm() : this(new FuelRepository()) { }
+
+        public FuelManagementForm(IFuelRepository fuelRepository)
         {
-            _fuelRepository = new FuelRepository();
+            _fuelRepository = fuelRepository ?? throw new ArgumentNullException(nameof(fuelRepository));
             InitializeComponent();
             LoadFuels();
         }

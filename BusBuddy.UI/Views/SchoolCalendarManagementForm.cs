@@ -90,9 +90,19 @@ namespace BusBuddy.UI.Views
             _editPanel.Controls.Add(_dayTypeComboBox);
             var notesLabel = CreateLabel("Notes:", 300, 15);
             _editPanel.Controls.Add(notesLabel);
-            _notesTextBox = new TextBox { Location = new Point(360, 10), Size = new Size(400, 30) };
-            _editPanel.Controls.Add(_notesTextBox);
-            _saveButton = CreateButton("Save", 800, 10, (s, e) => SaveDayType());
+            _notesTextBox = new TextBox { Location = new Point(360, 10), Size = new Size(400, 30) };            _editPanel.Controls.Add(_notesTextBox);
+
+            // Add CRUD buttons
+            var addButton = CreateButton("Add New", 800, 10, (s, e) => AddNewEntry());
+            _editPanel.Controls.Add(addButton);
+
+            var editButton = CreateButton("Edit", 900, 10, (s, e) => EditEntry());
+            _editPanel.Controls.Add(editButton);
+
+            var deleteButton = CreateButton("Delete", 970, 10, (s, e) => DeleteEntry());
+            _editPanel.Controls.Add(deleteButton);
+
+            _saveButton = CreateButton("Save", 1040, 10, (s, e) => SaveDayType());
             _editPanel.Controls.Add(_saveButton);
             this.Controls.Add(_editPanel);
         }
@@ -173,6 +183,24 @@ namespace BusBuddy.UI.Views
             _dayTypeComboBox.SelectedItem = entry?.Category ?? "School Day";
             _notesTextBox.Text = entry?.Notes ?? string.Empty;
             _editPanel.Visible = true;
+        }
+
+        private void AddNewEntry()
+        {
+            // Placeholder for Add functionality
+            MessageBox.Show("Add New Entry functionality will be implemented.", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void EditEntry()
+        {
+            // Placeholder for Edit functionality
+            MessageBox.Show("Edit Entry functionality will be implemented.", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void DeleteEntry()
+        {
+            // Placeholder for Delete functionality
+            MessageBox.Show("Delete Entry functionality will be implemented.", "Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void SaveDayType()

@@ -45,14 +45,15 @@ namespace BusBuddy.UI.Views
         private List<Vehicle> _vehicles;
         private List<Driver> _drivers;
         private Route _currentRoute;
-        private bool _isEditing = false;
+        private bool _isEditing = false;        public RouteManagementForm() : this(new RouteRepository(), new VehicleRepository(), new DriverRepository()) { }
 
-        public RouteManagementForm()
+        public RouteManagementForm(IRouteRepository routeRepository, IVehicleRepository vehicleRepository, IDriverRepository driverRepository)
         {
+            _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
+            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
+            _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
+
             this.Size = new System.Drawing.Size(1200, 900); // Increased size for more data visibility
-            _routeRepository = new RouteRepository();
-            _vehicleRepository = new VehicleRepository();
-            _driverRepository = new DriverRepository();
             InitializeComponent();
             LoadVehiclesAndDrivers();
             LoadRoutes();

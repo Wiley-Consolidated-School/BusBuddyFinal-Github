@@ -72,7 +72,7 @@ namespace BusBuddy.UI.Views
         private void InitializeComponent()
         {
             this.Text = "Time Card Management";
-            this.Size = new System.Drawing.Size(1000, 700);
+            this.Size = new System.Drawing.Size(1200, 890);
             this.BackColor = Color.WhiteSmoke;
             this.KeyPreview = true;
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -85,9 +85,8 @@ namespace BusBuddy.UI.Views
 
             // Summary panel with FlowLayoutPanel for better responsiveness
             _summaryPanel = new FlowLayoutPanel();
-            _summaryPanel.Location = new Point(0, 0);
-            _summaryPanel.Size = new Size(this.ClientSize.Width, 40);
-            _summaryPanel.Dock = DockStyle.Top;
+            _summaryPanel.Location = new Point(500, 10);
+            _summaryPanel.Size = new Size(650, 40);
             _summaryPanel.BackColor = Color.FromArgb(240, 248, 255);
             _summaryPanel.FlowDirection = FlowDirection.LeftToRight;
             _summaryPanel.WrapContents = false;
@@ -118,7 +117,7 @@ namespace BusBuddy.UI.Views
             // Main grid - anchored Top, Left, Right (not Bottom to prevent overlap)
             _timeCardGrid = new DataGridView();
             _timeCardGrid.Location = new System.Drawing.Point(20, 60);
-            _timeCardGrid.Size = new System.Drawing.Size(this.ClientSize.Width - 40, 300);
+            _timeCardGrid.Size = new System.Drawing.Size(1150, 600);
             _timeCardGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _timeCardGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             _timeCardGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;

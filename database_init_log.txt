@@ -1,0 +1,11 @@
+Database initialization started at 6/13/2025 12:50:00 PM
+Current directory: C:\Users\steve.mckitrick\Desktop\BusBuddy
+Base directory: C:\Users\steve.mckitrick\Desktop\BusBuddy\bin\Debug\net8.0-windows\
+Connection string: Data Source=C:\Users\steve.mckitrick\Desktop\BusBuddy\busbuddy.db
+Provider name: Microsoft.Data.Sqlite
+Initializing SQLite database with connection string: Data Source=C:\Users\steve.mckitrick\Desktop\BusBuddy\busbuddy.db
+SQLite connection opened successfully
+Found 10 existing tables
+Validating SQLite schema...
+SQLite schema validation completed
+Database initialization completed successfully

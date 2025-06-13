@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\BusBuddy.csproj": {}
+    "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\busbuddy.csproj": {}
   },
   "projects": {
-    "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\BusBuddy.csproj": {
+    "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\busbuddy.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\BusBuddy.csproj",
+        "projectUniqueName": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\busbuddy.csproj",
         "projectName": "BusBuddy",
-        "projectPath": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\BusBuddy.csproj",
+        "projectPath": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\busbuddy.csproj",
         "packagesPath": "C:\\Users\\steve.mckitrick\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\steve.mckitrick\\Desktop\\BusBuddy\\obj\\",
         "projectStyle": "PackageReference",
@@ -51,11 +51,29 @@
             },
             "Microsoft.Data.SqlClient": {
               "target": "Package",
-              "version": "[5.1.5, )"
+              "version": "[5.1.6, )"
             },
             "Microsoft.Data.Sqlite": {
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[9.0.6, )"
             },
             "System.Data.SqlClient": {
               "target": "Package",

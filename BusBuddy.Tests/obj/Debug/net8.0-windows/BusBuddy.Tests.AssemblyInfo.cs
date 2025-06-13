@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BusBuddy.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74f94f825dce432cb8e616dbc658f5f0c122badb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cac3c87c7659b130020917c25b5c187027671314")]
 [assembly: System.Reflection.AssemblyProductAttribute("BusBuddy.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BusBuddy.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

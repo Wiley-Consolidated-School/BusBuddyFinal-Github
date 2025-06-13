@@ -7,9 +7,7 @@ namespace BusBuddy.UI
     public class BaseDataForm : Form
     {
         protected readonly ErrorProvider _errorProvider;
-        protected readonly DatabaseHelperService _databaseService;
-
-        public BaseDataForm()
+        protected readonly DatabaseHelperService _databaseService;        public BaseDataForm()
         {
             _errorProvider = new ErrorProvider();
             _databaseService = new DatabaseHelperService();
@@ -19,6 +17,7 @@ namespace BusBuddy.UI
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.KeyPreview = true; // Enable keyboard shortcuts
             this.Size = new System.Drawing.Size(800, 600);
         }
 

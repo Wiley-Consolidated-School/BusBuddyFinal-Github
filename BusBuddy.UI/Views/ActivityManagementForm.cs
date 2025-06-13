@@ -39,9 +39,8 @@ namespace BusBuddy.UI.Views
         }
 
         private void InitializeComponent()
-        {
-            this.Text = "Activity Management";
-            this.Size = new System.Drawing.Size(1200, 900);
+        {            this.Text = "Activity Management";
+            this.ClientSize = new System.Drawing.Size(1200, 900);
 
             // Create buttons
             _addButton = CreateButton("Add New", 20, 20, (s, e) => AddNewActivity());

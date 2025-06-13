@@ -14,22 +14,22 @@ using System.Threading;
 
 namespace BusBuddy.Tests
 {
-    public class DatabaseInitializerTests
-    {
-        private readonly string TestSqliteDbPath;
+            public class DatabaseInitializerTests
+            {
+            private readonly string TestSqliteDbPath;
 
-        public DatabaseInitializerTests()
-        {
+            public DatabaseInitializerTests()
+            {
             // Use a unique filename for each test instance to avoid locking issues
             TestSqliteDbPath = $"test_busbuddy_{Guid.NewGuid():N}.db";
-        }
-        [Fact]
-        public void DatabaseInitializer_ShouldCreateSqliteTables()
-        {
+            }
+            [Fact]
+            public void DatabaseInitializer_ShouldCreateSqliteTables()
+            {
             // Arrange
             if (File.Exists(TestSqliteDbPath))
             {
-                File.Delete(TestSqliteDbPath);
+            File.Delete(TestSqliteDbPath);
             }
 
             string connectionString = $"Data Source={TestSqliteDbPath}";
@@ -37,12 +37,12 @@ namespace BusBuddy.Tests
 
             try
             {
-                // Act
-                DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
+            // Act
+            DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
 
-                // Assert
-                using (var connection = new SqliteConnection(connectionString))
-                {
+            // Assert
+            using (var connection = new SqliteConnection(connectionString))
+            {
                     connection.Open();
 
                     // Verify tables exist
@@ -83,18 +83,18 @@ namespace BusBuddy.Tests
                     Assert.Contains(vehicleColumns, c => c.Name == "Year" && c.Type == "INTEGER");
                     Assert.Contains(vehicleColumns, c => c.Name == "SeatingCapacity" && c.Type == "INTEGER"); Assert.Contains(vehicleColumns, c => c.Name == "FuelType" && c.Type == "TEXT");
                     Assert.Contains(vehicleColumns, c => c.Name == "Status" && c.Type == "TEXT");
-                }
+            }
             }
             finally
             {
-                // Cleanup
-                CleanupTestDb(TestSqliteDbPath);
+            // Cleanup
+            CleanupTestDb(TestSqliteDbPath);
             }
-        }
+            }
 
-        [Fact]
-        public void DatabaseInitializer_ShouldCreateSqlServerTables()
-        {
+            [Fact]
+            public void DatabaseInitializer_ShouldCreateSqlServerTables()
+            {
             // Arrange - Using SQL Server LocalDB or skip if not available
             string connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=BusBuddyTest;Trusted_Connection=True;TrustServerCertificate=True;";
 
@@ -102,42 +102,42 @@ namespace BusBuddy.Tests
             bool canConnectToSqlServer = false;
             try
             {
-                using (var testConnection = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"))
-                {
+            using (var testConnection = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"))
+            {
                     testConnection.Open();
                     canConnectToSqlServer = true;
-                }
+            }
             }
             catch (Exception)
             {
-                // LocalDB not available, skip the test
-                return;
+            // LocalDB not available, skip the test
+            return;
             }
 
             if (!canConnectToSqlServer)
             {
-                return; // Skip test if SQL Server is not available
+            return; // Skip test if SQL Server is not available
             }
 
             try
             {
-                // Create test database
-                using (var masterConnection = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"))
-                {
+            // Create test database
+            using (var masterConnection = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"))
+            {
                     masterConnection.Open();
                     using (var cmd = masterConnection.CreateCommand())
                     {
                         cmd.CommandText = "IF EXISTS (SELECT * FROM sys.databases WHERE name = 'BusBuddyTest') DROP DATABASE BusBuddyTest; CREATE DATABASE BusBuddyTest;";
                         cmd.ExecuteNonQuery();
                     }
-                }
+            }
 
-                // Act
-                DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.SqlClient");
+            // Act
+            DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.SqlClient");
 
-                // Assert
-                using (var connection = new SqlConnection(connectionString))
-                {
+            // Assert
+            using (var connection = new SqlConnection(connectionString))
+            {
                     connection.Open();
 
                     // Verify tables exist
@@ -155,13 +155,13 @@ namespace BusBuddy.Tests
                         var exists = TableExistsInSqlServer(connection, table);
                         Assert.True(exists, $"Table {table} should exist in SQL Server database");
                     }
-                }
+            }
             }
             finally
             {
-                // Cleanup - drop test database
-                try
-                {
+            // Cleanup - drop test database
+            try
+            {
                     using (var connection = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"))
                     {
                         connection.Open();
@@ -171,20 +171,20 @@ namespace BusBuddy.Tests
                             cmd.ExecuteNonQuery();
                         }
                     }
-                }
-                catch
-                {
-                    // Ignore cleanup errors
-                }
             }
-        }
-        [Fact]
-        public void DatabaseInitializer_ShouldVerifyForeignKeyConstraints_InSqlite()
-        {
+            catch
+            {
+                    // Ignore cleanup errors
+            }
+            }
+            }
+            [Fact]
+            public void DatabaseInitializer_ShouldVerifyForeignKeyConstraints_InSqlite()
+            {
             // Arrange
             if (File.Exists(TestSqliteDbPath))
             {
-                File.Delete(TestSqliteDbPath);
+            File.Delete(TestSqliteDbPath);
             }
 
             string connectionString = $"Data Source={TestSqliteDbPath}";
@@ -192,12 +192,12 @@ namespace BusBuddy.Tests
 
             try
             {
-                // Act
-                DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
+            // Act
+            DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
 
-                // Assert
-                using (var connection = new SqliteConnection(connectionString))
-                {
+            // Assert
+            using (var connection = new SqliteConnection(connectionString))
+            {
                     connection.Open();
 
                     // Verify foreign keys are enabled
@@ -236,21 +236,21 @@ namespace BusBuddy.Tests
                     // Verify TimeCard table foreign keys
                     var timecardForeignKeys = GetForeignKeys(connection, "TimeCard");
                     Assert.Contains(timecardForeignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID" && fk.To == "DriverID");
-                }
+            }
             }
             finally
             {
-                // Cleanup
-                CleanupTestDb(TestSqliteDbPath);
+            // Cleanup
+            CleanupTestDb(TestSqliteDbPath);
             }
-        }
-        [Fact]
-        public void DatabaseInitializer_ShouldVerifyAllTablesAndIndexes_InSqlite()
-        {
+            }
+            [Fact]
+            public void DatabaseInitializer_ShouldVerifyAllTablesAndIndexes_InSqlite()
+            {
             // Arrange
             if (File.Exists(TestSqliteDbPath))
             {
-                File.Delete(TestSqliteDbPath);
+            File.Delete(TestSqliteDbPath);
             }
 
             string connectionString = $"Data Source={TestSqliteDbPath}";
@@ -258,12 +258,12 @@ namespace BusBuddy.Tests
 
             try
             {
-                // Act
-                DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
+            // Act
+            DatabaseInitializer.InitializeDatabase(connectionString, "Microsoft.Data.Sqlite");
 
-                // Assert
-                using (var connection = new SqliteConnection(connectionString))
-                {
+            // Assert
+            using (var connection = new SqliteConnection(connectionString))
+            {
                     connection.Open();
 
                     // Get all tables in the database
@@ -307,73 +307,73 @@ namespace BusBuddy.Tests
                     VerifySchoolCalendarTableStructure(connection);
                     VerifyActivityScheduleTableStructure(connection);
                     VerifyTimeCardTableStructure(connection);
-                }
+            }
             }
             finally
             {
-                // Cleanup
-                CleanupTestDb(TestSqliteDbPath);
+            // Cleanup
+            CleanupTestDb(TestSqliteDbPath);
             }
-        }
+            }
 
-        // SQL Server helper methods
-        private static int GetSqlServerTableCount(SqlConnection connection)
-        {
+            // SQL Server helper methods
+            private static int GetSqlServerTableCount(SqlConnection connection)
+            {
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
-                return (int)cmd.ExecuteScalar();
+            cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
+            return (int)cmd.ExecuteScalar();
             }
-        }
+            }
 
-        private static bool TableExistsInSqlServer(SqlConnection connection, string tableName)
-        {
+            private static bool TableExistsInSqlServer(SqlConnection connection, string tableName)
+            {
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tableName AND TABLE_TYPE = 'BASE TABLE'";
-                cmd.Parameters.Add(new SqlParameter("@tableName", tableName));
-                var count = (int)cmd.ExecuteScalar();
-                return count > 0;
+            cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tableName AND TABLE_TYPE = 'BASE TABLE'";
+            cmd.Parameters.Add(new SqlParameter("@tableName", tableName));
+            var count = (int)cmd.ExecuteScalar();
+            return count > 0;
             }
-        }
+            }
 
-        // SQLite helper methods
-        private static string[] GetAllTables(SqliteConnection connection)
-        {
+            // SQLite helper methods
+            private static string[] GetAllTables(SqliteConnection connection)
+            {
             var tables = new List<string>();
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
-                using (var reader = cmd.ExecuteReader())
-                {
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+            using (var reader = cmd.ExecuteReader())
+            {
                     while (reader.Read())
                     {
                         tables.Add(reader["name"]?.ToString() ?? string.Empty);
                     }
-                }
+            }
             }
             return tables.ToArray();
-        }
+            }
 
-        private static string[] GetAllIndexes(SqliteConnection connection)
-        {
+            private static string[] GetAllIndexes(SqliteConnection connection)
+            {
             var indexes = new List<string>();
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'";
-                using (var reader = cmd.ExecuteReader())
-                {
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'";
+            using (var reader = cmd.ExecuteReader())
+            {
                     while (reader.Read())
                     {
                         indexes.Add(reader["name"]?.ToString() ?? string.Empty);
                     }
-                }
+            }
             }
             return indexes.ToArray();
-        }
+            }
 
-        private static void VerifyVehiclesTableStructure(SqliteConnection connection)
-        {
+            private static void VerifyVehiclesTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "Vehicles");
 
             Assert.Equal(13, columns.Count);
@@ -390,10 +390,10 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "FuelType" && c.Type == "TEXT");
             Assert.Contains(columns, c => c.Name == "Status" && c.Type == "TEXT");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-        }
+            }
 
-        private static void VerifyDriversTableStructure(SqliteConnection connection)
-        {
+            private static void VerifyDriversTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "Drivers");
 
             Assert.Equal(11, columns.Count);
@@ -408,10 +408,10 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "DriversLicenseType" && c.Type == "TEXT");
             Assert.Contains(columns, c => c.Name == "TrainingComplete" && c.Type == "INTEGER");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-        }
+            }
 
-        private static void VerifyRoutesTableStructure(SqliteConnection connection)
-        {
+            private static void VerifyRoutesTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "Routes");
 
             Assert.Equal(14, columns.Count);
@@ -436,10 +436,10 @@ namespace BusBuddy.Tests
             Assert.Contains(foreignKeys, fk => fk.Table == "Drivers" && fk.From == "AMDriverID");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "PMVehicleID");
             Assert.Contains(foreignKeys, fk => fk.Table == "Drivers" && fk.From == "PMDriverID");
-        }
+            }
 
-        private static void VerifyActivitiesTableStructure(SqliteConnection connection)
-        {
+            private static void VerifyActivitiesTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "Activities");
 
             Assert.Equal(11, columns.Count);
@@ -459,10 +459,10 @@ namespace BusBuddy.Tests
             var foreignKeys = GetForeignKeys(connection, "Activities");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "AssignedVehicleID");
             Assert.Contains(foreignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID");
-        }
+            }
 
-        private static void VerifyFuelTableStructure(SqliteConnection connection)
-        {
+            private static void VerifyFuelTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "Fuel");
 
             Assert.Equal(9, columns.Count);
@@ -479,10 +479,10 @@ namespace BusBuddy.Tests
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "Fuel");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "VehicleFueledID");
-        }
+            }
 
-        private static void VerifyMaintenanceTableStructure(SqliteConnection connection)
-        {
+            private static void VerifyMaintenanceTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "Maintenance");
 
             Assert.Equal(8, columns.Count);
@@ -498,10 +498,10 @@ namespace BusBuddy.Tests
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "Maintenance");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "VehicleID");
-        }
+            }
 
-        private static void VerifySchoolCalendarTableStructure(SqliteConnection connection)
-        {
+            private static void VerifySchoolCalendarTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "SchoolCalendar");
 
             Assert.Equal(7, columns.Count);
@@ -512,10 +512,10 @@ namespace BusBuddy.Tests
             Assert.Contains(columns, c => c.Name == "Description" && c.Type == "TEXT");
             Assert.Contains(columns, c => c.Name == "RouteNeeded" && c.Type == "INTEGER");
             Assert.Contains(columns, c => c.Name == "Notes" && c.Type == "TEXT");
-        }
+            }
 
-        private static void VerifyActivityScheduleTableStructure(SqliteConnection connection)
-        {
+            private static void VerifyActivityScheduleTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "ActivitySchedule");
 
             Assert.Equal(11, columns.Count);
@@ -535,10 +535,10 @@ namespace BusBuddy.Tests
             var foreignKeys = GetForeignKeys(connection, "ActivitySchedule");
             Assert.Contains(foreignKeys, fk => fk.Table == "Vehicles" && fk.From == "ScheduledVehicleID");
             Assert.Contains(foreignKeys, fk => fk.Table == "Drivers" && fk.From == "ScheduledDriverID");
-        }
+            }
 
-        private static void VerifyTimeCardTableStructure(SqliteConnection connection)
-        {
+            private static void VerifyTimeCardTableStructure(SqliteConnection connection)
+            {
             var columns = GetTableColumns(connection, "TimeCard");
 
             Assert.Equal(18, columns.Count);
@@ -564,16 +564,16 @@ namespace BusBuddy.Tests
             // Verify foreign keys
             var foreignKeys = GetForeignKeys(connection, "TimeCard");
             Assert.Contains(foreignKeys, fk => fk.Table == "Drivers" && fk.From == "DriverID");
-        }
+            }
 
-        #region Helper Methods
+            #region Helper Methods
 
-        private static void CleanupTestDb(string dbPath)
-        {
+            private static void CleanupTestDb(string dbPath)
+            {
             try
             {
-                if (File.Exists(dbPath))
-                {
+            if (File.Exists(dbPath))
+            {
                     // Force garbage collection to release any connections
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
@@ -596,16 +596,16 @@ namespace BusBuddy.Tests
                             }
                         }
                     }
-                }
+            }
             }
             catch
             {
-                // Ignore cleanup errors in tests
+            // Ignore cleanup errors in tests
             }
-        }
+            }
 
-        private static void SetupConnectionString(string providerName, string connectionString)
-        {
+            private static void SetupConnectionString(string providerName, string connectionString)
+            {
             // This is a simplified approach for testing
             // In a real environment, you might use a test configuration or mocking
             var mockConnectionStringSettings = new ConnectionStringSettings("DefaultConnection", connectionString, providerName);
@@ -616,48 +616,48 @@ namespace BusBuddy.Tests
 
             if (connectionsProperty != null)
             {
-                var connectionsCollection = new ConnectionStringSettingsCollection();
-                connectionsCollection.Add(mockConnectionStringSettings);
+            var connectionsCollection = new ConnectionStringSettingsCollection();
+            connectionsCollection.Add(mockConnectionStringSettings);
 
-                var internalCollection = configType.GetNestedType("ConnectionStringSettingsCollection", BindingFlags.NonPublic);
-                if (internalCollection != null)
-                {
+            var internalCollection = configType.GetNestedType("ConnectionStringSettingsCollection", BindingFlags.NonPublic);
+            if (internalCollection != null)
+            {
                     var instance = Activator.CreateInstance(internalCollection, connectionsCollection);
                     connectionsProperty.SetValue(null, instance);
-                }
             }
-        }
+            }
+            }
 
-        private static bool TableExists(SqliteConnection connection, string tableName)
-        {
+            private static bool TableExists(SqliteConnection connection, string tableName)
+            {
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name=@name";
-                cmd.Parameters.Add(new SqliteParameter("@name", tableName));
-                var result = cmd.ExecuteScalar();
-                return result != null;
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name=@name";
+            cmd.Parameters.Add(new SqliteParameter("@name", tableName));
+            var result = cmd.ExecuteScalar();
+            return result != null;
             }
-        }
+            }
 
-        private static bool IndexExists(SqliteConnection connection, string indexName)
-        {
+            private static bool IndexExists(SqliteConnection connection, string indexName)
+            {
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='index' AND name=@name";
-                cmd.Parameters.Add(new SqliteParameter("@name", indexName));
-                var result = cmd.ExecuteScalar();
-                return result != null;
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='index' AND name=@name";
+            cmd.Parameters.Add(new SqliteParameter("@name", indexName));
+            var result = cmd.ExecuteScalar();
+            return result != null;
             }
-        }
+            }
 
-        private static List<ColumnInfo> GetTableColumns(SqliteConnection connection, string tableName)
-        {
+            private static List<ColumnInfo> GetTableColumns(SqliteConnection connection, string tableName)
+            {
             var columns = new List<ColumnInfo>();
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = $"PRAGMA table_info({tableName})";
-                using (var reader = cmd.ExecuteReader())
-                {
+            cmd.CommandText = $"PRAGMA table_info({tableName})";
+            using (var reader = cmd.ExecuteReader())
+            {
                     while (reader.Read())
                     {
                         columns.Add(new ColumnInfo
@@ -668,19 +668,19 @@ namespace BusBuddy.Tests
                             IsPrimaryKey = Convert.ToInt32(reader["pk"]) == 1
                         });
                     }
-                }
+            }
             }
             return columns;
-        }
+            }
 
-        private static List<ForeignKeyInfo> GetForeignKeys(SqliteConnection connection, string tableName)
-        {
+            private static List<ForeignKeyInfo> GetForeignKeys(SqliteConnection connection, string tableName)
+            {
             var foreignKeys = new List<ForeignKeyInfo>();
             using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = $"PRAGMA foreign_key_list({tableName})";
-                using (var reader = cmd.ExecuteReader())
-                {
+            cmd.CommandText = $"PRAGMA foreign_key_list({tableName})";
+            using (var reader = cmd.ExecuteReader())
+            {
                     while (reader.Read())
                     {
                         foreignKeys.Add(new ForeignKeyInfo
@@ -691,25 +691,25 @@ namespace BusBuddy.Tests
                             To = reader["to"]?.ToString() ?? string.Empty
                         });
                     }
-                }
+            }
             }
             return foreignKeys;
-        }
-        private class ForeignKeyInfo
-        {
+            }
+            private class ForeignKeyInfo
+            {
             public int Id { get; set; }
             public string Table { get; set; } = string.Empty;
             public string From { get; set; } = string.Empty;
             public string To { get; set; } = string.Empty;
-        }
-        private class ColumnInfo
-        {
+            }
+            private class ColumnInfo
+            {
             public string Name { get; set; } = string.Empty;
             public string Type { get; set; } = string.Empty;
             public bool NotNull { get; set; }
             public bool IsPrimaryKey { get; set; }
-        }
+            }
 
-        #endregion
-    }
+            #endregion
+            }
 }

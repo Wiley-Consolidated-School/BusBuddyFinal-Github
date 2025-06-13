@@ -53,15 +53,15 @@ namespace BusBuddy.Tests
             var sql = "SELECT name FROM sqlite_master WHERE type='index' AND name=@IndexName";
             var result = _connection.QuerySingleOrDefault<string>(sql, new { IndexName = indexName });
             return result != null;
-        }
-
-        public BusBuddyContext? CreateContext()
+        }        public BusBuddyContext? CreateContext()
         {
-            // If BusBuddyContext exists and works with EF Core
+            // Create EF Core context using the existing connection
             try
             {
-                // This is a fallback - return null if EF Core isn't available
-                return null;
+                var context = new BusBuddyContext(_connection);
+                // Ensure the database schema is created for EF Core
+                context.Database.EnsureCreated();
+                return context;
             }
             catch
             {

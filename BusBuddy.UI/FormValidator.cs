@@ -92,9 +92,7 @@ namespace BusBuddy.UI
 
             errorProvider.SetError(textBox, "");
             return true;
-        }
-
-        public static bool ValidatePhoneNumber(TextBox textBox, string fieldName, ErrorProvider errorProvider)
+        }        public static bool ValidatePhoneNumber(TextBox textBox, string fieldName, ErrorProvider errorProvider)
         {
             if (string.IsNullOrWhiteSpace(textBox.Text))
             {
@@ -103,9 +101,9 @@ namespace BusBuddy.UI
 
             // Phone number can be in different formats, this is a basic validation
             string digitsOnly = Regex.Replace(textBox.Text, @"[^\d]", "");
-            if (digitsOnly.Length < 10)
+            if (digitsOnly.Length < 10 || digitsOnly.Length > 11)
             {
-                errorProvider.SetError(textBox, $"{fieldName} must be a valid phone number");
+                errorProvider.SetError(textBox, $"{fieldName} must be a valid phone number (10-11 digits)");
                 return false;
             }
 

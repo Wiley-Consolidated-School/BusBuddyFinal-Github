@@ -28,11 +28,11 @@ namespace BusBuddy.UI.Views
         private Button _saveButton;
         private Button _cancelButton;
         private Maintenance _currentMaintenance;
-        private bool _isEditing = false;
+        private bool _isEditing = false;        public MaintenanceManagementForm() : this(new MaintenanceRepository()) { }
 
-        public MaintenanceManagementForm()
+        public MaintenanceManagementForm(IMaintenanceRepository maintenanceRepository)
         {
-            _maintenanceRepository = new MaintenanceRepository();
+            _maintenanceRepository = maintenanceRepository ?? throw new ArgumentNullException(nameof(maintenanceRepository));
             InitializeComponent();
             LoadMaintenances();
         }

@@ -35,12 +35,10 @@ namespace BusBuddy.UI.Views
             _activityScheduleRepository = new ActivityScheduleRepository();
             InitializeComponent();
             LoadActivitySchedules();
-        }
-
-        private void InitializeComponent()
+        }        private void InitializeComponent()
         {
             this.Text = "Activity Schedule Management";
-            this.Size = new System.Drawing.Size(1200, 900);
+            this.ClientSize = new System.Drawing.Size(1200, 900);
             _addButton = CreateButton("Add New", 20, 20, (s, e) => AddNewActivitySchedule());
             _editButton = CreateButton("Edit", 130, 20, (s, e) => EditSelectedActivitySchedule());
             _deleteButton = CreateButton("Delete", 240, 20, (s, e) => DeleteSelectedActivitySchedule());
