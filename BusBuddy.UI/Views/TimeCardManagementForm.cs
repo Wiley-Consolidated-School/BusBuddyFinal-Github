@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.Business;
+using System.Diagnostics;
 
 namespace BusBuddy.UI.Views
 {
@@ -41,10 +42,10 @@ namespace BusBuddy.UI.Views
         private Label _lblWeekTotal;
         private Label _lblMonthTotal;
 
-        public TimeCardManagementForm() : this(new TimeCardRepository(), new PTOBalanceRepository(), new DatabaseHelperService()) { }
+        public TimeCardManagementForm() : this(new TimeCardRepository(), new PTOBalanceRepository()) { }
 
-        public TimeCardManagementForm(ITimeCardRepository timeCardRepository, IPTOBalanceRepository? ptoBalanceRepository = null, IDatabaseHelperService? databaseService = null)
-            : base(databaseService ?? new DatabaseHelperService())
+        public TimeCardManagementForm(ITimeCardRepository timeCardRepository, IPTOBalanceRepository? ptoBalanceRepository = null)
+            : base()
         {
             _timeCardRepository = timeCardRepository ?? throw new ArgumentNullException(nameof(timeCardRepository));
             _ptoBalanceRepository = ptoBalanceRepository ?? new PTOBalanceRepository();
@@ -71,7 +72,7 @@ namespace BusBuddy.UI.Views
         private void InitializeComponent()
         {
             this.Text = "Time Card Management";
-            this.Size = new System.Drawing.Size(1200, 800);
+            this.Size = new System.Drawing.Size(1000, 700);
             this.BackColor = Color.WhiteSmoke;
             this.KeyPreview = true;
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -80,6 +81,17 @@ namespace BusBuddy.UI.Views
             this.MinimizeBox = true;
             this.FormBorderStyle = FormBorderStyle.Sizable;
             this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.AutoScroll = true;
+
+            // Summary panel with FlowLayoutPanel for better responsiveness
+            _summaryPanel = new FlowLayoutPanel();
+            _summaryPanel.Location = new Point(0, 0);
+            _summaryPanel.Size = new Size(this.ClientSize.Width, 40);
+            _summaryPanel.Dock = DockStyle.Top;
+            _summaryPanel.BackColor = Color.FromArgb(240, 248, 255);
+            _summaryPanel.FlowDirection = FlowDirection.LeftToRight;
+            _summaryPanel.WrapContents = false;
+            _summaryPanel.Padding = new Padding(10, 5, 10, 5);
 
             // Create and add main CRUD buttons to summary panel
             _addButton = CreateButton("Add New", 0, 0, (s, e) => AddNewTimeCard());
@@ -96,15 +108,6 @@ namespace BusBuddy.UI.Views
             _summaryPanel.Controls.Add(_editButton);
             _summaryPanel.Controls.Add(_deleteButton);
             _summaryPanel.Controls.Add(_detailsButton);
-            // Summary panel with FlowLayoutPanel for better responsiveness
-            _summaryPanel = new FlowLayoutPanel();
-            _summaryPanel.Location = new Point(0, 0);
-            _summaryPanel.Size = new Size(this.ClientSize.Width, 40);
-            _summaryPanel.Dock = DockStyle.Top;
-            _summaryPanel.BackColor = Color.FromArgb(240, 248, 255);
-            _summaryPanel.FlowDirection = FlowDirection.LeftToRight;
-            _summaryPanel.WrapContents = false;
-            _summaryPanel.Padding = new Padding(10, 5, 10, 5);
 
             _lblWeekTotal = new Label { Text = "Week Total: 0h", Font = new Font("Segoe UI", 12, FontStyle.Bold), ForeColor = Color.DarkSlateBlue, AutoSize = true, Margin = new Padding(0, 5, 20, 5) };
             _lblMonthTotal = new Label { Text = "Month Total: 0h", Font = new Font("Segoe UI", 12, FontStyle.Bold), ForeColor = Color.DarkSlateBlue, AutoSize = true, Margin = new Padding(0, 5, 20, 5) };
@@ -112,11 +115,11 @@ namespace BusBuddy.UI.Views
             _summaryPanel.Controls.Add(_lblWeekTotal);
             _summaryPanel.Controls.Add(_lblMonthTotal);
             this.Controls.Add(_summaryPanel);
-            // Main grid
+            // Main grid - anchored Top, Left, Right (not Bottom to prevent overlap)
             _timeCardGrid = new DataGridView();
-            _timeCardGrid.Location = new System.Drawing.Point(20, 50);
-            _timeCardGrid.Size = new System.Drawing.Size(this.ClientSize.Width - 40, this.ClientSize.Height - 270);
-            _timeCardGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+            _timeCardGrid.Location = new System.Drawing.Point(20, 60);
+            _timeCardGrid.Size = new System.Drawing.Size(this.ClientSize.Width - 40, 300);
+            _timeCardGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _timeCardGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             _timeCardGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             _timeCardGrid.AllowUserToResizeColumns = true;
@@ -136,45 +139,60 @@ namespace BusBuddy.UI.Views
 
             // Add resize event handler
             this.Resize += TimeCardManagementForm_Resize;
-        }
 
-        private void TimeCardManagementForm_Resize(object sender, EventArgs e)
+            // Diagnostic logging after initialization
+            Debug.WriteLine($"TimeCardManagementForm Initialized: Size={this.ClientSize}, Grid={_timeCardGrid.Bounds}, EditPanel={_editPanel.Bounds}, SaveButton={_saveButton.Bounds}");
+        }        private void TimeCardManagementForm_Resize(object sender, EventArgs e)
         {
-            // Adjust grid size to maintain proper spacing
+            // Ensure _editPanel stays above bottom edge with dynamic positioning
             if (_timeCardGrid != null && _editPanel != null)
             {
-                _timeCardGrid.Size = new Size(this.ClientSize.Width - 40, this.ClientSize.Height - 270);
-                _editPanel.Location = new Point(20, this.ClientSize.Height - 200);
-                _editPanel.Size = new Size(this.ClientSize.Width - 40, 180);
+                // Position edit panel at bottom with safe margin
+                _editPanel.Location = new Point(20, Math.Max(60, this.ClientSize.Height - 240));
+                _editPanel.Size = new Size(this.ClientSize.Width - 40, 220);
 
-                // Adjust button positions within edit panel
+                // Validate _timeCardGrid height to avoid overlap with edit panel
+                int gridHeight = Math.Max(200, _editPanel.Top - 80);
+                _timeCardGrid.Size = new Size(this.ClientSize.Width - 40, gridHeight);
+
+                // Ensure buttons are visible within edit panel
                 if (_saveButton != null && _cancelButton != null)
                 {
-                    _saveButton.Location = new Point(_editPanel.Width - 320, 155);
-                    _cancelButton.Location = new Point(_editPanel.Width - 210, 155);
+                    _saveButton.Location = new Point(Math.Max(10, _editPanel.Width - 360), 155);
+                    _cancelButton.Location = new Point(Math.Max(10, _editPanel.Width - 240), 155);
 
-                    // Find and adjust Quick Fix button
+                    // Find and adjust Quick Fix button and any other buttons
                     foreach (Control control in _editPanel.Controls)
                     {
-                        if (control is Button button && button.Text == "Quick Fix")
+                        if (control is Button button)
                         {
-                            button.Location = new Point(_editPanel.Width - 100, 155);
-                            break;
+                            if (button.Text == "Quick Fix")
+                            {
+                                button.Location = new Point(Math.Max(10, _editPanel.Width - 120), 155);
+                            }
+                            else if (button.Text == "Help" || button.Text.Contains("Help"))
+                            {
+                                button.Location = new Point(Math.Max(10, _editPanel.Width - 80), 155);
+                            }
                         }
                     }
                 }
+
+                // Diagnostic logging for resize events
+                Debug.WriteLine($"Resize: FormSize={this.ClientSize}, Grid={_timeCardGrid.Bounds}, EditPanel={_editPanel.Bounds}, SaveButton={_saveButton?.Bounds}, SaveVisible={_saveButton?.Visible}");
             }
         }
 
         private void InitializeEditPanel()
         {
             _editPanel = new Panel();
-            _editPanel.Location = new System.Drawing.Point(20, this.ClientSize.Height - 200);
-            _editPanel.Size = new System.Drawing.Size(this.ClientSize.Width - 40, 180);
+            _editPanel.Location = new System.Drawing.Point(20, this.ClientSize.Height - 240);
+            _editPanel.Size = new System.Drawing.Size(this.ClientSize.Width - 40, 220);
             _editPanel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _editPanel.Visible = true; // Always visible for easy access
             _editPanel.BackColor = Color.AliceBlue;
             _editPanel.BorderStyle = BorderStyle.FixedSingle;
+            _editPanel.AutoScroll = true;
             this.Controls.Add(_editPanel);
             var dateLabel = CreateLabel("Date:", 10, 15);
             _editPanel.Controls.Add(dateLabel);

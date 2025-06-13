@@ -248,11 +248,10 @@ namespace BusBuddy.UI.Views
         private void SaveFuel()
         {
             if (!ValidateFuelForm())
-                return;
-            try
+                return;            try
             {
                 _currentFuel.FuelDate = _fuelDatePicker.Value;
-                _currentFuel.FuelLocation = _fuelLocationComboBox.SelectedItem?.ToString();
+                _currentFuel.FuelLocation = _fuelLocationComboBox.SelectedItem?.ToString() ?? string.Empty;
                 _currentFuel.VehicleFueledID = _vehicleComboBox.SelectedValue is int vid ? vid : (int?)null;
                 _currentFuel.VehicleOdometerReading = decimal.TryParse(_odometerTextBox.Text.Trim(), out decimal odo) ? odo : (decimal?)null;
                 _currentFuel.FuelType = _fuelTypeComboBox.SelectedItem?.ToString();

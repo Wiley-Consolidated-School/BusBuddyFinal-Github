@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using BusBuddy.Business;
+using System.Diagnostics;
 
 namespace BusBuddy.UI.Views
 {
@@ -29,14 +30,15 @@ namespace BusBuddy.UI.Views
         private void InitializeComponent()
         {
             this.Text = "Time Entry Warnings";
-            this.Size = new Size(700, 550);
+            this.Size = new Size(600, 450);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.Sizable;
             this.MaximizeBox = true;
             this.MinimizeBox = true;
             this.ShowInTaskbar = false;
-            this.MinimumSize = new Size(600, 400);
+            this.MinimumSize = new Size(500, 400);
             this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.AutoScroll = true;
 
             // Summary label
             _summaryLabel = new Label
@@ -54,7 +56,7 @@ namespace BusBuddy.UI.Views
             _warningsList = new ListView
             {
                 Location = new Point(20, 70),
-                Size = new Size(this.ClientSize.Width - 40, this.ClientSize.Height - 250),
+                Size = new Size(this.ClientSize.Width - 40, this.ClientSize.Height - 180),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom,
                 View = View.Details,
                 FullRowSelect = true,
@@ -71,7 +73,7 @@ namespace BusBuddy.UI.Views
             // Details text box for selected warning
             var detailsLabel = new Label
             {
-                Location = new Point(20, this.ClientSize.Height - 175),
+                Location = new Point(20, this.ClientSize.Height - 100),
                 Size = new Size(150, 20),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Left,
                 Text = "Suggested Action:",
@@ -81,8 +83,8 @@ namespace BusBuddy.UI.Views
 
             var detailsTextBox = new TextBox
             {
-                Location = new Point(20, this.ClientSize.Height - 150),
-                Size = new Size(this.ClientSize.Width - 40, 60),
+                Location = new Point(20, this.ClientSize.Height - 75),
+                Size = new Size(this.ClientSize.Width - 40, 35),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 Multiline = true,
                 ReadOnly = true,
@@ -105,10 +107,10 @@ namespace BusBuddy.UI.Views
                 }
             };
 
-            // Buttons - positioned lower to be visible
+            // Buttons - positioned with proper padding
             _fixIssuesButton = new Button
             {
-                Location = new Point(this.ClientSize.Width - 370, this.ClientSize.Height - 65),
+                Location = new Point(this.ClientSize.Width - 360, this.ClientSize.Height - 35),
                 Size = new Size(120, 30),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
                 Text = "Auto-Fix",
@@ -120,7 +122,7 @@ namespace BusBuddy.UI.Views
 
             _continueButton = new Button
             {
-                Location = new Point(this.ClientSize.Width - 240, this.ClientSize.Height - 65),
+                Location = new Point(this.ClientSize.Width - 240, this.ClientSize.Height - 35),
                 Size = new Size(120, 30),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
                 Text = "Accept As-Is",
@@ -132,7 +134,7 @@ namespace BusBuddy.UI.Views
 
             _cancelButton = new Button
             {
-                Location = new Point(this.ClientSize.Width - 110, this.ClientSize.Height - 65),
+                Location = new Point(this.ClientSize.Width - 120, this.ClientSize.Height - 35),
                 Size = new Size(100, 30),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
                 Text = "Cancel",
@@ -155,6 +157,9 @@ namespace BusBuddy.UI.Views
 
             // Add resize event handler
             this.Resize += TimeEntryWarningDialog_Resize;
+
+            // Diagnostic logging after initialization
+            Debug.WriteLine($"TimeEntryWarningDialog Initialized: Size={this.ClientSize}, WarningsList={_warningsList.Bounds}, ContinueButton={_continueButton.Bounds}");
         }
 
         private void TimeEntryWarningDialog_Resize(object sender, EventArgs e)
@@ -167,7 +172,7 @@ namespace BusBuddy.UI.Views
 
             if (_warningsList != null)
             {
-                _warningsList.Size = new Size(this.ClientSize.Width - 40, this.ClientSize.Height - 250);
+                _warningsList.Size = new Size(this.ClientSize.Width - 40, this.ClientSize.Height - 180);
             }
 
             // Find and adjust details controls
@@ -175,22 +180,25 @@ namespace BusBuddy.UI.Views
             {
                 if (control is Label label && label.Text == "Suggested Action:")
                 {
-                    label.Location = new Point(20, this.ClientSize.Height - 175);
+                    label.Location = new Point(20, this.ClientSize.Height - 100);
                 }
                 else if (control is TextBox textBox && textBox.BackColor == Color.LightYellow)
                 {
-                    textBox.Location = new Point(20, this.ClientSize.Height - 150);
-                    textBox.Size = new Size(this.ClientSize.Width - 40, 60);
+                    textBox.Location = new Point(20, this.ClientSize.Height - 75);
+                    textBox.Size = new Size(this.ClientSize.Width - 40, 35);
                 }
             }
 
-            // Adjust button positions
+            // Adjust button positions with proper padding
             if (_fixIssuesButton != null)
-                _fixIssuesButton.Location = new Point(this.ClientSize.Width - 370, this.ClientSize.Height - 65);
+                _fixIssuesButton.Location = new Point(this.ClientSize.Width - 360, this.ClientSize.Height - 35);
             if (_continueButton != null)
-                _continueButton.Location = new Point(this.ClientSize.Width - 240, this.ClientSize.Height - 65);
+                _continueButton.Location = new Point(this.ClientSize.Width - 240, this.ClientSize.Height - 35);
             if (_cancelButton != null)
-                _cancelButton.Location = new Point(this.ClientSize.Width - 110, this.ClientSize.Height - 65);
+                _cancelButton.Location = new Point(this.ClientSize.Width - 120, this.ClientSize.Height - 35);
+
+            // Diagnostic logging for resize events
+            Debug.WriteLine($"Resize: FormSize={this.ClientSize}, WarningsList={_warningsList?.Bounds}, ContinueButton={_continueButton?.Bounds}, ContinueVisible={_continueButton?.Visible}");
         }
 
         private void LoadWarnings()
