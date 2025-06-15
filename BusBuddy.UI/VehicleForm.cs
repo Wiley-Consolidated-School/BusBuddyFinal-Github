@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.UI;
 
-namespace BusBuddy
+namespace BusBuddy.UI
 {
     public partial class VehicleForm : Form
     {

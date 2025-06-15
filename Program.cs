@@ -47,8 +47,10 @@ namespace BusBuddy
                 }
                 else
                 {
-                    Console.WriteLine("🔍 Using SQLite database initialization...");
-                    await SqliteDatabaseInitializer.InitializeSqliteDatabaseAsync();
+                    Console.WriteLine("❌ SQL Server connection string not found. Please configure SQL Server connection.");
+                    MessageBox.Show("SQL Server connection string not found. Please configure SQL Server connection in App.config.", "Database Configuration Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return; // Don't continue if no valid connection string
                 }
             }
             catch (Exception ex)

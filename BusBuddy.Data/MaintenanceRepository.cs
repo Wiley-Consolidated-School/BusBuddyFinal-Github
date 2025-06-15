@@ -90,33 +90,16 @@ namespace BusBuddy.Data
                     }
                 }
 
-                var sql = "";
-                if (_providerName == "Microsoft.Data.Sqlite")
-                {
-                    sql = @"
-                        INSERT INTO Maintenance (
-                            Date, VehicleID, OdometerReading,
-                            MaintenanceCompleted, Vendor, RepairCost, Notes
-                        )
-                        VALUES (
-                            @Date, @VehicleID, @OdometerReading,
-                            @MaintenanceCompleted, @Vendor, @RepairCost, @Notes
-                        );
-                        SELECT last_insert_rowid()";
-                }
-                else
-                {
-                    sql = @"
-                        INSERT INTO Maintenance (
-                            Date, VehicleID, OdometerReading,
-                            MaintenanceCompleted, Vendor, RepairCost, Notes
-                        )
-                        VALUES (
-                            @Date, @VehicleID, @OdometerReading,
-                            @MaintenanceCompleted, @Vendor, @RepairCost, @Notes
-                        );
-                        SELECT SCOPE_IDENTITY()";
-                }
+                var sql = @"
+                    INSERT INTO Maintenance (
+                        Date, VehicleID, OdometerReading,
+                        MaintenanceCompleted, Vendor, RepairCost, Notes
+                    )
+                    VALUES (
+                        @Date, @VehicleID, @OdometerReading,
+                        @MaintenanceCompleted, @Vendor, @RepairCost, @Notes
+                    );
+                    SELECT SCOPE_IDENTITY()";
 
                 return connection.QuerySingle<int>(sql, maintenance);
             }

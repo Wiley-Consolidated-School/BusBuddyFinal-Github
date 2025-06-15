@@ -36,13 +36,11 @@ coverage:
 # Ignore files and directories not relevant to coverage
 ignore:
   - "**/*.Designer.cs"       # Windows Forms designer files
-  - "**/obj/**"              # Build artifacts
-  - "**/bin/**"              # Build outputs
+  - "**/obj/**"              # Build artifacts  - "**/bin/**"              # Build outputs
   - "**/Properties/**"       # Assembly info
   - "**/Program.cs"          # Main entry point
   - "**/*Test*.cs"           # Test files
   - "**/TestResults/**"      # Test result files
-  - "BusBuddy.Db/DatabaseScript.sql"  # SQL scripts
   - "**/Migrations/**"        # EF Core migration files
 
 # Comment configuration for PRs

@@ -54,15 +54,7 @@ namespace BusBuddy.Data
                 return connectionString.Substring(start, end - start);
             }
 
-            // For SQLite, return the file name
-            if (connectionString.Contains("Data Source=") && connectionString.Contains(".db"))
-            {
-                var start = connectionString.IndexOf("Data Source=") + "Data Source=".Length;
-                var end = connectionString.IndexOf(";", start);
-                if (end == -1) end = connectionString.Length;
-                var path = connectionString.Substring(start, end - start);
-                return System.IO.Path.GetFileNameWithoutExtension(path);
-            }
+
 
             return "BusBuddyDB";
         }
@@ -75,25 +67,18 @@ namespace BusBuddy.Data
             var builder = new DbContextOptionsBuilder<BusBuddyContext>();
             var connectionString = GetConnectionString();
 
-            if (DatabaseProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+            // Configure for SQL Server
+            builder.UseSqlServer(connectionString, options =>
             {
-                builder.UseSqlServer(connectionString, options =>
-                {
-                    options.CommandTimeout(30);
-                    options.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
-                });
+                options.CommandTimeout(30);
+                options.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+            });
 
-                // Enable logging for test environment
-                if (IsTestEnvironment)
-                {
-                    builder.EnableSensitiveDataLogging();
-                    builder.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
-                }
-            }
-            else
+            // Enable logging for test environment
+            if (IsTestEnvironment)
             {
-                // Fallback to SQLite
-                builder.UseSqlite(connectionString);
+                builder.EnableSensitiveDataLogging();
+                builder.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
             }
 
             return builder.Options;

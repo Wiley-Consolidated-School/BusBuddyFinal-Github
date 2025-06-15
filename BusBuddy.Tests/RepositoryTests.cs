@@ -62,7 +62,8 @@ public class RepositoryTests : IAsyncLifetime
         await connection.OpenAsync();
 
         var checkDbCommand = new SqlCommand("SELECT COUNT(*) FROM sys.databases WHERE name = 'BusBuddyDB_Test'", connection);
-        var dbExists = (int)await checkDbCommand.ExecuteScalarAsync() > 0;
+        var result = await checkDbCommand.ExecuteScalarAsync();
+        var dbExists = (result != null) && (int)result > 0;
 
         if (!dbExists)
         {

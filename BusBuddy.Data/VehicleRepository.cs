@@ -40,22 +40,10 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                string sql;
-
-                if (_providerName == "Microsoft.Data.Sqlite")
-                {
-                    sql = @"
-                        INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Capacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
-                        VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
-                        SELECT last_insert_rowid();";
-                }
-                else
-                {
-                    sql = @"
-                        INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, SeatingCapacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
-                        VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
-                        SELECT SCOPE_IDENTITY();";
-                }
+                var sql = @"
+                    INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, SeatingCapacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
+                    VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
+                    SELECT SCOPE_IDENTITY();";
 
                 return connection.QuerySingle<int>(sql, vehicle);
             }

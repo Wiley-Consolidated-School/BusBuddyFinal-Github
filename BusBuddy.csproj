@@ -18,8 +18,20 @@
 
   <ItemGroup>
     <Compile Remove="BusBuddy.Tests\**" />
+    <Compile Remove="BusBuddy.Data\**" />
+    <Compile Remove="BusBuddy.Models\**" />
+    <Compile Remove="BusBuddy.Business\**" />
+    <Compile Remove="BusBuddy.UI\**" />
     <EmbeddedResource Remove="BusBuddy.Tests\**" />
+    <EmbeddedResource Remove="BusBuddy.Data\**" />
+    <EmbeddedResource Remove="BusBuddy.Models\**" />
+    <EmbeddedResource Remove="BusBuddy.Business\**" />
+    <EmbeddedResource Remove="BusBuddy.UI\**" />
     <None Remove="BusBuddy.Tests\**" />
+    <None Remove="BusBuddy.Data\**" />
+    <None Remove="BusBuddy.Models\**" />
+    <None Remove="BusBuddy.Business\**" />
+    <None Remove="BusBuddy.UI\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,24 +39,22 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="BusBuddy.UI\" />
-    <Folder Include="Business\" />
-    <Folder Include="Data\" />
-    <Folder Include="Models\" />
-    <Folder Include="UI\" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>    <ItemGroup>
+  </ItemGroup>  <ItemGroup>
+    <ProjectReference Include="BusBuddy.Models\BusBuddy.Models.csproj" />
+    <ProjectReference Include="BusBuddy.Data\BusBuddy.Data.csproj" />
+    <ProjectReference Include="BusBuddy.Business\BusBuddy.Business.csproj" />
+    <ProjectReference Include="BusBuddy.UI\BusBuddy.UI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="MaterialSkin.2" Version="2.3.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

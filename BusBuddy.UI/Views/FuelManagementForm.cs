@@ -15,9 +15,9 @@ namespace BusBuddy.UI.Views
     /// - Modernized UI/UX for CRUD panel
     /// - Vehicle dropdown now populated from Vehicles table
     /// - Date field uses short format
-    /// - Uses Dapper/SQLite for test infrastructure (see BusBuddy.Tests)
+    /// - Uses Dapper/SQL Server for database infrastructure (see BusBuddy.Tests)
     ///
-    /// To update schema/data for tests, see BusBuddy.Data/DatabaseScript.sql and BusBuddy.Tests/TestBase.cs
+    /// To update schema/data for tests, see BusBuddy.Data/DatabaseScript.SqlServer.sql and BusBuddy.Tests/TestBase.cs
     ///
     /// Author: BusBuddy Modernization
     /// </summary>

@@ -549,12 +549,7 @@ namespace BusBuddy.UI.Base
             // Override in derived classes to load actual data
             _dataSource.Clear();
 
-            // Example: Load from service
-            // var items = _databaseService.GetAll<T>();
-            // foreach (var item in items)
-            // {
-            //     _dataSource.Add(item);
-            // }
+            // Override this method in derived classes to load actual data
         }
 
         protected virtual void ApplySearchFilter(string searchText)

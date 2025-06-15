@@ -51,38 +51,18 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                string sql;
-
-                if (_providerName == "Microsoft.Data.Sqlite")
-                {
-                    sql = @"
-                        INSERT INTO Drivers (
-                            DriverName, DriverPhone, DriverEmail,
-                            Address, City, State, Zip,
-                            DriversLicenseType, TrainingComplete, Notes
-                        )
-                        VALUES (
-                            @DriverName, @DriverPhone, @DriverEmail,
-                            @Address, @City, @State, @Zip,
-                            @DriversLicenseType, @TrainingComplete, @Notes
-                        );
-                        SELECT last_insert_rowid()";
-                }
-                else
-                {
-                    sql = @"
-                        INSERT INTO Drivers (
-                            DriverName, DriverPhone, DriverEmail,
-                            Address, City, State, Zip,
-                            DriversLicenseType, TrainingComplete, Notes
-                        )
-                        VALUES (
-                            @DriverName, @DriverPhone, @DriverEmail,
-                            @Address, @City, @State, @Zip,
-                            @DriversLicenseType, @TrainingComplete, @Notes
-                        );
-                        SELECT SCOPE_IDENTITY()";
-                }
+                var sql = @"
+                    INSERT INTO Drivers (
+                        DriverName, DriverPhone, DriverEmail,
+                        Address, City, State, Zip,
+                        DriversLicenseType, TrainingComplete, Notes
+                    )
+                    VALUES (
+                        @DriverName, @DriverPhone, @DriverEmail,
+                        @Address, @City, @State, @Zip,
+                        @DriversLicenseType, @TrainingComplete, @Notes
+                    );
+                    SELECT SCOPE_IDENTITY()";
 
                 return connection.QuerySingle<int>(sql, driver);
             }

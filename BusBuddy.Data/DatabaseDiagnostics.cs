@@ -2,7 +2,6 @@ using System;
 using System.Configuration;
 using System.Data;
 using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
 
 namespace BusBuddy.Data
 {
@@ -72,16 +71,9 @@ namespace BusBuddy.Data
                 connection.Open();
                 Console.WriteLine("✓ Repository connection successful");
 
-                // Test if Vehicles table exists
+                // Test if Vehicles table exists - SQL Server only
                 var command = connection.CreateCommand();
-                if (baseRepo.GetProviderName() == "Microsoft.Data.SqlClient")
-                {
-                    command.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Vehicles'";
-                }
-                else
-                {
-                    command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Vehicles'";
-                }
+                command.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Vehicles'";
 
                 var tableExists = Convert.ToInt32(command.ExecuteScalar()) > 0;
                 Console.WriteLine($"Vehicles table exists: {tableExists}");

@@ -1,11 +1,12 @@
 using BusBuddy.Models;
 using BusBuddy.Business;
+using BusBuddy.UI;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace BusBuddy
+namespace BusBuddy.UI
 {
     public partial class Form1 : Form
     {
