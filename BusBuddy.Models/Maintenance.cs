@@ -13,6 +13,13 @@ namespace BusBuddy.Models
         public decimal? RepairCost { get; set; }
         public string? Notes { get; set; }
 
+        // Additional properties for form compatibility
+        public string? VehicleNumber { get; set; }
+        public decimal? Odometer => OdometerReading;
+        public string? Category => MaintenanceCompleted;
+        public decimal? Cost => RepairCost;
+        public string? Description => Notes;
+
         // Navigation property
         public Vehicle? Vehicle { get; set; }
     }

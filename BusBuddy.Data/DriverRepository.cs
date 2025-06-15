@@ -5,10 +5,13 @@ using BusBuddy.Models;
 using Dapper;
 
 namespace BusBuddy.Data
-{
-    public class DriverRepository : BaseRepository, IDriverRepository
+{    public class DriverRepository : BaseRepository, IDriverRepository
     {
         public DriverRepository() : base()
+        {
+        }
+
+        public DriverRepository(string connectionString, string providerName) : base(connectionString, providerName)
         {
         }
 
@@ -43,24 +46,43 @@ namespace BusBuddy.Data
                     new { LicenseType = licenseType }).AsList();
                 return drivers;
             }
-        }
-
-        public int AddDriver(Driver driver)
+        }        public int AddDriver(Driver driver)
         {
             using (var connection = CreateConnection())
             {
-                connection.Open(); var sql = @"
-                    INSERT INTO Drivers (
-                        DriverName, DriverPhone, DriverEmail,
-                        Address, City, State, Zip,
-                        DriversLicenseType, TrainingComplete, Notes
-                    )
-                    VALUES (
-                        @DriverName, @DriverPhone, @DriverEmail,
-                        @Address, @City, @State, @Zip,
-                        @DriversLicenseType, @TrainingComplete, @Notes
-                    );
-                    SELECT last_insert_rowid()";
+                connection.Open();
+                string sql;
+
+                if (_providerName == "Microsoft.Data.Sqlite")
+                {
+                    sql = @"
+                        INSERT INTO Drivers (
+                            DriverName, DriverPhone, DriverEmail,
+                            Address, City, State, Zip,
+                            DriversLicenseType, TrainingComplete, Notes
+                        )
+                        VALUES (
+                            @DriverName, @DriverPhone, @DriverEmail,
+                            @Address, @City, @State, @Zip,
+                            @DriversLicenseType, @TrainingComplete, @Notes
+                        );
+                        SELECT last_insert_rowid()";
+                }
+                else
+                {
+                    sql = @"
+                        INSERT INTO Drivers (
+                            DriverName, DriverPhone, DriverEmail,
+                            Address, City, State, Zip,
+                            DriversLicenseType, TrainingComplete, Notes
+                        )
+                        VALUES (
+                            @DriverName, @DriverPhone, @DriverEmail,
+                            @Address, @City, @State, @Zip,
+                            @DriversLicenseType, @TrainingComplete, @Notes
+                        );
+                        SELECT SCOPE_IDENTITY()";
+                }
 
                 return connection.QuerySingle<int>(sql, driver);
             }

@@ -2,12 +2,14 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using BusBuddy.Models;
+using BusBuddy.UI;
 
 namespace BusBuddy
 {
     public partial class VehicleForm : Form
     {
         public Vehicle Vehicle { get; private set; }
+        private ErrorProvider _errorProvider;
 
         // UI Controls
         private TextBox txtBusNumber;
@@ -19,10 +21,9 @@ namespace BusBuddy
         private TextBox txtLicenseNumber;
         private DateTimePicker dtpDateLastInspection;
         private Button btnSave;
-        private Button btnCancel;
-
-        public VehicleForm(Vehicle? vehicle = null)
+        private Button btnCancel;        public VehicleForm(Vehicle? vehicle = null)
         {
+            _errorProvider = new ErrorProvider();
             InitializeComponent();
             Vehicle = vehicle != null ? new Vehicle
             {
@@ -157,9 +158,13 @@ namespace BusBuddy
             txtVINNumber.Text = Vehicle.VINNumber ?? string.Empty;
             txtLicenseNumber.Text = Vehicle.LicenseNumber ?? string.Empty;
             dtpDateLastInspection.Value = Vehicle.DateLastInspection ?? DateTime.Now;
-        }
-        private void btnSave_Click(object sender, EventArgs e)
+        }        private void btnSave_Click(object sender, EventArgs e)
         {
+            if (!ValidateForm())
+            {
+                return;
+            }
+
             Vehicle.BusNumber = txtBusNumber.Text;
             Vehicle.Year = (int)numYear.Value;
             Vehicle.Make = txtMake.Text;
@@ -170,6 +175,43 @@ namespace BusBuddy
             Vehicle.DateLastInspection = dtpDateLastInspection.Value;
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private bool ValidateForm()
+        {
+            _errorProvider.Clear();
+            bool valid = true;
+
+            // Validate required fields
+            valid &= FormValidator.ValidateRequiredField(txtBusNumber, "Bus Number", _errorProvider);
+            valid &= FormValidator.ValidateRequiredField(txtMake, "Make", _errorProvider);
+            valid &= FormValidator.ValidateRequiredField(txtModel, "Model", _errorProvider);
+
+            // Validate VIN number format
+            valid &= FormValidator.ValidateVINNumber(txtVINNumber, "VIN Number", _errorProvider);
+
+            // Validate year range
+            if (numYear.Value < 1980 || numYear.Value > DateTime.Now.Year + 2)
+            {
+                _errorProvider.SetError(numYear, $"Year must be between 1980 and {DateTime.Now.Year + 2}");
+                valid = false;
+            }
+
+            // Validate seating capacity range
+            if (numSeatingCapacity.Value < 1 || numSeatingCapacity.Value > 150)
+            {
+                _errorProvider.SetError(numSeatingCapacity, "Seating capacity must be between 1 and 150");
+                valid = false;
+            }
+
+            // Validate inspection date is not in the future beyond 1 year
+            if (dtpDateLastInspection.Value > DateTime.Now.AddYears(1))
+            {
+                _errorProvider.SetError(dtpDateLastInspection, "Inspection date cannot be more than 1 year in the future");
+                valid = false;
+            }
+
+            return valid;
         }
 
         private void btnCancel_Click(object sender, EventArgs e)

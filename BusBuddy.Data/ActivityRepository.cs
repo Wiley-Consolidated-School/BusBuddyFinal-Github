@@ -5,10 +5,13 @@ using BusBuddy.Models;
 using Dapper;
 
 namespace BusBuddy.Data
-{
-    public class ActivityRepository : BaseRepository, IActivityRepository
+{    public class ActivityRepository : BaseRepository, IActivityRepository
     {
         public ActivityRepository() : base()
+        {
+        }
+
+        public ActivityRepository(string connectionString, string providerName) : base(connectionString, providerName)
         {
         }
 
@@ -67,25 +70,43 @@ namespace BusBuddy.Data
                     new { VehicleID = vehicleId }).AsList();
                 return activities;
             }
-        }
-
-        public int AddActivity(Activity activity)
+        }        public int AddActivity(Activity activity)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                var sql = @"
-                    INSERT INTO Activities (
-                        Date, ActivityType, Destination,
-                        LeaveTime, EventTime, RequestedBy,
-                        AssignedVehicleID, DriverID
-                    )
-                    VALUES (
-                        @Date, @ActivityType, @Destination,
-                        @LeaveTime, @EventTime, @RequestedBy,
-                        @AssignedVehicleID, @DriverID
-                    );
-                    SELECT last_insert_rowid()";
+                string sql;
+
+                if (_providerName == "Microsoft.Data.Sqlite")
+                {
+                    sql = @"
+                        INSERT INTO Activities (
+                            Date, ActivityType, Destination,
+                            LeaveTime, EventTime, RequestedBy,
+                            AssignedVehicleID, DriverID
+                        )
+                        VALUES (
+                            @Date, @ActivityType, @Destination,
+                            @LeaveTime, @EventTime, @RequestedBy,
+                            @AssignedVehicleID, @DriverID
+                        );
+                        SELECT last_insert_rowid()";
+                }
+                else
+                {
+                    sql = @"
+                        INSERT INTO Activities (
+                            Date, ActivityType, Destination,
+                            LeaveTime, EventTime, RequestedBy,
+                            AssignedVehicleID, DriverID
+                        )
+                        VALUES (
+                            @Date, @ActivityType, @Destination,
+                            @LeaveTime, @EventTime, @RequestedBy,
+                            @AssignedVehicleID, @DriverID
+                        );
+                        SELECT SCOPE_IDENTITY()";
+                }
 
                 return connection.QuerySingle<int>(sql, activity);
             }

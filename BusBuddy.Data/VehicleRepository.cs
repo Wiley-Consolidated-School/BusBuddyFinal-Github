@@ -12,6 +12,10 @@ namespace BusBuddy.Data
         {
         }
 
+        public VehicleRepository(string connectionString, string providerName) : base(connectionString, providerName)
+        {
+        }
+
         public List<Vehicle> GetAllVehicles()
         {
             using (var connection = CreateConnection())
@@ -36,10 +40,22 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                var sql = @"
-                    INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Capacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
-                    VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
-                    SELECT last_insert_rowid();";
+                string sql;
+
+                if (_providerName == "Microsoft.Data.Sqlite")
+                {
+                    sql = @"
+                        INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, Capacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
+                        VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
+                        SELECT last_insert_rowid();";
+                }
+                else
+                {
+                    sql = @"
+                        INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, SeatingCapacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
+                        VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
+                        SELECT SCOPE_IDENTITY();";
+                }
 
                 return connection.QuerySingle<int>(sql, vehicle);
             }
@@ -75,9 +91,24 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = "DELETE FROM Vehicles WHERE Id = @Id";
-                var rowsAffected = connection.Execute(sql, new { Id = id });
-                return rowsAffected > 0;
+                var rowsAffected = connection.Execute(sql, new { Id = id });                return rowsAffected > 0;
             }
+        }
+
+        // Additional methods for form compatibility
+        public int Add(Vehicle vehicle)
+        {
+            return AddVehicle(vehicle);
+        }
+
+        public bool Update(Vehicle vehicle)
+        {
+            return UpdateVehicle(vehicle);
+        }
+
+        public bool Delete(int id)
+        {
+            return DeleteVehicle(id);
         }
     }
 }

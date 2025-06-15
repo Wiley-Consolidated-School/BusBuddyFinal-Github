@@ -1,0 +1,249 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using BusBuddy.Data;
+using BusBuddy.Models;
+
+namespace BusBuddy.Business
+{
+    /// <summary>
+    /// Centralized validation service for complex business rules and data integrity
+    /// </summary>
+    public class ValidationService
+    {
+        private readonly IVehicleRepository _vehicleRepository;
+        private readonly IDriverRepository _driverRepository;
+        private readonly IMaintenanceRepository _maintenanceRepository;
+        private readonly IFuelRepository _fuelRepository;
+
+        public ValidationService(
+            IVehicleRepository? vehicleRepository = null,
+            IDriverRepository? driverRepository = null,
+            IMaintenanceRepository? maintenanceRepository = null,
+            IFuelRepository? fuelRepository = null)
+        {
+            _vehicleRepository = vehicleRepository ?? new VehicleRepository();
+            _driverRepository = driverRepository ?? new DriverRepository();
+            _maintenanceRepository = maintenanceRepository ?? new MaintenanceRepository();
+            _fuelRepository = fuelRepository ?? new FuelRepository();
+        }
+
+        /// <summary>
+        /// Validates that a vehicle exists and is available for operations
+        /// </summary>
+        public ValidationResult ValidateVehicleAvailability(int vehicleId, DateTime date, string operation = "")
+        {
+            var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
+            if (vehicle == null)
+            {
+                return ValidationResult.Failed($"Vehicle with ID {vehicleId} does not exist.");
+            }
+
+            if (vehicle.Status?.ToLower() == "out of service")
+            {
+                return ValidationResult.Failed($"Vehicle {vehicle.VehicleNumber} is currently out of service.");
+            }
+
+            // Check for maintenance conflicts
+            var maintenanceRecords = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
+            var scheduledMaintenance = maintenanceRecords
+                .Where(m => m.Date.HasValue && m.Date.Value.Date == date.Date &&
+                           m.Notes?.Contains("SCHEDULED") == true)
+                .ToList();
+
+            if (scheduledMaintenance.Any())
+            {
+                return ValidationResult.Failed($"Vehicle {vehicle.VehicleNumber} has scheduled maintenance on {date.ToShortDateString()}.");
+            }
+
+            return ValidationResult.Success();
+        }
+
+        /// <summary>
+        /// Validates that a driver exists and is available for operations
+        /// </summary>
+        public ValidationResult ValidateDriverAvailability(int driverId, DateTime date, string operation = "")
+        {
+            var driver = _driverRepository.GetDriverById(driverId);
+            if (driver == null)
+            {
+                return ValidationResult.Failed($"Driver with ID {driverId} does not exist.");
+            }
+
+            if (driver.Status?.ToLower() == "inactive")
+            {
+                return ValidationResult.Failed($"Driver {driver.FirstName} {driver.LastName} is currently inactive.");
+            }
+
+            // Check for license expiration
+            if (driver.CDLExpirationDate.HasValue && driver.CDLExpirationDate.Value < date)
+            {
+                return ValidationResult.Failed($"Driver {driver.FirstName} {driver.LastName}'s CDL expires on {driver.CDLExpirationDate.Value.ToShortDateString()}.");
+            }
+
+            return ValidationResult.Success();
+        }
+
+        /// <summary>
+        /// Validates fuel record data integrity
+        /// </summary>
+        public ValidationResult ValidateFuelRecord(Fuel fuelRecord)
+        {
+            var validations = new List<ValidationResult>();
+
+            // Validate vehicle exists
+            if (fuelRecord.VehicleFueledID.HasValue)
+            {
+                validations.Add(ValidateVehicleAvailability(fuelRecord.VehicleFueledID.Value,
+                    fuelRecord.FuelDate ?? DateTime.Today, "fueling"));
+            }
+
+            // Validate odometer reading progression
+            if (fuelRecord.VehicleFueledID.HasValue && fuelRecord.VehicleOdometerReading.HasValue)
+            {
+                var previousFuelRecords = _fuelRepository.GetFuelRecordsByVehicle(fuelRecord.VehicleFueledID.Value)
+                    .Where(f => f.FuelDate < fuelRecord.FuelDate && f.VehicleOdometerReading.HasValue)
+                    .OrderByDescending(f => f.FuelDate)
+                    .Take(1);
+
+                foreach (var previousRecord in previousFuelRecords)
+                {
+                    if (fuelRecord.VehicleOdometerReading < previousRecord.VehicleOdometerReading)
+                    {
+                        validations.Add(ValidationResult.Failed(
+                            $"Odometer reading ({fuelRecord.VehicleOdometerReading}) cannot be less than previous reading ({previousRecord.VehicleOdometerReading}) from {previousRecord.FuelDate?.ToShortDateString()}."));
+                    }
+                }
+            }
+
+            // Validate fuel amount and cost
+            if (fuelRecord.FuelAmount.HasValue && (fuelRecord.FuelAmount <= 0 || fuelRecord.FuelAmount > 200))
+            {
+                validations.Add(ValidationResult.Failed("Fuel amount must be between 0 and 200 gallons."));
+            }
+
+            if (fuelRecord.FuelCost.HasValue && (fuelRecord.FuelCost <= 0 || fuelRecord.FuelCost > 1000))
+            {
+                validations.Add(ValidationResult.Failed("Fuel cost must be between $0 and $1000."));
+            }
+
+            return ValidationResult.Combine(validations);
+        }
+
+        /// <summary>
+        /// Validates maintenance record data integrity
+        /// </summary>
+        public ValidationResult ValidateMaintenanceRecord(Maintenance maintenanceRecord)
+        {
+            var validations = new List<ValidationResult>();
+
+            // Validate vehicle exists
+            if (maintenanceRecord.VehicleID.HasValue)
+            {
+                validations.Add(ValidateVehicleAvailability(maintenanceRecord.VehicleID.Value,
+                    maintenanceRecord.Date ?? DateTime.Today, "maintenance"));
+            }
+
+            // Validate cost
+            if (maintenanceRecord.RepairCost.HasValue && maintenanceRecord.RepairCost < 0)
+            {
+                validations.Add(ValidationResult.Failed("Repair cost cannot be negative."));
+            }
+
+            // Validate odometer reading
+            if (maintenanceRecord.OdometerReading.HasValue && maintenanceRecord.OdometerReading < 0)
+            {
+                validations.Add(ValidationResult.Failed("Odometer reading cannot be negative."));
+            }
+
+            return ValidationResult.Combine(validations);
+        }
+
+        /// <summary>
+        /// Validates route assignment conflicts
+        /// </summary>
+        public ValidationResult ValidateRouteAssignment(Route route)
+        {
+            var validations = new List<ValidationResult>();
+
+            // Validate AM assignments
+            if (route.AMVehicleID.HasValue)
+            {
+                validations.Add(ValidateVehicleAvailability(route.AMVehicleID.Value, route.Date, "route assignment"));
+            }
+
+            if (route.AMDriverID.HasValue)
+            {
+                validations.Add(ValidateDriverAvailability(route.AMDriverID.Value, route.Date, "route assignment"));
+            }
+
+            // Validate PM assignments
+            if (route.PMVehicleID.HasValue)
+            {
+                validations.Add(ValidateVehicleAvailability(route.PMVehicleID.Value, route.Date, "route assignment"));
+            }
+
+            if (route.PMDriverID.HasValue)
+            {
+                validations.Add(ValidateDriverAvailability(route.PMDriverID.Value, route.Date, "route assignment"));
+            }
+
+            // Validate mileage logic
+            if (route.AMBeginMiles.HasValue && route.AMEndMiles.HasValue && route.AMEndMiles <= route.AMBeginMiles)
+            {
+                validations.Add(ValidationResult.Failed("AM ending miles must be greater than beginning miles."));
+            }
+
+            if (route.PMBeginMiles.HasValue && route.PMEndMiles.HasValue && route.PMEndMiles <= route.PMBeginMiles)
+            {
+                validations.Add(ValidationResult.Failed("PM ending miles must be greater than beginning miles."));
+            }
+
+            return ValidationResult.Combine(validations);
+        }
+    }
+
+    /// <summary>
+    /// Represents the result of a validation operation
+    /// </summary>
+    public class ValidationResult
+    {
+        public bool IsValid { get; private set; }
+        public List<string> Errors { get; private set; }
+
+        private ValidationResult(bool isValid, IEnumerable<string>? errors = null)
+        {
+            IsValid = isValid;
+            Errors = errors?.ToList() ?? new List<string>();
+        }
+
+        public static ValidationResult Success()
+        {
+            return new ValidationResult(true);
+        }
+
+        public static ValidationResult Failed(string error)
+        {
+            return new ValidationResult(false, new[] { error });
+        }
+
+        public static ValidationResult Failed(IEnumerable<string> errors)
+        {
+            return new ValidationResult(false, errors);
+        }
+
+        public static ValidationResult Combine(IEnumerable<ValidationResult> results)
+        {
+            var allResults = results.ToList();
+            var allErrors = allResults.SelectMany(r => r.Errors).ToList();
+            var isValid = allResults.All(r => r.IsValid);
+
+            return new ValidationResult(isValid, allErrors);
+        }
+
+        public string GetErrorMessage()
+        {
+            return string.Join("\n", Errors);
+        }
+    }
+}

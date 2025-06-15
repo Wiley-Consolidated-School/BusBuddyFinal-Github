@@ -1,127 +1,183 @@
-using Xunit;
-using Moq;
-using System;
-using System.Collections.Generic;
 using BusBuddy.Models;
 using BusBuddy.Business;
+using BusBuddy.Data;
 
-namespace BusBuddy.Tests
+namespace BusBuddy.Tests;
+
+/// <summary>
+/// Test class for business logic and validation services
+/// </summary>
+public class BusinessLogicTests
 {
-    public class BusinessLogicTests
+    private readonly string _testConnectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BusBuddyDB_Test;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30;";
+    private const string _sqlServerProvider = "Microsoft.Data.SqlClient";
+
+    [Fact]
+    public void ValidationService_ValidateVehicleAvailability_ShouldReturnFailedForNonExistentVehicle()
     {
-        [Fact]
-        public void VehicleAgeCalculation_ShouldCalculateCorrectly()
-        {
-            // Arrange
-            var currentYear = DateTime.Now.Year;
-            var vehicleYear = 2018;
+        // Arrange
+        var vehicleRepo = new VehicleRepository(_testConnectionString, _sqlServerProvider);
+        var driverRepo = new DriverRepository(_testConnectionString, _sqlServerProvider);
+        var maintenanceRepo = new MaintenanceRepository(_testConnectionString, _sqlServerProvider);
+        var fuelRepo = new FuelRepository(_testConnectionString, _sqlServerProvider);
+        var validationService = new ValidationService(vehicleRepo, driverRepo, maintenanceRepo, fuelRepo);
 
-            // Act
-            var age = currentYear - vehicleYear;
+        // Act
+        var result = validationService.ValidateVehicleAvailability(999, DateTime.Now);
 
-            // Assert
-            Assert.True(age >= 0);
-            Assert.True(age <= 100); // Sanity check
-        }
-
-        [Theory]
-        [InlineData(2020, 2023, 3)]
-        [InlineData(2023, 2023, 0)]
-        [InlineData(1990, 2023, 33)]
-        public void VehicleAgeCalculation_Theory(int vehicleYear, int currentYear, int expectedAge)
-        {
-            // Act
-            var age = currentYear - vehicleYear;
-
-            // Assert
-            Assert.Equal(expectedAge, age);
-        }
-
-        [Fact]
-        public void VehicleFilter_ShouldFilterByMake()
-        {
-            // Arrange
-            var vehicles = new List<Vehicle>
-            {
-                new Vehicle { Id = 1, Make = "Mercedes" },
-                new Vehicle { Id = 2, Make = "Ford" },
-                new Vehicle { Id = 3, Make = "Mercedes" }
-            };
-
-            // Act
-            var filtered = vehicles.FindAll(v => v.Make == "Mercedes");
-
-            // Assert
-            Assert.Equal(2, filtered.Count);
-            Assert.Equal(1, filtered[0].Id);
-            Assert.Equal(3, filtered[1].Id);
-        }
-
-        [Fact]
-        public void VehicleFilter_ShouldFilterByYear()
-        {
-            // Arrange
-            var vehicles = new List<Vehicle>
-            {
-                new Vehicle { Id = 1, Year = 2020 },
-                new Vehicle { Id = 2, Year = 2018 },
-                new Vehicle { Id = 3, Year = 2022 }
-            };
-
-            // Act
-            var filtered = vehicles.FindAll(v => v.Year >= 2020);
-
-            // Assert
-            Assert.Equal(2, filtered.Count);
-            Assert.Equal(1, filtered[0].Id);
-            Assert.Equal(3, filtered[1].Id);
-        }
-
-        [Fact]
-        public void VehicleCapacityValidation_ShouldValidateRange()
-        {
-            // Arrange
-            var minCapacity = 0;
-            var maxCapacity = 100;
-            var testCapacity = 25;
-
-            // Act
-            var isValid = testCapacity >= minCapacity && testCapacity <= maxCapacity;
-
-            // Assert
-            Assert.True(isValid);
-        }
-
-        [Theory]
-        [InlineData(-1, 0, 100, false)]
-        [InlineData(0, 0, 100, true)]
-        [InlineData(50, 0, 100, true)]
-        [InlineData(100, 0, 100, true)]
-        [InlineData(101, 0, 100, false)]
-        public void VehicleCapacityValidation_Theory(int capacity, int min, int max, bool expected)
-        {
-            // Act
-            var isValid = capacity >= min && capacity <= max;
-
-            // Assert
-            Assert.Equal(expected, isValid);
-        }
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains("does not exist", result.GetErrorMessage());
     }
 
-    // Define namespace and class for testing
-    namespace BusBuddy.Business
+    [Fact]
+    public void ValidationService_ValidateDriverAvailability_ShouldReturnFailedForNonExistentDriver()
     {
-        public class VehicleService
-        {
-            public bool IsValidVehicleNumber(string vehicleNumber)
-            {
-                return !string.IsNullOrEmpty(vehicleNumber) && vehicleNumber.Length >= 3;
-            }
+        // Arrange
+        var vehicleRepo = new VehicleRepository(_testConnectionString, _sqlServerProvider);
+        var driverRepo = new DriverRepository(_testConnectionString, _sqlServerProvider);
+        var maintenanceRepo = new MaintenanceRepository(_testConnectionString, _sqlServerProvider);
+        var fuelRepo = new FuelRepository(_testConnectionString, _sqlServerProvider);
+        var validationService = new ValidationService(vehicleRepo, driverRepo, maintenanceRepo, fuelRepo);
 
-            public int CalculateVehicleAge(int vehicleYear)
-            {
-                return DateTime.Now.Year - vehicleYear;
-            }
-        }
+        // Act
+        var result = validationService.ValidateDriverAvailability(999, DateTime.Now);
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains("does not exist", result.GetErrorMessage());
+    }
+
+    [Fact]
+    public void ValidationService_ValidateFuelRecord_ShouldReturnFailedForInvalidAmount()
+    {
+        // Arrange
+        var validationService = new ValidationService();
+        var invalidFuel = new Fuel
+        {
+            FuelDate = DateTime.Now,
+            FuelLocation = "Test Station",
+            FuelAmount = -10  // Invalid: negative amount
+        };
+
+        // Act
+        var result = validationService.ValidateFuelRecord(invalidFuel);
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains("Fuel amount", result.GetErrorMessage());
+    }
+
+    [Fact]
+    public void ValidationService_ValidateFuelRecord_ShouldReturnFailedForExcessiveAmount()
+    {
+        // Arrange
+        var validationService = new ValidationService();
+        var invalidFuel = new Fuel
+        {
+            FuelDate = DateTime.Now,
+            FuelLocation = "Test Station",
+            FuelAmount = 300  // Invalid: too much
+        };
+
+        // Act
+        var result = validationService.ValidateFuelRecord(invalidFuel);
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains("Fuel amount", result.GetErrorMessage());
+    }
+
+    [Fact]
+    public void ValidationService_ValidateMaintenanceRecord_ShouldReturnFailedForNegativeCost()
+    {
+        // Arrange
+        var validationService = new ValidationService();
+        var invalidMaintenance = new Maintenance
+        {
+            Date = DateTime.Now,
+            RepairCost = -100  // Invalid: negative cost
+        };
+
+        // Act
+        var result = validationService.ValidateMaintenanceRecord(invalidMaintenance);
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains("Repair cost cannot be negative", result.GetErrorMessage());
+    }
+
+    [Fact]
+    public void ValidationService_ValidateMaintenanceRecord_ShouldReturnFailedForNegativeOdometer()
+    {
+        // Arrange
+        var validationService = new ValidationService();
+        var invalidMaintenance = new Maintenance
+        {
+            Date = DateTime.Now,
+            OdometerReading = -1000  // Invalid: negative odometer
+        };
+
+        // Act
+        var result = validationService.ValidateMaintenanceRecord(invalidMaintenance);
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains("Odometer reading cannot be negative", result.GetErrorMessage());
+    }
+
+    [Fact]
+    public void ValidationResult_Success_ShouldReturnValidResult()
+    {
+        // Arrange & Act
+        var result = ValidationResult.Success();
+
+        // Assert
+        Assert.True(result.IsValid);
+        Assert.Empty(result.Errors);
+    }
+
+    [Fact]
+    public void ValidationResult_Failed_ShouldReturnInvalidResult()
+    {
+        // Arrange & Act
+        var result = ValidationResult.Failed("Test error");
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Single(result.Errors);
+        Assert.Equal("Test error", result.Errors.First());
+    }
+
+    [Fact]
+    public void ValidationResult_Combine_ShouldCombineMultipleResults()
+    {
+        // Arrange
+        var result1 = ValidationResult.Failed("Error 1");
+        var result2 = ValidationResult.Failed("Error 2");
+        var result3 = ValidationResult.Success();
+
+        // Act
+        var combinedResult = ValidationResult.Combine(new[] { result1, result2, result3 });
+
+        // Assert
+        Assert.False(combinedResult.IsValid);
+        Assert.Equal(2, combinedResult.Errors.Count);
+        Assert.Contains("Error 1", combinedResult.Errors);
+        Assert.Contains("Error 2", combinedResult.Errors);
+    }
+
+    [Fact]
+    public void ValidationResult_GetErrorMessage_ShouldJoinErrors()
+    {
+        // Arrange
+        var result = ValidationResult.Failed(new[] { "Error 1", "Error 2" });
+
+        // Act
+        var errorMessage = result.GetErrorMessage();
+
+        // Assert
+        Assert.Contains("Error 1", errorMessage);
+        Assert.Contains("Error 2", errorMessage);
     }
 }

@@ -16,50 +16,57 @@ namespace BusBuddy.UI.Views
         private Button _detailsButton;
         private TextBox _searchBox;
         private Button _searchButton;
-        private List<Activity> _activities;
+        private List<Activity> _activities = new List<Activity>();
 
         // Fields for add/edit
-        private Panel _editPanel;
-        private DateTimePicker _datePicker;
-        private ComboBox _activityTypeComboBox;
-        private TextBox _destinationTextBox;
-        private TextBox _leaveTimeTextBox;
-        private TextBox _eventTimeTextBox;
-        private TextBox _returnTimeTextBox;
-        private Button _saveButton;
-        private Button _cancelButton;
-        private Activity _currentActivity;
-        private bool _isEditing = false;
+        private Panel _editPanel = null!;
+        private DateTimePicker _datePicker = null!;
+        private ComboBox _activityTypeComboBox = null!;
+        private TextBox _destinationTextBox = null!;
+        private TextBox _leaveTimeTextBox = null!;
+        private TextBox _eventTimeTextBox = null!;
+        private TextBox _returnTimeTextBox = null!;
+        private Button _saveButton = null!;
+        private Button _cancelButton = null!;
+        private Activity? _currentActivity;
+        private bool _isEditing = false;        public ActivityManagementForm() : this(new ActivityRepository()) { }
 
-        public ActivityManagementForm()
+        public ActivityManagementForm(IActivityRepository activityRepository)
         {
-            _activityRepository = new ActivityRepository();
+            _activityRepository = activityRepository ?? throw new ArgumentNullException(nameof(activityRepository));
             InitializeComponent();
             LoadActivities();
         }
 
         private void InitializeComponent()
-        {            this.Text = "Activity Management";
+        {
+            // Set form size to 1200x900, title to "Activity Management"
+            this.Text = "Activity Management";
             this.ClientSize = new System.Drawing.Size(1200, 900);
+            this.StartPosition = FormStartPosition.CenterScreen;
 
-            // Create buttons
+            // Create toolbar (y=20) with buttons: Add New, Edit, Delete, Details, Search
             _addButton = CreateButton("Add New", 20, 20, (s, e) => AddNewActivity());
             _editButton = CreateButton("Edit", 130, 20, (s, e) => EditSelectedActivity());
             _deleteButton = CreateButton("Delete", 240, 20, (s, e) => DeleteSelectedActivity());
             _detailsButton = CreateButton("Details", 350, 20, (s, e) => ViewActivityDetails());
 
-            // Create search box
+            // Search textbox at x=550, width=150
             CreateLabel("Search:", 500, 25);
             _searchBox = CreateTextBox(550, 20, 150);
             _searchButton = CreateButton("Search", 710, 20, (s, e) => SearchActivities());
 
-            // Create main grid
+            // Create DataGridView (1150x650, y=60, DPI-aware, auto-size columns, full-row select, read-only)
             _activityGrid = new DataGridView();
             _activityGrid.Location = new System.Drawing.Point(20, 60);
             _activityGrid.Size = new System.Drawing.Size(1150, 650);
             _activityGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
             _activityGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            _activityGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            _activityGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            _activityGrid.ReadOnly = true;
+            _activityGrid.AllowUserToAddRows = false;
+            _activityGrid.AllowUserToDeleteRows = false;
+            _activityGrid.MultiSelect = false;
             _activityGrid.AllowUserToResizeColumns = true;
             _activityGrid.AllowUserToResizeRows = true;
             _activityGrid.ScrollBars = ScrollBars.Both;
@@ -71,7 +78,7 @@ namespace BusBuddy.UI.Views
             _activityGrid.CellDoubleClick += (s, e) => EditSelectedActivity();
             _activityGrid.SelectionChanged += ActivityGrid_SelectionChanged;
 
-            // Initialize edit panel (hidden initially)
+            // Initialize edit panel (1150x120, y=730, hidden)
             InitializeEditPanel();
 
             // Disable edit/delete/details buttons initially
@@ -82,12 +89,14 @@ namespace BusBuddy.UI.Views
 
         private void InitializeEditPanel()
         {
+            // Create edit panel (1150x120, y=730, hidden)
             _editPanel = new Panel();
             _editPanel.Location = new System.Drawing.Point(20, 730);
             _editPanel.Size = new System.Drawing.Size(1150, 120);
             _editPanel.Visible = false;
             this.Controls.Add(_editPanel);
 
+            // Activity form-specific fields: Date, Type, Destination, Leave/Event/Return Times
             var dateLabel = CreateLabel("Date:", 10, 15);
             _editPanel.Controls.Add(dateLabel);
             _datePicker = new DateTimePicker();
@@ -131,6 +140,7 @@ namespace BusBuddy.UI.Views
             _returnTimeTextBox.Size = new System.Drawing.Size(80, 23);
             _editPanel.Controls.Add(_returnTimeTextBox);
 
+            // Save/Cancel buttons at x=800, x=910
             _saveButton = CreateButton("Save", 800, 30, (s, e) => SaveActivity());
             _editPanel.Controls.Add(_saveButton);
             _cancelButton = CreateButton("Cancel", 910, 30, (s, e) => CancelEdit());
@@ -241,24 +251,25 @@ namespace BusBuddy.UI.Views
 
         private void SaveActivity()
         {
-            if (!ValidateActivityForm())
+            if (_currentActivity == null || !ValidateActivityForm())
                 return;
             try
             {
-                _currentActivity.Date = _datePicker.Value;
-                _currentActivity.ActivityType = _activityTypeComboBox.SelectedItem?.ToString();
-                _currentActivity.Destination = _destinationTextBox.Text.Trim();
-                _currentActivity.LeaveTime = _leaveTimeTextBox.Text.Trim();
-                _currentActivity.EventTime = _eventTimeTextBox.Text.Trim();
-                _currentActivity.ReturnTime = _returnTimeTextBox.Text.Trim();
+                var activity = _currentActivity; // Null-checked above
+                activity.Date = _datePicker.Value;
+                activity.ActivityType = _activityTypeComboBox.SelectedItem?.ToString();
+                activity.Destination = _destinationTextBox.Text.Trim();
+                activity.LeaveTime = _leaveTimeTextBox.Text.Trim();
+                activity.EventTime = _eventTimeTextBox.Text.Trim();
+                activity.ReturnTime = _returnTimeTextBox.Text.Trim();
                 if (_isEditing)
                 {
-                    _activityRepository.UpdateActivity(_currentActivity);
+                    _activityRepository.UpdateActivity(activity);
                     ShowSuccessMessage("Activity updated successfully.");
                 }
                 else
                 {
-                    _activityRepository.AddActivity(_currentActivity);
+                    _activityRepository.AddActivity(activity);
                     ShowSuccessMessage("Activity added successfully.");
                 }
                 LoadActivities();

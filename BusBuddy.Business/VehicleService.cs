@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using BusBuddy.Models;
 using BusBuddy.Data;
 
 namespace BusBuddy.Business
 {
-    public class VehicleService
+    public class VehicleService : IVehicleService
     {
         private readonly IVehicleRepository _repository;
 
@@ -50,9 +52,53 @@ namespace BusBuddy.Business
         public bool DeleteVehicle(int id)
         {
             if (id <= 0)
-                return false;
+                return false;            return _repository.DeleteVehicle(id);
+        }
 
-            return _repository.DeleteVehicle(id);
+        // IVehicleService async implementations
+        public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync()
+        {
+            return await Task.FromResult(_repository.GetAllVehicles());
+        }
+
+        public async Task<bool> IsVehicleDueForInspectionAsync(int vehicleId)
+        {
+            var vehicle = _repository.GetVehicleById(vehicleId);
+            if (vehicle?.LastInspectionDate == null) return true;
+
+            var daysSinceInspection = (DateTime.Now - vehicle.LastInspectionDate.Value).Days;
+            return await Task.FromResult(daysSinceInspection > 365); // Due if over 1 year
+        }
+
+        public async Task<int> GetTotalMileageForVehicleAsync(int vehicleId)
+        {
+            // This would typically query route/mileage data
+            // For now, return a placeholder
+            return await Task.FromResult(0);
+        }
+
+        public async Task<int> AddVehicleAsync(Vehicle vehicle)
+        {
+            if (!IsValidVehicleNumber(vehicle.VehicleNumber))
+                return await Task.FromResult(0);
+
+            return await Task.FromResult(_repository.AddVehicle(vehicle));
+        }
+
+        public async Task<bool> UpdateVehicleAsync(Vehicle vehicle)
+        {
+            if (!IsValidVehicleNumber(vehicle.VehicleNumber))
+                return await Task.FromResult(false);
+
+            return await Task.FromResult(_repository.UpdateVehicle(vehicle));
+        }
+
+        public async Task<bool> DeleteVehicleAsync(int vehicleId)
+        {
+            if (vehicleId <= 0)
+                return await Task.FromResult(false);
+
+            return await Task.FromResult(_repository.DeleteVehicle(vehicleId));
         }
     }
 }

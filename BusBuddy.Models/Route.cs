@@ -24,5 +24,11 @@ namespace BusBuddy.Models
         public Driver? AMDriver { get; set; }
         public Vehicle? PMVehicle { get; set; }
         public Driver? PMDriver { get; set; }
+
+        // Computed properties for form compatibility
+        public string? AMVehicleNumber => AMVehicle?.VehicleNumber;
+        public string? AMDriverName => AMDriver?.Name;
+        public string? PMVehicleNumber => PMVehicle?.VehicleNumber;
+        public string? PMDriverName => PMDriver?.Name;
     }
 }

@@ -14,5 +14,10 @@ namespace BusBuddy.Data
         int AddCalendarEntry(SchoolCalendar calendarEntry);
         bool UpdateCalendarEntry(SchoolCalendar calendarEntry);
         bool DeleteCalendarEntry(int id);
+
+        // Additional methods for form compatibility
+        int Add(SchoolCalendar calendarEntry);
+        bool Update(SchoolCalendar calendarEntry);
+        bool Delete(int id);
     }
 }

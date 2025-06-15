@@ -31,5 +31,9 @@ namespace BusBuddy.Models
         public string? LicenseNumber { get; set; }
         public DateTime? DateLastInspection { get; set; }
         public string? Notes { get; set; }
+
+        // Additional properties for compatibility
+        public string? VIN => VINNumber;
+        public DateTime? LastInspectionDate => DateLastInspection;
     }
 }

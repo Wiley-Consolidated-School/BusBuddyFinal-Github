@@ -1,9 +1,7 @@
 using System;
 using System.Data;
 using System.Configuration;
-using System.IO;
 using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
 
 namespace BusBuddy.Data
 {    public abstract class BaseRepository
@@ -16,27 +14,40 @@ namespace BusBuddy.Data
             var conn = ConfigurationManager.ConnectionStrings["DefaultConnection"];
             if (conn == null)
             {
-                // Fallback for testing - try to use test database directly
-                var currentDir = AppDomain.CurrentDomain.BaseDirectory;
-                var testDbPath = Path.Combine(currentDir, "test_busbuddy.db");
-
-                if (File.Exists(testDbPath))
-                {
-                    _connectionString = $"Data Source={testDbPath}";
-                    _providerName = "Microsoft.Data.Sqlite";
-                }
-                else
-                {
-                    // Another fallback - use relative path
-                    _connectionString = "Data Source=test_busbuddy.db";
-                    _providerName = "Microsoft.Data.Sqlite";
-                }
+                // Fallback - use SQL Server Express
+                _connectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BusBuddyDB;Integrated Security=True;TrustServerCertificate=True;";
+                _providerName = "Microsoft.Data.SqlClient";
             }
             else
             {
                 _connectionString = conn.ConnectionString;
-                _providerName = conn.ProviderName;
+                _providerName = conn.ProviderName ?? "Microsoft.Data.SqlClient";
             }
+
+            // Initialize SQL Server database if needed
+            EnsureSqlServerDatabase();
+        }
+
+        private void EnsureSqlServerDatabase()
+        {
+            try
+            {
+                var initializer = new SqlServerDatabaseInitializer(_connectionString);
+                initializer.Initialize();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to initialize SQL Server database: {ex.Message}", ex);
+            }
+        }
+
+        private bool IsTestEnvironment()
+        {
+            // Check if we're running in a test context
+            return _connectionString.Contains("test_") ||
+                   _connectionString.Contains("Test") ||
+                   AppDomain.CurrentDomain.BaseDirectory.Contains("test") ||
+                   System.Diagnostics.Debugger.IsAttached;
         }
 
         protected BaseRepository(string connectionString, string providerName)
@@ -47,14 +58,8 @@ namespace BusBuddy.Data
 
         protected IDbConnection CreateConnection()
         {
-            if (_providerName == "Microsoft.Data.Sqlite")
-            {
-                return new SqliteConnection(_connectionString);
-            }
-            else
-            {
-                return new SqlConnection(_connectionString);
-            }
+            // Always use SQL Server
+            return new SqlConnection(_connectionString);
         }
     }
 }

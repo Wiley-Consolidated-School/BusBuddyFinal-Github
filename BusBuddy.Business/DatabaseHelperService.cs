@@ -8,7 +8,7 @@ using BusBuddy.Data;
 
 namespace BusBuddy.Business
 {
-    public class DatabaseHelperService
+    public class DatabaseHelperService : IDatabaseHelperService
     {
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IDriverRepository _driverRepository;
@@ -18,7 +18,6 @@ namespace BusBuddy.Business
         private readonly IMaintenanceRepository _maintenanceRepository;
         private readonly ISchoolCalendarRepository _schoolCalendarRepository;
         private readonly IActivityScheduleRepository _activityScheduleRepository;
-        private readonly ITimeCardRepository _timeCardRepository;
 
         public DatabaseHelperService()
         {
@@ -30,7 +29,6 @@ namespace BusBuddy.Business
             _maintenanceRepository = new MaintenanceRepository();
             _schoolCalendarRepository = new SchoolCalendarRepository();
             _activityScheduleRepository = new ActivityScheduleRepository();
-            _timeCardRepository = new TimeCardRepository();
         }
 
         public Route GetRouteWithDetails(int routeId)

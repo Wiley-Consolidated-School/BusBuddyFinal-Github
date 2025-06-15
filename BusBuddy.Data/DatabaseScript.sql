@@ -143,28 +143,7 @@ CREATE TABLE IF NOT EXISTS ActivitySchedule (
     FOREIGN KEY (ScheduledDriverID) REFERENCES Drivers(DriverID)
 );
 
--- Time Card Table
-CREATE TABLE IF NOT EXISTS TimeCard (
-    TimeCardID INTEGER PRIMARY KEY AUTOINCREMENT,
-    DriverID INTEGER,
-    Date TEXT,
-    DayType TEXT,
-    AMClockIn TEXT,
-    LunchClockOut TEXT,
-    LunchClockIn TEXT,
-    PMClockOut TEXT,
-    RouteAMClockOut TEXT,
-    RouteAMClockIn TEXT,
-    RoutePMClockOut TEXT,
-    RoutePMClockIn TEXT,
-    TotalTime REAL,
-    Overtime REAL,
-    WeeklyTotal REAL,
-    WeeklyHours REAL,
-    MonthlyTotal REAL,
-    Notes TEXT,
-    FOREIGN KEY (DriverID) REFERENCES Drivers(DriverID)
-);
+
 
 -- Create indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_routes_date ON Routes(Date);
@@ -188,7 +167,3 @@ CREATE INDEX IF NOT EXISTS idx_calendar_category ON SchoolCalendar(Category);
 CREATE INDEX IF NOT EXISTS idx_activityschedule_date ON ActivitySchedule(Date);
 CREATE INDEX IF NOT EXISTS idx_activityschedule_driver ON ActivitySchedule(ScheduledDriverID);
 CREATE INDEX IF NOT EXISTS idx_activityschedule_vehicle ON ActivitySchedule(ScheduledVehicleID);
-
-CREATE INDEX IF NOT EXISTS idx_timecard_date ON TimeCard(Date);
-CREATE INDEX IF NOT EXISTS idx_timecard_daytype ON TimeCard(DayType);
-CREATE INDEX IF NOT EXISTS idx_timecard_driver ON TimeCard(DriverID);

@@ -20,41 +20,62 @@ namespace BusBuddy.Data
         {
         }
 
-        // Legacy constructor for backwards compatibility
+        // Constructor with connection (for compatibility with existing code)
         public BusBuddyContext(DbConnection connection) : base()
         {
             _connection = connection;
-            if (_connection.State != System.Data.ConnectionState.Open)
-            {
-                _connection.Open();
-            }
         }
 
-        // DbSets for Entity Framework
+        // DbSet properties for entities
         public DbSet<Vehicle> Vehicles { get; set; } = null!;
         public DbSet<Driver> Drivers { get; set; } = null!;
         public DbSet<Fuel> Fuels { get; set; } = null!;
         public DbSet<Route> Routes { get; set; } = null!;
-        public DbSet<TimeCard> TimeCards { get; set; } = null!;
         public DbSet<Activity> Activities { get; set; } = null!;
         public DbSet<ActivitySchedule> ActivitySchedules { get; set; } = null!;
         public DbSet<Maintenance> Maintenances { get; set; } = null!;
         public DbSet<SchoolCalendar> SchoolCalendars { get; set; } = null!;
-        public DbSet<PTOBalance> PTOBalances { get; set; } = null!;
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public DbSet<PTOBalance> PTOBalances { get; set; } = null!;        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
                 if (_connection != null)
                 {
-                    // Use the provided connection (legacy support)
-                    optionsBuilder.UseSqlite(_connection);
+                    // Always use SQL Server
+                    var provider = DatabaseConfiguration.DatabaseProvider;
+                    if (provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+                    {
+                        optionsBuilder.UseSqlServer(_connection);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException($"Database provider '{provider}' is not supported. Only SqlServer is supported.");
+                    }
                 }
                 else
                 {
-                    // Default to SQL Server for production
-                    optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=BusBuddy;Trusted_Connection=true;");
+                    try
+                    {
+                        // Use the new DatabaseConfiguration for automatic environment detection
+                        var connectionString = DatabaseConfiguration.GetConnectionString();
+                        var provider = DatabaseConfiguration.DatabaseProvider;
+
+                        // Always use SQL Server
+                        if (provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+                        {
+                            optionsBuilder.UseSqlServer(connectionString);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException($"Database provider '{provider}' is not supported. Only SqlServer is supported.");
+                        }
+                    }
+                    catch
+                    {
+                        // Fallback to SQL Server Express
+                        var defaultConnectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BusBuddyDB;Integrated Security=True;TrustServerCertificate=True;";
+                        optionsBuilder.UseSqlServer(defaultConnectionString);
+                    }
                 }
             }
         }
@@ -75,7 +96,6 @@ namespace BusBuddy.Data
             modelBuilder.Entity<PTOBalance>().HasKey(p => p.PTOBalanceID);
             modelBuilder.Entity<SchoolCalendar>().HasKey(s => s.CalendarID);
             modelBuilder.Entity<Route>().HasKey(r => r.RouteID);
-            modelBuilder.Entity<TimeCard>().HasKey(t => t.TimeCardID);
             modelBuilder.Entity<Activity>().HasKey(a => a.ActivityID);
 
             // Configure Vehicle entity mappings
@@ -100,7 +120,9 @@ namespace BusBuddy.Data
                 .HasOne(f => f.VehicleFueled)
                 .WithMany()
                 .HasForeignKey(f => f.VehicleFueledID);
-        }        public new void Dispose()
+        }
+
+        public new void Dispose()
         {
             _connection?.Dispose();
             base.Dispose();

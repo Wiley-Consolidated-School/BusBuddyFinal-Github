@@ -12,6 +12,10 @@ namespace BusBuddy.Models
         public int RouteNeeded { get; set; }
         public string? Notes { get; set; }
 
+        // Additional properties for form compatibility
+        public int Id => CalendarID;
+        public string? DayType => Category;
+
         // Helper property to convert between int and bool
         public bool IsRouteNeeded
         {

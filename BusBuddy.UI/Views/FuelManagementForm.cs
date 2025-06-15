@@ -24,49 +24,65 @@ namespace BusBuddy.UI.Views
     public class FuelManagementForm : BaseDataForm
     {
         private readonly IFuelRepository _fuelRepository;
-        private readonly IVehicleRepository _vehicleRepository = new VehicleRepository();
+        private readonly IVehicleRepository _vehicleRepository;
         private DataGridView _fuelGrid;
         private Button _addButton;
         private Button _editButton;
         private Button _deleteButton;
         private Button _detailsButton;
-        private List<Fuel> _fuels;
-        private List<Vehicle> _vehicles;
+        private TextBox _searchBox;
+        private Button _searchButton;
+        private List<Fuel> _fuels = new List<Fuel>();
+        private List<Vehicle> _vehicles = new List<Vehicle>();
         // Add/edit fields
-        private Panel _editPanel;
-        private DateTimePicker _fuelDatePicker;
-        private ComboBox _fuelLocationComboBox;
-        private ComboBox _vehicleComboBox;
-        private TextBox _odometerTextBox;
-        private ComboBox _fuelTypeComboBox;
-        private Button _saveButton;
-        private Button _cancelButton;
-        private Fuel _currentFuel;
-        private bool _isEditing = false;
+        private Panel _editPanel = null!;
+        private DateTimePicker _fuelDatePicker = null!;
+        private ComboBox _fuelLocationComboBox = null!;
+        private ComboBox _vehicleComboBox = null!;
+        private TextBox _odometerTextBox = null!;
+        private ComboBox _fuelTypeComboBox = null!;
+        private Button _saveButton = null!;
+        private Button _cancelButton = null!;
+        private Fuel? _currentFuel;
+        private bool _isEditing = false;        public FuelManagementForm() : this(new FuelRepository(), new VehicleRepository()) { }
 
-        public FuelManagementForm() : this(new FuelRepository()) { }
-
-        public FuelManagementForm(IFuelRepository fuelRepository)
+        public FuelManagementForm(IFuelRepository fuelRepository, IVehicleRepository vehicleRepository)
         {
             _fuelRepository = fuelRepository ?? throw new ArgumentNullException(nameof(fuelRepository));
+            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
             InitializeComponent();
             LoadFuels();
         }
 
         private void InitializeComponent()
         {
+            // Set form size to 1200x900, title to "Fuel Management"
             this.Text = "Fuel Management";
-            this.Size = new System.Drawing.Size(1200, 900);
+            this.ClientSize = new System.Drawing.Size(1200, 900);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            // Create toolbar (y=20) with buttons: Add New, Edit, Delete, Details, Search
             _addButton = CreateButton("Add New", 20, 20, (s, e) => AddNewFuel());
             _editButton = CreateButton("Edit", 130, 20, (s, e) => EditSelectedFuel());
             _deleteButton = CreateButton("Delete", 240, 20, (s, e) => DeleteSelectedFuel());
             _detailsButton = CreateButton("Details", 350, 20, (s, e) => ViewFuelDetails());
+
+            // Search textbox at x=550, width=150
+            CreateLabel("Search:", 500, 25);
+            _searchBox = CreateTextBox(550, 20, 150);
+            _searchButton = CreateButton("Search", 710, 20, (s, e) => SearchFuels());
+
+            // Create DataGridView (1150x650, y=60, DPI-aware, auto-size columns, full-row select, read-only)
             _fuelGrid = new DataGridView();
             _fuelGrid.Location = new System.Drawing.Point(20, 60);
             _fuelGrid.Size = new System.Drawing.Size(1150, 650);
             _fuelGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
             _fuelGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            _fuelGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            _fuelGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            _fuelGrid.ReadOnly = true;
+            _fuelGrid.AllowUserToAddRows = false;
+            _fuelGrid.AllowUserToDeleteRows = false;
+            _fuelGrid.MultiSelect = false;
             _fuelGrid.AllowUserToResizeColumns = true;
             _fuelGrid.AllowUserToResizeRows = true;
             _fuelGrid.ScrollBars = ScrollBars.Both;
@@ -77,7 +93,11 @@ namespace BusBuddy.UI.Views
             this.Controls.Add(_fuelGrid);
             _fuelGrid.CellDoubleClick += (s, e) => EditSelectedFuel();
             _fuelGrid.SelectionChanged += FuelGrid_SelectionChanged;
+
+            // Initialize edit panel (1150x120, y=730, hidden)
             InitializeEditPanel();
+
+            // Disable edit/delete/details buttons initially
             _editButton.Enabled = false;
             _deleteButton.Enabled = false;
             _detailsButton.Enabled = false;
@@ -85,18 +105,22 @@ namespace BusBuddy.UI.Views
 
         private void InitializeEditPanel()
         {
+            // Create edit panel (1150x120, y=730, hidden)
             _editPanel = new Panel();
-            _editPanel.Location = new System.Drawing.Point(20, 690); // Move up
-            _editPanel.Size = new System.Drawing.Size(1150, 90); // Make shorter
+            _editPanel.Location = new System.Drawing.Point(20, 730);
+            _editPanel.Size = new System.Drawing.Size(1150, 120);
             _editPanel.Visible = false;
             this.Controls.Add(_editPanel);
+
+            // Fuel form-specific fields: Date, Location, Vehicle, Odometer, Fuel Type
             var dateLabel = CreateLabel("Fuel Date:", 10, 15);
             _editPanel.Controls.Add(dateLabel);
             _fuelDatePicker = new DateTimePicker();
             _fuelDatePicker.Location = new System.Drawing.Point(90, 10);
             _fuelDatePicker.Size = new System.Drawing.Size(150, 23);
-            _fuelDatePicker.Format = DateTimePickerFormat.Short; // Ensure short format
+            _fuelDatePicker.Format = DateTimePickerFormat.Short;
             _editPanel.Controls.Add(_fuelDatePicker);
+
             var locationLabel = CreateLabel("Location:", 260, 15);
             _editPanel.Controls.Add(locationLabel);
             _fuelLocationComboBox = new ComboBox();
@@ -104,6 +128,7 @@ namespace BusBuddy.UI.Views
             _fuelLocationComboBox.Size = new System.Drawing.Size(120, 23);
             _fuelLocationComboBox.Items.AddRange(new object[] { "Key Pumps", "Gas Station" });
             _editPanel.Controls.Add(_fuelLocationComboBox);
+
             var vehicleLabel = CreateLabel("Vehicle:", 480, 15);
             _editPanel.Controls.Add(vehicleLabel);
             _vehicleComboBox = new ComboBox();
@@ -113,22 +138,26 @@ namespace BusBuddy.UI.Views
             _vehicleComboBox.DisplayMember = "VehicleNumber";
             _vehicleComboBox.ValueMember = "Id";
             _editPanel.Controls.Add(_vehicleComboBox);
+
             var odoLabel = CreateLabel("Odometer:", 710, 15);
             _editPanel.Controls.Add(odoLabel);
             _odometerTextBox = new TextBox();
             _odometerTextBox.Location = new System.Drawing.Point(790, 10);
             _odometerTextBox.Size = new System.Drawing.Size(100, 23);
             _editPanel.Controls.Add(_odometerTextBox);
-            var fuelTypeLabel = CreateLabel("Fuel Type:", 910, 15);
+
+            var fuelTypeLabel = CreateLabel("Fuel Type:", 10, 55);
             _editPanel.Controls.Add(fuelTypeLabel);
             _fuelTypeComboBox = new ComboBox();
-            _fuelTypeComboBox.Location = new System.Drawing.Point(990, 10);
-            _fuelTypeComboBox.Size = new System.Drawing.Size(100, 23);
+            _fuelTypeComboBox.Location = new System.Drawing.Point(90, 50);
+            _fuelTypeComboBox.Size = new System.Drawing.Size(120, 23);
             _fuelTypeComboBox.Items.AddRange(new object[] { "Gasoline", "Diesel" });
             _editPanel.Controls.Add(_fuelTypeComboBox);
-            _saveButton = CreateButton("Save", 800, 60, (s, e) => SaveFuel());
+
+            // Save/Cancel buttons at x=800, x=910
+            _saveButton = CreateButton("Save", 800, 30, (s, e) => SaveFuel());
             _editPanel.Controls.Add(_saveButton);
-            _cancelButton = CreateButton("Cancel", 910, 60, (s, e) => CancelEdit());
+            _cancelButton = CreateButton("Cancel", 910, 30, (s, e) => CancelEdit());
             _editPanel.Controls.Add(_cancelButton);
         }
 
@@ -249,22 +278,24 @@ namespace BusBuddy.UI.Views
 
         private void SaveFuel()
         {
-            if (!ValidateFuelForm())
-                return;            try
+            if (_currentFuel == null || !ValidateFuelForm())
+                return;
+            try
             {
-                _currentFuel.FuelDate = _fuelDatePicker.Value;
-                _currentFuel.FuelLocation = _fuelLocationComboBox.SelectedItem?.ToString() ?? string.Empty;
-                _currentFuel.VehicleFueledID = _vehicleComboBox.SelectedValue is int vid ? vid : (int?)null;
-                _currentFuel.VehicleOdometerReading = decimal.TryParse(_odometerTextBox.Text.Trim(), out decimal odo) ? odo : (decimal?)null;
-                _currentFuel.FuelType = _fuelTypeComboBox.SelectedItem?.ToString();
+                var fuel = _currentFuel; // Null-checked above
+                fuel.FuelDate = _fuelDatePicker.Value;
+                fuel.FuelLocation = _fuelLocationComboBox.SelectedItem?.ToString() ?? string.Empty;
+                fuel.VehicleFueledID = _vehicleComboBox.SelectedValue is int vid ? vid : (int?)null;
+                fuel.VehicleOdometerReading = decimal.TryParse(_odometerTextBox.Text.Trim(), out decimal odo) ? odo : (decimal?)null;
+                fuel.FuelType = _fuelTypeComboBox.SelectedItem?.ToString();
                 if (_isEditing)
                 {
-                    _fuelRepository.UpdateFuelRecord(_currentFuel);
+                    _fuelRepository.UpdateFuelRecord(fuel);
                     ShowSuccessMessage("Fuel record updated successfully.");
                 }
                 else
                 {
-                    _fuelRepository.AddFuelRecord(_currentFuel);
+                    _fuelRepository.AddFuelRecord(fuel);
                     ShowSuccessMessage("Fuel record added successfully.");
                 }
                 LoadFuels();
@@ -281,26 +312,18 @@ namespace BusBuddy.UI.Views
             _editPanel.Visible = false;
         }
 
-        private void FuelGrid_SelectionChanged(object sender, EventArgs e)
-        {
-            bool hasSelection = _fuelGrid.SelectedRows.Count > 0;
-            _editButton.Enabled = hasSelection;
-            _deleteButton.Enabled = hasSelection;
-            _detailsButton.Enabled = hasSelection;
-        }
-
         private bool ValidateFuelForm()
         {
             _errorProvider.Clear();
             bool valid = true;
-            if (_fuelLocationComboBox.SelectedIndex < 0)
-            {
-                _errorProvider.SetError(_fuelLocationComboBox, "Select a location");
-                valid = false;
-            }
             if (_vehicleComboBox.SelectedIndex < 0)
             {
                 _errorProvider.SetError(_vehicleComboBox, "Select a vehicle");
+                valid = false;
+            }
+            if (_fuelLocationComboBox.SelectedIndex < 0)
+            {
+                _errorProvider.SetError(_fuelLocationComboBox, "Select a location");
                 valid = false;
             }
             if (_fuelTypeComboBox.SelectedIndex < 0)
@@ -309,6 +332,37 @@ namespace BusBuddy.UI.Views
                 valid = false;
             }
             return valid;
+        }
+
+        private void FuelGrid_SelectionChanged(object sender, EventArgs e)
+        {
+            bool hasSelection = _fuelGrid.SelectedRows.Count > 0;
+            _editButton.Enabled = hasSelection;
+            _deleteButton.Enabled = hasSelection;
+            _detailsButton.Enabled = hasSelection;
+        }
+
+        private void SearchFuels()
+        {
+            string searchTerm = _searchBox.Text.Trim().ToLower();
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                LoadFuels();
+                return;
+            }
+            List<Fuel> filtered = _fuels.FindAll(f =>
+                (f.FuelLocation?.ToLower().Contains(searchTerm) == true) ||
+                (f.FuelType?.ToLower().Contains(searchTerm) == true) ||
+                (GetVehicleNumber(f.VehicleFueledID ?? 0).ToLower().Contains(searchTerm))
+            );
+            _fuelGrid.DataSource = null;
+            _fuelGrid.DataSource = filtered;
+        }
+
+        private string GetVehicleNumber(int vehicleId)
+        {
+            var vehicle = _vehicles?.FirstOrDefault(v => v.Id == vehicleId);
+            return vehicle?.VehicleNumber ?? vehicleId.ToString();
         }
     }
 }

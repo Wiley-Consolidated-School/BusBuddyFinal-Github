@@ -31,7 +31,3 @@ VALUES ('2025-06-01', '2025-06-01', 'School Day', 'Test day', 1, 'Test note'),
 INSERT INTO ActivitySchedule (Date, TripType, ScheduledVehicleID, ScheduledDestination, ScheduledLeaveTime, ScheduledEventTime, ScheduledReturnTime, ScheduledRiders, ScheduledDriverID, Notes)
 VALUES ('2025-06-01', 'Field Trip', 1, 'Museum', '08:00', '10:00', '12:00', 30, 1, 'Test schedule'),
        ('2025-06-02', 'Sports', 2, 'Stadium', '09:00', '11:00', '13:00', 25, 2, 'Test schedule 2');
-
-INSERT INTO TimeCard (DriverID, Date, DayType, AMClockIn, LunchClockOut, LunchClockIn, PMClockOut, RouteAMClockOut, RouteAMClockIn, RoutePMClockOut, RoutePMClockIn, TotalTime, Overtime, WeeklyTotal, WeeklyHours, MonthlyTotal, Notes)
-VALUES (1, '2025-06-01', 'Regular', '07:00', '12:00', '12:30', '16:00', '09:00', '09:30', '15:00', '15:30', 8.0, 0.0, 40.0, 40.0, 160.0, 'Test timecard'),
-       (2, '2025-06-02', 'Regular', '07:15', '12:15', '12:45', '16:15', '09:15', '09:45', '15:15', '15:45', 8.0, 0.0, 40.0, 40.0, 160.0, 'Test timecard 2');

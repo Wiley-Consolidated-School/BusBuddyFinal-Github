@@ -16,6 +16,15 @@ namespace BusBuddy.Models
         public int TrainingComplete { get; set; }
         public string? Notes { get; set; }
 
+        // Additional properties needed by forms and validation
+        public string? Status { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public DateTime? CDLExpirationDate { get; set; }
+
+        // Computed property for full name
+        public string Name => $"{FirstName} {LastName}".Trim();
+
         // Helper property to convert between int and bool
         public bool IsTrainingComplete
         {
