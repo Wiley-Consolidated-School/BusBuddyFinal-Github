@@ -95,7 +95,7 @@ public class BusinessLogicTests
         var validationService = new ValidationService();
         var invalidMaintenance = new Maintenance
         {
-            Date = DateTime.Now,
+            DateAsDateTime = DateTime.Now,
             RepairCost = -100  // Invalid: negative cost
         };
 
@@ -114,7 +114,7 @@ public class BusinessLogicTests
         var validationService = new ValidationService();
         var invalidMaintenance = new Maintenance
         {
-            Date = DateTime.Now,
+            DateAsDateTime = DateTime.Now,
             OdometerReading = -1000  // Invalid: negative odometer
         };
 

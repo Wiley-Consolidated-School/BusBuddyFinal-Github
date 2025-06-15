@@ -205,39 +205,72 @@ namespace BusBuddy.UI.Views
 
         private void AddNewFuel()
         {
-            _isEditing = false;
-            _currentFuel = new Fuel();
-            _fuelDatePicker.Value = DateTime.Today;
-            _fuelLocationComboBox.SelectedIndex = -1;
-            LoadVehiclesForDropdown();
-            _vehicleComboBox.SelectedIndex = -1;
-            _odometerTextBox.Text = string.Empty;
-            _fuelTypeComboBox.SelectedIndex = -1;
-            _editPanel.Visible = true;
+            try
+            {
+                using (var addForm = new FuelEditForm())
+                {
+                    if (addForm.ShowDialog() == DialogResult.OK)
+                    {
+                        var newFuel = addForm.Fuel;
+                        var fuelId = _fuelRepository.AddFuelRecord(newFuel);
+                        if (fuelId > 0)
+                        {
+                            LoadFuels();
+                            ShowSuccessMessage("Fuel record added successfully!");
+                        }
+                        else
+                        {
+                            ShowErrorMessage("Failed to add fuel record. Please try again.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error adding fuel record: {ex.Message}");
+            }
         }
 
         private void EditSelectedFuel()
         {
             if (_fuelGrid.SelectedRows.Count == 0)
-                return;
-            _isEditing = true;
-            int selectedId = (int)_fuelGrid.SelectedRows[0].Cells["FuelID"].Value;
-            _currentFuel = _fuelRepository.GetFuelRecordById(selectedId);
-            if (_currentFuel == null)
             {
-                ShowErrorMessage("Could not find the selected fuel record.");
+                ShowWarningMessage("Please select a fuel record to edit.");
                 return;
             }
-            _fuelDatePicker.Value = _currentFuel.FuelDate ?? DateTime.Today;
-            _fuelLocationComboBox.SelectedItem = _currentFuel.FuelLocation ?? string.Empty;
-            LoadVehiclesForDropdown();
-            if (_currentFuel.VehicleFueledID.HasValue)
-                _vehicleComboBox.SelectedValue = _currentFuel.VehicleFueledID.Value;
-            else
-                _vehicleComboBox.SelectedIndex = -1;
-            _odometerTextBox.Text = _currentFuel.VehicleOdometerReading?.ToString() ?? string.Empty;
-            _fuelTypeComboBox.SelectedItem = _currentFuel.FuelType ?? string.Empty;
-            _editPanel.Visible = true;
+
+            try
+            {
+                int selectedId = (int)_fuelGrid.SelectedRows[0].Cells["FuelID"].Value;
+                var selectedFuel = _fuelRepository.GetFuelRecordById(selectedId);
+
+                if (selectedFuel == null)
+                {
+                    ShowErrorMessage("Could not find the selected fuel record.");
+                    return;
+                }
+
+                using (var editForm = new FuelEditForm(selectedFuel))
+                {
+                    if (editForm.ShowDialog() == DialogResult.OK)
+                    {
+                        var updatedFuel = editForm.Fuel;
+                        if (_fuelRepository.UpdateFuelRecord(updatedFuel))
+                        {
+                            LoadFuels();
+                            ShowSuccessMessage("Fuel record updated successfully!");
+                        }
+                        else
+                        {
+                            ShowErrorMessage("Failed to update fuel record. Please try again.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error editing fuel record: {ex.Message}");
+            }
         }
 
         private void DeleteSelectedFuel()
@@ -283,7 +316,7 @@ namespace BusBuddy.UI.Views
             try
             {
                 var fuel = _currentFuel; // Null-checked above
-                fuel.FuelDate = _fuelDatePicker.Value;
+                fuel.FuelDateAsDateTime = _fuelDatePicker.Value;
                 fuel.FuelLocation = _fuelLocationComboBox.SelectedItem?.ToString() ?? string.Empty;
                 fuel.VehicleFueledID = _vehicleComboBox.SelectedValue is int vid ? vid : (int?)null;
                 fuel.VehicleOdometerReading = decimal.TryParse(_odometerTextBox.Text.Trim(), out decimal odo) ? odo : (decimal?)null;

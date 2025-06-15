@@ -154,7 +154,7 @@ namespace BusBuddy.UI.Views
                 e.Handled = true;
                 return;
             }
-            var entry = _calendarEntries.FirstOrDefault(x => x.Date.HasValue && x.Date.Value.Date == cellDate.Date);
+            var entry = _calendarEntries.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == cellDate.Date);
             string dayType = entry?.Category ?? "School Day";
             Color backColor = _dayTypeColors.ContainsKey(dayType) ? _dayTypeColors[dayType] : _defaultColor;
             e.Graphics.FillRectangle(new SolidBrush(backColor), e.CellBounds);
@@ -179,7 +179,7 @@ namespace BusBuddy.UI.Views
                 _editPanel.Visible = true;
                 return;
             }
-            var entry = _calendarEntries.FirstOrDefault(x => x.Date.HasValue && x.Date.Value.Date == cellDate.Date);
+            var entry = _calendarEntries.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == cellDate.Date);
             _dayTypeComboBox.SelectedItem = entry?.Category ?? "School Day";
             _notesTextBox.Text = entry?.Notes ?? string.Empty;
             _editPanel.Visible = true;
@@ -187,46 +187,15 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                // Show dialog to get date and type
-                using (var form = new Form())
+                using var editForm = new SchoolCalendarEditForm();
+                editForm.StartPosition = FormStartPosition.CenterParent;
+
+                if (editForm.ShowDialog(this) == DialogResult.OK && editForm.SchoolCalendar != null)
                 {
-                    form.Text = "Add Calendar Entry";
-                    form.Size = new Size(350, 200);
-                    form.StartPosition = FormStartPosition.CenterParent;
-
-                    var dateLabel = new Label { Text = "Date:", Location = new Point(10, 20), AutoSize = true };
-                    var datePicker = new DateTimePicker { Location = new Point(80, 18), Size = new Size(200, 25) };
-
-                    var typeLabel = new Label { Text = "Type:", Location = new Point(10, 60), AutoSize = true };
-                    var typeCombo = new ComboBox { Location = new Point(80, 58), Size = new Size(200, 25) };
-                    typeCombo.Items.AddRange(_dayTypes);
-                    typeCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-
-                    var notesLabel = new Label { Text = "Notes:", Location = new Point(10, 100), AutoSize = true };
-                    var notesBox = new TextBox { Location = new Point(80, 98), Size = new Size(200, 25) };
-
-                    var okButton = new Button { Text = "OK", Location = new Point(100, 130), Size = new Size(75, 25) };
-                    var cancelButton = new Button { Text = "Cancel", Location = new Point(185, 130), Size = new Size(75, 25) };
-
-                    form.Controls.AddRange(new Control[] { dateLabel, datePicker, typeLabel, typeCombo, notesLabel, notesBox, okButton, cancelButton });
-
-                    okButton.Click += (s, e) => form.DialogResult = DialogResult.OK;
-                    cancelButton.Click += (s, e) => form.DialogResult = DialogResult.Cancel;
-
-                    if (form.ShowDialog() == DialogResult.OK && typeCombo.SelectedItem != null)
-                    {
-                        var newEntry = new SchoolCalendar
-                        {
-                            Date = datePicker.Value.Date,
-                            Category = typeCombo.SelectedItem.ToString(),
-                            Notes = notesBox.Text
-                        };
-
-                        _calendarRepository.Add(newEntry);
-                        LoadCalendarEntries();
-                        PopulateCalendarGrid();
-                        MessageBox.Show("Calendar entry added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
+                    _calendarRepository.Add(editForm.SchoolCalendar);
+                    LoadCalendarEntries();
+                    PopulateCalendarGrid();
+                    MessageBox.Show("Calendar entry added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
@@ -243,64 +212,25 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                var existingEntry = _calendarEntries.FirstOrDefault(x => x.Date.HasValue && x.Date.Value.Date == _selectedDate.Date);
+                var existingEntry = _calendarEntries.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == _selectedDate.Date);
 
-                using (var form = new Form())
+                using var editForm = new SchoolCalendarEditForm(existingEntry);
+                editForm.StartPosition = FormStartPosition.CenterParent;
+
+                if (editForm.ShowDialog(this) == DialogResult.OK && editForm.SchoolCalendar != null)
                 {
-                    form.Text = "Edit Calendar Entry";
-                    form.Size = new Size(350, 200);
-                    form.StartPosition = FormStartPosition.CenterParent;
-
-                    var dateLabel = new Label { Text = "Date:", Location = new Point(10, 20), AutoSize = true };
-                    var datePicker = new DateTimePicker { Location = new Point(80, 18), Size = new Size(200, 25), Value = _selectedDate };
-                    datePicker.Enabled = false; // Don't allow changing the date for existing entries
-
-                    var typeLabel = new Label { Text = "Type:", Location = new Point(10, 60), AutoSize = true };
-                    var typeCombo = new ComboBox { Location = new Point(80, 58), Size = new Size(200, 25) };
-                    typeCombo.Items.AddRange(_dayTypes);
-                    typeCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-
-                    var notesLabel = new Label { Text = "Notes:", Location = new Point(10, 100), AutoSize = true };
-                    var notesBox = new TextBox { Location = new Point(80, 98), Size = new Size(200, 25) };
-
-                    // Pre-fill with existing data
                     if (existingEntry != null)
                     {
-                        typeCombo.SelectedItem = existingEntry.Category;
-                        notesBox.Text = existingEntry.Notes ?? "";
+                        _calendarRepository.Update(editForm.SchoolCalendar);
                     }
-
-                    var okButton = new Button { Text = "OK", Location = new Point(100, 130), Size = new Size(75, 25) };
-                    var cancelButton = new Button { Text = "Cancel", Location = new Point(185, 130), Size = new Size(75, 25) };
-
-                    form.Controls.AddRange(new Control[] { dateLabel, datePicker, typeLabel, typeCombo, notesLabel, notesBox, okButton, cancelButton });
-
-                    okButton.Click += (s, e) => form.DialogResult = DialogResult.OK;
-                    cancelButton.Click += (s, e) => form.DialogResult = DialogResult.Cancel;
-
-                    if (form.ShowDialog() == DialogResult.OK && typeCombo.SelectedItem != null)
+                    else
                     {
-                        if (existingEntry != null)
-                        {
-                            existingEntry.Category = typeCombo.SelectedItem.ToString();
-                            existingEntry.Notes = notesBox.Text;
-                            _calendarRepository.Update(existingEntry);
-                        }
-                        else
-                        {
-                            var newEntry = new SchoolCalendar
-                            {
-                                Date = _selectedDate,
-                                Category = typeCombo.SelectedItem.ToString(),
-                                Notes = notesBox.Text
-                            };
-                            _calendarRepository.Add(newEntry);
-                        }
-
-                        LoadCalendarEntries();
-                        PopulateCalendarGrid();
-                        MessageBox.Show("Calendar entry updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        _calendarRepository.Add(editForm.SchoolCalendar);
                     }
+
+                    LoadCalendarEntries();
+                    PopulateCalendarGrid();
+                    MessageBox.Show("Calendar entry updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
@@ -317,7 +247,7 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                var existingEntry = _calendarEntries.FirstOrDefault(x => x.Date.HasValue && x.Date.Value.Date == _selectedDate.Date);
+                var existingEntry = _calendarEntries.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == _selectedDate.Date);
 
                 if (existingEntry == null)
                 {
@@ -348,7 +278,7 @@ namespace BusBuddy.UI.Views
         private void SaveDayType()
         {
             if (_selectedDate == default) return;
-            var entry = _calendarEntries.FirstOrDefault(x => x.Date.HasValue && x.Date.Value.Date == _selectedDate.Date);
+            var entry = _calendarEntries.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == _selectedDate.Date);
             var selectedDayType = _dayTypeComboBox.SelectedItem?.ToString() ?? "School Day";
             var notes = _notesTextBox.Text;
             try
@@ -363,7 +293,7 @@ namespace BusBuddy.UI.Views
                 {
                     var newEntry = new SchoolCalendar
                     {
-                        Date = _selectedDate,
+                        DateAsDateTime = _selectedDate,
                         Category = selectedDayType,
                         Notes = notes
                     };

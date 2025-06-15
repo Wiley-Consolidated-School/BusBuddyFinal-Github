@@ -200,7 +200,7 @@ namespace BusBuddy.UI.Views
                 var displayData = _maintenances.Select(m => new
                 {
                     MaintenanceID = m.MaintenanceID,
-                    Date = m.Date?.ToString("yyyy-MM-dd") ?? "",
+                    Date = m.Date ?? "",
                     Vehicle = m.VehicleNumber ?? "",
                     Odometer = m.OdometerReading?.ToString("N0") ?? "",
                     Category = m.MaintenanceCompleted ?? "",
@@ -259,28 +259,71 @@ namespace BusBuddy.UI.Views
 
         private void AddNewMaintenance()
         {
-            _currentMaintenance = new Maintenance();
-            _isEditing = false;
-            ClearEditPanel();
-            _editPanel.Visible = true;
+            try
+            {
+                using (var addForm = new MaintenanceEditForm())
+                {
+                    if (addForm.ShowDialog() == DialogResult.OK)
+                    {
+                        var newMaintenance = addForm.Maintenance;
+                        var maintenanceId = _maintenanceRepository.AddMaintenance(newMaintenance);
+                        if (maintenanceId > 0)
+                        {
+                            LoadMaintenances();
+                            ShowSuccessMessage("Maintenance record added successfully!");
+                        }
+                        else
+                        {
+                            ShowErrorMessage("Failed to add maintenance record. Please try again.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error adding maintenance record: {ex.Message}");
+            }
         }
 
         private void EditSelectedMaintenance()
         {
             if (_maintenanceGrid.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Please select a maintenance record to edit.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowWarningMessage("Please select a maintenance record to edit.");
                 return;
             }
 
-            var selectedMaintenanceId = (int)_maintenanceGrid.SelectedRows[0].Cells["MaintenanceID"].Value;
-            _currentMaintenance = _maintenances.FirstOrDefault(m => m.MaintenanceID == selectedMaintenanceId);
-
-            if (_currentMaintenance != null)
+            try
             {
-                _isEditing = true;
-                PopulateEditPanel(_currentMaintenance);
-                _editPanel.Visible = true;
+                var selectedMaintenanceId = (int)_maintenanceGrid.SelectedRows[0].Cells["MaintenanceID"].Value;
+                var selectedMaintenance = _maintenances.FirstOrDefault(m => m.MaintenanceID == selectedMaintenanceId);
+
+                if (selectedMaintenance == null)
+                {
+                    ShowErrorMessage("Could not find the selected maintenance record.");
+                    return;
+                }
+
+                using (var editForm = new MaintenanceEditForm(selectedMaintenance))
+                {
+                    if (editForm.ShowDialog() == DialogResult.OK)
+                    {
+                        var updatedMaintenance = editForm.Maintenance;
+                        if (_maintenanceRepository.UpdateMaintenance(updatedMaintenance))
+                        {
+                            LoadMaintenances();
+                            ShowSuccessMessage("Maintenance record updated successfully!");
+                        }
+                        else
+                        {
+                            ShowErrorMessage("Failed to update maintenance record. Please try again.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error editing maintenance record: {ex.Message}");
             }
         }
 
@@ -330,7 +373,7 @@ namespace BusBuddy.UI.Views
             if (maintenance != null)
             {
                 var details = $"Maintenance Details\n\n" +
-                    $"Date: {maintenance.Date?.ToString("yyyy-MM-dd") ?? "N/A"}\n" +
+                    $"Date: {maintenance.Date ?? "N/A"}\n" +
                     $"Vehicle: {maintenance.VehicleNumber ?? "N/A"}\n" +
                     $"Odometer: {maintenance.OdometerReading?.ToString("N0") ?? "N/A"}\n" +
                     $"Category: {maintenance.MaintenanceCompleted ?? "N/A"}\n" +
@@ -366,7 +409,7 @@ namespace BusBuddy.UI.Views
                 var displayData = filteredMaintenances.Select(m => new
                 {
                     MaintenanceID = m.MaintenanceID,
-                    Date = m.Date?.ToString("yyyy-MM-dd") ?? "",
+                    Date = m.Date ?? "",
                     Vehicle = m.VehicleNumber ?? "",
                     Odometer = m.OdometerReading?.ToString("N0") ?? "",
                     Category = m.MaintenanceCompleted ?? "",
@@ -390,7 +433,7 @@ namespace BusBuddy.UI.Views
                 var maintenance = _currentMaintenance ?? new Maintenance();
 
                 // Basic information
-                maintenance.Date = _datePicker.Value.Date;
+                maintenance.DateAsDateTime = _datePicker.Value.Date;
 
                 // Vehicle
                 if (_vehicleComboBox.SelectedValue is Vehicle vehicle)
@@ -469,7 +512,7 @@ namespace BusBuddy.UI.Views
 
         private void PopulateEditPanel(Maintenance maintenance)
         {
-            _datePicker.Value = maintenance.Date ?? DateTime.Today;
+            _datePicker.Value = maintenance.DateAsDateTime ?? DateTime.Today;
 
             // Vehicle
             var vehicle = _vehicles.FirstOrDefault(v => v.VehicleID == maintenance.VehicleID);

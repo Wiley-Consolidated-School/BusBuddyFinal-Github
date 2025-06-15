@@ -190,7 +190,7 @@ namespace BusBuddy.UI.Views
             numSeatingCapacity.Value = Vehicle.SeatingCapacity > 0 ? Vehicle.SeatingCapacity : 1;
             txtVINNumber.Text = Vehicle.VINNumber ?? string.Empty;
             txtLicenseNumber.Text = Vehicle.LicenseNumber ?? string.Empty;
-            dtpDateLastInspection.Value = Vehicle.DateLastInspection ?? DateTime.Now;
+            dtpDateLastInspection.Value = Vehicle.DateLastInspectionAsDateTime ?? DateTime.Now;
 
             // Set combo box values with defaults
             cboFuelType.SelectedItem = Vehicle.FuelType ?? "Diesel";
@@ -211,7 +211,7 @@ namespace BusBuddy.UI.Views
             Vehicle.SeatingCapacity = (int)numSeatingCapacity.Value;
             Vehicle.VINNumber = txtVINNumber.Text.Trim();
             Vehicle.LicenseNumber = txtLicenseNumber.Text.Trim();
-            Vehicle.DateLastInspection = dtpDateLastInspection.Value;
+            Vehicle.DateLastInspectionAsDateTime = dtpDateLastInspection.Value;
             Vehicle.FuelType = cboFuelType.SelectedItem?.ToString();
             Vehicle.Status = cboStatus.SelectedItem?.ToString();
             Vehicle.Notes = txtNotes.Text.Trim();
