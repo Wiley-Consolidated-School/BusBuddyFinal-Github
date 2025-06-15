@@ -33,7 +33,7 @@ namespace BusBuddy.UI.Views
         private TextBox _descriptionTextBox = null!;
         private Button _saveButton = null!;
         private Button _cancelButton = null!;
-        private Maintenance? _currentMaintenance;
+        private Maintenance? _currentMaintenance = null;
         private bool _isEditing = false;
 
         public MaintenanceManagementForm() : this(new MaintenanceRepository()) { }

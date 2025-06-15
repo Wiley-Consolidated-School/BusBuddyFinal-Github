@@ -217,44 +217,233 @@ namespace BusBuddy.TimeCard.Services
 
             return anyFixed;
         }
-    }
 
-    /// <summary>
-    /// Represents a time entry validation warning
-    /// </summary>
-    public class TimeEntryWarning
-    {
-        public WarningType Type { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public WarningSeverity Severity { get; set; }
-    }
+        /// <summary>
+        /// Enhanced validation with intelligent conflict resolution suggestions
+        /// </summary>
+        public async Task<TimeEntryValidationResult> ValidateTimeCardWithResolutionAsync(Models.TimeCard timeCard, bool isNew)
+        {
+            var warnings = await ValidateTimeCardAsync(timeCard, isNew);
+            var result = new TimeEntryValidationResult
+            {
+                Warnings = warnings,
+                HasWarnings = warnings.Any(),
+                HasCriticalIssues = warnings.Any(w => w.Severity == WarningSeverity.High)
+            };
 
-    /// <summary>
-    /// Types of time entry warnings
-    /// </summary>
-    public enum WarningType
-    {
-        MissingDate,
-        MissingClockIn,
-        MissingClockOut,
-        MissingLunchOut,
-        MissingLunchIn,
-        InvalidTimeSequence,
-        DuplicateEntry,
-        ExcessiveHours,
-        ExcessiveWeeklyHours,
-        HighWeeklyHours,
-        OvertimeDetected,
-        InvalidDriver
-    }
+            // Generate intelligent resolution suggestions
+            result.ResolutionSuggestions = GenerateResolutionSuggestions(timeCard, warnings);
 
-    /// <summary>
-    /// Severity levels for warnings
-    /// </summary>
-    public enum WarningSeverity
-    {
-        Low,
-        Medium,
-        High
+            // Auto-fix recommendations
+            result.AutoFixableIssues = GetAutoFixableIssues(warnings);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Generate intelligent resolution suggestions for time entry issues
+        /// </summary>
+        private List<ResolutionSuggestion> GenerateResolutionSuggestions(Models.TimeCard timeCard, List<TimeEntryWarning> warnings)
+        {
+            var suggestions = new List<ResolutionSuggestion>();
+
+            foreach (var warning in warnings)
+            {
+                switch (warning.Type)
+                {
+                    case WarningType.MissingClockIn:
+                        suggestions.Add(new ResolutionSuggestion
+                        {
+                            WarningType = warning.Type,
+                            SuggestionText = "Set Clock In to 7:00 AM (common start time)",
+                            AutoFixAction = () => timeCard.ClockIn = new TimeSpan(7, 0, 0),
+                            Confidence = 0.7f
+                        });
+                        break;
+
+                    case WarningType.MissingClockOut:
+                        if (timeCard.ClockIn.HasValue)
+                        {
+                            var suggestedClockOut = timeCard.ClockIn.Value.Add(TimeSpan.FromHours(8));
+                            suggestions.Add(new ResolutionSuggestion
+                            {
+                                WarningType = warning.Type,
+                                SuggestionText = $"Set Clock Out to {suggestedClockOut:hh\\:mm} (8-hour day)",
+                                AutoFixAction = () => timeCard.ClockOut = suggestedClockOut,
+                                Confidence = 0.8f
+                            });
+                        }
+                        break;
+
+                    case WarningType.MissingLunchOut:
+                        if (timeCard.ClockIn.HasValue)
+                        {
+                            var suggestedLunchOut = timeCard.ClockIn.Value.Add(TimeSpan.FromHours(4));
+                            suggestions.Add(new ResolutionSuggestion
+                            {
+                                WarningType = warning.Type,
+                                SuggestionText = $"Set Lunch Out to {suggestedLunchOut:hh\\:mm} (4 hours after start)",
+                                AutoFixAction = () => timeCard.LunchOut = suggestedLunchOut,
+                                Confidence = 0.6f
+                            });
+                        }
+                        break;
+
+                    case WarningType.MissingLunchIn:
+                        if (timeCard.LunchOut.HasValue)
+                        {
+                            var suggestedLunchIn = timeCard.LunchOut.Value.Add(TimeSpan.FromMinutes(30));
+                            suggestions.Add(new ResolutionSuggestion
+                            {
+                                WarningType = warning.Type,
+                                SuggestionText = $"Set Lunch In to {suggestedLunchIn:hh\\:mm} (30-minute lunch)",
+                                AutoFixAction = () => timeCard.LunchIn = suggestedLunchIn,
+                                Confidence = 0.9f
+                            });
+                        }
+                        break;
+
+                    case WarningType.InvalidTimeSequence:
+                        suggestions.Add(new ResolutionSuggestion
+                        {
+                            WarningType = warning.Type,
+                            SuggestionText = "Review time sequence - times should be in chronological order",
+                            AutoFixAction = () => FixTimeSequence(timeCard),
+                            Confidence = 0.5f
+                        });
+                        break;
+
+                    case WarningType.ExcessiveHours:
+                        suggestions.Add(new ResolutionSuggestion
+                        {
+                            WarningType = warning.Type,
+                            SuggestionText = "Consider splitting long shifts or adding breaks",
+                            AutoFixAction = () => OptimizeWorkHours(timeCard),
+                            Confidence = 0.4f
+                        });
+                        break;
+                }
+            }
+
+            return suggestions.OrderByDescending(s => s.Confidence).ToList();
+        }
+
+        /// <summary>
+        /// Get auto-fixable issues with high confidence
+        /// </summary>
+        private List<ResolutionSuggestion> GetAutoFixableIssues(List<TimeEntryWarning> warnings)
+        {
+            var suggestions = new List<ResolutionSuggestion>();
+
+            // Only include high-confidence fixes
+            foreach (var warning in warnings)
+            {
+                if (warning.Type == WarningType.MissingLunchIn && warning.Severity != WarningSeverity.High)
+                {
+                    suggestions.Add(new ResolutionSuggestion
+                    {
+                        WarningType = warning.Type,
+                        SuggestionText = "Auto-set 30-minute lunch break",
+                        Confidence = 0.9f
+                    });
+                }
+            }
+
+            return suggestions;
+        }
+
+        /// <summary>
+        /// Fix time sequence issues by reordering times logically
+        /// </summary>
+        private void FixTimeSequence(Models.TimeCard timeCard)
+        {
+            var times = new List<(string Name, TimeSpan? Time)>
+            {
+                ("ClockIn", timeCard.ClockIn),
+                ("LunchOut", timeCard.LunchOut),
+                ("LunchIn", timeCard.LunchIn),
+                ("ClockOut", timeCard.ClockOut)
+            };
+
+            // Remove null times and sort
+            var validTimes = times.Where(t => t.Time.HasValue)
+                                 .OrderBy(t => t.Time!.Value)
+                                 .ToList();
+
+            // Reassign in logical order
+            if (validTimes.Count >= 2)
+            {
+                timeCard.ClockIn = validTimes[0].Time;
+                timeCard.ClockOut = validTimes.Last().Time;
+
+                if (validTimes.Count >= 4)
+                {
+                    timeCard.LunchOut = validTimes[1].Time;
+                    timeCard.LunchIn = validTimes[2].Time;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Optimize work hours to prevent excessive hours
+        /// </summary>
+        private void OptimizeWorkHours(Models.TimeCard timeCard)
+        {
+            if (timeCard.ClockIn.HasValue && timeCard.ClockOut.HasValue)
+            {
+                var totalHours = (timeCard.ClockOut.Value - timeCard.ClockIn.Value).TotalHours;
+
+                // If over 12 hours, suggest 8-hour day
+                if (totalHours > 12)
+                {
+                    timeCard.ClockOut = timeCard.ClockIn.Value.Add(TimeSpan.FromHours(8));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validate driver schedule conflicts across multiple routes/activities
+        /// </summary>
+        public async Task<List<ScheduleConflict>> CheckDriverScheduleConflictsAsync(int driverId, DateTime date)
+        {
+            var conflicts = new List<ScheduleConflict>();
+
+            // Get all time entries for the driver on this date
+            var allTimeCards = await _timeCardRepository.GetByDriverIdAsync(driverId);
+            var timeCards = allTimeCards.Where(tc => tc.Date.HasValue && tc.Date.Value.Date == date.Date);
+
+            foreach (var timeCard in timeCards)
+            {
+                // Check for overlapping time periods
+                var overlaps = timeCards.Where(tc => tc.TimeCardId != timeCard.TimeCardId)
+                                       .Where(tc => HasTimeOverlap(timeCard, tc));
+
+                foreach (var overlap in overlaps)
+                {
+                    conflicts.Add(new ScheduleConflict
+                    {
+                        DriverId = driverId,
+                        Date = date,
+                        ConflictType = ConflictType.OverlappingTimeCards,
+                        Description = $"Time card {timeCard.TimeCardId} overlaps with {overlap.TimeCardId}",
+                        Severity = WarningSeverity.High
+                    });
+                }
+            }
+
+            return conflicts;
+        }
+
+        /// <summary>
+        /// Check if two time cards have overlapping time periods
+        /// </summary>
+        private bool HasTimeOverlap(Models.TimeCard card1, Models.TimeCard card2)
+        {
+            if (!card1.ClockIn.HasValue || !card1.ClockOut.HasValue ||
+                !card2.ClockIn.HasValue || !card2.ClockOut.HasValue)
+                return false;
+
+            return card1.ClockIn < card2.ClockOut && card2.ClockIn < card1.ClockOut;
+        }
     }
 }

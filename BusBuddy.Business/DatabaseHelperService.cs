@@ -193,6 +193,84 @@ namespace BusBuddy.Business
 
             return details;
         }
+
+        public List<Route> GetAllRoutesWithDetails()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("DatabaseHelperService: Getting all routes...");
+                var routes = _routeRepository.GetAllRoutes() ?? new List<Route>();
+                System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Found {routes.Count} routes");
+
+                foreach (var route in routes)
+                {
+                    if (route.AMVehicleID.HasValue)
+                    {
+                        try
+                        {
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading AM Vehicle {route.AMVehicleID}");
+                            route.AMVehicle = _vehicleRepository.GetVehicleById(route.AMVehicleID.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Error loading AM Vehicle: {ex.Message}");
+                            route.AMVehicle = null; // Gracefully handle missing vehicle
+                        }
+                    }
+
+                    if (route.AMDriverID.HasValue)
+                    {
+                        try
+                        {
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading AM Driver {route.AMDriverID}");
+                            route.AMDriver = _driverRepository.GetDriverById(route.AMDriverID.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Error loading AM Driver: {ex.Message}");
+                            route.AMDriver = null; // Gracefully handle missing driver
+                        }
+                    }
+
+                    if (route.PMVehicleID.HasValue)
+                    {
+                        try
+                        {
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading PM Vehicle {route.PMVehicleID}");
+                            route.PMVehicle = _vehicleRepository.GetVehicleById(route.PMVehicleID.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Error loading PM Vehicle: {ex.Message}");
+                            route.PMVehicle = null; // Gracefully handle missing vehicle
+                        }
+                    }
+
+                    if (route.PMDriverID.HasValue)
+                    {
+                        try
+                        {
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading PM Driver {route.PMDriverID}");
+                            route.PMDriver = _driverRepository.GetDriverById(route.PMDriverID.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Error loading PM Driver: {ex.Message}");
+                            route.PMDriver = null; // Gracefully handle missing driver
+                        }
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine("DatabaseHelperService: Completed loading route details");
+                return routes;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Exception in GetAllRoutesWithDetails: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Stack trace: {ex.StackTrace}");
+                throw;
+            }
+        }
     }
 
     public class VehicleDetailsViewModel

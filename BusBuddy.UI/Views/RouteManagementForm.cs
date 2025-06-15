@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Business;
 
 namespace BusBuddy.UI.Views
 {
@@ -13,6 +14,7 @@ namespace BusBuddy.UI.Views
         private readonly IRouteRepository _routeRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IDriverRepository _driverRepository;
+        private readonly IDatabaseHelperService _databaseHelperService;
         private DataGridView _routeGrid;
         private Button _addButton;
         private Button _editButton;
@@ -30,12 +32,24 @@ namespace BusBuddy.UI.Views
 
         public RouteManagementForm(IRouteRepository routeRepository, IVehicleRepository vehicleRepository, IDriverRepository driverRepository)
         {
-            _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
-            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
-            _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
-            InitializeComponent();
-            LoadVehiclesAndDrivers();
-            LoadRoutes();
+            try
+            {
+                _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
+                _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
+                _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
+
+                _databaseHelperService = new DatabaseHelperService();
+
+                InitializeComponent();
+                LoadVehiclesAndDrivers();
+                LoadRoutes();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error initializing RouteManagementForm: {ex.Message}\n\nStack trace: {ex.StackTrace}",
+                    "Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw; // Re-throw to prevent partial initialization
+            }
         }
 
         private void InitializeComponent()
@@ -101,49 +115,111 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _routes = _routeRepository.GetAllRoutes().ToList();
+                System.Diagnostics.Debug.WriteLine("LoadRoutes: Starting to load routes...");
+
+                if (_databaseHelperService == null)
+                {
+                    throw new InvalidOperationException("DatabaseHelperService is null");
+                }
+
+                System.Diagnostics.Debug.WriteLine("LoadRoutes: Calling GetAllRoutesWithDetails...");
+                _routes = _databaseHelperService.GetAllRoutesWithDetails() ?? new List<Route>();
+
+                System.Diagnostics.Debug.WriteLine($"LoadRoutes: Loaded {_routes.Count} routes");
+
+                System.Diagnostics.Debug.WriteLine("LoadRoutes: Calling PopulateRouteGrid...");
                 PopulateRouteGrid();
+
+                System.Diagnostics.Debug.WriteLine("LoadRoutes: Completed successfully");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading routes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                System.Diagnostics.Debug.WriteLine($"LoadRoutes: Exception - {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"LoadRoutes: Stack trace - {ex.StackTrace}");
+                _routes = new List<Route>(); // Ensure _routes is never null
+                PopulateRouteGrid(); // Still populate the grid (empty)
+                MessageBox.Show($"Error loading routes: {ex.Message}\n\nDetails: {ex.StackTrace}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void PopulateRouteGrid()
         {
-            _routeGrid.DataSource = null;
-
-            if (_routes?.Any() == true)
+            try
             {
-                var displayData = _routes.Select(r => new
+                System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: Starting...");
+                _routeGrid.DataSource = null;
+
+                if (_routes?.Any() == true)
                 {
-                    RouteID = r.RouteID,
-                    Date = r.Date,
-                    RouteName = r.RouteName ?? "",
-                    AMVehicle = r.AMVehicleNumber ?? "",
-                    AMDriver = r.AMDriverName ?? "",
-                    AMBeginMiles = r.AMBeginMiles?.ToString("N0") ?? "",
-                    AMEndMiles = r.AMEndMiles?.ToString("N0") ?? "",
-                    AMRiders = r.AMRiders?.ToString() ?? "",
-                    PMVehicle = r.PMVehicleNumber ?? "",
-                    PMDriver = r.PMDriverName ?? "",
-                    PMBeginMiles = r.PMBeginMiles?.ToString("N0") ?? "",
-                    PMEndMiles = r.PMEndMiles?.ToString("N0") ?? "",
-                    PMRiders = r.PMRiders?.ToString() ?? ""
-                }).ToList();
+                    System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: Processing {_routes.Count} routes");
 
-                _routeGrid.DataSource = displayData;
+                    var displayData = _routes.Select(r => {
+                        try
+                        {
+                            return new
+                            {
+                                RouteID = r.RouteID,
+                                Date = r.Date ?? "",
+                                RouteName = r.RouteName ?? "",
+                                AMVehicle = r.AMVehicleNumber ?? "",
+                                AMDriver = r.AMDriverName ?? "",
+                                AMBeginMiles = r.AMBeginMiles?.ToString("N0") ?? "",
+                                AMEndMiles = r.AMEndMiles?.ToString("N0") ?? "",
+                                AMRiders = r.AMRiders?.ToString() ?? "",
+                                PMVehicle = r.PMVehicleNumber ?? "",
+                                PMDriver = r.PMDriverName ?? "",
+                                PMBeginMiles = r.PMBeginMiles?.ToString("N0") ?? "",
+                                PMEndMiles = r.PMEndMiles?.ToString("N0") ?? "",
+                                PMRiders = r.PMRiders?.ToString() ?? ""
+                            };
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: Error processing route {r.RouteID}: {ex.Message}");
+                            return new
+                            {
+                                RouteID = r.RouteID,
+                                Date = r.Date ?? "",
+                                RouteName = r.RouteName ?? "",
+                                AMVehicle = "Error",
+                                AMDriver = "Error",
+                                AMBeginMiles = "",
+                                AMEndMiles = "",
+                                AMRiders = "",
+                                PMVehicle = "Error",
+                                PMDriver = "Error",
+                                PMBeginMiles = "",
+                                PMEndMiles = "",
+                                PMRiders = ""
+                            };
+                        }
+                    }).ToList();
 
-                // Hide ID column and adjust column widths
-                if (_routeGrid.Columns.Contains("RouteID"))
-                    _routeGrid.Columns["RouteID"].Visible = false;
+                    System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: Setting DataSource...");
+                    _routeGrid.DataSource = displayData;
 
-                // Adjust column widths for better display
-                if (_routeGrid.Columns.Contains("Date"))
-                    _routeGrid.Columns["Date"].Width = 100;
-                if (_routeGrid.Columns.Contains("RouteName"))
-                    _routeGrid.Columns["RouteName"].Width = 150;
+                    // Hide ID column and adjust column widths
+                    if (_routeGrid.Columns.Contains("RouteID"))
+                        _routeGrid.Columns["RouteID"].Visible = false;
+
+                    // Adjust column widths for better display
+                    if (_routeGrid.Columns.Contains("Date"))
+                        _routeGrid.Columns["Date"].Width = 100;
+                    if (_routeGrid.Columns.Contains("RouteName"))
+                        _routeGrid.Columns["RouteName"].Width = 150;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: No routes to display");
+                }
+
+                System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: Completed successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: Exception - {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: Stack trace - {ex.StackTrace}");
+                MessageBox.Show($"Error populating route grid: {ex.Message}\n\nDetails: {ex.StackTrace}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         // Removed legacy edit panel - now using RouteEditForm modal dialog

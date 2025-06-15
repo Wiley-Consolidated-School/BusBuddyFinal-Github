@@ -43,7 +43,7 @@ namespace BusBuddy.UI.Views
         private ComboBox _fuelTypeComboBox = null!;
         private Button _saveButton = null!;
         private Button _cancelButton = null!;
-        private Fuel? _currentFuel;
+        private Fuel? _currentFuel = null;
         private bool _isEditing = false;        public FuelManagementForm() : this(new FuelRepository(), new VehicleRepository()) { }
 
         public FuelManagementForm(IFuelRepository fuelRepository, IVehicleRepository vehicleRepository)

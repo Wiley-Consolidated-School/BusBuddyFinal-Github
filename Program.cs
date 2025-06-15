@@ -20,7 +20,7 @@ namespace BusBuddy
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static async Task Main()
+        static void Main()
         {
             // Allocate console for debugging
             if (!System.Diagnostics.Debugger.IsAttached)

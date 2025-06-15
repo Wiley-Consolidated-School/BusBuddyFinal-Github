@@ -60,7 +60,7 @@ namespace BusBuddy.Data
                         Make = @Make,
                         Model = @Model,
                         Year = @Year,
-                        Capacity = @Capacity,
+                        SeatingCapacity = @Capacity,
                         FuelType = @FuelType,
                         Status = @Status,
                         VINNumber = @VINNumber,

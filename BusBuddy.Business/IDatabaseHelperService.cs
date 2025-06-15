@@ -8,6 +8,7 @@ namespace BusBuddy.Business
     {
         Route GetRouteWithDetails(int routeId);
         List<Route> GetRoutesWithDetailsByDate(DateTime date);
+        List<Route> GetAllRoutesWithDetails();
         VehicleDetailsViewModel GetVehicleDetails(int vehicleId);
         DriverDetailsViewModel GetDriverDetails(int driverId);
     }

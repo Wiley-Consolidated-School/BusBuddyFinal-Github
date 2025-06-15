@@ -90,7 +90,7 @@ namespace BusBuddy.Data
                                 @AMVehicleID, @AMBeginMiles, @AMEndMiles, @AMRiders, @AMDriverID,
                                 @PMVehicleID, @PMBeginMiles, @PMEndMiles, @PMRiders, @PMDriverID
                             );
-                            SELECT last_insert_rowid()";
+                            SELECT SCOPE_IDENTITY()";
 
                         var routeId = connection.QuerySingle<int>(sql, route, transaction);
                         transaction.Commit();
@@ -151,20 +151,6 @@ namespace BusBuddy.Data
                 {
                     try
                     {
-                        // Check for related records that might need to be handled
-                        var hasRelatedRecords = connection.QuerySingleOrDefault<int>(
-                            "SELECT COUNT(*) FROM ActivitySchedule WHERE RouteID = @RouteID",
-                            new { RouteID = id }, transaction);
-
-                        if (hasRelatedRecords > 0)
-                        {
-                            // Option 1: Prevent deletion
-                            throw new InvalidOperationException($"Cannot delete route with ID {id} because it has related activity schedules. Please remove related records first.");
-
-                            // Option 2: Cascade delete (uncomment if you want cascading)
-                            // connection.Execute("DELETE FROM ActivitySchedule WHERE RouteID = @RouteID", new { RouteID = id }, transaction);
-                        }
-
                         var sql = "DELETE FROM Routes WHERE RouteID = @RouteID";
                         var rowsAffected = connection.Execute(sql, new { RouteID = id }, transaction);
 
@@ -186,7 +172,7 @@ namespace BusBuddy.Data
             if (route.AMVehicleID.HasValue)
             {
                 var vehicleExists = connection.QuerySingleOrDefault<int>(
-                    "SELECT COUNT(*) FROM Vehicles WHERE VehicleID = @VehicleID",
+                    "SELECT COUNT(*) FROM Vehicles WHERE Id = @VehicleID",
                     new { VehicleID = route.AMVehicleID }, transaction);
 
                 if (vehicleExists == 0)
@@ -199,7 +185,7 @@ namespace BusBuddy.Data
             if (route.PMVehicleID.HasValue)
             {
                 var vehicleExists = connection.QuerySingleOrDefault<int>(
-                    "SELECT COUNT(*) FROM Vehicles WHERE VehicleID = @VehicleID",
+                    "SELECT COUNT(*) FROM Vehicles WHERE Id = @VehicleID",
                     new { VehicleID = route.PMVehicleID }, transaction);
 
                 if (vehicleExists == 0)

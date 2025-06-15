@@ -84,7 +84,7 @@ namespace BusBuddy.Data
                     VALUES (
                         @Date, @EndDate, @Category, @Description, @RouteNeeded
                     );
-                    SELECT last_insert_rowid()";
+                    SELECT SCOPE_IDENTITY()";
 
                 return connection.QuerySingle<int>(sql, calendarEntry);
             }

@@ -61,7 +61,7 @@ namespace BusBuddy.Data
 
             return baseDirectory.Contains("test", StringComparison.OrdinalIgnoreCase) ||
                    baseDirectory.Contains("Test") ||
-                   assemblyName.Contains("Test") ||
+                   (assemblyName?.Contains("Test") ?? false) ||
                    System.Diagnostics.Debugger.IsAttached ||
                    Environment.CommandLine.Contains("testhost") ||
                    Environment.CommandLine.Contains("vstest") ||

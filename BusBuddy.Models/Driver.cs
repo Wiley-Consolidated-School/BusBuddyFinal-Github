@@ -23,7 +23,7 @@ namespace BusBuddy.Models
         public DateTime? CDLExpirationDate { get; set; }
 
         // Computed property for full name
-        public string Name => $"{FirstName} {LastName}".Trim();
+        public string Name => $"{FirstName ?? ""} {LastName ?? ""}".Trim();
 
         // Helper property to convert between int and bool
         public bool IsTrainingComplete

@@ -97,7 +97,7 @@ namespace BusBuddy.Data
                         @ScheduledDestination, @ScheduledLeaveTime,
                         @ScheduledEventTime, @ScheduledRiders, @ScheduledDriverID
                     );
-                    SELECT last_insert_rowid();";
+                    SELECT SCOPE_IDENTITY();";
 
                 return connection.QuerySingle<int>(sql, scheduledActivity);
             }

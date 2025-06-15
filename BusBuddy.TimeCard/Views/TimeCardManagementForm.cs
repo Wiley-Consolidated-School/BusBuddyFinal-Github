@@ -69,7 +69,7 @@ namespace BusBuddy.TimeCard.Views
 
         private List<Models.TimeCard> _timeCards = null!;
         private List<Driver> _drivers = null!;
-        private Models.TimeCard _currentTimeCard = null!;
+        private Models.TimeCard? _currentTimeCard = null;
         private bool _isEditMode;
 
         public TimeCardManagementForm() : this(
@@ -561,7 +561,7 @@ namespace BusBuddy.TimeCard.Views
 
         // Event handlers and remaining methods will continue in the next part...
 
-        private void TimeCardGrid_SelectionChanged(object sender, EventArgs e)
+        private void TimeCardGrid_SelectionChanged(object? sender, EventArgs e)
         {
             bool hasSelection = _timeCardGrid.SelectedRows.Count > 0;
             _editButton.Enabled = hasSelection;
@@ -844,7 +844,7 @@ Export to Excel coming soon...";
         }        private void CancelEdit()
         {
             _editPanel.Visible = false;
-            _currentTimeCard = null!;
+            _currentTimeCard = null;
         }
 
         private void TogglePTOMode()
@@ -968,13 +968,19 @@ Export to Excel coming soon...";
             return picker.Value.TimeOfDay;
         }
 
-        private async void SaveTimeCard_Click(object sender, EventArgs e)
+        private async void SaveTimeCard_Click(object? sender, EventArgs e)
         {
             try
             {
                 UpdateTimeCardFromForm();
 
                 // Validate the time card
+                if (_currentTimeCard == null)
+                {
+                    MessageBox.Show("No time card selected for validation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 var warnings = await _validationService.ValidateTimeCardAsync(_currentTimeCard, !_isEditMode);
 
                 if (warnings.Any())

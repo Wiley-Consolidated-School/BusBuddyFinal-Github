@@ -7,7 +7,7 @@
     <AssemblyName>BusBuddy</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604</NoWarn>
+    <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604;CS0436</NoWarn>
     <StartupObject>BusBuddy.Program</StartupObject>
   </PropertyGroup>
 
