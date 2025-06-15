@@ -28,10 +28,35 @@ namespace BusBuddy.Data
 
         public Vehicle? GetVehicleById(int id)
         {
-            using (var connection = CreateConnection())
+            if (id <= 0)
             {
-                connection.Open();
-                return connection.QuerySingleOrDefault<Vehicle>("SELECT * FROM Vehicles WHERE Id = @Id", new { Id = id });
+                Console.WriteLine($"WARNING: Invalid vehicle ID {id} requested");
+                return null;
+            }
+
+            try
+            {
+                using (var connection = CreateConnection())
+                {
+                    connection.Open();
+                    var vehicle = connection.QuerySingleOrDefault<Vehicle>("SELECT * FROM Vehicles WHERE Id = @Id", new { Id = id });
+
+                    if (vehicle == null)
+                    {
+                        Console.WriteLine($"WARNING: Vehicle with ID {id} not found in database");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Vehicle found: ID={vehicle.Id}, Number={vehicle.VehicleNumber}");
+                    }
+
+                    return vehicle;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR in GetVehicleById({id}): {ex.Message}");
+                return null;
             }
         }
 

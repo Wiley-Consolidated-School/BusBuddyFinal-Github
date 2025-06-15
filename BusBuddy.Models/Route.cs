@@ -15,13 +15,33 @@ namespace BusBuddy.Models
             get
             {
                 if (string.IsNullOrEmpty(Date)) return DateTime.Today;
+                // Try ISO format first (preserves time)
+                if (DateTime.TryParseExact(Date, "yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var isoResult))
+                    return EnsureSqlServerCompatible(isoResult);
+                if (DateTime.TryParseExact(Date, "yyyy-MM-ddTHH:mm:ss.fffffff", CultureInfo.InvariantCulture, DateTimeStyles.None, out var isoResult2))
+                    return EnsureSqlServerCompatible(isoResult2);
+                // Try date-only format
                 if (DateTime.TryParseExact(Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
-                    return result;
+                    return EnsureSqlServerCompatible(result);
                 if (DateTime.TryParse(Date, out var fallbackResult))
-                    return fallbackResult;
+                    return EnsureSqlServerCompatible(fallbackResult);
                 return DateTime.Today;
             }
-            set => Date = value.ToString("yyyy-MM-dd");
+            set => Date = EnsureSqlServerCompatible(value).ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+        }
+
+        // Helper method to ensure DateTime values are within SQL Server's valid range
+        private static DateTime EnsureSqlServerCompatible(DateTime dateTime)
+        {
+            // SQL Server DateTime range: 1753-01-01 00:00:00 to 9999-12-31 23:59:59.997
+            var minSqlDate = new DateTime(1753, 1, 1);
+            var maxSqlDate = new DateTime(9999, 12, 31, 23, 59, 59, 997);
+
+            if (dateTime < minSqlDate)
+                return minSqlDate;
+            if (dateTime > maxSqlDate)
+                return maxSqlDate;
+            return dateTime;
         }
         public int? AMVehicleID { get; set; }
         public decimal? AMBeginMiles { get; set; }

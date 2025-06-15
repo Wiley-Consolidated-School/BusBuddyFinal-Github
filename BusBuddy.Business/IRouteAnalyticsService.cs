@@ -13,7 +13,7 @@ namespace BusBuddy.Business
         /// <summary>
         /// Calculate efficiency metrics for a route
         /// </summary>
-        RouteEfficiencyMetrics CalculateRouteEfficiency(Route route);
+        RouteEfficiencyMetrics? CalculateRouteEfficiency(Route? route);
 
         /// <summary>
         /// Get efficiency metrics for all routes in a date range

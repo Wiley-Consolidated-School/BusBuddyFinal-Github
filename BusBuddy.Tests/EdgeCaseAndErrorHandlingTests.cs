@@ -253,9 +253,12 @@ namespace BusBuddy.Tests
             var route1 = new Route { DateAsDateTime = DateTime.MinValue };
             var route2 = new Route { DateAsDateTime = DateTime.MaxValue };
 
-            // Assert
-            Assert.Equal(DateTime.MinValue, route1.DateAsDateTime);
-            Assert.Equal(DateTime.MaxValue, route2.DateAsDateTime);
+            // Assert - Values should be constrained to SQL Server's valid range
+            var expectedMinDate = new DateTime(1753, 1, 1);
+            var expectedMaxDate = new DateTime(9999, 12, 31, 23, 59, 59, 997);
+
+            Assert.Equal(expectedMinDate, route1.DateAsDateTime);
+            Assert.Equal(expectedMaxDate, route2.DateAsDateTime);
         }
 
         [Fact]

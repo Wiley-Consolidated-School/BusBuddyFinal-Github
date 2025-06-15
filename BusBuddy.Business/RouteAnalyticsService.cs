@@ -33,8 +33,25 @@ namespace BusBuddy.Business
         /// <summary>
         /// Calculate comprehensive efficiency metrics for a route
         /// </summary>
-        public RouteEfficiencyMetrics CalculateRouteEfficiency(Route route)
+        public RouteEfficiencyMetrics? CalculateRouteEfficiency(Route? route)
         {
+            // Return null for null routes
+            if (route == null)
+                return null;
+
+            // Return null for routes with no meaningful data
+            if (route.RouteID <= 0 &&
+                string.IsNullOrWhiteSpace(route.RouteName) &&
+                !route.AMVehicleID.HasValue &&
+                !route.PMVehicleID.HasValue &&
+                !route.AMDriverID.HasValue &&
+                !route.PMDriverID.HasValue &&
+                (!route.AMBeginMiles.HasValue || !route.AMEndMiles.HasValue) &&
+                (!route.PMBeginMiles.HasValue || !route.PMEndMiles.HasValue))
+            {
+                return null;
+            }
+
             var metrics = new RouteEfficiencyMetrics
             {
                 RouteId = route.RouteID,
@@ -86,7 +103,11 @@ namespace BusBuddy.Business
                     var routes = _routeRepository.GetRoutesByDate(currentDate);
                     foreach (var route in routes)
                     {
-                        metrics.Add(CalculateRouteEfficiency(route));
+                        var routeMetrics = CalculateRouteEfficiency(route);
+                        if (routeMetrics != null)
+                        {
+                            metrics.Add(routeMetrics);
+                        }
                     }
                     currentDate = currentDate.AddDays(1);
                 }
@@ -104,7 +125,7 @@ namespace BusBuddy.Business
             {
                 var suggestions = new List<RouteOptimizationSuggestion>();
                 var routes = _routeRepository.GetRoutesByDate(date);
-                var metrics = routes.Select(CalculateRouteEfficiency).ToList();
+                var metrics = routes.Select(CalculateRouteEfficiency).Where(m => m != null).Cast<RouteEfficiencyMetrics>().ToList();
 
                 // Find routes with low efficiency
                 var inefficientRoutes = metrics.Where(m => m.EfficiencyScore < 60).ToList();
@@ -192,7 +213,7 @@ namespace BusBuddy.Business
                 }
 
                 // Calculate efficiency score
-                var routeMetrics = allRoutes.Select(CalculateRouteEfficiency);
+                var routeMetrics = allRoutes.Select(CalculateRouteEfficiency).Where(rm => rm != null).Cast<RouteEfficiencyMetrics>();
                 if (routeMetrics.Any())
                 {
                     metrics.OverallEfficiencyScore = Math.Round(routeMetrics.Average(rm => rm.EfficiencyScore), 1);
@@ -235,7 +256,7 @@ namespace BusBuddy.Business
                 summary.TotalRiders = allRoutes.Sum(r => (r.AMRiders ?? 0) + (r.PMRiders ?? 0));
 
                 // Efficiency metrics
-                var routeMetrics = allRoutes.Select(CalculateRouteEfficiency).ToList();
+                var routeMetrics = allRoutes.Select(CalculateRouteEfficiency).Where(rm => rm != null).Cast<RouteEfficiencyMetrics>().ToList();
                 if (routeMetrics.Any())
                 {
                     summary.AverageEfficiencyScore = Math.Round(routeMetrics.Average(rm => rm.EfficiencyScore), 1);

@@ -92,7 +92,35 @@ namespace BusBuddy.Business
         {
             var validations = new List<ValidationResult>();
 
-            // Validate vehicle exists
+            // Check for null fuel record
+            if (fuelRecord == null)
+            {
+                validations.Add(ValidationResult.Failed("Fuel record cannot be null."));
+                return ValidationResult.Combine(validations);
+            }
+
+            // Validate required fields
+            if (!fuelRecord.VehicleFueledID.HasValue)
+            {
+                validations.Add(ValidationResult.Failed("Vehicle ID is required for fuel record."));
+            }
+
+            if (string.IsNullOrWhiteSpace(fuelRecord.FuelDate))
+            {
+                validations.Add(ValidationResult.Failed("Fuel date is required for fuel record."));
+            }
+
+            if (string.IsNullOrWhiteSpace(fuelRecord.FuelLocation))
+            {
+                validations.Add(ValidationResult.Failed("Fuel location is required for fuel record."));
+            }
+
+            if (!fuelRecord.FuelAmount.HasValue || fuelRecord.FuelAmount <= 0)
+            {
+                validations.Add(ValidationResult.Failed("Fuel amount is required and must be greater than 0."));
+            }
+
+            // Validate vehicle exists (only if VehicleFueledID is provided)
             if (fuelRecord.VehicleFueledID.HasValue)
             {
                 validations.Add(ValidateVehicleAvailability(fuelRecord.VehicleFueledID.Value,
@@ -117,10 +145,10 @@ namespace BusBuddy.Business
                 }
             }
 
-            // Validate fuel amount and cost
-            if (fuelRecord.FuelAmount.HasValue && (fuelRecord.FuelAmount <= 0 || fuelRecord.FuelAmount > 200))
+            // Validate fuel amount and cost ranges
+            if (fuelRecord.FuelAmount.HasValue && fuelRecord.FuelAmount > 200)
             {
-                validations.Add(ValidationResult.Failed("Fuel amount must be between 0 and 200 gallons."));
+                validations.Add(ValidationResult.Failed("Fuel amount cannot exceed 200 gallons."));
             }
 
             if (fuelRecord.FuelCost.HasValue && (fuelRecord.FuelCost <= 0 || fuelRecord.FuelCost > 1000))
@@ -138,7 +166,30 @@ namespace BusBuddy.Business
         {
             var validations = new List<ValidationResult>();
 
-            // Validate vehicle exists
+            // Check for null maintenance record
+            if (maintenanceRecord == null)
+            {
+                validations.Add(ValidationResult.Failed("Maintenance record cannot be null."));
+                return ValidationResult.Combine(validations);
+            }
+
+            // Validate required fields
+            if (!maintenanceRecord.VehicleID.HasValue)
+            {
+                validations.Add(ValidationResult.Failed("Vehicle ID is required for maintenance record."));
+            }
+
+            if (string.IsNullOrWhiteSpace(maintenanceRecord.Date))
+            {
+                validations.Add(ValidationResult.Failed("Date is required for maintenance record."));
+            }
+
+            if (string.IsNullOrWhiteSpace(maintenanceRecord.MaintenanceCompleted))
+            {
+                validations.Add(ValidationResult.Failed("Maintenance completed description is required."));
+            }
+
+            // Validate vehicle exists (only if VehicleID is provided)
             if (maintenanceRecord.VehicleID.HasValue)
             {
                 validations.Add(ValidateVehicleAvailability(maintenanceRecord.VehicleID.Value,

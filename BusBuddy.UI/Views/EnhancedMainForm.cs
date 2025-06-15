@@ -46,7 +46,7 @@ namespace BusBuddy.UI.Views
 
         private void InitializeComponent()
         {
-            this.Text = "BusBuddy - Bus Tracking Companion";
+            this.Text = "BusBuddy - School Bus Management System";
             this.Size = new System.Drawing.Size(1400, 900); // Larger default for modern displays
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new System.Drawing.Size(1200, 700); // Increased minimum size
@@ -56,13 +56,18 @@ namespace BusBuddy.UI.Views
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.Font = MaterialDesignThemeManager.Typography.GetBodyMedium(this);
 
-            // Enable high-quality rendering
+            // Configure form for better rendering and layout
             this.SetStyle(ControlStyles.AllPaintingInWmPaint |
                          ControlStyles.UserPaint |
                          ControlStyles.DoubleBuffer |
-                         ControlStyles.ResizeRedraw, true);
+                         ControlStyles.ResizeRedraw |
+                         ControlStyles.OptimizedDoubleBuffer, true);
 
+            // Prevent layout suspend issues during initialization
+            this.SuspendLayout();
             CreateMainLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
 
         private void CreateMainLayout()
@@ -103,11 +108,13 @@ namespace BusBuddy.UI.Views
             // Create header panel with Material Design elevation
             var headerPanel = new Panel();
             headerPanel.Dock = DockStyle.Fill;
+            headerPanel.BackColor = MaterialDesignThemeManager.DarkTheme.SurfaceContainer;
             MaterialDesignThemeManager.ApplyCardElevation(headerPanel, 1);
 
             // DPI-aware padding for header
             var headerPadding = MaterialDesignThemeManager.GetDpiAwarePadding(24, 20, this);
             headerPanel.Padding = headerPadding;
+            headerPanel.AutoSize = false; // Prevent auto-sizing issues
 
             // Welcome title with Material Design typography
             var welcomeLabel = new MaterialLabel();
@@ -116,6 +123,7 @@ namespace BusBuddy.UI.Views
             welcomeLabel.AutoSize = true;
             welcomeLabel.Location = new Point(24, 20);
             welcomeLabel.ForeColor = MaterialDesignThemeManager.DarkTheme.OnSurface;
+            welcomeLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             headerPanel.Controls.Add(welcomeLabel);
 
             // Description with proper Material Design spacing
@@ -125,6 +133,7 @@ namespace BusBuddy.UI.Views
             descriptionLabel.AutoSize = true;
             descriptionLabel.Location = new Point(24, welcomeLabel.Bottom + MaterialDesignThemeManager.GetDpiAwareSize(12, this));
             descriptionLabel.ForeColor = MaterialDesignThemeManager.DarkTheme.OnSurfaceVariant;
+            descriptionLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             headerPanel.Controls.Add(descriptionLabel);
 
             parent.Controls.Add(headerPanel, 0, 0);
@@ -140,6 +149,9 @@ namespace BusBuddy.UI.Views
 
             var padding = MaterialDesignThemeManager.GetDpiAwarePadding(24, 24, this);
             dashboardPanel.Padding = padding;
+
+            // Ensure proper layout with AutoLayout = false for better control
+            dashboardPanel.AutoSize = false;
 
             // Create sections using Material Design cards
             int yPosition = 0;
@@ -200,15 +212,21 @@ namespace BusBuddy.UI.Views
             parent.Controls.Add(toolbarPanel);
             currentY += toolbarPanel.Height + MaterialDesignThemeManager.GetDpiAwareSize(8, this);
 
-            // Create DataGridView for navigation actions
+            // Create DataGridView for navigation actions with improved sizing
             var navigationGrid = new DataGridView();
             navigationGrid.Location = new Point(0, currentY);
-            navigationGrid.Size = new Size(
-                MaterialDesignThemeManager.GetDpiAwareSize(680, this),
-                MaterialDesignThemeManager.GetDpiAwareSize(200, this)
-            );
 
-            // Apply Material Design styling
+            // Set size more carefully to prevent layout issues
+            var gridWidth = Math.Min(
+                MaterialDesignThemeManager.GetDpiAwareSize(680, this),
+                parent.Width - MaterialDesignThemeManager.GetDpiAwareSize(48, this) // Leave margin
+            );
+            var gridHeight = MaterialDesignThemeManager.GetDpiAwareSize(240, this); // Fixed height for 4 rows + header
+
+            navigationGrid.Size = new Size(gridWidth, gridHeight);
+            navigationGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            // Apply Material Design styling with proper DPI handling
             navigationGrid.BackgroundColor = MaterialDesignThemeManager.DarkTheme.Surface;
             navigationGrid.GridColor = MaterialDesignThemeManager.DarkTheme.Outline;
             navigationGrid.BorderStyle = BorderStyle.None;
@@ -219,16 +237,22 @@ namespace BusBuddy.UI.Views
                 ForeColor = MaterialDesignThemeManager.DarkTheme.OnSurface,
                 SelectionBackColor = MaterialDesignThemeManager.DarkTheme.Primary,
                 SelectionForeColor = MaterialDesignThemeManager.DarkTheme.OnPrimary,
-                Font = MaterialDesignThemeManager.Typography.GetBodyMedium(this)
+                Font = MaterialDesignThemeManager.Typography.GetBodyMedium(this),
+                Padding = new Padding(12, 8, 12, 8)
             };
 
             navigationGrid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
                 BackColor = MaterialDesignThemeManager.DarkTheme.SurfaceContainerHigh,
                 ForeColor = MaterialDesignThemeManager.DarkTheme.OnSurface,
-                Font = MaterialDesignThemeManager.Typography.GetLabelMedium(this)
+                Font = MaterialDesignThemeManager.Typography.GetLabelMedium(this),
+                Padding = new Padding(12, 8, 12, 8),
+                Alignment = DataGridViewContentAlignment.MiddleLeft
             };
 
+            // Improved row and column settings
+            navigationGrid.RowTemplate.Height = MaterialDesignThemeManager.GetDpiAwareSize(56, this); // Material Design touch target
+            navigationGrid.ColumnHeadersHeight = MaterialDesignThemeManager.GetDpiAwareSize(48, this);
             navigationGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             navigationGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             navigationGrid.MultiSelect = false;
@@ -237,19 +261,22 @@ namespace BusBuddy.UI.Views
             navigationGrid.AllowUserToDeleteRows = false;
             navigationGrid.RowHeadersVisible = false;
             navigationGrid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            navigationGrid.EnableHeadersVisualStyles = false;
 
-            // Add columns
+            // Add columns with proper sizing
             var actionColumn = new DataGridViewTextBoxColumn();
             actionColumn.Name = "Action";
             actionColumn.HeaderText = "Action";
-            actionColumn.Width = MaterialDesignThemeManager.GetDpiAwareSize(200, this);
+            actionColumn.Width = MaterialDesignThemeManager.GetDpiAwareSize(240, this); // Wider for better text fit
             actionColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            actionColumn.MinimumWidth = MaterialDesignThemeManager.GetDpiAwareSize(200, this);
             navigationGrid.Columns.Add(actionColumn);
 
             var descriptionColumn = new DataGridViewTextBoxColumn();
             descriptionColumn.Name = "Description";
             descriptionColumn.HeaderText = "Description";
             descriptionColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            descriptionColumn.MinimumWidth = MaterialDesignThemeManager.GetDpiAwareSize(300, this);
             navigationGrid.Columns.Add(descriptionColumn);
 
             // Populate with navigation actions

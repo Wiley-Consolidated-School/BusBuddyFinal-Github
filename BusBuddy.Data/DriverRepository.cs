@@ -27,12 +27,37 @@ namespace BusBuddy.Data
 
         public Driver GetDriverById(int id)
         {
-            using (var connection = CreateConnection())
+            if (id <= 0)
             {
-                connection.Open();
-                return connection.QuerySingleOrDefault<Driver>(
-                    "SELECT * FROM Drivers WHERE DriverID = @DriverID",
-                    new { DriverID = id });
+                Console.WriteLine($"WARNING: Invalid driver ID {id} requested");
+                return null;
+            }
+
+            try
+            {
+                using (var connection = CreateConnection())
+                {
+                    connection.Open();
+                    var driver = connection.QuerySingleOrDefault<Driver>(
+                        "SELECT * FROM Drivers WHERE DriverID = @DriverID",
+                        new { DriverID = id });
+
+                    if (driver == null)
+                    {
+                        Console.WriteLine($"WARNING: Driver with ID {id} not found in database");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Driver found: ID={driver.DriverID}, Name={driver.Name}");
+                    }
+
+                    return driver;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR in GetDriverById({id}): {ex.Message}");
+                return null;
             }
         }
 
@@ -55,12 +80,14 @@ namespace BusBuddy.Data
                     INSERT INTO Drivers (
                         DriverName, DriverPhone, DriverEmail,
                         Address, City, State, Zip,
-                        DriversLicenseType, TrainingComplete, Notes
+                        DriversLicenseType, TrainingComplete, Notes,
+                        Status, FirstName, LastName, CDLExpirationDate
                     )
                     VALUES (
                         @DriverName, @DriverPhone, @DriverEmail,
                         @Address, @City, @State, @Zip,
-                        @DriversLicenseType, @TrainingComplete, @Notes
+                        @DriversLicenseType, @TrainingComplete, @Notes,
+                        @Status, @FirstName, @LastName, @CDLExpirationDate
                     );
                     SELECT SCOPE_IDENTITY()";
 
@@ -83,7 +110,11 @@ namespace BusBuddy.Data
                         Zip = @Zip,
                         DriversLicenseType = @DriversLicenseType,
                         TrainingComplete = @TrainingComplete,
-                        Notes = @Notes
+                        Notes = @Notes,
+                        Status = @Status,
+                        FirstName = @FirstName,
+                        LastName = @LastName,
+                        CDLExpirationDate = @CDLExpirationDate
                     WHERE DriverID = @DriverID";
 
                 var rowsAffected = connection.Execute(sql, driver);

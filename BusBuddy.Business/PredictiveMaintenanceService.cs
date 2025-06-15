@@ -35,6 +35,8 @@ namespace BusBuddy.Business
         /// </summary>
         public async Task<List<MaintenancePrediction>> GetMaintenancePredictionsAsync(int vehicleId)
         {
+            if (vehicleId <= 0)
+                throw new ArgumentException($"Invalid vehicle ID: {vehicleId}");
             return await Task.Run(() =>
             {
                 var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
@@ -230,7 +232,15 @@ namespace BusBuddy.Business
 
                 foreach (var vehicle in vehicles)
                 {
-                    var predictions = GetMaintenancePredictionsAsync(vehicle.Id).Result;
+                    List<MaintenancePrediction> predictions;
+                    try
+                    {
+                        predictions = GetMaintenancePredictionsAsync(vehicle.Id).Result;
+                    }
+                    catch
+                    {
+                        continue; // Skip vehicles that cause errors
+                    }
                     var urgentPredictions = predictions
                         .Where(p => p.Priority == MaintenancePriority.Critical ||
                                    (p.Priority == MaintenancePriority.High && p.PredictedDate <= DateTime.Now.AddDays(7)));

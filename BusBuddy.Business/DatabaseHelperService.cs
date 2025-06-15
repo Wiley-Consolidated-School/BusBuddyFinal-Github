@@ -33,31 +33,86 @@ namespace BusBuddy.Business
 
         public Route GetRouteWithDetails(int routeId)
         {
-            var route = _routeRepository.GetRouteById(routeId);
-            if (route != null)
+            // Add comprehensive error logging
+            Console.WriteLine($"GetRouteWithDetails called with routeId: {routeId}");
+
+            try
             {
+                var route = _routeRepository.GetRouteById(routeId);
+
+                if (route == null)
+                {
+                    Console.WriteLine($"ERROR: Route with ID {routeId} not found in repository");
+                    return null;
+                }
+
+                Console.WriteLine($"Route found: {route.RouteID}, {route.RouteName}");
+
+                // Load AM Vehicle details
                 if (route.AMVehicleID.HasValue)
                 {
                     route.AMVehicle = _vehicleRepository.GetVehicleById(route.AMVehicleID.Value);
+                    if (route.AMVehicle == null)
+                    {
+                        Console.WriteLine($"WARNING: AM Vehicle with ID {route.AMVehicleID.Value} not found");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"AM Vehicle loaded: {route.AMVehicle.VehicleNumber}");
+                    }
                 }
 
+                // Load AM Driver details
                 if (route.AMDriverID.HasValue)
                 {
                     route.AMDriver = _driverRepository.GetDriverById(route.AMDriverID.Value);
+                    if (route.AMDriver == null)
+                    {
+                        Console.WriteLine($"WARNING: AM Driver with ID {route.AMDriverID.Value} not found");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"AM Driver loaded: {route.AMDriver.Name}");
+                    }
                 }
 
+                // Load PM Vehicle details
                 if (route.PMVehicleID.HasValue)
                 {
                     route.PMVehicle = _vehicleRepository.GetVehicleById(route.PMVehicleID.Value);
+                    if (route.PMVehicle == null)
+                    {
+                        Console.WriteLine($"WARNING: PM Vehicle with ID {route.PMVehicleID.Value} not found");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"PM Vehicle loaded: {route.PMVehicle.VehicleNumber}");
+                    }
                 }
 
+                // Load PM Driver details
                 if (route.PMDriverID.HasValue)
                 {
                     route.PMDriver = _driverRepository.GetDriverById(route.PMDriverID.Value);
+                    if (route.PMDriver == null)
+                    {
+                        Console.WriteLine($"WARNING: PM Driver with ID {route.PMDriverID.Value} not found");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"PM Driver loaded: {route.PMDriver.Name}");
+                    }
                 }
-            }
 
-            return route;
+                Console.WriteLine("Route with details loaded successfully");
+                return route;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR in GetRouteWithDetails: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return null;
+            }
         }
 
         public List<Route> GetRoutesWithDetailsByDate(DateTime date)

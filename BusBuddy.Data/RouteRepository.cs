@@ -38,9 +38,14 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
+
+                // Convert the date to string in yyyy-MM-dd format for comparison
+                var dateString = date.Date.ToString("yyyy-MM-dd");
+
+                // Compare only the date part (first 10 chars) of the NVARCHAR column
                 var routes = connection.Query<Route>(
-                    "SELECT * FROM Routes WHERE Date = @Date",
-                    new { Date = date }).AsList();
+                    "SELECT * FROM Routes WHERE LEFT(Date, 10) = @DateString",
+                    new { DateString = dateString }).AsList();
                 return routes;
             }
         }

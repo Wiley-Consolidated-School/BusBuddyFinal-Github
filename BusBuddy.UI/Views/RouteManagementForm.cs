@@ -14,7 +14,7 @@ namespace BusBuddy.UI.Views
         private readonly IRouteRepository _routeRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IDriverRepository _driverRepository;
-        private readonly IDatabaseHelperService _databaseHelperService;
+        private IDatabaseHelperService _databaseHelperService;
         private DataGridView _routeGrid;
         private Button _addButton;
         private Button _editButton;
@@ -85,17 +85,52 @@ namespace BusBuddy.UI.Views
             _routeGrid.AllowUserToResizeRows = true;
             _routeGrid.ScrollBars = ScrollBars.Both;
             _routeGrid.DataBindingComplete += (s, e) => {
-                if (_routeGrid.Columns.Contains("RouteID"))
-                    _routeGrid.Columns["RouteID"].Visible = false;
+                try
+                {
+                    if (_routeGrid?.Columns != null && _routeGrid.Columns.Count > 0 && _routeGrid.Columns.Contains("RouteID"))
+                    {
+                        _routeGrid.Columns["RouteID"].Visible = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"DataBindingComplete: Error hiding RouteID column: {ex.Message}");
+                }
             };
             this.Controls.Add(_routeGrid);
             _routeGrid.CellDoubleClick += (s, e) => EditSelectedRoute();
             _routeGrid.SelectionChanged += RouteGrid_SelectionChanged;
 
+            // Ensure _routeGrid is properly initialized
+            if (_routeGrid == null)
+            {
+                _routeGrid = new DataGridView();
+                _routeGrid.Location = new Point(25, 60);
+                _routeGrid.Size = new Size(1150, 650);
+                _routeGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+                _routeGrid.AutoGenerateColumns = true;
+                _routeGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                _routeGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                _routeGrid.ReadOnly = true;
+                _routeGrid.MultiSelect = false;
+                _routeGrid.AllowUserToAddRows = false;
+                _routeGrid.AllowUserToDeleteRows = false;
+                _routeGrid.SelectionChanged += RouteGrid_SelectionChanged;
+                this.Controls.Add(_routeGrid);
+            }
+
             // Disable edit/delete/details buttons initially
             _editButton.Enabled = false;
             _deleteButton.Enabled = false;
             _detailsButton.Enabled = false;
+
+            // Expose buttons for testing (internal for test project access)
+#if DEBUG || TESTING
+            this.AddButton = _addButton;
+            this.EditButton = _editButton;
+            this.DeleteButton = _deleteButton;
+            this.DetailsButton = _detailsButton;
+#endif
         }
 
         private void LoadVehiclesAndDrivers()
@@ -119,11 +154,13 @@ namespace BusBuddy.UI.Views
 
                 if (_databaseHelperService == null)
                 {
-                    throw new InvalidOperationException("DatabaseHelperService is null");
+                    System.Diagnostics.Debug.WriteLine("LoadRoutes: DatabaseHelperService is null, creating new instance");
+                    _databaseHelperService = new DatabaseHelperService();
                 }
 
                 System.Diagnostics.Debug.WriteLine("LoadRoutes: Calling GetAllRoutesWithDetails...");
-                _routes = _databaseHelperService.GetAllRoutesWithDetails() ?? new List<Route>();
+                var loadedRoutes = _databaseHelperService?.GetAllRoutesWithDetails();
+                _routes = loadedRoutes ?? new List<Route>();
 
                 System.Diagnostics.Debug.WriteLine($"LoadRoutes: Loaded {_routes.Count} routes");
 
@@ -147,70 +184,77 @@ namespace BusBuddy.UI.Views
             try
             {
                 System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: Starting...");
-                _routeGrid.DataSource = null;
 
-                if (_routes?.Any() == true)
+                // Add comprehensive null checks
+                if (_routeGrid == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: Processing {_routes.Count} routes");
+                    Console.WriteLine("ERROR: RouteGrid is null in PopulateRouteGrid");
+                    return;
+                }
 
-                    var displayData = _routes.Select(r => {
-                        try
-                        {
-                            return new
-                            {
-                                RouteID = r.RouteID,
-                                Date = r.Date ?? "",
-                                RouteName = r.RouteName ?? "",
-                                AMVehicle = r.AMVehicleNumber ?? "",
-                                AMDriver = r.AMDriverName ?? "",
-                                AMBeginMiles = r.AMBeginMiles?.ToString("N0") ?? "",
-                                AMEndMiles = r.AMEndMiles?.ToString("N0") ?? "",
-                                AMRiders = r.AMRiders?.ToString() ?? "",
-                                PMVehicle = r.PMVehicleNumber ?? "",
-                                PMDriver = r.PMDriverName ?? "",
-                                PMBeginMiles = r.PMBeginMiles?.ToString("N0") ?? "",
-                                PMEndMiles = r.PMEndMiles?.ToString("N0") ?? "",
-                                PMRiders = r.PMRiders?.ToString() ?? ""
-                            };
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: Error processing route {r.RouteID}: {ex.Message}");
-                            return new
-                            {
-                                RouteID = r.RouteID,
-                                Date = r.Date ?? "",
-                                RouteName = r.RouteName ?? "",
-                                AMVehicle = "Error",
-                                AMDriver = "Error",
-                                AMBeginMiles = "",
-                                AMEndMiles = "",
-                                AMRiders = "",
-                                PMVehicle = "Error",
-                                PMDriver = "Error",
-                                PMBeginMiles = "",
-                                PMEndMiles = "",
-                                PMRiders = ""
-                            };
-                        }
+                // Initialize lists if they're null
+                _routes = _routes ?? new List<Route>();
+                _vehicles = _vehicles ?? new List<Vehicle>();
+                _drivers = _drivers ?? new List<Driver>();
+
+                if (_routes.Any())
+                {
+                    var routeData = _routes.Select(r => new
+                    {
+                        RouteID = r.RouteID,
+                        Date = r.Date ?? "",
+                        RouteName = r.RouteName ?? "",
+                        AMVehicleNumber = _vehicles.FirstOrDefault(v => v.Id == r.AMVehicleID)?.VehicleNumber ?? "",
+                        AMDriverName = _drivers.FirstOrDefault(d => d.DriverID == r.AMDriverID)?.Name ?? "",
+                        PMVehicleNumber = _vehicles.FirstOrDefault(v => v.Id == r.PMVehicleID)?.VehicleNumber ?? "",
+                        PMDriverName = _drivers.FirstOrDefault(d => d.DriverID == r.PMDriverID)?.Name ?? "",
+                        Notes = r.Notes ?? ""
                     }).ToList();
 
-                    System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: Setting DataSource...");
-                    _routeGrid.DataSource = displayData;
+                    _routeGrid.DataSource = routeData;
 
-                    // Hide ID column and adjust column widths
-                    if (_routeGrid.Columns.Contains("RouteID"))
-                        _routeGrid.Columns["RouteID"].Visible = false;
-
-                    // Adjust column widths for better display
-                    if (_routeGrid.Columns.Contains("Date"))
-                        _routeGrid.Columns["Date"].Width = 100;
-                    if (_routeGrid.Columns.Contains("RouteName"))
-                        _routeGrid.Columns["RouteName"].Width = 150;
+                    // Safely configure columns with null checks
+                    if (_routeGrid.Columns != null)
+                    {
+                        foreach (DataGridViewColumn column in _routeGrid.Columns)
+                        {
+                            if (column != null)
+                            {
+                                switch (column.Name)
+                                {
+                                    case "RouteID":
+                                        column.HeaderText = "Route ID";
+                                        break;
+                                    case "Date":
+                                        column.HeaderText = "Date";
+                                        break;
+                                    case "RouteName":
+                                        column.HeaderText = "Route Name";
+                                        break;
+                                    case "AMVehicleNumber":
+                                        column.HeaderText = "AM Vehicle";
+                                        break;
+                                    case "AMDriverName":
+                                        column.HeaderText = "AM Driver";
+                                        break;
+                                    case "PMVehicleNumber":
+                                        column.HeaderText = "PM Vehicle";
+                                        break;
+                                    case "PMDriverName":
+                                        column.HeaderText = "PM Driver";
+                                        break;
+                                    case "Notes":
+                                        column.HeaderText = "Notes";
+                                        break;
+                                }
+                            }
+                        }
+                    }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: No routes to display");
+                    // Clear the grid safely
+                    _routeGrid.DataSource = null;
                 }
 
                 System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: Completed successfully");
@@ -226,6 +270,9 @@ namespace BusBuddy.UI.Views
 
         private void RouteGrid_SelectionChanged(object sender, EventArgs e)
         {
+            if (_routeGrid == null)
+                return;
+
             bool hasSelection = _routeGrid.SelectedRows.Count > 0;
             _editButton.Enabled = hasSelection;
             _deleteButton.Enabled = hasSelection;
@@ -254,7 +301,7 @@ namespace BusBuddy.UI.Views
 
         private void EditSelectedRoute()
         {
-            if (_routeGrid.SelectedRows.Count == 0)
+            if (_routeGrid == null || _routeGrid.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select a route to edit.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -286,7 +333,7 @@ namespace BusBuddy.UI.Views
 
         private void DeleteSelectedRoute()
         {
-            if (_routeGrid.SelectedRows.Count == 0)
+            if (_routeGrid == null || _routeGrid.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select a route to delete.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -318,7 +365,7 @@ namespace BusBuddy.UI.Views
 
         private void ViewRouteDetails()
         {
-            if (_routeGrid.SelectedRows.Count == 0)
+            if (_routeGrid == null || _routeGrid.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select a route to view.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -351,6 +398,9 @@ namespace BusBuddy.UI.Views
 
         private void SearchRoutes()
         {
+            if (_routeGrid == null)
+                return;
+
             var searchTerm = _searchBox.Text?.Trim();
 
             if (string.IsNullOrEmpty(searchTerm))
@@ -391,9 +441,17 @@ namespace BusBuddy.UI.Views
                 _routeGrid.DataSource = displayData;
 
                 // Hide ID column
-                if (_routeGrid.Columns.Contains("RouteID"))
+                if (_routeGrid.Columns != null && _routeGrid.Columns.Count > 0 && _routeGrid.Columns.Contains("RouteID"))
                     _routeGrid.Columns["RouteID"].Visible = false;
             }
         }
+
+#if DEBUG || TESTING
+        // Internal properties for test access
+        internal Button AddButton { get; private set; }
+        internal Button EditButton { get; private set; }
+        internal Button DeleteButton { get; private set; }
+        internal Button DetailsButton { get; private set; }
+#endif
     }
 }
