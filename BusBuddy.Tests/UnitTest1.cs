@@ -204,4 +204,13 @@ public class UnitTest1 : IAsyncLifetime
         var vehicleCount = await context.Vehicles.CountAsync();
         Assert.True(vehicleCount >= 0); // Should be 0 or more (cleaned up)
     }
+
+    [Fact]
+    public void RunDatabaseDiagnostics()
+    {
+        // Run database diagnostics to verify configuration
+        Console.WriteLine("Running Database Diagnostics...");
+        DatabaseDiagnostics.RunDiagnostics();
+        Console.WriteLine("Database diagnostics completed.");
+    }
 }
