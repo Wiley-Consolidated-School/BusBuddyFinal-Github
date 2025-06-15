@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>BusBuddy.TimeCard</RootNamespace>
+    <AssemblyName>BusBuddy.TimeCard</AssemblyName>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialSkin.2" Version="2.3.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BusBuddy.Models\BusBuddy.Models.csproj" />
+    <ProjectReference Include="..\BusBuddy.Data\BusBuddy.Data.csproj" />
+    <ProjectReference Include="..\BusBuddy.Business\BusBuddy.Business.csproj" />
+  </ItemGroup>
+
+</Project>

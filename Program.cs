@@ -6,6 +6,7 @@ using BusBuddy.UI.Views;
 using BusBuddy.Business;
 using BusBuddy.UI.Services;
 using BusBuddy.Data;
+using BusBuddy.Services;
 using DI = BusBuddy.DependencyInjection;
 
 namespace BusBuddy
@@ -83,7 +84,10 @@ namespace BusBuddy
 
                 // Create instance-based container for UI services
                 var uiServiceContainer = new ServiceContainer();
-                var navigationService = uiServiceContainer.GetService<INavigationService>();
+                var uiNavigationService = uiServiceContainer.GetService<INavigationService>();
+
+                // Wrap the UI navigation service with our main navigation service that handles TimeCard
+                var navigationService = new MainNavigationService(uiNavigationService);
 
                 var mainForm = new EnhancedMainForm(databaseService, navigationService);
                 mainForm.WindowState = FormWindowState.Maximized;

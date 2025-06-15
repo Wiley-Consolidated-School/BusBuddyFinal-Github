@@ -79,8 +79,8 @@ namespace BusBuddy.UI.Services
 
         public void ShowTimeCardManagement()
         {
-            // TimeCard functionality has been removed
-            MessageBox.Show("TimeCard management is not available in this version.", "Feature Not Available",
+            // TimeCard functionality will be launched from the main application
+            MessageBox.Show("TimeCard management will be launched from the main application.", "Info",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
