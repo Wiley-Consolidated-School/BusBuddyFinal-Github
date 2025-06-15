@@ -1,16 +1,20 @@
 using System;
 using System.Data;
 using System.IO;
+using System.Collections.Concurrent;
 using Microsoft.Data.SqlClient;
 
 namespace BusBuddy.Data
 {
     /// <summary>
     /// SQL Server database initializer for creating and initializing the BusBuddy database
+    /// Thread-safe singleton implementation to prevent concurrent initialization conflicts
     /// </summary>
     public class SqlServerDatabaseInitializer
     {
         private readonly string _connectionString;
+        private static readonly ConcurrentDictionary<string, bool> _initializedDatabases = new();
+        private static readonly object _lockObject = new object();
 
         public SqlServerDatabaseInitializer(string connectionString)
         {
@@ -19,53 +23,71 @@ namespace BusBuddy.Data
 
         public void Initialize()
         {
-            try
+            var builder = new SqlConnectionStringBuilder(_connectionString);
+            var databaseName = builder.InitialCatalog;
+
+            // Check if this database has already been initialized
+            if (_initializedDatabases.ContainsKey(databaseName))
             {
-                Console.WriteLine("🔍 Initializing SQL Server database...");
+                return;
+            }
 
-                // Extract database name from connection string
-                var builder = new SqlConnectionStringBuilder(_connectionString);
-                var databaseName = builder.InitialCatalog;
-
-                // Create connection string to master database for database creation
-                var masterBuilder = new SqlConnectionStringBuilder(_connectionString)
+            lock (_lockObject)
+            {
+                // Double-check inside lock
+                if (_initializedDatabases.ContainsKey(databaseName))
                 {
-                    InitialCatalog = "master"
-                };
-
-                // Check if database exists, create if it doesn't
-                using (var masterConnection = new SqlConnection(masterBuilder.ConnectionString))
-                {
-                    masterConnection.Open();
-
-                    var checkDbCommand = new SqlCommand(
-                        "SELECT COUNT(*) FROM sys.databases WHERE name = @databaseName",
-                        masterConnection);
-                    checkDbCommand.Parameters.AddWithValue("@databaseName", databaseName);
-
-                    var dbExists = (int)checkDbCommand.ExecuteScalar() > 0;
-
-                    if (!dbExists)
-                    {
-                        Console.WriteLine($"Creating database {databaseName}...");
-                        var createDbCommand = new SqlCommand($"CREATE DATABASE [{databaseName}]", masterConnection);
-                        createDbCommand.ExecuteNonQuery();
-                        Console.WriteLine($"✅ Database {databaseName} created successfully!");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"✅ Database {databaseName} already exists.");
-                    }
+                    return;
                 }
 
-                // Initialize schema and data
-                InitializeSchema();
-                Console.WriteLine("✅ SQL Server database initialized successfully!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ SQL Server database initialization failed: {ex.Message}");
-                throw new InvalidOperationException($"Failed to initialize SQL Server database: {ex.Message}", ex);
+                try
+                {
+                    Console.WriteLine("🔍 Initializing SQL Server database...");
+
+                    // Create connection string to master database for database creation
+                    var masterBuilder = new SqlConnectionStringBuilder(_connectionString)
+                    {
+                        InitialCatalog = "master"
+                    };
+
+                    // Check if database exists, create if it doesn't
+                    using (var masterConnection = new SqlConnection(masterBuilder.ConnectionString))
+                    {
+                        masterConnection.Open();
+
+                        var checkDbCommand = new SqlCommand(
+                            "SELECT COUNT(*) FROM sys.databases WHERE name = @databaseName",
+                            masterConnection);
+                        checkDbCommand.Parameters.AddWithValue("@databaseName", databaseName);
+
+                        var dbExists = (int)checkDbCommand.ExecuteScalar() > 0;
+
+                        if (!dbExists)
+                        {
+                            Console.WriteLine($"Creating database {databaseName}...");
+                            var createDbCommand = new SqlCommand($"CREATE DATABASE [{databaseName}]", masterConnection);
+                            createDbCommand.ExecuteNonQuery();
+                            Console.WriteLine($"✅ Database {databaseName} created successfully!");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"✅ Database {databaseName} already exists.");
+                        }
+                    }
+
+                    // Initialize schema and data
+                    InitializeSchema();
+
+                    // Mark this database as initialized
+                    _initializedDatabases.TryAdd(databaseName, true);
+
+                    Console.WriteLine("✅ SQL Server database initialized successfully!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ SQL Server database initialization failed: {ex.Message}");
+                    throw new InvalidOperationException($"Failed to initialize SQL Server database: {ex.Message}", ex);
+                }
             }
         }
 
@@ -93,19 +115,41 @@ namespace BusBuddy.Data
             using var connection = new SqlConnection(_connectionString);
             connection.Open();
 
-            // Execute the script (split by GO statements for SQL Server)
-            var batches = script.Split(new[] { "\nGO\n", "\nGO\r\n", "\r\nGO\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var batch in batches)
+            try
             {
-                if (!string.IsNullOrWhiteSpace(batch))
-                {
-                    var command = new SqlCommand(batch.Trim(), connection);
-                    command.ExecuteNonQuery();
-                }
-            }
+                // Execute the script (split by GO statements for SQL Server)
+                var batches = script.Split(new[] { "\nGO\n", "\nGO\r\n", "\r\nGO\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            Console.WriteLine("✅ Schema initialized successfully!");
+                foreach (var batch in batches)
+                {
+                    if (!string.IsNullOrWhiteSpace(batch))
+                    {
+                        var trimmedBatch = batch.Trim();
+                        if (!string.IsNullOrEmpty(trimmedBatch))
+                        {
+                            try
+                            {
+                                var command = new SqlCommand(trimmedBatch, connection);
+                                command.ExecuteNonQuery();
+                            }
+                            catch (SqlException sqlEx) when (
+                                sqlEx.Message.Contains("already an object named") ||
+                                sqlEx.Message.Contains("does not exist or you do not have permission"))
+                            {
+                                // These are expected errors during schema initialization, log but continue
+                                Console.WriteLine($"⚠️ Schema warning: {sqlEx.Message}");
+                            }
+                        }
+                    }
+                }
+
+                Console.WriteLine("✅ Schema initialized successfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Schema initialization error: {ex.Message}");
+                throw;
+            }
         }
 
         private void CreateBasicTables()
@@ -140,8 +184,12 @@ namespace BusBuddy.Data
                     State nvarchar(2),
                     Zip nvarchar(10),
                     DriversLicenseType nvarchar(10),
-                    TrainingComplete bit,
-                    Notes nvarchar(max)
+                    TrainingComplete int NOT NULL DEFAULT 0,
+                    Notes nvarchar(max),
+                    Status nvarchar(50),
+                    FirstName nvarchar(100),
+                    LastName nvarchar(100),
+                    CDLExpirationDate datetime
                 );
 
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Activities' AND xtype='U')
@@ -219,6 +267,24 @@ namespace BusBuddy.Data
             command.ExecuteNonQuery();
 
             Console.WriteLine("✅ All basic tables created successfully!");
+        }
+
+        /// <summary>
+        /// Resets the initialization state for testing purposes
+        /// </summary>
+        public static void ResetInitializationState()
+        {
+            _initializedDatabases.Clear();
+        }
+
+        /// <summary>
+        /// Forces re-initialization of a specific database (for testing)
+        /// </summary>
+        public static void ForceReinitialization(string connectionString)
+        {
+            var builder = new SqlConnectionStringBuilder(connectionString);
+            var databaseName = builder.InitialCatalog;
+            _initializedDatabases.TryRemove(databaseName, out _);
         }
     }
 }

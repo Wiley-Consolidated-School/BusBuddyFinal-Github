@@ -120,6 +120,17 @@ namespace BusBuddy.Data
                 .HasOne(f => f.VehicleFueled)
                 .WithMany()
                 .HasForeignKey(f => f.VehicleFueledID);
+
+            // Ignore computed properties that shouldn't be mapped to database columns
+            modelBuilder.Entity<Activity>()
+                .Ignore(a => a.LeaveTimeSpan)
+                .Ignore(a => a.EventTimeSpan)
+                .Ignore(a => a.ReturnTimeSpan);
+
+            // Configure Driver computed property
+            modelBuilder.Entity<Driver>()
+                .Ignore(d => d.Name)
+                .Ignore(d => d.IsTrainingComplete);
         }
 
         public new void Dispose()

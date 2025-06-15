@@ -8,12 +8,27 @@
 -- 13 tables, including Vehicles (with FuelType, Status columns), Fuel, etc.
 
 -- Drop existing tables if they exist (in correct order to avoid foreign key conflicts)
+-- First drop all foreign key constraints to avoid conflicts
+DECLARE @sql NVARCHAR(MAX) = ''
+SELECT @sql = @sql + 'ALTER TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) + ' DROP CONSTRAINT ' + QUOTENAME(name) + ';' + CHAR(13)
+FROM sys.foreign_keys
+
+IF @sql <> ''
+BEGIN
+    EXEC sp_executesql @sql
+END
+
+-- Drop dependent tables first (those with foreign keys)
 IF OBJECT_ID('ActivitySchedule', 'U') IS NOT NULL DROP TABLE ActivitySchedule;
-IF OBJECT_ID('SchoolCalendar', 'U') IS NOT NULL DROP TABLE SchoolCalendar;
-IF OBJECT_ID('Maintenance', 'U') IS NOT NULL DROP TABLE Maintenance;
-IF OBJECT_ID('Fuel', 'U') IS NOT NULL DROP TABLE Fuel;
 IF OBJECT_ID('Activities', 'U') IS NOT NULL DROP TABLE Activities;
 IF OBJECT_ID('Routes', 'U') IS NOT NULL DROP TABLE Routes;
+IF OBJECT_ID('Maintenance', 'U') IS NOT NULL DROP TABLE Maintenance;
+IF OBJECT_ID('Fuel', 'U') IS NOT NULL DROP TABLE Fuel;
+
+-- Drop independent tables
+IF OBJECT_ID('SchoolCalendar', 'U') IS NOT NULL DROP TABLE SchoolCalendar;
+
+-- Drop parent tables last
 IF OBJECT_ID('Drivers', 'U') IS NOT NULL DROP TABLE Drivers;
 IF OBJECT_ID('Vehicles', 'U') IS NOT NULL DROP TABLE Vehicles;
 
@@ -45,8 +60,13 @@ CREATE TABLE Drivers (
     State NVARCHAR(20),
     Zip NVARCHAR(10),
     DriversLicenseType NVARCHAR(50),
-    TrainingComplete INT NOT NULL DEFAULT 0, -- Use TrainingComplete (int) instead of IsTrainingComplete (bit)
-    Notes NVARCHAR(MAX)
+    TrainingComplete INT NOT NULL DEFAULT 0, -- Use TrainingComplete (int) to match model
+    Notes NVARCHAR(MAX),
+    -- Additional columns for Entity Framework compatibility
+    Status NVARCHAR(50),
+    FirstName NVARCHAR(100),
+    LastName NVARCHAR(100),
+    CDLExpirationDate DATETIME
 );
 
 -- Routes Table

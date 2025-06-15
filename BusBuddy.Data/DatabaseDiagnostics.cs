@@ -11,6 +11,10 @@ namespace BusBuddy.Data
         {
             Console.WriteLine("=== Database Diagnostics ===");
 
+            // Check if we're in test environment
+            var isTest = IsTestEnvironment();
+            Console.WriteLine($"Test environment detected: {isTest}");
+
             // Check configuration
             var defaultConn = ConfigurationManager.ConnectionStrings["DefaultConnection"];
             Console.WriteLine($"DefaultConnection found: {defaultConn != null}");
@@ -19,12 +23,25 @@ namespace BusBuddy.Data
                 Console.WriteLine($"Connection String: {defaultConn.ConnectionString}");
                 Console.WriteLine($"Provider: {defaultConn.ProviderName}");
             }
+            else if (isTest)
+            {
+                Console.WriteLine("Using test environment fallback connection");
+            }
 
             // Test SQL Server connection
             TestSqlServerConnection();
 
             // Test repository creation
             TestRepositoryCreation();
+        }
+
+        private static bool IsTestEnvironment()
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            return baseDirectory.Contains("test", StringComparison.OrdinalIgnoreCase) ||
+                   baseDirectory.Contains("Test") ||
+                   Environment.CommandLine.Contains("testhost") ||
+                   Environment.CommandLine.Contains("vstest");
         }
 
         private static void TestSqlServerConnection()
