@@ -1,12 +1,28 @@
 using System;
+using System.Globalization;
 
 namespace BusBuddy.Models
 {
     public class Maintenance
     {
         public int MaintenanceID { get; set; }
-        public DateTime? Date { get; set; }
+        public string? Date { get; set; }
         public int? VehicleID { get; set; }
+
+        // Helper property to get/set Date as DateTime
+        public DateTime? DateAsDateTime
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Date)) return null;
+                if (DateTime.TryParseExact(Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+                    return result;
+                if (DateTime.TryParse(Date, out var fallbackResult))
+                    return fallbackResult;
+                return null;
+            }
+            set => Date = value?.ToString("yyyy-MM-dd");
+        }
         public decimal? OdometerReading { get; set; }
         public string? MaintenanceCompleted { get; set; }  // Tires, Windshield, Alignment, Mechanical, Car Wash, Cleaning, Accessory Install
         public string? Vendor { get; set; }

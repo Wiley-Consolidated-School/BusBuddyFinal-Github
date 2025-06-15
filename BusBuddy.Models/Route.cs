@@ -1,12 +1,28 @@
 using System;
+using System.Globalization;
 
 namespace BusBuddy.Models
 {
     public class Route
     {
         public int RouteID { get; set; }
-        public DateTime Date { get; set; }
+        public string Date { get; set; } = string.Empty;
         public string? RouteName { get; set; }  // Truck Plaza, East Route, West Route, SPED
+
+        // Helper property to get/set Date as DateTime
+        public DateTime DateAsDateTime
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Date)) return DateTime.Today;
+                if (DateTime.TryParseExact(Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+                    return result;
+                if (DateTime.TryParse(Date, out var fallbackResult))
+                    return fallbackResult;
+                return DateTime.Today;
+            }
+            set => Date = value.ToString("yyyy-MM-dd");
+        }
         public int? AMVehicleID { get; set; }
         public decimal? AMBeginMiles { get; set; }
         public decimal? AMEndMiles { get; set; }

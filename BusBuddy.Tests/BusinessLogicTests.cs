@@ -55,7 +55,7 @@ public class BusinessLogicTests
         var validationService = new ValidationService();
         var invalidFuel = new Fuel
         {
-            FuelDate = DateTime.Now,
+            FuelDateAsDateTime = DateTime.Now,
             FuelLocation = "Test Station",
             FuelAmount = -10  // Invalid: negative amount
         };
@@ -75,7 +75,7 @@ public class BusinessLogicTests
         var validationService = new ValidationService();
         var invalidFuel = new Fuel
         {
-            FuelDate = DateTime.Now,
+            FuelDateAsDateTime = DateTime.Now,
             FuelLocation = "Test Station",
             FuelAmount = 300  // Invalid: too much
         };

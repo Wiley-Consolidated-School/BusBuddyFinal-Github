@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace BusBuddy.Models
 {
@@ -29,11 +30,26 @@ namespace BusBuddy.Models
         // Adding missing properties that are used in VehicleForm
         public string? VINNumber { get; set; }
         public string? LicenseNumber { get; set; }
-        public DateTime? DateLastInspection { get; set; }
+        public string? DateLastInspection { get; set; }
         public string? Notes { get; set; }
+
+        // Helper property to get/set DateLastInspection as DateTime
+        public DateTime? DateLastInspectionAsDateTime
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(DateLastInspection)) return null;
+                if (DateTime.TryParseExact(DateLastInspection, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+                    return result;
+                if (DateTime.TryParse(DateLastInspection, out var fallbackResult))
+                    return fallbackResult;
+                return null;
+            }
+            set => DateLastInspection = value?.ToString("yyyy-MM-dd");
+        }
 
         // Additional properties for compatibility
         public string? VIN => VINNumber;
-        public DateTime? LastInspectionDate => DateLastInspection;
+        public DateTime? LastInspectionDate => DateLastInspectionAsDateTime;
     }
 }

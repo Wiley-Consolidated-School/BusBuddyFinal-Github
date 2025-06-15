@@ -1,13 +1,29 @@
 using System;
+using System.Globalization;
 
 namespace BusBuddy.Models
 {
     public class Activity
     {
         public int ActivityID { get; set; }
-        public DateTime? Date { get; set; }
+        public string? Date { get; set; }
         public string? ActivityType { get; set; }  // Sports Trip, Activity Trip
         public string? Destination { get; set; }
+
+        // Helper property to get/set Date as DateTime
+        public DateTime? DateAsDateTime
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Date)) return null;
+                if (DateTime.TryParseExact(Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+                    return result;
+                if (DateTime.TryParse(Date, out var fallbackResult))
+                    return fallbackResult;
+                return null;
+            }
+            set => Date = value?.ToString("yyyy-MM-dd");
+        }
 
         // Store times as strings to match database schema
         public string? LeaveTime { get; set; }

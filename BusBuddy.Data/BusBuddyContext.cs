@@ -121,11 +121,31 @@ namespace BusBuddy.Data
                 .WithMany()
                 .HasForeignKey(f => f.VehicleFueledID);
 
-            // Ignore computed properties that shouldn't be mapped to database columns
+            // Ignore computed DateTime helper properties that shouldn't be mapped to database columns
             modelBuilder.Entity<Activity>()
+                .Ignore(a => a.DateAsDateTime)
                 .Ignore(a => a.LeaveTimeSpan)
                 .Ignore(a => a.EventTimeSpan)
                 .Ignore(a => a.ReturnTimeSpan);
+
+            modelBuilder.Entity<ActivitySchedule>()
+                .Ignore(a => a.DateAsDateTime);
+
+            modelBuilder.Entity<Route>()
+                .Ignore(r => r.DateAsDateTime);
+
+            modelBuilder.Entity<Fuel>()
+                .Ignore(f => f.FuelDateAsDateTime);
+
+            modelBuilder.Entity<Maintenance>()
+                .Ignore(m => m.DateAsDateTime);
+
+            modelBuilder.Entity<SchoolCalendar>()
+                .Ignore(s => s.DateAsDateTime)
+                .Ignore(s => s.EndDateAsDateTime);
+
+            modelBuilder.Entity<Vehicle>()
+                .Ignore(v => v.DateLastInspectionAsDateTime);
 
             // Configure Driver computed property
             modelBuilder.Entity<Driver>()

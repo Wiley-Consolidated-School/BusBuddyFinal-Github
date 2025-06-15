@@ -136,14 +136,14 @@ public class RepositoryTests : IAsyncLifetime
 
         var activity1 = new Activity
         {
-            Date = DateTime.Now.AddDays(-5),
+            DateAsDateTime = DateTime.Now.AddDays(-5),
             ActivityType = "Field Trip",
             Destination = "Museum"
         };
 
         var activity2 = new Activity
         {
-            Date = DateTime.Now.AddDays(5),
+            DateAsDateTime = DateTime.Now.AddDays(5),
             ActivityType = "Sports Event",
             Destination = "Stadium"
         };
@@ -152,8 +152,10 @@ public class RepositoryTests : IAsyncLifetime
         repository.AddActivity(activity2);
 
         // Act
+        var startDate = DateTime.Now.AddDays(-10).ToString("yyyy-MM-dd");
+        var endDate = DateTime.Now.ToString("yyyy-MM-dd");
         var recentActivities = repository.GetAllActivities()
-            .Where(a => a.Date >= DateTime.Now.AddDays(-10) && a.Date <= DateTime.Now)
+            .Where(a => string.Compare(a.Date, startDate) >= 0 && string.Compare(a.Date, endDate) <= 0)
             .ToList();
 
         // Assert
@@ -180,7 +182,7 @@ public class RepositoryTests : IAsyncLifetime
         var fuelRecord = new Fuel
         {
             VehicleFueledID = addedVehicle.Id,
-            FuelDate = DateTime.Now,
+            FuelDateAsDateTime = DateTime.Now,
             FuelLocation = "Test Station",
             FuelType = "Diesel"
         };
@@ -215,7 +217,7 @@ public class RepositoryTests : IAsyncLifetime
         var maintenance = new Maintenance
         {
             VehicleID = addedVehicle.Id,
-            Date = DateTime.Now,
+            DateAsDateTime = DateTime.Now,
             MaintenanceCompleted = "Oil Change",
             Notes = "Routine maintenance"
         };

@@ -79,7 +79,7 @@ public class ModelTests
         // Arrange & Act
         var activity = new Activity
         {
-            Date = DateTime.Now,
+            DateAsDateTime = DateTime.Now,
             ActivityType = "Field Trip",
             Destination = "Museum"
             // LeaveTime, EventTime, ReturnTime are optional
@@ -97,7 +97,7 @@ public class ModelTests
         // Arrange & Act
         var fuel = new Fuel
         {
-            FuelDate = DateTime.Now,
+            FuelDateAsDateTime = DateTime.Now,
             FuelLocation = "Test Station",
             VehicleFueledID = null, // Nullable
             VehicleOdometerReading = null // Nullable
@@ -115,7 +115,7 @@ public class ModelTests
         // Arrange & Act
         var maintenance = new Maintenance
         {
-            Date = DateTime.Now,
+            DateAsDateTime = DateTime.Now,
             MaintenanceCompleted = "Oil Change",
             Notes = "Routine maintenance",
             VehicleID = null // Nullable
@@ -133,7 +133,7 @@ public class ModelTests
         // Arrange & Act
         var maintenance = new Maintenance
         {
-            Date = DateTime.Now,
+            DateAsDateTime = DateTime.Now,
             MaintenanceCompleted = "Oil Change",
             Notes = "Routine maintenance",
             RepairCost = 150.50m,
@@ -154,7 +154,7 @@ public class ModelTests
         var route = new Route
         {
             RouteName = "Route 1",
-            Date = DateTime.Now,
+            DateAsDateTime = DateTime.Now,
             Notes = "Main route through downtown"
         };
 
@@ -170,7 +170,7 @@ public class ModelTests
         // Arrange & Act
         var schedule = new ActivitySchedule
         {
-            Date = DateTime.Now,
+            DateAsDateTime = DateTime.Now,
             TripType = "One Way",
             ScheduledDestination = "School",
             ScheduledLeaveTime = null,  // Nullable TimeSpan
@@ -190,7 +190,7 @@ public class ModelTests
         // Arrange & Act
         var calendar = new SchoolCalendar
         {
-            Date = DateTime.Now.Date,
+            DateAsDateTime = DateTime.Now.Date,
             Notes = "Regular school day"
         };
 
@@ -263,7 +263,7 @@ public class ModelTests
         {
             VehicleNumber = "BUS001",
             VINNumber = "1234567890",
-            DateLastInspection = DateTime.Now.AddMonths(-6),
+            DateLastInspectionAsDateTime = DateTime.Now.AddMonths(-6),
             Capacity = 50
         };
 

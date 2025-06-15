@@ -46,8 +46,9 @@ namespace BusBuddy.Business
 
             // Check for maintenance conflicts
             var maintenanceRecords = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
+            var dateString = date.ToString("yyyy-MM-dd");
             var scheduledMaintenance = maintenanceRecords
-                .Where(m => m.Date.HasValue && m.Date.Value.Date == date.Date &&
+                .Where(m => !string.IsNullOrEmpty(m.Date) && m.Date == dateString &&
                            m.Notes?.Contains("SCHEDULED") == true)
                 .ToList();
 
@@ -95,15 +96,15 @@ namespace BusBuddy.Business
             if (fuelRecord.VehicleFueledID.HasValue)
             {
                 validations.Add(ValidateVehicleAvailability(fuelRecord.VehicleFueledID.Value,
-                    fuelRecord.FuelDate ?? DateTime.Today, "fueling"));
+                    fuelRecord.FuelDateAsDateTime ?? DateTime.Today, "fueling"));
             }
 
             // Validate odometer reading progression
             if (fuelRecord.VehicleFueledID.HasValue && fuelRecord.VehicleOdometerReading.HasValue)
             {
                 var previousFuelRecords = _fuelRepository.GetFuelRecordsByVehicle(fuelRecord.VehicleFueledID.Value)
-                    .Where(f => f.FuelDate < fuelRecord.FuelDate && f.VehicleOdometerReading.HasValue)
-                    .OrderByDescending(f => f.FuelDate)
+                    .Where(f => f.FuelDateAsDateTime < fuelRecord.FuelDateAsDateTime && f.VehicleOdometerReading.HasValue)
+                    .OrderByDescending(f => f.FuelDateAsDateTime)
                     .Take(1);
 
                 foreach (var previousRecord in previousFuelRecords)
@@ -111,7 +112,7 @@ namespace BusBuddy.Business
                     if (fuelRecord.VehicleOdometerReading < previousRecord.VehicleOdometerReading)
                     {
                         validations.Add(ValidationResult.Failed(
-                            $"Odometer reading ({fuelRecord.VehicleOdometerReading}) cannot be less than previous reading ({previousRecord.VehicleOdometerReading}) from {previousRecord.FuelDate?.ToShortDateString()}."));
+                            $"Odometer reading ({fuelRecord.VehicleOdometerReading}) cannot be less than previous reading ({previousRecord.VehicleOdometerReading}) from {previousRecord.FuelDateAsDateTime?.ToShortDateString() ?? previousRecord.FuelDate ?? "unknown date"}."));
                     }
                 }
             }
@@ -141,7 +142,7 @@ namespace BusBuddy.Business
             if (maintenanceRecord.VehicleID.HasValue)
             {
                 validations.Add(ValidateVehicleAvailability(maintenanceRecord.VehicleID.Value,
-                    maintenanceRecord.Date ?? DateTime.Today, "maintenance"));
+                    maintenanceRecord.DateAsDateTime ?? DateTime.Today, "maintenance"));
             }
 
             // Validate cost
@@ -169,23 +170,23 @@ namespace BusBuddy.Business
             // Validate AM assignments
             if (route.AMVehicleID.HasValue)
             {
-                validations.Add(ValidateVehicleAvailability(route.AMVehicleID.Value, route.Date, "route assignment"));
+                validations.Add(ValidateVehicleAvailability(route.AMVehicleID.Value, route.DateAsDateTime, "route assignment"));
             }
 
             if (route.AMDriverID.HasValue)
             {
-                validations.Add(ValidateDriverAvailability(route.AMDriverID.Value, route.Date, "route assignment"));
+                validations.Add(ValidateDriverAvailability(route.AMDriverID.Value, route.DateAsDateTime, "route assignment"));
             }
 
             // Validate PM assignments
             if (route.PMVehicleID.HasValue)
             {
-                validations.Add(ValidateVehicleAvailability(route.PMVehicleID.Value, route.Date, "route assignment"));
+                validations.Add(ValidateVehicleAvailability(route.PMVehicleID.Value, route.DateAsDateTime, "route assignment"));
             }
 
             if (route.PMDriverID.HasValue)
             {
-                validations.Add(ValidateDriverAvailability(route.PMDriverID.Value, route.Date, "route assignment"));
+                validations.Add(ValidateDriverAvailability(route.PMDriverID.Value, route.DateAsDateTime, "route assignment"));
             }
 
             // Validate mileage logic
