@@ -13,7 +13,7 @@ namespace BusBuddy.UI.Views
 
         private MaterialComboBox cboVehicle;
         private MaterialTextBox txtMaintenanceCompleted;
-        private DateTimePicker dtpDate;
+        private DateTimePicker? dtpDate;
         private MaterialTextBox txtVendor;
         private MaterialTextBox txtCost;
         private MaterialComboBox cboMaintenanceType;
@@ -189,7 +189,7 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object? sender, EventArgs e)
         {
             if (!ValidateMaintenance())
                 return;
@@ -251,10 +251,11 @@ namespace BusBuddy.UI.Views
             return true;
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
+        private void btnCancel_Click(object? sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
         }
     }
 }
+

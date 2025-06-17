@@ -2,21 +2,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET: Launch BusBuddy UI",
+            "name": "🚌 BusBuddy - Debug Launch",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build BusBuddy",
-            "program": "${workspaceFolder}/bin/Debug/net8.0-windows/BusBuddy.dll",
+            "program": "${workspaceFolder}/bin/Debug/net8.0-windows/BusBuddy.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
-            "console": "internalConsole",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "enableStepFiltering": true,
+            "suppressJITOptimizations": true,
             "windows": {
-                "console": "internalConsole"
+                "console": "integratedTerminal"
             }
         },
         {
-            "name": ".NET: Launch Tests",
+            "name": "🧪 BusBuddy Tests - Debug",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build BusBuddy",
@@ -24,10 +27,17 @@
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
-            "console": "internalConsole",
+            "console": "integratedTerminal",
+            "justMyCode": true,
             "windows": {
-                "console": "internalConsole"
+                "console": "integratedTerminal"
             }
+        },
+        {
+            "name": "🔗 Attach to BusBuddy Process",
+            "type": "coreclr",
+            "request": "attach",
+            "processName": "BusBuddy.exe"
         }
     ]
 }

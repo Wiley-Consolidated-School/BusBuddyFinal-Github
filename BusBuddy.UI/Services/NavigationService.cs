@@ -19,6 +19,10 @@ namespace BusBuddy.UI.Services
         void ShowScheduleManagement();
         void ShowTimeCardManagement();
         void ShowReportsManagement();
+        void ShowSchoolCalendarManagement();
+        void ShowActivityScheduleManagement();
+        void ShowAnalyticsDemo();
+        void ShowReports();
 
         DialogResult ShowDialog<T>() where T : Form;
         DialogResult ShowDialog<T>(params object[] parameters) where T : Form;
@@ -87,6 +91,26 @@ namespace BusBuddy.UI.Services
         public void ShowReportsManagement()
         {
             Console.WriteLine("INFO: Reports Management functionality will be implemented soon.");
+        }
+
+        public void ShowSchoolCalendarManagement()
+        {
+            ShowFormDialog<SchoolCalendarManagementForm>();
+        }
+
+        public void ShowActivityScheduleManagement()
+        {
+            ShowFormDialog<ActivityScheduleManagementForm>();
+        }
+
+        public void ShowAnalyticsDemo()
+        {
+            ShowFormDialog<AnalyticsDemoForm>();
+        }
+
+        public void ShowReports()
+        {
+            Console.WriteLine("INFO: Reports functionality will be implemented soon.");
         }
 
         public DialogResult ShowDialog<T>() where T : Form

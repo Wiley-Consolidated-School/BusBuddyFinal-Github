@@ -176,10 +176,12 @@ namespace BusBuddy.UI.Base
             {
                 Text = text,
                 Location = new Point(x, y),
-                Size = new Size(100, 36),
+                Size = new Size(120, 36),
+                Type = MaterialButton.MaterialButtonType.Contained,
+                UseAccentColor = true,
+                Font = new Font("Roboto", 10F, FontStyle.Bold),
                 Depth = 0,
                 MouseState = MaterialSkin.MouseState.HOVER,
-                UseAccentColor = false,
                 UseVisualStyleBackColor = true
             };
             if (clickHandler != null)
@@ -196,10 +198,12 @@ namespace BusBuddy.UI.Base
             {
                 Text = text,
                 Location = new Point(x, y),
-                Size = new Size(100, 36),
+                Size = new Size(120, 36),
+                Type = MaterialButton.MaterialButtonType.Contained,
+                UseAccentColor = true,
+                Font = new Font("Roboto", 10F, FontStyle.Bold),
                 Depth = 0,
                 MouseState = MaterialSkin.MouseState.HOVER,
-                UseAccentColor = false,
                 UseVisualStyleBackColor = true
             };
             if (clickHandler != null)

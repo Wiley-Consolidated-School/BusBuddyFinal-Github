@@ -6,7 +6,7 @@
     <AssemblyName>BusBuddy.Models</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604</NoWarn>
+    <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604;CS8602;CS8625;CS8601;CS8600</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

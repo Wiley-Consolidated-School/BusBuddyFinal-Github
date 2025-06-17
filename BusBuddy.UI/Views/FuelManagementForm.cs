@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.UI.Base;
 
 namespace BusBuddy.UI.Views
 {
@@ -21,17 +22,17 @@ namespace BusBuddy.UI.Views
     ///
     /// Author: BusBuddy Modernization
     /// </summary>
-    public class FuelManagementForm : BaseDataForm
+    public class FuelManagementForm : StandardDataForm
     {
         private readonly IFuelRepository _fuelRepository;
         private readonly IVehicleRepository _vehicleRepository;
-        private DataGridView _fuelGrid;
-        private Button _addButton;
-        private Button _editButton;
-        private Button _deleteButton;
-        private Button _detailsButton;
-        private TextBox _searchBox;
-        private Button _searchButton;
+        private DataGridView? _fuelGrid;
+        private Button? _addButton;
+        private Button? _editButton;
+        private Button? _deleteButton;
+        private Button? _detailsButton;
+        private MaterialSkin.Controls.MaterialTextBox _searchBox;
+        private Button? _searchButton;
         private List<Fuel> _fuels = new List<Fuel>();
         private List<Vehicle> _vehicles = new List<Vehicle>();
         // Add/edit fields
@@ -207,7 +208,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                using (var addForm = new FuelEditForm())
+                using (var addForm = new FuelEditFormSyncfusion())
                 {
                     if (addForm.ShowDialog() == DialogResult.OK)
                     {
@@ -250,7 +251,7 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                using (var editForm = new FuelEditForm(selectedFuel))
+                using (var editForm = new FuelEditFormSyncfusion(selectedFuel))
                 {
                     if (editForm.ShowDialog() == DialogResult.OK)
                     {
@@ -367,7 +368,7 @@ namespace BusBuddy.UI.Views
             return valid;
         }
 
-        private void FuelGrid_SelectionChanged(object sender, EventArgs e)
+        private void FuelGrid_SelectionChanged(object? sender, EventArgs e)
         {
             bool hasSelection = _fuelGrid.SelectedRows.Count > 0;
             _editButton.Enabled = hasSelection;
@@ -399,3 +400,5 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+
+

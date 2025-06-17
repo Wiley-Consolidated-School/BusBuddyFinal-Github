@@ -1,6 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Syncfusion.Windows.Forms.Tools; // Added for Syncfusion controls
 
 namespace BusBuddy.UI
 {
@@ -225,6 +226,72 @@ namespace BusBuddy.UI
             {
                 errorProvider.SetError(control, "");
             }
+        }
+
+        // Syncfusion-specific validation methods
+        public static bool ValidateRequiredField(TextBoxExt textBox, string fieldName, ErrorProvider errorProvider)
+        {
+            if (string.IsNullOrWhiteSpace(textBox.Text))
+            {
+                errorProvider.SetError(textBox, $"{fieldName} is required");
+                return false;
+            }
+
+            errorProvider.SetError(textBox, "");
+            return true;
+        }
+
+        public static bool ValidateNumericField(TextBoxExt textBox, string fieldName, ErrorProvider errorProvider)
+        {
+            if (string.IsNullOrWhiteSpace(textBox.Text))
+            {
+                return true; // Empty is valid for non-required numeric fields
+            }
+
+            if (!double.TryParse(textBox.Text, out _))
+            {
+                errorProvider.SetError(textBox, $"{fieldName} must be a valid number");
+                return false;
+            }
+
+            errorProvider.SetError(textBox, "");
+            return true;
+        }
+
+        public static bool ValidateIntegerField(TextBoxExt textBox, string fieldName, ErrorProvider errorProvider)
+        {
+            if (string.IsNullOrWhiteSpace(textBox.Text))
+            {
+                return true; // Empty is valid for non-required numeric fields
+            }
+
+            if (!int.TryParse(textBox.Text, out _))
+            {
+                errorProvider.SetError(textBox, $"{fieldName} must be a valid integer");
+                return false;
+            }
+
+            errorProvider.SetError(textBox, "");
+            return true;
+        }
+
+        public static bool ValidateEmail(TextBoxExt textBox, string fieldName, ErrorProvider errorProvider)
+        {
+            if (string.IsNullOrWhiteSpace(textBox.Text))
+            {
+                return true; // Empty is valid for non-required email fields
+            }
+
+            // Simple email pattern validation
+            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            if (!Regex.IsMatch(textBox.Text, pattern))
+            {
+                errorProvider.SetError(textBox, $"{fieldName} must be a valid email address");
+                return false;
+            }
+
+            errorProvider.SetError(textBox, "");
+            return true;
         }
     }
 }

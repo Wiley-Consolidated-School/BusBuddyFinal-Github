@@ -98,12 +98,15 @@ namespace BusBuddy.Data
             modelBuilder.Entity<SchoolCalendar>().HasKey(s => s.CalendarID);
             modelBuilder.Entity<Route>().HasKey(r => r.RouteID);
             modelBuilder.Entity<Activity>().HasKey(a => a.ActivityID);
-            modelBuilder.Entity<TimeCard>().HasKey(t => t.TimeCardId);
-
-            // Configure Vehicle entity mappings
+            modelBuilder.Entity<TimeCard>().HasKey(t => t.TimeCardId);            // Configure Vehicle entity mappings
             modelBuilder.Entity<Vehicle>()
                 .Property(v => v.Capacity)
                 .HasColumnName("SeatingCapacity");
+
+            // Configure concurrency token
+            modelBuilder.Entity<Vehicle>()
+                .Property(v => v.RowVersion)
+                .IsRowVersion();
 
             // Ignore computed properties that are just wrappers
             modelBuilder.Entity<Vehicle>()

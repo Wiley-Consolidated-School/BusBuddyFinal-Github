@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.UI.Base;
 
 namespace BusBuddy.UI.Views
 {
-    public class ActivityManagementForm : BaseDataForm
+    public class ActivityManagementForm : StandardDataForm
     {
         private readonly IActivityRepository _activityRepository;
-        private DataGridView _activityGrid;
-        private Button _addButton;
-        private Button _editButton;
-        private Button _deleteButton;
-        private Button _detailsButton;
-        private TextBox _searchBox;
-        private Button _searchButton;
+        private DataGridView? _activityGrid;
+        private Button? _addButton;
+        private Button? _editButton;
+        private Button? _deleteButton;
+        private Button? _detailsButton;
+        private MaterialSkin.Controls.MaterialTextBox _searchBox;
+        private Button? _searchButton;
         private List<Activity> _activities = new List<Activity>();        public ActivityManagementForm() : this(new ActivityRepository()) { }
 
         public ActivityManagementForm(IActivityRepository activityRepository)
@@ -71,7 +72,7 @@ namespace BusBuddy.UI.Views
             _detailsButton.Enabled = false;
         }
 
-        private void ActivityGrid_SelectionChanged(object sender, EventArgs e)
+        private void ActivityGrid_SelectionChanged(object? sender, EventArgs e)
         {
             bool hasSelection = _activityGrid.SelectedRows.Count > 0;
             _editButton.Enabled = hasSelection;
@@ -107,7 +108,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                using (var addForm = new ActivityEditForm())
+                using (var addForm = new ActivityEditFormSyncfusion())
                 {
                     if (addForm.ShowDialog() == DialogResult.OK)
                     {
@@ -150,7 +151,7 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                using (var editForm = new ActivityEditForm(selectedActivity))
+                using (var editForm = new ActivityEditFormSyncfusion(selectedActivity))
                 {
                     if (editForm.ShowDialog() == DialogResult.OK)
                     {
@@ -226,3 +227,5 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+
+

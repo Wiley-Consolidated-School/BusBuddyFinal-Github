@@ -3,21 +3,22 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.UI.Base;
 
 namespace BusBuddy.UI.Views
 {
-    public class ActivityScheduleManagementForm : BaseDataForm
+    public class ActivityScheduleManagementForm : StandardDataForm
     {
         private readonly IActivityScheduleRepository _activityScheduleRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IDriverRepository _driverRepository;
-        private DataGridView _activityScheduleGrid;
-        private Button _addButton;
-        private Button _editButton;
-        private Button _deleteButton;
-        private Button _detailsButton;
-        private TextBox _searchBox;
-        private Button _searchButton;
+        private DataGridView? _activityScheduleGrid;
+        private Button? _addButton;
+        private Button? _editButton;
+        private Button? _deleteButton;
+        private Button? _detailsButton;
+        private MaterialSkin.Controls.MaterialTextBox _searchBox;
+        private Button? _searchButton;
         private List<ActivitySchedule> _activitySchedules = new List<ActivitySchedule>();
         private List<Vehicle> _vehicles = new List<Vehicle>();
         private List<Driver> _drivers = new List<Driver>();
@@ -212,7 +213,7 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private void ActivityScheduleGrid_SelectionChanged(object sender, EventArgs e)
+        private void ActivityScheduleGrid_SelectionChanged(object? sender, EventArgs e)
         {
             bool hasSelection = _activityScheduleGrid.SelectedRows.Count > 0;
             _editButton.Enabled = hasSelection;
@@ -237,3 +238,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

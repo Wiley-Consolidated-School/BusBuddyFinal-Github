@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 namespace BusBuddy.Models
@@ -46,10 +47,12 @@ namespace BusBuddy.Models
                 return null;
             }
             set => DateLastInspection = value?.ToString("yyyy-MM-dd");
-        }
-
-        // Additional properties for compatibility
+        }        // Additional properties for compatibility
         public string? VIN => VINNumber;
         public DateTime? LastInspectionDate => DateLastInspectionAsDateTime;
+
+        // Add concurrency control
+        [Timestamp]
+        public byte[]? RowVersion { get; set; }
     }
 }

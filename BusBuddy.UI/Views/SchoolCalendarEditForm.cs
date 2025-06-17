@@ -15,8 +15,8 @@ namespace BusBuddy.UI.Views
         private MaterialTextBox2 _notesTextBox;
         private MaterialComboBox _categoryComboBox;
         private MaterialCheckbox _routeNeededCheckBox;
-        private DateTimePicker _startDatePicker;
-        private DateTimePicker _endDatePicker;
+        private DateTimePicker? _startDatePicker;
+        private DateTimePicker? _endDatePicker;
         private MaterialButton _saveButton;
         private MaterialButton _cancelButton;
 
@@ -231,7 +231,7 @@ namespace BusBuddy.UI.Views
             _notesTextBox.Text = schoolCalendar.Notes ?? "";
         }
 
-        private void SaveButton_Click(object sender, EventArgs e)
+        private void SaveButton_Click(object? sender, EventArgs e)
         {
             if (!ValidateForm())
                 return;
@@ -258,7 +258,7 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private void CancelButton_Click(object sender, EventArgs e)
+        private void CancelButton_Click(object? sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
@@ -317,3 +317,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

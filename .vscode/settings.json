@@ -45,7 +45,9 @@
   // File associations
   "files.associations": {
     "*.yml": "yaml",
-    "*.yaml": "yaml"
+    "*.yaml": "yaml",
+    "*.cobertura.xml": "xml",
+    "lcov.info": "plaintext"
   },
 
   // Problem matcher configuration to reduce noise
@@ -68,5 +70,55 @@
       "comments": false,
       "strings": true
     }
-  }
+  },
+
+  // Coverage Gutters Configuration
+  "coverage-gutters.coverageFileNames": [
+    "lcov.info",
+    "coverage.info",
+    "coverage.lcov",
+    "**/TestResults/**/coverage.cobertura.xml",
+    "**/coverage.opencover.xml"
+  ],
+  "coverage-gutters.showLineCoverage": true,
+  "coverage-gutters.showBranchCoverage": true,
+  "coverage-gutters.showGutterCoverage": true,
+  "coverage-gutters.coverageReportFileName": "lcov.info",
+  "coverage-gutters.showStatusBarToggler": true,
+  "coverage-gutters.xmlname": "coverage.cobertura.xml",
+  "coverage-gutters.lcovname": "lcov.info",
+  "coverage-gutters.searchCriteria": "**/TestResults/**/coverage.cobertura.xml",
+  "coverage-gutters.displayFormatters": [
+    "lcov",
+    "cobertura"
+  ],
+
+  // .NET Test Configuration
+  "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj",
+  "dotnet-test-explorer.useTreeView": true,
+  "dotnet-test-explorer.autoWatch": false,
+
+  // Auto-save for coverage updates
+  "files.autoSave": "onFocusChange",
+
+  // Terminal settings for dotnet commands
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+  // GitHub Copilot Chat prompt files
+  "github.copilot.chat.promptFiles": [
+    "./CODE_REFINEMENT_PROMPT.md"
+  ],
+  "github.copilot.chat.useProjectContext": true,
+  "cSpell.words": [
+    "Argb",
+    "buildtransitive",
+    "contentfiles",
+    "Finalizers",
+    "LASTEXITCODE",
+    "msbuild",
+    "Segoe",
+    "Syncfusion",
+    "Tahoma",
+    "Xunit"
+  ]
 }

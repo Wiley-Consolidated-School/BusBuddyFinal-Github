@@ -12,7 +12,7 @@ namespace BusBuddy.UI.Views
         public Fuel Fuel { get; private set; }
 
         private MaterialComboBox cboVehicle;
-        private DateTimePicker dtpFuelDate;
+        private DateTimePicker? dtpFuelDate;
         private MaterialTextBox txtFuelAmount;
         private MaterialTextBox txtFuelCost;
         private MaterialTextBox txtNotes;
@@ -162,7 +162,7 @@ namespace BusBuddy.UI.Views
             txtFuelCost.Text = Fuel.FuelCost?.ToString("F2") ?? "";
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object? sender, EventArgs e)
         {
             if (!ValidateFuel())
                 return;
@@ -221,10 +221,11 @@ namespace BusBuddy.UI.Views
             return true;
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
+        private void btnCancel_Click(object? sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
         }
     }
 }
+

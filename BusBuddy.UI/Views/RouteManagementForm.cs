@@ -6,22 +6,23 @@ using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.Business;
+using BusBuddy.UI.Base;
 
 namespace BusBuddy.UI.Views
 {
-    public class RouteManagementForm : BaseDataForm
+    public class RouteManagementForm : StandardDataForm
     {
         private readonly IRouteRepository _routeRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IDriverRepository _driverRepository;
         private IDatabaseHelperService _databaseHelperService;
-        private DataGridView _routeGrid;
-        private Button _addButton;
-        private Button _editButton;
-        private Button _deleteButton;
-        private Button _detailsButton;
-        private TextBox _searchBox;
-        private Button _searchButton;
+        private DataGridView? _routeGrid;
+        private Button? _addButton;
+        private Button? _editButton;
+        private Button? _deleteButton;
+        private Button? _detailsButton;
+        private MaterialSkin.Controls.MaterialTextBox _searchBox;
+        private Button? _searchButton;
         private List<Route> _routes = new List<Route>();
         private List<Vehicle> _vehicles = new List<Vehicle>();
         private List<Driver> _drivers = new List<Driver>();
@@ -268,7 +269,7 @@ namespace BusBuddy.UI.Views
         }
         // Removed legacy edit panel - now using RouteEditForm modal dialog
 
-        private void RouteGrid_SelectionChanged(object sender, EventArgs e)
+        private void RouteGrid_SelectionChanged(object? sender, EventArgs e)
         {
             if (_routeGrid == null)
                 return;
@@ -283,7 +284,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                using var editForm = new RouteEditForm();
+                using var editForm = new RouteEditFormSyncfusion();
                 editForm.StartPosition = FormStartPosition.CenterParent;
 
                 if (editForm.ShowDialog(this) == DialogResult.OK && editForm.Route != null)
@@ -314,7 +315,7 @@ namespace BusBuddy.UI.Views
 
                 if (routeToEdit != null)
                 {
-                    using var editForm = new RouteEditForm(routeToEdit);
+                    using var editForm = new RouteEditFormSyncfusion(routeToEdit);
                     editForm.StartPosition = FormStartPosition.CenterParent;
 
                     if (editForm.ShowDialog(this) == DialogResult.OK && editForm.Route != null)
@@ -455,3 +456,4 @@ namespace BusBuddy.UI.Views
 #endif
     }
 }
+

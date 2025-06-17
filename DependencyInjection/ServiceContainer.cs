@@ -1,61 +1,106 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using BusBuddy.Data;
+using BusBuddy.UI.Services;
 using BusBuddy.Business;
+using System;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace BusBuddy.DependencyInjection
 {
-    public static class ServiceContainer
+    public class ServiceContainer : BusBuddy.UI.Services.IServiceProvider, IFormFactory
     {
-        private static IServiceProvider? _serviceProvider;
+        private readonly ServiceCollection _services = new ServiceCollection();
+        private System.IServiceProvider _serviceProvider;
 
-        public static void ConfigureServices()
+        public void ConfigureServices()
         {
-            var services = new ServiceCollection();
-
-            // Register repositories
-            services.AddTransient<IActivityRepository, ActivityRepository>();
-            services.AddTransient<IActivityScheduleRepository, ActivityScheduleRepository>();
-            services.AddTransient<IDriverRepository, DriverRepository>();
-            services.AddTransient<IFuelRepository, FuelRepository>();
-            services.AddTransient<IMaintenanceRepository, MaintenanceRepository>();
-            services.AddTransient<IRouteRepository, RouteRepository>();
-            services.AddTransient<ISchoolCalendarRepository, SchoolCalendarRepository>();
-            services.AddTransient<IVehicleRepository, VehicleRepository>();
-
-            // Register business services
-            services.AddTransient<IVehicleService, VehicleService>();
-            services.AddTransient<IDatabaseHelperService, DatabaseHelperService>();
-
-            _serviceProvider = services.BuildServiceProvider();
+            _services.AddScoped<BusBuddyContext>();
+            _services.AddScoped<INavigationService, NavigationService>();
+            _services.AddScoped<IDatabaseHelperService, DatabaseHelperService>();
+            _services.AddSingleton<IFormFactory>(this);
+            _serviceProvider = _services.BuildServiceProvider();
         }
 
-        public static T GetService<T>() where T : class
+        public T GetService<T>()
         {
-            if (_serviceProvider == null)
-            {
-                throw new InvalidOperationException("Services have not been configured. Call ConfigureServices() first.");
-            }
-
-            return _serviceProvider.GetRequiredService<T>();
+            return _serviceProvider.GetService<T>() ?? throw new InvalidOperationException($"Service of type {typeof(T).Name} is not registered.");
         }
 
-        public static object GetService(Type serviceType)
+        public object GetService(Type serviceType)
         {
-            if (_serviceProvider == null)
-            {
-                throw new InvalidOperationException("Services have not been configured. Call ConfigureServices() first.");
-            }
-
-            return _serviceProvider.GetRequiredService(serviceType);
+            return _serviceProvider.GetService(serviceType);
         }
 
-        public static void Dispose()
+        public void Dispose()
         {
-            if (_serviceProvider is IDisposable disposable)
+            if (_serviceProvider is IDisposable disposableProvider)
             {
-                disposable.Dispose();
+                disposableProvider.Dispose();
             }
+        }
+
+        public T CreateForm<T>() where T : Form
+        {
+            var form = (T)(Activator.CreateInstance(typeof(T)) ?? throw new InvalidOperationException($"Could not create instance of {typeof(T).Name}"));
+            InjectDependencies(form);
+            return form;
+        }
+
+        public T CreateForm<T>(params object[] parameters) where T : Form
+        {
+            var form = (T)(Activator.CreateInstance(typeof(T), parameters) ?? throw new InvalidOperationException($"Could not create instance of {typeof(T).Name}"));
+            InjectDependencies(form);
+            return form;
+        }
+
+        public Form CreateForm(Type formType)
+        {
+            if (!typeof(Form).IsAssignableFrom(formType))
+                throw new ArgumentException($"Type {formType.Name} must inherit from Form");
+
+            var form = (Form)(Activator.CreateInstance(formType) ?? throw new InvalidOperationException($"Could not create instance of {formType.Name}"));
+            InjectDependencies(form);
+            return form;
+        }
+
+        private void InjectDependencies(Form form)
+        {
+            var properties = form.GetType().GetProperties()
+                .Where(p => p.CanWrite && p.PropertyType.IsInterface);
+
+            foreach (var property in properties)
+            {
+                var service = _serviceProvider.GetService(property.PropertyType);
+                if (service != null)
+                {
+                    property.SetValue(form, service);
+                }
+            }
+        }
+    }
+
+    public static class ServiceContainerInstance
+    {
+        private static ServiceContainer? _instance;
+
+        public static ServiceContainer Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new ServiceContainer();
+                    _instance.ConfigureServices();
+                }
+                return _instance;
+            }
+        }
+
+        public static void Reset()
+        {
+            _instance?.Dispose();
+            _instance = null;
         }
     }
 }

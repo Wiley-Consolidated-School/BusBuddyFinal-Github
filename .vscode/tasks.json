@@ -16,6 +16,83 @@
 			"command": "dotnet test BusBuddy.sln",
 			"group": "test",
 			"problemMatcher": ["$msCompile"]
-		}
+		},
+		{
+			"label": "Generate Code Coverage",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-ExecutionPolicy", "Bypass",
+				"-File", "${workspaceFolder}/run-coverage.ps1",
+				"-Clean"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Generate Coverage (Quick)",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"test",
+				"/p:CollectCoverage=true",
+				"/p:CoverletOutputFormat=lcov,cobertura",
+				"/p:CoverletOutput=./TestResults/coverage"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "Clean Test Results",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-Command",
+				"Remove-Item -Path './TestResults' -Recurse -Force -ErrorAction SilentlyContinue; Write-Host 'Test results cleaned' -ForegroundColor Green"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared"
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},        {
+            "label": "Generate Coverage + Display",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Generate Code Coverage"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false
+            }
+        }
 	]
 }

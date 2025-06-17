@@ -25,17 +25,17 @@ namespace BusBuddy.UI.Views
         private TabPage _timeCardTab;
 
         // Route Analytics Controls
-        private DataGridView _routeEfficiencyGrid;
-        private DataGridView _optimizationSuggestionsGrid;
-        private Panel _fleetSummaryPanel;
+        private DataGridView? _routeEfficiencyGrid;
+        private DataGridView? _optimizationSuggestionsGrid;
+        private Panel? _fleetSummaryPanel;
 
         // Maintenance Controls
-        private DataGridView _maintenancePredictionsGrid;
-        private DataGridView _vehicleHealthGrid;        private DataGridView _maintenanceAlertsGrid;
+        private DataGridView? _maintenancePredictionsGrid;
+        private DataGridView? _vehicleHealthGrid;        private DataGridView? _maintenanceAlertsGrid;
 
         // Time Card Controls
-        private Button _validateTimeCardButton;
-        private Panel _validationResultsPanel;
+        private Button? _validateTimeCardButton;
+        private Panel? _validationResultsPanel;
 
         public AnalyticsDemoForm()
         {
@@ -410,13 +410,13 @@ Period: {summary.PeriodStart:yyyy-MM-dd} to {summary.PeriodEnd:yyyy-MM-dd}
             MessageBox.Show("Route analytics refreshed!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void ExportAnalytics_Click(object sender, EventArgs e)
+        private void ExportAnalytics_Click(object? sender, EventArgs e)
         {
             MessageBox.Show("Analytics export feature would generate comprehensive reports for administrators.",
                 "Export Analytics", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void ValidateTimeCard_Click(object sender, EventArgs e)
+        private void ValidateTimeCard_Click(object? sender, EventArgs e)
         {
             // Create a demo time card with issues
             var demoTimeCard = new TimeCard
@@ -453,3 +453,4 @@ The enhanced validation system provides intelligent suggestions and can automati
         }
     }
 }
+

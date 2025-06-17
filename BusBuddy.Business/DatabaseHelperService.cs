@@ -324,8 +324,7 @@ namespace BusBuddy.Business
                 System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Exception in GetAllRoutesWithDetails: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Stack trace: {ex.StackTrace}");
                 throw;
-            }
-        }
+            }        }
     }
 
     public class VehicleDetailsViewModel

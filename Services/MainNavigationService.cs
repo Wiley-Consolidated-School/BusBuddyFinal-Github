@@ -26,7 +26,15 @@ namespace BusBuddy.Services
         public void ShowMaintenanceManagement() => _uiNavigationService.ShowMaintenanceManagement();
         public void ShowCalendarManagement() => _uiNavigationService.ShowCalendarManagement();
         public void ShowScheduleManagement() => _uiNavigationService.ShowScheduleManagement();
-        public void ShowReportsManagement() => _uiNavigationService.ShowReportsManagement();        // Handle TimeCard management directly using the TimeCard module
+        public void ShowReportsManagement() => _uiNavigationService.ShowReportsManagement();
+
+        // Additional navigation methods for new forms
+        public void ShowSchoolCalendarManagement() => _uiNavigationService.ShowSchoolCalendarManagement();
+        public void ShowActivityScheduleManagement() => _uiNavigationService.ShowActivityScheduleManagement();
+        public void ShowAnalyticsDemo() => _uiNavigationService.ShowAnalyticsDemo();
+        public void ShowReports() => _uiNavigationService.ShowReports();
+
+        // Handle TimeCard management directly using the TimeCard module
         public void ShowTimeCardManagement()
         {
             try

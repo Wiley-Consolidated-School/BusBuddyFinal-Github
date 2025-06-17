@@ -6,20 +6,21 @@ using System.Linq;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.UI.Base;
 
 namespace BusBuddy.UI.Views
 {
-    public class SchoolCalendarManagementForm : BaseDataForm
+    public class SchoolCalendarManagementForm : StandardDataForm
     {
         private readonly ISchoolCalendarRepository _calendarRepository;
-        private DataGridView _calendarGrid;
-        private ComboBox _monthComboBox;
+        private DataGridView? _calendarGrid;
+        private ComboBox? _monthComboBox;
         private NumericUpDown _yearUpDown;
-        private Panel _editPanel;
-        private ComboBox _dayTypeComboBox;
-        private TextBox _notesTextBox;
-        private Button _saveButton;
-        private Label _legendLabel;
+        private Panel? _editPanel;
+        private ComboBox? _dayTypeComboBox;
+        private TextBox? _notesTextBox;
+        private Button? _saveButton;
+        private Label? _legendLabel;
         private List<SchoolCalendar> _calendarEntries;
         private DateTime _selectedDate;
         private int _displayYear;
@@ -310,3 +311,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

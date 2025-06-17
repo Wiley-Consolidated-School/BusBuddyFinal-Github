@@ -19,9 +19,9 @@ namespace BusBuddy.UI.Views
         private NumericUpDown numSeatingCapacity;
         private MaterialTextBox txtVINNumber;
         private MaterialTextBox txtLicenseNumber;
-        private DateTimePicker dtpDateLastInspection;
-        private ComboBox cboFuelType;
-        private ComboBox cboStatus;
+        private DateTimePicker? dtpDateLastInspection;
+        private ComboBox? cboFuelType;
+        private ComboBox? cboStatus;
         private MaterialTextBox txtNotes;
         private MaterialButton btnSave;
         private MaterialButton btnCancel;
@@ -197,7 +197,7 @@ namespace BusBuddy.UI.Views
             cboStatus.SelectedItem = Vehicle.Status ?? "Active";
             txtNotes.Text = Vehicle.Notes ?? string.Empty;
         }
-        private void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object? sender, EventArgs e)
         {
             // Apply KillerSampleForm validation patterns
             if (!ValidateVehicle())
@@ -303,10 +303,11 @@ namespace BusBuddy.UI.Views
             cboStatus.BackColor = normalBackColor;
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
+        private void btnCancel_Click(object? sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
         }
     }
 }
+

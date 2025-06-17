@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy;
+using BusBuddy.UI.Base;
 
 namespace BusBuddy.UI.Views
 {
@@ -11,16 +12,16 @@ namespace BusBuddy.UI.Views
     /// Vehicle Management Form following the standard ActivityManagementForm template
     /// Provides comprehensive vehicle fleet management with consistent DataGridView interface
     /// </summary>
-    public class VehicleManagementForm : BaseDataForm
+    public class VehicleManagementForm : StandardDataForm
     {
         private readonly IVehicleRepository _vehicleRepository;
-        private DataGridView _vehicleGrid;
-        private Button _addButton;
-        private Button _editButton;
-        private Button _deleteButton;
-        private Button _detailsButton;
-        private TextBox _searchBox;
-        private Button _searchButton;
+        private DataGridView? _vehicleGrid;
+        private Button? _addButton;
+        private Button? _editButton;
+        private Button? _deleteButton;
+        private Button? _detailsButton;
+        private MaterialSkin.Controls.MaterialTextBox _searchBox;
+        private Button? _searchButton;
         private List<Vehicle> _vehicles;
 
         // VehicleManagementForm uses VehicleForm dialog instead of edit panel
@@ -82,7 +83,7 @@ namespace BusBuddy.UI.Views
             _detailsButton.Enabled = false;
         }
 
-        private void VehicleGrid_SelectionChanged(object sender, EventArgs e)
+        private void VehicleGrid_SelectionChanged(object? sender, EventArgs e)
         {
             bool hasSelection = _vehicleGrid.SelectedRows.Count > 0;
             _editButton.Enabled = hasSelection;
@@ -117,7 +118,7 @@ namespace BusBuddy.UI.Views
         private void AddNewVehicle()
         {
             // Show VehicleForm dialog for add new
-            using (var vehicleForm = new VehicleForm())
+            using (var vehicleForm = new VehicleFormSyncfusion())
             {
                 if (vehicleForm.ShowDialog() == DialogResult.OK)
                 {
@@ -149,7 +150,7 @@ namespace BusBuddy.UI.Views
             }
 
             // Show VehicleForm dialog for edit
-            using (var vehicleForm = new VehicleForm(vehicle))
+            using (var vehicleForm = new VehicleFormSyncfusion(vehicle))
             {
                 if (vehicleForm.ShowDialog() == DialogResult.OK)
                 {
@@ -222,3 +223,5 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+
+

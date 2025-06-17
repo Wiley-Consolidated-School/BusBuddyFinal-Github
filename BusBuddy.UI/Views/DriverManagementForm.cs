@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.UI.Base;
 
 namespace BusBuddy.UI.Views
 {
-    public class DriverManagementForm : BaseDataForm
+    public class DriverManagementForm : StandardDataForm
     {
         private readonly IDriverRepository _driverRepository;
-        private DataGridView _driverGrid;
-        private Button _addButton;
-        private Button _editButton;
-        private Button _deleteButton;
-        private Button _detailsButton;
-        private TextBox _searchBox;
-        private Button _searchButton;
+        private DataGridView? _driverGrid;
+        private Button? _addButton;
+        private Button? _editButton;
+        private Button? _deleteButton;
+        private Button? _detailsButton;
+        private MaterialSkin.Controls.MaterialTextBox _searchBox;
+        private Button? _searchButton;
         private List<Driver> _drivers = new List<Driver>();
 
         public DriverManagementForm() : this(new DriverRepository()) { }
@@ -73,7 +74,7 @@ namespace BusBuddy.UI.Views
             _detailsButton.Enabled = false;
         }
 
-        private void DriverGrid_SelectionChanged(object sender, EventArgs e)
+        private void DriverGrid_SelectionChanged(object? sender, EventArgs e)
         {
             bool hasSelection = _driverGrid.SelectedRows.Count > 0;
             _editButton.Enabled = hasSelection;
@@ -107,7 +108,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                using var editForm = new DriverEditForm();
+                using var editForm = new DriverEditFormSyncfusion();
                 editForm.StartPosition = FormStartPosition.CenterParent;
 
                 if (editForm.ShowDialog(this) == DialogResult.OK && editForm.Driver != null)
@@ -142,7 +143,7 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                using var editForm = new DriverEditForm(driverToEdit);
+                using var editForm = new DriverEditFormSyncfusion(driverToEdit);
                 editForm.StartPosition = FormStartPosition.CenterParent;
 
                 if (editForm.ShowDialog(this) == DialogResult.OK && editForm.Driver != null)
@@ -217,3 +218,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

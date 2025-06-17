@@ -18,10 +18,10 @@ namespace BusBuddy.UI.Views
         private MaterialComboBox _tripTypeComboBox;
         private MaterialComboBox _vehicleComboBox;
         private MaterialComboBox _driverComboBox;
-        private DateTimePicker _datePicker;
-        private DateTimePicker _leaveTimePicker;
-        private DateTimePicker _eventTimePicker;
-        private DateTimePicker _returnTimePicker;
+        private DateTimePicker? _datePicker;
+        private DateTimePicker? _leaveTimePicker;
+        private DateTimePicker? _eventTimePicker;
+        private DateTimePicker? _returnTimePicker;
         private MaterialButton _saveButton;
         private MaterialButton _cancelButton;
 
@@ -347,7 +347,7 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private void SaveButton_Click(object sender, EventArgs e)
+        private void SaveButton_Click(object? sender, EventArgs e)
         {
             if (!ValidateForm())
                 return;
@@ -389,7 +389,7 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private void CancelButton_Click(object sender, EventArgs e)
+        private void CancelButton_Click(object? sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
@@ -458,3 +458,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

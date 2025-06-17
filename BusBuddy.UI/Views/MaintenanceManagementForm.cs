@@ -5,20 +5,21 @@ using System.Linq;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.UI.Base;
 
 namespace BusBuddy.UI.Views
 {
-    public class MaintenanceManagementForm : BaseDataForm
+    public class MaintenanceManagementForm : StandardDataForm
     {
         private readonly IMaintenanceRepository _maintenanceRepository;
         private readonly IVehicleRepository _vehicleRepository;
-        private DataGridView _maintenanceGrid;
-        private Button _addButton;
-        private Button _editButton;
-        private Button _deleteButton;
-        private Button _detailsButton;
-        private TextBox _searchBox;
-        private Button _searchButton;
+        private DataGridView? _maintenanceGrid;
+        private Button? _addButton;
+        private Button? _editButton;
+        private Button? _deleteButton;
+        private Button? _detailsButton;
+        private MaterialSkin.Controls.MaterialTextBox _searchBox;
+        private Button? _searchButton;
         private List<Maintenance> _maintenances = new List<Maintenance>();
         private List<Vehicle> _vehicles = new List<Vehicle>();
 
@@ -249,7 +250,7 @@ namespace BusBuddy.UI.Views
             _categoryComboBox.DataSource = categories.ToList();
         }
 
-        private void MaintenanceGrid_SelectionChanged(object sender, EventArgs e)
+        private void MaintenanceGrid_SelectionChanged(object? sender, EventArgs e)
         {
             bool hasSelection = _maintenanceGrid.SelectedRows.Count > 0;
             _editButton.Enabled = hasSelection;
@@ -261,7 +262,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                using (var addForm = new MaintenanceEditForm())
+                using (var addForm = new MaintenanceEditFormSyncfusion())
                 {
                     if (addForm.ShowDialog() == DialogResult.OK)
                     {
@@ -304,7 +305,7 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                using (var editForm = new MaintenanceEditForm(selectedMaintenance))
+                using (var editForm = new MaintenanceEditFormSyncfusion(selectedMaintenance))
                 {
                     if (editForm.ShowDialog() == DialogResult.OK)
                     {
@@ -531,3 +532,5 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+
+

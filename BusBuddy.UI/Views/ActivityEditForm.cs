@@ -11,7 +11,7 @@ namespace BusBuddy.UI.Views
     {
         public Activity Activity { get; private set; }
 
-        private DateTimePicker dtpDate;
+        private DateTimePicker? dtpDate;
         private MaterialComboBox cboActivityType;
         private MaterialTextBox txtDestination;
         private MaterialTextBox txtLeaveTime;
@@ -169,7 +169,7 @@ namespace BusBuddy.UI.Views
             txtNotes.Text = Activity.Notes ?? "";
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object? sender, EventArgs e)
         {
             if (!ValidateActivity())
                 return;
@@ -243,10 +243,11 @@ namespace BusBuddy.UI.Views
             return false;
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
+        private void btnCancel_Click(object? sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
         }
     }
 }
+
