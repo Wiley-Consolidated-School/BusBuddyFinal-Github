@@ -214,7 +214,7 @@ function Convert-MaterialToSyncfusion {
     foreach ($mapping in $mappings.GetEnumerator()) {
         $content = $content -replace "\b$($mapping.Key)\b", $mapping.Value
     }
-    
+
     # Additional Material control replacements
     $content = $content -replace "\bMaterialTextBox\b", "SfTextBox"
     $content = $content -replace "\bMaterialButton\b", "SfButton"
@@ -229,7 +229,7 @@ function Convert-MaterialToSyncfusion {
     $content = $content -replace "\bMaterialContextMenuStrip\b", "SfContextMenu"
     $content = $content -replace "\bMaterialCard\b", "SfGradientPanel"
     $content = $content -replace "\bMaterialDivider\b", "SfSeparator"
-    
+
     # Replace property names and method calls
     $content = $content -replace "\.Hint\s*=", ".WatermarkText ="
     $content = $content -replace "\.UseAccent\s*=", ".UseVisualStyle ="
@@ -244,7 +244,7 @@ function Convert-MaterialToSyncfusion {
     if ($newClassName -eq $originalClassName) {
         $newClassName += "Syncfusion"
     }
-    
+
     $content = $content -replace "\bpublic\s+partial\s+class\s+$originalClassName\b", "public partial class $newClassName"
     $content = $content -replace "\bpublic\s+class\s+$originalClassName\b", "public class $newClassName"
     $content = $content -replace "\b$originalClassName\(\)", "$newClassName()"

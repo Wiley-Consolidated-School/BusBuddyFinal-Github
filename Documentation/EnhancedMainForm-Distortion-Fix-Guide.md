@@ -137,7 +137,7 @@ if (analysis.HasDistortionIssues)
     {
         Console.WriteLine($"Issue: {issue}");
     }
-    
+
     foreach (var recommendation in analysis.Recommendations)
     {
         Console.WriteLine($"Recommendation: {recommendation}");
@@ -161,7 +161,7 @@ public void EnhancedMainForm_ShouldNotHaveDistortionIssues()
     {
         form.Show();
         var analysis = FormDistortionDiagnostics.AnalyzeFormDistortion(form);
-        Assert.False(analysis.HasDistortionIssues, 
+        Assert.False(analysis.HasDistortionIssues,
             $"Form has distortion issues: {string.Join(", ", analysis.Issues)}");
     }
 }

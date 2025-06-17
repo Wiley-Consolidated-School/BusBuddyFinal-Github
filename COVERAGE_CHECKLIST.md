@@ -62,7 +62,7 @@ Check that these files exist:
 ### ✅ **Step 7: Confirm Coverage Display**
 You should see:
 - [ ] 🟢 Green line numbers = Covered code
-- [ ] 🔴 Red line numbers = Uncovered code  
+- [ ] 🔴 Red line numbers = Uncovered code
 - [ ] 🟡 Yellow line numbers = Partially covered (branches)
 - [ ] Coverage percentage in status bar
 - [ ] Gutters showing hit counts (small numbers next to line numbers)

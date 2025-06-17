@@ -158,7 +158,7 @@ private void CreateFallbackLayout()
    ```csharp
    // In Program.cs, replace:
    var dashboard = new BusBuddyDashboardSyncfusion(navigationService, databaseHelperService);
-   
+
    // With:
    var dashboard = new BusBuddyDashboardSyncfusionFixed(navigationService, databaseHelperService);
    ```
@@ -167,7 +167,7 @@ private void CreateFallbackLayout()
    ```csharp
    // For production, set:
    private static readonly bool ENABLE_DIAGNOSTICS = false;
-   
+
    // For development, keep:
    private static readonly bool ENABLE_DIAGNOSTICS = true;
    ```

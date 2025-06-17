@@ -400,5 +400,3 @@ namespace BusBuddy.UI.Views
         }
     }
 }
-
-

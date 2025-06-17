@@ -81,7 +81,7 @@ All BusBuddy features are fully functional regardless of licensing status:
 
 ✅ **Management Forms** (Syncfusion-based)
 - Activity Management
-- Driver Management  
+- Driver Management
 - Fuel Management
 - Maintenance Management
 - Route Management

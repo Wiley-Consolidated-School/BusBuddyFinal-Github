@@ -403,4 +403,10 @@ FodyWeavers.xsd
 # SQLite database file - uncomment if needed
 # *.db
 
+# Additional build artifacts to exclude
+**/obj/**/AssemblyInfo.cs
+**/obj/**/AssemblyInfoInputs.cache
+**/obj/**/*.GeneratedMSBuildEditorConfig.editorconfig
+**/obj/**/*.editorconfig
+
 

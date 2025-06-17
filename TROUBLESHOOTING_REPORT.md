@@ -106,7 +106,7 @@ new FormInfo { Name = "VehicleManagementFormSyncfusion", ... }
 **After:** Reflection-based discovery
 ```csharp
 var syncfusionFormTypes = assembly.GetTypes()
-    .Where(type => type.Name.EndsWith("Syncfusion") && 
+    .Where(type => type.Name.EndsWith("Syncfusion") &&
                   type.IsSubclassOf(typeof(Form)))
 ```
 

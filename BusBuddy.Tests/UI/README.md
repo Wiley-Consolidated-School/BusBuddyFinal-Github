@@ -15,7 +15,7 @@ This comprehensive UI test suite provides robust, safe testing for the BusBuddy 
 - **Control State Tests**: Enabled/visible states, button text validation
 
 ### 🏢 Management Form Controls
-**File**: `ManagementFormControlTests.cs`  
+**File**: `ManagementFormControlTests.cs`
 - **Toolbar Tests**: Action buttons, search text box, initial button states, Material Design styling
 - **Data Grid Tests**: Grid presence, configuration, themed styling
 - **Edit Panel Tests**: Panel existence, save/cancel buttons, form fields

@@ -55,7 +55,7 @@ namespace BusBuddy.UI.Helpers
                 SyncfusionLicenseProvider.RegisterLicense(licenseKey);
                 _licenseRegistered = true;
                 _currentLicenseKey = licenseKey;
-                
+
                 Console.WriteLine("✅ Syncfusion license registered successfully");
                 return true;
             }
@@ -81,7 +81,7 @@ namespace BusBuddy.UI.Helpers
                 {
                     var jsonContent = File.ReadAllText(configPath);
                     var config = JsonSerializer.Deserialize<LicenseConfig>(jsonContent);
-                    
+
                     if (config?.SyncfusionLicense?.LicenseKey != null)
                     {
                         Console.WriteLine($"📄 Loading Syncfusion license from configuration ({config.SyncfusionLicense.Status})");

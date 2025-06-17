@@ -53,7 +53,7 @@ Review this ServiceContainer class for dependency injection best practices:
 
 ### **For Code Web Chat (Grok):**
 ```
-I'm building a school bus management system called BusBuddy. 
+I'm building a school bus management system called BusBuddy.
 Review this validation method and suggest improvements for error handling:
 
 [paste any validation method]

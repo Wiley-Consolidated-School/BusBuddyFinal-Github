@@ -38,4 +38,3 @@ namespace BusBuddy.Tests.UI
         }
     }
 }
-
