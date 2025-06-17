@@ -409,4 +409,11 @@ FodyWeavers.xsd
 **/obj/**/*.GeneratedMSBuildEditorConfig.editorconfig
 **/obj/**/*.editorconfig
 
+# Additional file types to exclude
+*.pdf
+*.crdownload
+*_new.cs
+*_backup*
+Migration_Backups/
+
 
