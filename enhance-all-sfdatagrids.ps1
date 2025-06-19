@@ -11,19 +11,19 @@ $ErrorActionPreference = "Stop"
 
 # Define forms that need enhancement
 $formsToEnhance = @(
-    "BusBuddy.UI\Views\ActivityManagementFormSyncfusion.cs",
-    "BusBuddy.UI\Views\ActivityScheduleManagementFormSyncfusion.cs",
-    "BusBuddy.UI\Views\ActivityScheduleManagementFormSyncfusion_Enhanced.cs",
-    "BusBuddy.UI\Views\FuelManagementFormSyncfusion.cs",
-    "BusBuddy.UI\Views\FuelManagementFormSyncfusion_Enhanced.cs",
-    "BusBuddy.UI\Views\RouteManagementFormSyncfusion.cs",
-    "BusBuddy.UI\Views\RouteManagementFormSyncfusion_Enhanced.cs",
-    "BusBuddy.UI\Views\SchoolCalendarManagementFormSyncfusion.cs",
-    "BusBuddy.UI\Views\SchoolCalendarManagementFormSyncfusion_Enhanced.cs",
-    "BusBuddy.UI\Views\VehicleManagementFormSyncfusion.cs",
-    "BusBuddy.TimeCard\Views\TimeCardManagementFormSyncfusion.cs",
-    "BusBuddy.UI\Views\MaintenanceManagementFormSyncfusion.cs",
-    "BusBuddy.UI\Views\AnalyticsDemoForm.cs"
+    "BusBuddy.UI/Views/ActivityManagementFormSyncfusion.cs",
+    "BusBuddy.UI/Views/ActivityScheduleManagementFormSyncfusion.cs",
+    "BusBuddy.UI/Views/ActivityScheduleManagementFormSyncfusion_Enhanced.cs",
+    "BusBuddy.UI/Views/FuelManagementFormSyncfusion.cs",
+    "BusBuddy.UI/Views/FuelManagementFormSyncfusion_Enhanced.cs",
+    "BusBuddy.UI/Views/RouteManagementFormSyncfusion.cs",
+    "BusBuddy.UI/Views/RouteManagementFormSyncfusion_Enhanced.cs",
+    "BusBuddy.UI/Views/SchoolCalendarManagementFormSyncfusion.cs",
+    "BusBuddy.UI/Views/SchoolCalendarManagementFormSyncfusion_Enhanced.cs",
+    "BusBuddy.UI/Views/VehicleManagementFormSyncfusion.cs",
+    "BusBuddy.TimeCard/Views/TimeCardManagementFormSyncfusion.cs",
+    "BusBuddy.UI/Views/MaintenanceManagementFormSyncfusion.cs",
+    "BusBuddy.UI/Views/AnalyticsDemoForm.cs"
 )
 
 function Write-StatusMessage {
@@ -69,7 +69,6 @@ function Set-SfDataGridSetup {
 
         # Add enhancement call after grid creation
         $enhancementCall = @"
-
             // Apply ALL Syncfusion features for 100% implementation
             SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_*Grid, "$contextName");
 "@
