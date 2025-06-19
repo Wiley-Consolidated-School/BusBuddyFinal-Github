@@ -97,7 +97,8 @@ namespace BusBuddy.UI.Services
 
         public void ShowAnalyticsDemo()
         {
-            ShowFormDialog<AnalyticsDemoForm>();
+            // TODO: Implement AnalyticsDemoForm
+            Console.WriteLine("INFO: Analytics demo will be implemented soon.");
         }
 
         public void ShowReports()

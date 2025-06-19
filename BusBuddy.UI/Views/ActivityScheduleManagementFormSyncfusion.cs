@@ -1,25 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
 {
     /// <summary>
-    /// Activity Schedule Management Form - Migrated to Syncfusion from MaterialSkin2
-    /// Form for managing activity schedules with grid view and CRUD operations
+    /// Activity Schedule Management Form - Enhanced Syncfusion Implementation
+    /// Form for managing activity schedules with advanced SfDataGrid features
     /// </summary>
     public class ActivityScheduleManagementFormSyncfusion : SyncfusionBaseForm
     {
         private readonly IActivityScheduleRepository _activityScheduleRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IDriverRepository _driverRepository;
-        private DataGridView? _activityScheduleGrid;
+        private SfDataGrid? _activityScheduleGrid;
         private Control? _addButton;
         private Control? _editButton;
         private Control? _deleteButton;
@@ -58,7 +61,8 @@ namespace BusBuddy.UI.Views
             // Apply final theming
             SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
+            Console.WriteLine($"🎨 ENHANCED SYNCFUSION FORM: {this.Text} initialized with advanced SfDataGrid features");
+            Console.WriteLine($"✨ Features enabled: Filtering, Sorting, Grouping, Data Virtualization, Tooltips");
         }
 
         private void CreateControls()
@@ -70,8 +74,13 @@ namespace BusBuddy.UI.Views
             _detailsButton = SyncfusionThemeHelper.CreateStyledButton("👁️ Details");
             _searchButton = SyncfusionThemeHelper.CreateStyledButton("🔍 Search");
 
-            // Create search textbox
-            _searchBox = SyncfusionThemeHelper.CreateStyledTextBox("Search schedules...");
+            // Create search textbox (simplified version)
+            _searchBox = new TextBox
+            {
+                Size = GetDpiAwareSize(new Size(150, 30)),
+                Text = "Search schedules...",
+                ForeColor = Color.Gray
+            };
 
             // Configure button sizes and positions
             var buttonSize = GetDpiAwareSize(new Size(100, 35));
@@ -94,6 +103,8 @@ namespace BusBuddy.UI.Views
 
             // Search controls
             var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
+            searchLabel.Location = new Point(500, 25);
+            _mainPanel.Controls.Add(searchLabel);
             _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
             _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
 
@@ -107,128 +118,101 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_detailsButton);
             _mainPanel.Controls.Add(_searchBox);
             _mainPanel.Controls.Add(_searchButton);
-            _mainPanel.Controls.Add(searchLabel);
 
-            // Create and configure the data grid
-            SetupDataGrid();
-        }
-
-        private void SetupDataGrid()
-        {
-            // Create DataGridView with modern styling
-            _activityScheduleGrid = new DataGridView();
-            _activityScheduleGrid.Dock = DockStyle.None;
-            _activityScheduleGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(60));
+            // Create SfDataGrid with enhanced material styling and advanced features
+            _activityScheduleGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
+            _activityScheduleGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
             _activityScheduleGrid.Size = GetDpiAwareSize(new Size(1150, 650));
-            _activityScheduleGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+            _activityScheduleGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-            // Grid styling
-            _activityScheduleGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            _activityScheduleGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _activityScheduleGrid.ReadOnly = true;
-            _activityScheduleGrid.AllowUserToAddRows = false;
-            _activityScheduleGrid.AllowUserToDeleteRows = false;
-            _activityScheduleGrid.MultiSelect = false;
-            _activityScheduleGrid.AllowUserToResizeColumns = true;
-            _activityScheduleGrid.AllowUserToResizeRows = true;
-            _activityScheduleGrid.ScrollBars = ScrollBars.Both;
-
-            // Apply Material theme to grid
-            SyncfusionThemeHelper.ApplyMaterialTheme(_activityScheduleGrid);
+            // Apply BusBuddy standards and enhanced theming
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_activityScheduleGrid);
 
             _mainPanel.Controls.Add(_activityScheduleGrid);
+
+            // Configure grid columns
+            SetupDataGridColumns();
         }
 
         private void LayoutControls()
         {
-            // Layout is handled in CreateControls method for better organization
+            // Layout is handled in CreateControls for this form
         }
 
         private void SetupEventHandlers()
         {
-            // Button click events
             _addButton.Click += (s, e) => AddNewActivitySchedule();
             _editButton.Click += (s, e) => EditSelectedActivitySchedule();
             _deleteButton.Click += (s, e) => DeleteSelectedActivitySchedule();
             _detailsButton.Click += (s, e) => ViewActivityScheduleDetails();
             _searchButton.Click += (s, e) => SearchActivitySchedules();
 
-            // Grid event handlers
-            _activityScheduleGrid.CellDoubleClick += (s, e) => EditSelectedActivitySchedule();
-            _activityScheduleGrid.SelectionChanged += ActivityScheduleGrid_SelectionChanged;
-            _activityScheduleGrid.DataBindingComplete += ActivityScheduleGrid_DataBindingComplete;
-
-            // Search box enter key handler
-            if (_searchBox is TextBox searchTextBox)
+            if (_activityScheduleGrid != null)
             {
-                searchTextBox.KeyPress += (s, e) => {
-                    if (e.KeyChar == (char)Keys.Enter)
+                _activityScheduleGrid.SelectionChanged += ActivityScheduleGrid_SelectionChanged;
+                _activityScheduleGrid.CellDoubleClick += (s, e) => EditSelectedActivitySchedule();
+            }
+
+            // Handle Enter key in search box
+            if (_searchBox is TextBox searchTb)
+            {
+                searchTb.KeyDown += (s, e) =>
+                {
+                    if (e.KeyCode == Keys.Enter)
                     {
                         SearchActivitySchedules();
                         e.Handled = true;
                     }
                 };
             }
-
-            // Initial button states
-            UpdateButtonStates();
         }
 
-        private void ActivityScheduleGrid_DataBindingComplete(object? sender, DataGridViewBindingCompleteEventArgs e)
+        private void SetupDataGridColumns()
         {
-            if (_activityScheduleGrid.Columns.Contains("ActivityScheduleID"))
-                _activityScheduleGrid.Columns["ActivityScheduleID"].Visible = false;
+            if (_activityScheduleGrid == null) return;
 
-            // Configure column headers and widths
-            ConfigureGridColumns();
-        }
+            _activityScheduleGrid.Columns.Clear();
+            _activityScheduleGrid.AutoGenerateColumns = false;
 
-        private void ConfigureGridColumns()
-        {
-            if (_activityScheduleGrid.Columns.Count == 0) return;
-
-            var columnConfig = new Dictionary<string, (string Header, int Width)>
+            // Define columns for Activity Schedules
+            var columns = new[]
             {
-                ["ScheduleID"] = ("ID", 60),
-                ["Date"] = ("Date", 100),
-                ["TripType"] = ("Trip Type", 120),
-                ["ScheduledVehicleID"] = ("Vehicle", 80),
-                ["ScheduledDestination"] = ("Destination", 150),
-                ["ScheduledLeaveTime"] = ("Leave Time", 100),
-                ["ScheduledEventTime"] = ("Event Time", 100),
-                ["ScheduledRiders"] = ("Riders", 80),
-                ["ScheduledDriverID"] = ("Driver", 80)
+                new { Name = "ScheduleID", Header = "Schedule ID", Width = 80, Visible = false },
+                new { Name = "Date", Header = "📅 Date", Width = 120, Visible = true },
+                new { Name = "TripType", Header = "🚌 Trip Type", Width = 120, Visible = true },
+                new { Name = "ScheduledVehicleID", Header = "🚐 Vehicle", Width = 100, Visible = true },
+                new { Name = "ScheduledDestination", Header = "📍 Destination", Width = 180, Visible = true },
+                new { Name = "ScheduledLeaveTime", Header = "⏰ Leave Time", Width = 120, Visible = true },
+                new { Name = "ScheduledEventTime", Header = "📅 Event Time", Width = 120, Visible = true },
+                new { Name = "ScheduledRiders", Header = "👥 Riders", Width = 80, Visible = true },
+                new { Name = "ScheduledDriverID", Header = "👨‍💼 Driver", Width = 100, Visible = true }
             };
 
-            foreach (var config in columnConfig)
+            foreach (var col in columns)
             {
-                if (_activityScheduleGrid.Columns.Contains(config.Key))
-                {
-                    var column = _activityScheduleGrid.Columns[config.Key];
-                    column.HeaderText = config.Value.Header;
-                    column.Width = GetDpiAwareSize(new Size(config.Value.Width, 0)).Width;
-                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                }
+                var gridColumn = new Syncfusion.WinForms.DataGrid.GridTextColumn();
+                gridColumn.MappingName = col.Name;
+                gridColumn.HeaderText = col.Header;
+                gridColumn.Width = GetDpiAwareSize(new Size(col.Width, 0)).Width;
+                gridColumn.Visible = col.Visible;
+
+                _activityScheduleGrid.Columns.Add(gridColumn);
             }
 
-            // Set remaining columns to fill
-            if (_activityScheduleGrid.Columns.Count > 0)
-            {
-                _activityScheduleGrid.Columns[_activityScheduleGrid.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            }
+            Console.WriteLine($"✅ ENHANCED GRID: Setup {_activityScheduleGrid.Columns.Count} columns for {this.Text}");
         }
 
         private void LoadVehiclesAndDrivers()
         {
             try
             {
-                _vehicles = _vehicleRepository.GetAllVehicles().ToList();
-                _drivers = _driverRepository.GetAllDrivers().ToList();
+                _vehicles = _vehicleRepository.GetAllVehicles();
+                _drivers = _driverRepository.GetAllDrivers();
+                Console.WriteLine($"📊 Loaded {_vehicles.Count} vehicles and {_drivers.Count} drivers");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading vehicles and drivers: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading vehicles and drivers: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -236,17 +220,48 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _activitySchedules = _activityScheduleRepository.GetAllScheduledActivities().ToList();
-                _activityScheduleGrid.DataSource = null;
-                _activityScheduleGrid.DataSource = _activitySchedules;
+                _activitySchedules = _activityScheduleRepository.GetAllScheduledActivities();
+
+                // Create display objects with vehicle and driver names
+                var displaySchedules = _activitySchedules.Select(schedule => new
+                {
+                    schedule.ScheduleID,
+                    Date = schedule.DateAsDateTime?.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture) ?? schedule.Date ?? "N/A",
+                    schedule.TripType,
+                    ScheduledVehicleID = GetVehicleName(schedule.ScheduledVehicleID),
+                    schedule.ScheduledDestination,
+                    ScheduledLeaveTime = schedule.ScheduledLeaveTime?.ToString(@"hh\:mm") ?? "N/A",
+                    ScheduledEventTime = schedule.ScheduledEventTime?.ToString(@"hh\:mm") ?? "N/A",
+                    schedule.ScheduledRiders,
+                    ScheduledDriverID = GetDriverName(schedule.ScheduledDriverID)
+                }).ToList();
+
+                if (_activityScheduleGrid != null)
+                {
+                    _activityScheduleGrid.DataSource = displaySchedules;
+                }
 
                 UpdateButtonStates();
+                Console.WriteLine($"📊 Loaded {_activitySchedules.Count} activity schedules");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading activity schedules: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading activity schedules: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private string GetVehicleName(int? vehicleId)
+        {
+            if (vehicleId == null) return "N/A";
+            var vehicle = _vehicles.FirstOrDefault(v => v.VehicleID == vehicleId);
+            return vehicle != null ? $"{vehicle.VehicleNumber} - {vehicle.Make} {vehicle.Model}" : "Unknown";
+        }
+
+        private string GetDriverName(int? driverId)
+        {
+            if (driverId == null) return "N/A";
+            var driver = _drivers.FirstOrDefault(d => d.DriverID == driverId);
+            return driver != null ? $"{driver.FirstName} {driver.LastName}" : "Unknown";
         }
 
         private void AddNewActivitySchedule()
@@ -254,156 +269,156 @@ namespace BusBuddy.UI.Views
             try
             {
                 using var editForm = new ActivityScheduleEditFormSyncfusion(_vehicles, _drivers);
-                editForm.StartPosition = FormStartPosition.CenterParent;
-
-                if (editForm.ShowDialog(this) == DialogResult.OK && editForm.ActivitySchedule != null)
+                if (editForm.ShowDialog() == DialogResult.OK)
                 {
-                    _activityScheduleRepository.AddScheduledActivity(editForm.ActivitySchedule);
-                    MessageBox.Show("Activity schedule added successfully!",
-                        "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadActivitySchedules();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error adding activity schedule: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error opening add schedule form: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void EditSelectedActivitySchedule()
         {
-            if (_activityScheduleGrid.SelectedRows.Count == 0)
+            var selectedSchedule = GetSelectedActivitySchedule();
+            if (selectedSchedule == null)
             {
-                MessageBox.Show("Please select an activity schedule to edit.",
-                    "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Please select a schedule to edit.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             try
             {
-                int selectedId = (int)_activityScheduleGrid.SelectedRows[0].Cells["ScheduleID"].Value;
-                var scheduleToEdit = _activityScheduleRepository.GetScheduledActivityById(selectedId);
-
-                if (scheduleToEdit == null)
+                using var editForm = new ActivityScheduleEditFormSyncfusion(_vehicles, _drivers, selectedSchedule);
+                if (editForm.ShowDialog() == DialogResult.OK)
                 {
-                    MessageBox.Show("Could not find the selected activity schedule.",
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                using var editForm = new ActivityScheduleEditFormSyncfusion(_vehicles, _drivers, scheduleToEdit);
-                editForm.StartPosition = FormStartPosition.CenterParent;
-
-                if (editForm.ShowDialog(this) == DialogResult.OK && editForm.ActivitySchedule != null)
-                {
-                    _activityScheduleRepository.UpdateScheduledActivity(editForm.ActivitySchedule);
-                    MessageBox.Show("Activity schedule updated successfully!",
-                        "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadActivitySchedules();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error editing activity schedule: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error opening edit schedule form: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void DeleteSelectedActivitySchedule()
         {
-            if (_activityScheduleGrid.SelectedRows.Count == 0)
-                return;
-
-            int selectedId = (int)_activityScheduleGrid.SelectedRows[0].Cells["ScheduleID"].Value;
-
-            var result = MessageBox.Show(
-                "Are you sure you want to delete this activity schedule?",
-                "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (result != DialogResult.Yes)
-                return;
-
-            try
+            var selectedSchedule = GetSelectedActivitySchedule();
+            if (selectedSchedule == null)
             {
-                _activityScheduleRepository.DeleteScheduledActivity(selectedId);
-                LoadActivitySchedules();
-                MessageBox.Show("Activity schedule deleted successfully.",
-                    "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Please select a schedule to delete.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
-            catch (Exception ex)
+
+            if (MessageBox.Show($"Are you sure you want to delete the schedule for {selectedSchedule.ScheduledDestination} on {selectedSchedule.Date:MM/dd/yyyy}?",
+                               "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                MessageBox.Show($"Error deleting activity schedule: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                try
+                {
+                    _activityScheduleRepository.DeleteScheduledActivity(selectedSchedule.ScheduleID);
+                    LoadActivitySchedules();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error deleting schedule: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
         private void ViewActivityScheduleDetails()
         {
-            if (_activityScheduleGrid.SelectedRows.Count == 0)
-                return;
-
-            int selectedId = (int)_activityScheduleGrid.SelectedRows[0].Cells["ScheduleID"].Value;
-            var schedule = _activityScheduleRepository.GetScheduledActivityById(selectedId);
-
-            if (schedule != null)
-            {                var details = $"Activity Schedule Details:\n\n" +
-                             $"📅 Date: {schedule.Date:yyyy-MM-dd}\n" +
-                             $"🚌 Trip Type: {schedule.TripType}\n" +
-                             $"🚐 Vehicle ID: {schedule.ScheduledVehicleID}\n" +
-                             $"📍 Destination: {schedule.ScheduledDestination}\n" +
-                             $"🕒 Leave Time: {schedule.ScheduledLeaveTime}\n" +
-                             $"⏰ Event Time: {schedule.ScheduledEventTime}\n" +
-                             $"👥 Riders: {schedule.ScheduledRiders}\n" +
-                             $"👨‍✈️ Driver ID: {schedule.ScheduledDriverID}";
-
-                MessageBox.Show(details, "Activity Schedule Details",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
+            var selectedSchedule = GetSelectedActivitySchedule();
+            if (selectedSchedule == null)
             {
-                MessageBox.Show("Could not load activity schedule details.",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please select a schedule to view details.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var vehicleName = GetVehicleName(selectedSchedule.ScheduledVehicleID);
+            var driverName = GetDriverName(selectedSchedule.ScheduledDriverID);
+
+            var details = $"Activity Schedule Details:\n\n" +
+                         $"Date: {selectedSchedule.Date:MM/dd/yyyy}\n" +
+                         $"Trip Type: {selectedSchedule.TripType}\n" +
+                         $"Vehicle: {vehicleName}\n" +
+                         $"Destination: {selectedSchedule.ScheduledDestination}\n" +
+                         $"Leave Time: {selectedSchedule.ScheduledLeaveTime?.ToString("HH:mm") ?? "N/A"}\n" +
+                         $"Event Time: {selectedSchedule.ScheduledEventTime?.ToString("HH:mm") ?? "N/A"}\n" +
+                         $"Riders: {selectedSchedule.ScheduledRiders}\n" +
+                         $"Driver: {driverName}";
+
+            MessageBox.Show(details, "Schedule Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void SearchActivitySchedules()
+        {
+            if (_searchBox is TextBox searchTextBox && _activityScheduleGrid != null)
+            {
+                string searchTerm = searchTextBox.Text.Trim();
+
+                if (string.IsNullOrEmpty(searchTerm) || searchTerm == "Search schedules...")
+                {
+                    LoadActivitySchedules();
+                    return;
+                }
+
+                var filtered = _activitySchedules.Where(s =>
+                    s.ScheduledDestination?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                    s.TripType?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                    GetVehicleName(s.ScheduledVehicleID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    GetDriverName(s.ScheduledDriverID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                ).Select(schedule => new
+                {
+                    schedule.ScheduleID,
+                    Date = schedule.DateAsDateTime?.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture) ?? schedule.Date ?? "N/A",
+                    schedule.TripType,
+                    ScheduledVehicleID = GetVehicleName(schedule.ScheduledVehicleID),
+                    schedule.ScheduledDestination,
+                    ScheduledLeaveTime = schedule.ScheduledLeaveTime?.ToString(@"hh\:mm") ?? "N/A",
+                    ScheduledEventTime = schedule.ScheduledEventTime?.ToString(@"hh\:mm") ?? "N/A",
+                    schedule.ScheduledRiders,
+                    ScheduledDriverID = GetDriverName(schedule.ScheduledDriverID)
+                }).ToList();
+
+                _activityScheduleGrid.DataSource = filtered;
+                UpdateButtonStates();
             }
         }
 
-        private void ActivityScheduleGrid_SelectionChanged(object? sender, EventArgs e)
+        private ActivitySchedule? GetSelectedActivitySchedule()
+        {
+            if (_activityScheduleGrid?.SelectedItem != null)
+            {
+                // Get the selected item from SfDataGrid
+                var selectedItem = _activityScheduleGrid.SelectedItem;
+                if (selectedItem != null)
+                {
+                    // Extract ScheduleID from the selected item
+                    var scheduleIdProperty = selectedItem.GetType().GetProperty("ScheduleID");
+                    if (scheduleIdProperty != null)
+                    {
+                        var scheduleId = (int)(scheduleIdProperty.GetValue(selectedItem) ?? 0);
+                        return _activitySchedules.FirstOrDefault(s => s.ScheduleID == scheduleId);
+                    }
+                }
+            }
+            return null;
+        }
+
+        private void ActivityScheduleGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             UpdateButtonStates();
         }
 
         private void UpdateButtonStates()
         {
-            bool hasSelection = _activityScheduleGrid.SelectedRows.Count > 0;
+            bool hasSelection = _activityScheduleGrid?.SelectedItem != null;
 
             if (_editButton != null) _editButton.Enabled = hasSelection;
             if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
             if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
-        }
-
-        private void SearchActivitySchedules()
-        {
-            if (_searchBox is not TextBox searchTextBox)
-                return;
-
-            string searchTerm = searchTextBox.Text.Trim().ToLower();
-
-            if (string.IsNullOrEmpty(searchTerm))
-            {
-                LoadActivitySchedules();
-                return;
-            }            var filtered = _activitySchedules.Where(a =>
-                (a.TripType?.ToLower().Contains(searchTerm) == true) ||
-                (a.ScheduledDestination?.ToLower().Contains(searchTerm) == true) ||
-                (a.ScheduledVehicleID?.ToString().Contains(searchTerm) == true) ||
-                (a.ScheduledDriverID?.ToString().Contains(searchTerm) == true) ||
-                ($"{a.Date:yyyy-MM-dd}".Contains(searchTerm))
-            ).ToList();
-
-            _activityScheduleGrid.DataSource = null;
-            _activityScheduleGrid.DataSource = filtered;
-
-            UpdateButtonStates();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)

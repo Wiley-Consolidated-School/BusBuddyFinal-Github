@@ -8,12 +8,14 @@ using BusBuddy.Data;
 using BusBuddy.Business;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
 {
     /// <summary>
-    /// Route Management Form - Migrated to Syncfusion from MaterialSkin2
-    /// Form for managing routes with grid view and CRUD operations
+    /// Route Management Form - Enhanced Syncfusion Implementation
+    /// Form for managing routes with advanced SfDataGrid features
     /// </summary>
     public class RouteManagementFormSyncfusion : SyncfusionBaseForm
     {
@@ -21,7 +23,7 @@ namespace BusBuddy.UI.Views
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IDriverRepository _driverRepository;
         private IDatabaseHelperService _databaseHelperService;
-        private DataGridView? _routeGrid;
+        private SfDataGrid? _routeGrid;
         private Control? _addButton;
         private Control? _editButton;
         private Control? _deleteButton;
@@ -50,16 +52,14 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error initializing RouteManagementForm: {ex.Message}\n\nStack trace: {ex.StackTrace}",
-                    "Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw; // Re-throw to prevent partial initialization
+                MessageBox.Show($"Error initializing Route Management Form: {ex.Message}", "Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void InitializeComponent()
         {
             // Set form size to 1200x900, title to "Route Management"
-            this.Text = "🚌 Route Management";
+            this.Text = "🗺️ Route Management";
             this.ClientSize = GetDpiAwareSize(new Size(1200, 900));
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.Sizable;
@@ -72,7 +72,8 @@ namespace BusBuddy.UI.Views
             // Apply final theming
             SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
+            Console.WriteLine($"🎨 ENHANCED SYNCFUSION FORM: {this.Text} initialized with advanced SfDataGrid features");
+            Console.WriteLine($"✨ Features enabled: Filtering, Sorting, Grouping, Data Virtualization, Tooltips");
         }
 
         private void CreateControls()
@@ -84,8 +85,13 @@ namespace BusBuddy.UI.Views
             _detailsButton = SyncfusionThemeHelper.CreateStyledButton("👁️ Details");
             _searchButton = SyncfusionThemeHelper.CreateStyledButton("🔍 Search");
 
-            // Create search textbox
-            _searchBox = SyncfusionThemeHelper.CreateStyledTextBox("Search routes...");
+            // Create search textbox (simplified version)
+            _searchBox = new TextBox
+            {
+                Size = GetDpiAwareSize(new Size(150, 30)),
+                Text = "Search routes...",
+                ForeColor = Color.Gray
+            };
 
             // Configure button sizes and positions
             var buttonSize = GetDpiAwareSize(new Size(100, 35));
@@ -108,6 +114,8 @@ namespace BusBuddy.UI.Views
 
             // Search controls
             var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
+            searchLabel.Location = new Point(500, 25);
+            _mainPanel.Controls.Add(searchLabel);
             _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
             _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
 
@@ -120,16 +128,17 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_deleteButton);
             _mainPanel.Controls.Add(_detailsButton);
             _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);
-
-            // Create DataGridView
-            _routeGrid = SyncfusionThemeHelper.CreateMaterialDataGrid();
+            _mainPanel.Controls.Add(_searchButton);            // Create SfDataGrid with enhanced material styling and advanced features
+            _routeGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _routeGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
-            _routeGrid.Size = GetDpiAwareSize(new Size(1150, 800));
+            _routeGrid.Size = GetDpiAwareSize(new Size(1150, 650));
             _routeGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-            // Apply Syncfusion theming to grid
-            SyncfusionThemeHelper.ApplyMaterialDataGrid(_routeGrid);
+            // Apply BusBuddy standards and enhanced theming
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_routeGrid);
+
+            // Apply ALL Syncfusion features for 100% implementation
+            SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_routeGrid, "RouteManagement");
 
             _mainPanel.Controls.Add(_routeGrid);
 
@@ -153,7 +162,7 @@ namespace BusBuddy.UI.Views
             if (_routeGrid != null)
             {
                 _routeGrid.SelectionChanged += RouteGrid_SelectionChanged;
-                _routeGrid.DoubleClick += (s, e) => EditSelectedRoute();
+                _routeGrid.CellDoubleClick += (s, e) => EditSelectedRoute();
             }
 
             // Handle Enter key in search box
@@ -168,86 +177,42 @@ namespace BusBuddy.UI.Views
                     }
                 };
             }
-        }        private void SetupDataGridColumns()
+        }
+
+        private void SetupDataGridColumns()
         {
             if (_routeGrid == null) return;
 
-            _routeGrid.AutoGenerateColumns = false;
             _routeGrid.Columns.Clear();
+            _routeGrid.AutoGenerateColumns = false;
 
-            // Add columns with DPI-aware widths
-            _routeGrid.Columns.Add(new DataGridViewTextBoxColumn
+            // Define columns for Routes
+            var columns = new[]
             {
-                Name = "RouteID",
-                DataPropertyName = "RouteID",
-                HeaderText = "Route ID",
-                Width = GetDpiAwareWidth(80),
-                ReadOnly = true,
-                Visible = false
-            });
+                new { Name = "RouteID", Header = "Route ID", Width = 80, Visible = false },
+                new { Name = "RouteName", Header = "🗺️ Route Name", Width = 180, Visible = true },
+                new { Name = "RouteDescription", Header = "📝 Description", Width = 200, Visible = true },
+                new { Name = "StartLocation", Header = "📍 Start", Width = 150, Visible = true },
+                new { Name = "EndLocation", Header = "🏁 End", Width = 150, Visible = true },
+                new { Name = "Distance", Header = "📏 Distance", Width = 100, Visible = true },
+                new { Name = "EstimatedTime", Header = "⏱️ Est. Time", Width = 100, Visible = true },
+                new { Name = "AssignedVehicle", Header = "🚐 Vehicle", Width = 120, Visible = true },
+                new { Name = "AssignedDriver", Header = "👨‍💼 Driver", Width = 120, Visible = true },
+                new { Name = "IsActive", Header = "✅ Active", Width = 80, Visible = true }
+            };
 
-            _routeGrid.Columns.Add(new DataGridViewTextBoxColumn
+            foreach (var col in columns)
             {
-                Name = "Date",
-                DataPropertyName = "Date",
-                HeaderText = "Date",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
+                var gridColumn = new Syncfusion.WinForms.DataGrid.GridTextColumn();
+                gridColumn.MappingName = col.Name;
+                gridColumn.HeaderText = col.Header;
+                gridColumn.Width = GetDpiAwareSize(new Size(col.Width, 0)).Width;
+                gridColumn.Visible = col.Visible;
 
-            _routeGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "RouteName",
-                DataPropertyName = "RouteName",
-                HeaderText = "Route Name",
-                Width = GetDpiAwareWidth(150),
-                ReadOnly = true
-            });
+                _routeGrid.Columns.Add(gridColumn);
+            }
 
-            _routeGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "AMVehicleNumber",
-                DataPropertyName = "AMVehicleNumber",
-                HeaderText = "AM Vehicle",
-                Width = GetDpiAwareWidth(120),
-                ReadOnly = true
-            });
-
-            _routeGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "AMDriverName",
-                DataPropertyName = "AMDriverName",
-                HeaderText = "AM Driver",
-                Width = GetDpiAwareWidth(150),
-                ReadOnly = true
-            });
-
-            _routeGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "PMVehicleNumber",
-                DataPropertyName = "PMVehicleNumber",
-                HeaderText = "PM Vehicle",
-                Width = GetDpiAwareWidth(120),
-                ReadOnly = true
-            });
-
-            _routeGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "PMDriverName",
-                DataPropertyName = "PMDriverName",
-                HeaderText = "PM Driver",
-                Width = GetDpiAwareWidth(150),
-                ReadOnly = true
-            });
-
-            _routeGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Notes",
-                DataPropertyName = "Notes",
-                HeaderText = "Notes",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                ReadOnly = true
-            });
+            Console.WriteLine($"✅ ENHANCED GRID: Setup {_routeGrid.Columns.Count} columns for {this.Text}");
         }
 
         private void LoadVehiclesAndDrivers()
@@ -256,6 +221,7 @@ namespace BusBuddy.UI.Views
             {
                 _vehicles = _vehicleRepository.GetAllVehicles().ToList();
                 _drivers = _driverRepository.GetAllDrivers().ToList();
+                Console.WriteLine($"📊 Loaded {_vehicles.Count} vehicles and {_drivers.Count} drivers");
             }
             catch (Exception ex)
             {
@@ -267,167 +233,104 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("LoadRoutes: Starting to load routes...");
+                _routes = _routeRepository.GetAllRoutes().ToList();
 
-                if (_databaseHelperService == null)
+                // Create display objects with vehicle and driver names
+                var displayRoutes = _routes.Select(route => new
                 {
-                    System.Diagnostics.Debug.WriteLine("LoadRoutes: DatabaseHelperService is null, creating new instance");
-                    _databaseHelperService = new DatabaseHelperService();
+                    route.RouteID,
+                    route.RouteName,
+                    Date = route.Date,
+                    AMVehicle = GetVehicleName(route.AMVehicleID),
+                    AMDriver = GetDriverName(route.AMDriverID),
+                    PMVehicle = GetVehicleName(route.PMVehicleID),
+                    PMDriver = GetDriverName(route.PMDriverID),
+                    route.Notes
+                }).ToList();
+
+                if (_routeGrid != null)
+                {
+                    _routeGrid.DataSource = displayRoutes;
                 }
 
-                System.Diagnostics.Debug.WriteLine("LoadRoutes: Calling GetAllRoutesWithDetails...");
-                var loadedRoutes = _databaseHelperService?.GetAllRoutesWithDetails();
-                _routes = loadedRoutes ?? new List<Route>();
-
-                System.Diagnostics.Debug.WriteLine($"LoadRoutes: Loaded {_routes.Count} routes");
-
-                System.Diagnostics.Debug.WriteLine("LoadRoutes: Calling PopulateRouteGrid...");
-                PopulateRouteGrid();
-
-                System.Diagnostics.Debug.WriteLine("LoadRoutes: Completed successfully");
+                UpdateButtonStates();
+                Console.WriteLine($"📊 Loaded {_routes.Count} routes");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"LoadRoutes: Exception - {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"LoadRoutes: Stack trace - {ex.StackTrace}");
-                _routes = new List<Route>(); // Ensure _routes is never null
-                PopulateRouteGrid(); // Still populate the grid (empty)
-                MessageBox.Show($"Error loading routes: {ex.Message}\n\nDetails: {ex.StackTrace}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }        private void PopulateRouteGrid()
-        {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: Starting...");
-
-                // Add comprehensive null checks
-                if (_routeGrid == null)
-                {
-                    Console.WriteLine("ERROR: RouteGrid is null in PopulateRouteGrid");
-                    return;
-                }
-
-                // Initialize lists if they're null
-                _routes = _routes ?? new List<Route>();
-                _vehicles = _vehicles ?? new List<Vehicle>();
-                _drivers = _drivers ?? new List<Driver>();
-
-                System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: About to populate with {_routes.Count} routes");
-
-                _routeGrid.DataSource = null;
-
-                if (_routes.Any())
-                {
-                    var routeData = _routes.Select(r => new
-                    {
-                        RouteID = r.RouteID,
-                        Date = r.Date ?? "",
-                        RouteName = r.RouteName ?? "",
-                        AMVehicleNumber = _vehicles.FirstOrDefault(v => v.Id == r.AMVehicleID)?.VehicleNumber ?? "",
-                        AMDriverName = _drivers.FirstOrDefault(d => d.DriverID == r.AMDriverID)?.Name ?? "",
-                        PMVehicleNumber = _vehicles.FirstOrDefault(v => v.Id == r.PMVehicleID)?.VehicleNumber ?? "",
-                        PMDriverName = _drivers.FirstOrDefault(d => d.DriverID == r.PMDriverID)?.Name ?? "",
-                        Notes = r.Notes ?? ""
-                    }).ToList();
-
-                    _routeGrid.DataSource = routeData;
-                    System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: Successfully populated with {routeData.Count} display records");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("PopulateRouteGrid: No routes to display");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"PopulateRouteGrid: Exception - {ex.Message}");
-                MessageBox.Show($"Error populating route grid: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading routes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void RouteGrid_SelectionChanged(object? sender, EventArgs e)
+        private string GetVehicleName(int? vehicleId)
         {
-            bool hasSelection = _routeGrid?.SelectedRows.Count > 0;
-            if (_editButton != null) _editButton.Enabled = hasSelection;
-            if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
-            if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
+            if (vehicleId == null) return "Not Assigned";
+            var vehicle = _vehicles.FirstOrDefault(v => v.VehicleID == vehicleId);
+            return vehicle != null ? $"{vehicle.VehicleNumber} - {vehicle.Make} {vehicle.Model}" : "Unknown";
+        }
+
+        private string GetDriverName(int? driverId)
+        {
+            if (driverId == null) return "Not Assigned";
+            var driver = _drivers.FirstOrDefault(d => d.DriverID == driverId);
+            return driver != null ? $"{driver.FirstName} {driver.LastName}" : "Unknown";
         }
 
         private void AddNewRoute()
         {
             try
             {
-                using (var routeForm = new RouteEditFormSyncfusion())
+                using var editForm = new RouteEditFormSyncfusion();
+                if (editForm.ShowDialog() == DialogResult.OK)
                 {
-                    if (routeForm.ShowDialog(this) == DialogResult.OK)
-                    {
-                        LoadRoutes();
-                    }
+                    LoadRoutes();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error opening route form: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error opening add route form: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void EditSelectedRoute()
         {
-            if (_routeGrid?.SelectedRows.Count > 0)
+            var selectedRoute = GetSelectedRoute();
+            if (selectedRoute == null)
             {
-                try
-                {
-                    var selectedRow = _routeGrid.SelectedRows[0];
-                    var routeId = (int)selectedRow.Cells["RouteID"].Value;
-                    var route = _routes.FirstOrDefault(r => r.RouteID == routeId);
+                MessageBox.Show("Please select a route to edit.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
-                    if (route != null)
-                    {
-                        using (var routeForm = new RouteEditFormSyncfusion(route))
-                        {
-                            if (routeForm.ShowDialog(this) == DialogResult.OK)
-                            {
-                                LoadRoutes();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Selected route not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                }
-                catch (Exception ex)
+            try
+            {
+                using var editForm = new RouteEditFormSyncfusion(selectedRoute);
+                if (editForm.ShowDialog() == DialogResult.OK)
                 {
-                    MessageBox.Show($"Error editing route: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LoadRoutes();
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening edit route form: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void DeleteSelectedRoute()
         {
-            if (_routeGrid?.SelectedRows.Count > 0)
+            var selectedRoute = GetSelectedRoute();
+            if (selectedRoute == null)
+            {
+                MessageBox.Show("Please select a route to delete.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (MessageBox.Show($"Are you sure you want to delete the route '{selectedRoute.RouteName}'?",
+                               "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 try
                 {
-                    var selectedRow = _routeGrid.SelectedRows[0];
-                    var routeId = (int)selectedRow.Cells["RouteID"].Value;
-                    var route = _routes.FirstOrDefault(r => r.RouteID == routeId);
-
-                    if (route != null)
-                    {
-                        var result = MessageBox.Show(
-                            $"Are you sure you want to delete the route '{route.RouteName}'?",
-                            "Confirm Delete",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question);
-
-                        if (result == DialogResult.Yes)
-                        {
-                            _routeRepository.DeleteRoute(routeId);
-                            LoadRoutes();
-                            MessageBox.Show("Route deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-                    }
+                    _routeRepository.DeleteRoute(selectedRoute.RouteID);
+                    LoadRoutes();
                 }
                 catch (Exception ex)
                 {
@@ -438,66 +341,106 @@ namespace BusBuddy.UI.Views
 
         private void ViewRouteDetails()
         {
-            if (_routeGrid?.SelectedRows.Count > 0)
+            var selectedRoute = GetSelectedRoute();
+            if (selectedRoute == null)
             {
-                try
-                {
-                    var selectedRow = _routeGrid.SelectedRows[0];
-                    var routeId = (int)selectedRow.Cells["RouteID"].Value;
-                    var route = _routes.FirstOrDefault(r => r.RouteID == routeId);
-
-                    if (route != null)
-                    {
-                        using (var routeForm = new RouteEditFormSyncfusion(route))
-                        {
-                            routeForm.ShowDialog(this);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error viewing route details: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                MessageBox.Show("Please select a route to view details.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
-        }        private void SearchRoutes()
-        {
-            if (_searchBox is TextBox searchBox)
-            {
-                var searchTerm = searchBox.Text?.Trim().ToLower() ?? "";
 
-                if (string.IsNullOrEmpty(searchTerm))
+            var vehicleName = GetVehicleName(selectedRoute.AMVehicleID);
+            var driverName = GetDriverName(selectedRoute.AMDriverID);
+
+            var details = $"Route Details:\n\n" +
+                         $"Name: {selectedRoute.RouteName}\n" +
+                         $"Date: {selectedRoute.Date ?? "N/A"}\n" +
+                         $"AM Vehicle: {GetVehicleName(selectedRoute.AMVehicleID)}\n" +
+                         $"AM Driver: {GetDriverName(selectedRoute.AMDriverID)}\n" +
+                         $"PM Vehicle: {GetVehicleName(selectedRoute.PMVehicleID)}\n" +
+                         $"PM Driver: {GetDriverName(selectedRoute.PMDriverID)}\n" +
+                         $"Notes: {selectedRoute.Notes ?? "N/A"}";
+
+            MessageBox.Show(details, "Route Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void SearchRoutes()
+        {
+            if (_searchBox is TextBox searchTextBox && _routeGrid != null)
+            {
+                string searchTerm = searchTextBox.Text.Trim();
+
+                if (string.IsNullOrEmpty(searchTerm) || searchTerm == "Search routes...")
                 {
                     LoadRoutes();
                     return;
                 }
 
-                try
+                var filtered = _routes.Where(r =>
+                    r.RouteName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                    r.Date?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                    r.Notes?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                    GetVehicleName(r.AMVehicleID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    GetDriverName(r.AMDriverID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    GetVehicleName(r.PMVehicleID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    GetDriverName(r.PMDriverID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                ).Select(route => new
                 {
-                    var allRoutes = _databaseHelperService?.GetAllRoutesWithDetails() ?? new List<Route>();
-                    _routes = allRoutes.Where(r =>
-                        (r.RouteName?.ToLower().Contains(searchTerm) == true) ||
-                        (r.AMVehicleNumber?.ToLower().Contains(searchTerm) == true) ||
-                        (r.AMDriverName?.ToLower().Contains(searchTerm) == true) ||
-                        (r.PMVehicleNumber?.ToLower().Contains(searchTerm) == true) ||
-                        (r.PMDriverName?.ToLower().Contains(searchTerm) == true) ||
-                        (r.Notes?.ToLower().Contains(searchTerm) == true)
-                    ).ToList();
+                    route.RouteID,
+                    route.RouteName,
+                    Date = route.Date,
+                    AMVehicle = GetVehicleName(route.AMVehicleID),
+                    AMDriver = GetDriverName(route.AMDriverID),
+                    PMVehicle = GetVehicleName(route.PMVehicleID),
+                    PMDriver = GetDriverName(route.PMDriverID),
+                    route.Notes
+                }).ToList();
 
-                    PopulateRouteGrid();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error searching routes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                _routeGrid.DataSource = filtered;
+                UpdateButtonStates();
             }
         }
 
-        // Properties for testing access
-#if DEBUG || TESTING
-        public Button? AddButton => _addButton as Button;
-        public Button? EditButton => _editButton as Button;
-        public Button? DeleteButton => _deleteButton as Button;
-        public Button? DetailsButton => _detailsButton as Button;
-#endif
+        private Route? GetSelectedRoute()
+        {
+            if (_routeGrid?.SelectedItem != null)
+            {
+                // Get the selected item from SfDataGrid
+                var selectedItem = _routeGrid.SelectedItem;
+                if (selectedItem != null)
+                {
+                    // Extract RouteID from the selected item
+                    var routeIdProperty = selectedItem.GetType().GetProperty("RouteID");
+                    if (routeIdProperty != null)
+                    {
+                        var routeIdValue = routeIdProperty.GetValue(selectedItem);
+                        if (routeIdValue is int routeId)
+                        {
+                            return _routes.FirstOrDefault(r => r.RouteID == routeId);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        private void RouteGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            UpdateButtonStates();
+        }
+
+        private void UpdateButtonStates()
+        {
+            bool hasSelection = _routeGrid?.SelectedItem != null;
+
+            if (_editButton != null) _editButton.Enabled = hasSelection;
+            if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
+            if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            // Clean up resources if needed
+            base.OnFormClosing(e);
+        }
     }
 }

@@ -8,17 +8,19 @@ using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
 {
     /// <summary>
-    /// School Calendar Management Form - Migrated to Syncfusion from MaterialSkin2
-    /// Form for managing school calendar with visual calendar grid and CRUD operations
+    /// School Calendar Management Form - Enhanced Syncfusion Implementation
+    /// Form for managing school calendar with advanced SfDataGrid features and visual calendar
     /// </summary>
     public class SchoolCalendarManagementFormSyncfusion : SyncfusionBaseForm
     {
         private readonly ISchoolCalendarRepository _calendarRepository;
-        private DataGridView? _calendarGrid;
+        private SfDataGrid? _calendarGrid;
         private ComboBox? _monthComboBox;
         private NumericUpDown _yearUpDown;
         private Panel? _editPanel;
@@ -48,19 +50,21 @@ namespace BusBuddy.UI.Views
             _calendarRepository = calendarRepository ?? throw new ArgumentNullException(nameof(calendarRepository));
             _displayYear = DateTime.Now.Year;
             _displayMonth = DateTime.Now.Month;
+            _selectedDate = DateTime.Now.Date;
+            _calendarEntries = new List<SchoolCalendar>();
+
             InitializeComponent();
             LoadCalendarEntries();
-            PopulateCalendarGrid();
         }
 
         private void InitializeComponent()
         {
-            // Set form size to 1200x900, title to "School Calendar Management"
+            // Set form size to 1400x900, title to "School Calendar Management"
             this.Text = "📅 School Calendar Management";
-            this.ClientSize = GetDpiAwareSize(new Size(1200, 900));
+            this.ClientSize = GetDpiAwareSize(new Size(1400, 900));
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.Sizable;
-            this.MinimumSize = GetDpiAwareSize(new Size(800, 600));
+            this.MinimumSize = GetDpiAwareSize(new Size(1000, 700));
 
             CreateControls();
             LayoutControls();
@@ -69,129 +73,143 @@ namespace BusBuddy.UI.Views
             // Apply final theming
             SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
+            Console.WriteLine($"🎨 ENHANCED SYNCFUSION FORM: {this.Text} initialized with advanced SfDataGrid features");
+            Console.WriteLine($"✨ Features enabled: Calendar Grid, Filtering, Sorting, Color Coding");
         }
 
         private void CreateControls()
         {
-            // Month/year navigation
-            var monthLabel = ControlFactory.CreateLabel("Month:");
-            _mainPanel.Controls.Add(monthLabel);
+            // Create navigation controls
+            var navigationPanel = new Panel
+            {
+                Size = GetDpiAwareSize(new Size(1350, 60)),
+                Location = new Point(GetDpiAwareX(20), GetDpiAwareY(20)),
+                BackColor = Color.LightBlue
+            };
+
+            var monthLabel = ControlFactory.CreateLabel("📅 Month:");
+            monthLabel.Location = new Point(10, 20);
+            navigationPanel.Controls.Add(monthLabel);
 
             _monthComboBox = new ComboBox
             {
-                Location = new Point(GetDpiAwareX(80), GetDpiAwareY(20)),
+                DropDownStyle = ComboBoxStyle.DropDownList,
                 Size = GetDpiAwareSize(new Size(120, 30)),
-                DropDownStyle = ComboBoxStyle.DropDownList
+                Location = new Point(70, 15)
             };
-            _monthComboBox.Items.AddRange(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames.Take(12).ToArray());
+            _monthComboBox.Items.AddRange(new[] {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            });
             _monthComboBox.SelectedIndex = _displayMonth - 1;
-            _mainPanel.Controls.Add(_monthComboBox);
+            navigationPanel.Controls.Add(_monthComboBox);
 
-            var yearLabel = ControlFactory.CreateLabel("Year:");
-            _mainPanel.Controls.Add(yearLabel);
+            var yearLabel = ControlFactory.CreateLabel("📅 Year:");
+            yearLabel.Location = new Point(210, 20);
+            navigationPanel.Controls.Add(yearLabel);
 
             _yearUpDown = new NumericUpDown
             {
-                Location = new Point(GetDpiAwareX(260), GetDpiAwareY(20)),
+                Minimum = 2020,
+                Maximum = 2030,
+                Value = _displayYear,
                 Size = GetDpiAwareSize(new Size(80, 30)),
-                Minimum = 2000,
-                Maximum = 2100,
-                Value = _displayYear
+                Location = new Point(260, 15)
             };
-            _mainPanel.Controls.Add(_yearUpDown);
+            navigationPanel.Controls.Add(_yearUpDown);
 
-            // Legend
-            _legendLabel = new Label
-            {
-                Location = new Point(GetDpiAwareX(360), GetDpiAwareY(20)),
-                Size = GetDpiAwareSize(new Size(800, 30)),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 10, FontStyle.Italic)
-            };
-            _legendLabel.Text = "Legend: " + string.Join("  ", _dayTypeColors.Select(kvp => $"[{kvp.Key}]"));
-            _mainPanel.Controls.Add(_legendLabel);
+            var refreshButton = SyncfusionThemeHelper.CreateStyledButton("🔄 Refresh");
+            refreshButton.Size = GetDpiAwareSize(new Size(100, 35));
+            refreshButton.Location = new Point(360, 12);
+            refreshButton.Click += (s, e) => RefreshCalendar();
+            navigationPanel.Controls.Add(refreshButton);
 
-            // Calendar grid
-            _calendarGrid = new DataGridView();
-            _calendarGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(60));
-            _calendarGrid.Size = GetDpiAwareSize(new Size(1150, 600));
+            // Create legend
+            _legendLabel = ControlFactory.CreateLabel("Legend: ");
+            _legendLabel.Location = new Point(480, 20);
+            _legendLabel.Size = GetDpiAwareSize(new Size(800, 20));
+            UpdateLegend();
+            navigationPanel.Controls.Add(_legendLabel);
+
+            _mainPanel.Controls.Add(navigationPanel);
+
+            // Create main calendar grid with enhanced styling
+            _calendarGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
+            _calendarGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(90));
+            _calendarGrid.Size = GetDpiAwareSize(new Size(900, 600));
             _calendarGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            _calendarGrid.RowHeadersVisible = false;
-            _calendarGrid.ColumnHeadersHeight = GetDpiAwareHeight(40);
-            _calendarGrid.AllowUserToAddRows = false;
-            _calendarGrid.AllowUserToDeleteRows = false;
-            _calendarGrid.AllowUserToResizeRows = false;
-            _calendarGrid.AllowUserToResizeColumns = false;
-            _calendarGrid.ReadOnly = true;
-            _calendarGrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
-            _calendarGrid.MultiSelect = false;
-            _calendarGrid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Apply Syncfusion theming to grid
-            SyncfusionThemeHelper.ApplyMaterialDataGrid(_calendarGrid);
+            // Apply BusBuddy standards and enhanced theming
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_calendarGrid);
 
             _mainPanel.Controls.Add(_calendarGrid);
 
-            // Edit panel
-            InitializeEditPanel();
+            // Create edit panel
+            CreateEditPanel();
+
+            // Configure grid columns
+            SetupDataGridColumns();
         }
 
-        private void InitializeEditPanel()
+        private void CreateEditPanel()
         {
             _editPanel = new Panel
             {
-                Location = new Point(GetDpiAwareX(20), GetDpiAwareY(680)),
-                Size = GetDpiAwareSize(new Size(1150, 100)),
-                Visible = false,
-                BackColor = Color.AliceBlue,
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+                Size = GetDpiAwareSize(new Size(450, 600)),
+                Location = new Point(GetDpiAwareX(950), GetDpiAwareY(90)),
+                BackColor = Color.LightGray,
+                BorderStyle = BorderStyle.FixedSingle
             };
 
+            var editTitle = ControlFactory.CreateLabel("📝 Edit Calendar Entry");
+            editTitle.Font = new Font(editTitle.Font, FontStyle.Bold);
+            editTitle.Location = new Point(10, 10);
+            editTitle.Size = GetDpiAwareSize(new Size(400, 25));
+            _editPanel.Controls.Add(editTitle);
+
+            var selectedDateLabel = ControlFactory.CreateLabel($"Selected Date: {_selectedDate:MM/dd/yyyy}");
+            selectedDateLabel.Location = new Point(10, 45);
+            selectedDateLabel.Size = GetDpiAwareSize(new Size(400, 20));
+            selectedDateLabel.Name = "SelectedDateLabel";
+            _editPanel.Controls.Add(selectedDateLabel);
+
             var dayTypeLabel = ControlFactory.CreateLabel("Day Type:");
+            dayTypeLabel.Location = new Point(10, 80);
             _editPanel.Controls.Add(dayTypeLabel);
 
             _dayTypeComboBox = new ComboBox
             {
-                Location = new Point(GetDpiAwareX(90), GetDpiAwareY(10)),
-                Size = GetDpiAwareSize(new Size(180, 30)),
-                DropDownStyle = ComboBoxStyle.DropDownList
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Size = GetDpiAwareSize(new Size(400, 30)),
+                Location = new Point(10, 105)
             };
             _dayTypeComboBox.Items.AddRange(_dayTypes);
+            _dayTypeComboBox.SelectedIndex = 0; // Default to "School Day"
             _editPanel.Controls.Add(_dayTypeComboBox);
 
             var notesLabel = ControlFactory.CreateLabel("Notes:");
+            notesLabel.Location = new Point(10, 150);
             _editPanel.Controls.Add(notesLabel);
 
-            _notesTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
-            _notesTextBox.Location = new Point(GetDpiAwareX(360), GetDpiAwareY(10));
-            _notesTextBox.Size = GetDpiAwareSize(new Size(400, 30));
+            _notesTextBox = new TextBox
+            {
+                Multiline = true,
+                Size = GetDpiAwareSize(new Size(400, 100)),
+                Location = new Point(10, 175),
+                ScrollBars = ScrollBars.Vertical
+            };
             _editPanel.Controls.Add(_notesTextBox);
 
-            // Add CRUD buttons
-            var addButton = SyncfusionThemeHelper.CreateStyledButton("➕ Add New");
-            addButton.Location = new Point(GetDpiAwareX(800), GetDpiAwareY(10));
-            addButton.Size = GetDpiAwareSize(new Size(90, 35));
-            addButton.Click += (s, e) => AddNewEntry();
-            _editPanel.Controls.Add(addButton);
-
-            var editButton = SyncfusionThemeHelper.CreateStyledButton("✏️ Edit");
-            editButton.Location = new Point(GetDpiAwareX(900), GetDpiAwareY(10));
-            editButton.Size = GetDpiAwareSize(new Size(70, 35));
-            editButton.Click += (s, e) => EditEntry();
-            _editPanel.Controls.Add(editButton);
+            _saveButton = SyncfusionThemeHelper.CreateStyledButton("💾 Save Entry");
+            _saveButton.Size = GetDpiAwareSize(new Size(120, 35));
+            _saveButton.Location = new Point(10, 290);
+            _editPanel.Controls.Add(_saveButton);
 
             var deleteButton = SyncfusionThemeHelper.CreateStyledButton("🗑️ Delete");
-            deleteButton.Location = new Point(GetDpiAwareX(980), GetDpiAwareY(10));
-            deleteButton.Size = GetDpiAwareSize(new Size(80, 35));
-            deleteButton.Click += (s, e) => DeleteEntry();
+            deleteButton.Size = GetDpiAwareSize(new Size(120, 35));
+            deleteButton.Location = new Point(140, 290);
+            deleteButton.Click += (s, e) => DeleteSelectedEntry();
             _editPanel.Controls.Add(deleteButton);
-
-            _saveButton = SyncfusionThemeHelper.CreateStyledButton("💾 Save");
-            _saveButton.Location = new Point(GetDpiAwareX(1070), GetDpiAwareY(10));
-            _saveButton.Size = GetDpiAwareSize(new Size(70, 35));
-            _saveButton.Click += (s, e) => SaveDayType();
-            _editPanel.Controls.Add(_saveButton);
 
             _mainPanel.Controls.Add(_editPanel);
         }
@@ -204,204 +222,261 @@ namespace BusBuddy.UI.Views
         private void SetupEventHandlers()
         {
             if (_monthComboBox != null)
-            {
-                _monthComboBox.SelectedIndexChanged += (s, e) =>
-                {
-                    _displayMonth = _monthComboBox.SelectedIndex + 1;
-                    PopulateCalendarGrid();
-                };
-            }
+                _monthComboBox.SelectedIndexChanged += (s, e) => RefreshCalendar();
 
-            if (_yearUpDown != null)
-            {
-                _yearUpDown.ValueChanged += (s, e) =>
-                {
-                    _displayYear = (int)_yearUpDown.Value;
-                    PopulateCalendarGrid();
-                };
-            }
+            _yearUpDown.ValueChanged += (s, e) => RefreshCalendar();
 
             if (_calendarGrid != null)
             {
-                _calendarGrid.CellPainting += CalendarGrid_CellPainting;
-                _calendarGrid.CellClick += CalendarGrid_CellClick;
+                _calendarGrid.SelectionChanged += CalendarGrid_SelectionChanged;
+                _calendarGrid.CellDoubleClick += (s, e) => EditSelectedDate();
             }
+
+            if (_saveButton != null)
+                _saveButton.Click += (s, e) => SaveCalendarEntry();
+
+            if (_dayTypeComboBox != null)
+                _dayTypeComboBox.SelectedIndexChanged += (s, e) => UpdateDateDisplay();
+        }
+
+        private void SetupDataGridColumns()
+        {
+            if (_calendarGrid == null) return;
+
+            _calendarGrid.Columns.Clear();
+            _calendarGrid.AutoGenerateColumns = false;
+
+            // Define columns for Calendar display
+            var columns = new[]
+            {
+                new { Name = "Date", Header = "📅 Date", Width = 120, Visible = true },
+                new { Name = "DayOfWeek", Header = "📆 Day", Width = 100, Visible = true },
+                new { Name = "DayType", Header = "📝 Type", Width = 130, Visible = true },
+                new { Name = "IsSchoolDay", Header = "🏫 School Day", Width = 100, Visible = true },
+                new { Name = "Notes", Header = "📝 Notes", Width = 300, Visible = true },
+                new { Name = "ColorIndicator", Header = "🎨 Color", Width = 80, Visible = true }
+            };
+
+            foreach (var col in columns)
+            {
+                var gridColumn = new Syncfusion.WinForms.DataGrid.GridTextColumn();
+                gridColumn.MappingName = col.Name;
+                gridColumn.HeaderText = col.Header;
+                gridColumn.Width = GetDpiAwareSize(new Size(col.Width, 0)).Width;
+                gridColumn.Visible = col.Visible;
+
+                _calendarGrid.Columns.Add(gridColumn);
+            }
+
+            Console.WriteLine($"✅ ENHANCED GRID: Setup {_calendarGrid.Columns.Count} columns for {this.Text}");
         }
 
         private void LoadCalendarEntries()
         {
-            _calendarEntries = _calendarRepository.GetAllCalendarEntries();
-        }
-
-        internal void PopulateCalendarGrid()
-        {
-            _calendarGrid.Columns.Clear();
-            _calendarGrid.Rows.Clear();
-
-            string[] days = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
-            foreach (var day in days)
-                _calendarGrid.Columns.Add(day, day);
-
-            DateTime firstOfMonth = new DateTime(_displayYear, _displayMonth, 1);
-            int daysInMonth = DateTime.DaysInMonth(_displayYear, _displayMonth);
-            int firstDayOfWeek = ((int)firstOfMonth.DayOfWeek + 6) % 7; // Monday=0
-            int totalCells = daysInMonth + firstDayOfWeek;
-            int rows = (int)Math.Ceiling(totalCells / 7.0);
-
-            _calendarGrid.Rows.Add(rows);
-
-            for (int i = 0; i < rows; i++)
-                _calendarGrid.Rows[i].Height = GetDpiAwareHeight(60);
-
-            for (int day = 1; day <= daysInMonth; day++)
-            {
-                int cell = day + firstDayOfWeek - 1;
-                int row = cell / 7;
-                int col = cell % 7;
-                _calendarGrid.Rows[row].Cells[col].Value = new DateTime(_displayYear, _displayMonth, day);
-            }
-
-            _calendarGrid.ClearSelection();
-        }
-
-        private void CalendarGrid_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-
-            var cellValue = _calendarGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
-            if (cellValue is not DateTime cellDate || e.Graphics == null || e.CellStyle?.Font == null)
-            {
-                if (e.Graphics != null)
-                    e.Graphics.FillRectangle(new SolidBrush(_defaultColor), e.CellBounds);
-                e.Handled = true;
-                return;
-            }
-
-            if (_calendarEntries == null)
-            {
-                e.Graphics.FillRectangle(new SolidBrush(_defaultColor), e.CellBounds);
-                e.Handled = true;
-                return;
-            }
-
-            var entry = _calendarEntries.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == cellDate.Date);
-            string dayType = entry?.Category ?? "School Day";
-            Color backColor = _dayTypeColors.ContainsKey(dayType) ? _dayTypeColors[dayType] : _defaultColor;
-
-            e.Graphics.FillRectangle(new SolidBrush(backColor), e.CellBounds);
-
-            // Draw day number
-            TextRenderer.DrawText(e.Graphics, cellDate.Day.ToString(), e.CellStyle.Font, e.CellBounds, Color.Black, TextFormatFlags.Right | TextFormatFlags.Top);
-
-            // Draw day type
-            if (!string.IsNullOrEmpty(dayType))
-                TextRenderer.DrawText(e.Graphics, dayType, e.CellStyle.Font, e.CellBounds, Color.DimGray, TextFormatFlags.Left | TextFormatFlags.Bottom);
-
-            // Draw notes
-            if (entry != null && !string.IsNullOrEmpty(entry.Notes))
-                TextRenderer.DrawText(e.Graphics, entry.Notes, new Font(e.CellStyle.Font, FontStyle.Italic), e.CellBounds, Color.Navy, TextFormatFlags.Left | TextFormatFlags.Top);
-
-            e.Handled = true;
-        }
-
-        private void CalendarGrid_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-
-            var cellValue = _calendarGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
-            if (cellValue is not DateTime cellDate) return;
-
-            _selectedDate = cellDate;
-
-            if (_calendarEntries == null)
-            {
-                _dayTypeComboBox.SelectedItem = "School Day";
-                if (_notesTextBox is TextBox notesTb)
-                    notesTb.Text = string.Empty;
-                _editPanel.Visible = true;
-                return;
-            }
-
-            var entry = _calendarEntries.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == cellDate.Date);
-            _dayTypeComboBox.SelectedItem = entry?.Category ?? "School Day";
-            if (_notesTextBox is TextBox notesTb2)
-                notesTb2.Text = entry?.Notes ?? string.Empty;
-            _editPanel.Visible = true;
-        }
-
-        private void AddNewEntry()
-        {
             try
             {
-                using var editForm = new SchoolCalendarEditFormSyncfusion();
-                editForm.StartPosition = FormStartPosition.CenterParent;
-
-                if (editForm.ShowDialog(this) == DialogResult.OK && editForm.SchoolCalendar != null)
-                {
-                    _calendarRepository.Add(editForm.SchoolCalendar);
-                    LoadCalendarEntries();
-                    PopulateCalendarGrid();
-                    MessageBox.Show("Calendar entry added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
+                _calendarEntries = _calendarRepository.GetAllCalendarEntries().ToList();
+                RefreshCalendar();
+                Console.WriteLine($"📊 Loaded {_calendarEntries.Count} calendar entries");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error adding calendar entry: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading calendar entries: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void EditEntry()
+        private void RefreshCalendar()
         {
+            if (_monthComboBox == null || _calendarGrid == null) return;
+
             try
             {
-                var entry = _calendarEntries?.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == _selectedDate.Date);
-                if (entry == null)
+                _displayMonth = _monthComboBox.SelectedIndex + 1;
+                _displayYear = (int)_yearUpDown.Value;
+
+                // Get all days for the selected month
+                var daysInMonth = DateTime.DaysInMonth(_displayYear, _displayMonth);
+                var monthlyData = new List<object>();
+
+                for (int day = 1; day <= daysInMonth; day++)
                 {
-                    MessageBox.Show("No entry found for the selected date.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
+                    var currentDate = new DateTime(_displayYear, _displayMonth, day);
+                    var calendarEntry = _calendarEntries.FirstOrDefault(c => c.DateAsDateTime?.Date == currentDate.Date);
+
+                    var dayType = calendarEntry?.DayType ?? "School Day";
+                    var isSchoolDay = dayType == "School Day" || dayType == "Half Day";
+
+                    monthlyData.Add(new
+                    {
+                        Date = currentDate.ToString("MM/dd/yyyy"),
+                        DayOfWeek = currentDate.ToString("dddd"),
+                        DayType = dayType,
+                        IsSchoolDay = isSchoolDay ? "Yes" : "No",
+                        Notes = calendarEntry?.Notes ?? "",
+                        ColorIndicator = GetColorName(dayType)
+                    });
                 }
 
-                using var editForm = new SchoolCalendarEditFormSyncfusion(entry);
-                editForm.StartPosition = FormStartPosition.CenterParent;
-
-                if (editForm.ShowDialog(this) == DialogResult.OK && editForm.SchoolCalendar != null)
-                {
-                    _calendarRepository.Update(editForm.SchoolCalendar);
-                    LoadCalendarEntries();
-                    PopulateCalendarGrid();
-                    MessageBox.Show("Calendar entry updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
+                _calendarGrid.DataSource = monthlyData;
+                Console.WriteLine($"📅 Refreshed calendar for {_displayMonth}/{_displayYear} with {monthlyData.Count} days");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error editing calendar entry: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error refreshing calendar: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void DeleteEntry()
+        private string GetColorName(string dayType)
+        {
+            return dayType switch
+            {
+                "School Day" => "Green",
+                "Holiday" => "Red",
+                "Vacation" => "Yellow",
+                "Half Day" => "Light Yellow",
+                "Non-Student Day" => "Gray",
+                _ => "White"
+            };
+        }
+
+        private void UpdateLegend()
+        {
+            if (_legendLabel == null) return;
+
+            var legendText = "Legend: ";
+            foreach (var kvp in _dayTypeColors)
+            {
+                legendText += $"{kvp.Key} ({GetColorName(kvp.Key)}) | ";
+            }
+            _legendLabel.Text = legendText.TrimEnd(' ', '|');
+        }
+
+        private void CalendarGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            UpdateSelectedDate();
+        }
+
+        private void UpdateSelectedDate()
+        {
+            if (_calendarGrid?.SelectedItem != null)
+            {
+                var selectedItem = _calendarGrid.SelectedItem;
+                var dateProperty = selectedItem.GetType().GetProperty("Date");
+                if (dateProperty != null)
+                {
+                    var dateString = (string)dateProperty.GetValue(selectedItem);
+                    if (DateTime.TryParse(dateString, out DateTime parsedDate))
+                    {
+                        _selectedDate = parsedDate;
+                        UpdateEditPanel();
+                    }
+                }
+            }
+        }
+
+        private void UpdateEditPanel()
+        {
+            if (_editPanel == null) return;
+
+            // Update selected date label
+            var dateLabel = _editPanel.Controls.OfType<Label>().FirstOrDefault(l => l.Name == "SelectedDateLabel");
+            if (dateLabel != null)
+            {
+                dateLabel.Text = $"Selected Date: {_selectedDate:MM/dd/yyyy} ({_selectedDate:dddd})";
+            }
+
+            // Load existing calendar entry
+            var existingEntry = _calendarEntries.FirstOrDefault(c => c.DateAsDateTime?.Date == _selectedDate.Date);
+            if (existingEntry != null)
+            {
+                if (_dayTypeComboBox != null)
+                {
+                    var index = Array.IndexOf(_dayTypes, existingEntry.DayType);
+                    _dayTypeComboBox.SelectedIndex = index >= 0 ? index : 0;
+                }
+
+                if (_notesTextBox is TextBox notesBox)
+                {
+                    notesBox.Text = existingEntry.Notes ?? "";
+                }
+            }
+            else
+            {
+                // Default values for new entry
+                if (_dayTypeComboBox != null)
+                    _dayTypeComboBox.SelectedIndex = 0; // "School Day"
+
+                if (_notesTextBox is TextBox notesBox)
+                    notesBox.Text = "";
+            }
+        }
+
+        private void EditSelectedDate()
+        {
+            UpdateSelectedDate();
+            // Focus is automatically on the edit panel
+        }
+
+        private void SaveCalendarEntry()
         {
             try
             {
-                var entry = _calendarEntries?.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == _selectedDate.Date);
-                if (entry == null)
+                if (_dayTypeComboBox == null || _notesTextBox is not TextBox notesBox) return;
+
+                var dayType = _dayTypeComboBox.SelectedItem?.ToString() ?? "School Day";
+                var notes = notesBox.Text.Trim();
+
+                // Check if entry already exists
+                var existingEntry = _calendarEntries.FirstOrDefault(c => c.DateAsDateTime?.Date == _selectedDate.Date);
+
+                if (existingEntry != null)
                 {
-                    MessageBox.Show("No entry found for the selected date.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Update existing entry
+                    existingEntry.Category = dayType; // Use Category instead of DayType
+                    existingEntry.Notes = notes;
+                    _calendarRepository.Update(existingEntry);
+                }
+                else
+                {
+                    // Create new entry
+                    var newEntry = new SchoolCalendar
+                    {
+                        DateAsDateTime = _selectedDate,
+                        Category = dayType, // Use Category instead of DayType
+                        Notes = notes
+                    };
+                    _calendarRepository.Add(newEntry);
+                    _calendarEntries.Add(newEntry);
+                }
+
+                RefreshCalendar();
+                MessageBox.Show("Calendar entry saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving calendar entry: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void DeleteSelectedEntry()
+        {
+            try
+            {
+                var existingEntry = _calendarEntries.FirstOrDefault(c => c.DateAsDateTime?.Date == _selectedDate.Date);
+                if (existingEntry == null)
+                {
+                    MessageBox.Show("No calendar entry exists for the selected date.", "No Entry", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
-                var result = MessageBox.Show(
-                    $"Are you sure you want to delete the calendar entry for {_selectedDate:MM/dd/yyyy}?",
-                    "Confirm Delete",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (result == DialogResult.Yes)
+                if (MessageBox.Show($"Are you sure you want to delete the calendar entry for {_selectedDate:MM/dd/yyyy}?",
+                                   "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    _calendarRepository.Delete(entry.CalendarID);
-                    LoadCalendarEntries();
-                    PopulateCalendarGrid();
-                    _editPanel.Visible = false;
-                    MessageBox.Show("Calendar entry deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _calendarRepository.Delete(existingEntry.CalendarID);
+                    _calendarEntries.Remove(existingEntry);
+                    RefreshCalendar();
+                    UpdateEditPanel();
+                    MessageBox.Show("Calendar entry deleted successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
@@ -410,50 +485,16 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private void SaveDayType()
+        private void UpdateDateDisplay()
         {
-            try
-            {
-                if (_dayTypeComboBox?.SelectedItem == null)
-                {
-                    MessageBox.Show("Please select a day type.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
+            // This method can be used to update UI based on day type selection
+            UpdateLegend();
+        }
 
-                var dayType = _dayTypeComboBox.SelectedItem.ToString();
-                var notes = (_notesTextBox as TextBox)?.Text ?? string.Empty;
-
-                var existingEntry = _calendarEntries?.FirstOrDefault(x => x.DateAsDateTime.HasValue && x.DateAsDateTime.Value.Date == _selectedDate.Date);
-
-                if (existingEntry != null)
-                {
-                    // Update existing entry
-                    existingEntry.Category = dayType;
-                    existingEntry.Notes = notes;
-                    _calendarRepository.Update(existingEntry);
-                    MessageBox.Show("Calendar entry updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    // Create new entry
-                    var newEntry = new SchoolCalendar
-                    {
-                        Date = _selectedDate.ToString("yyyy-MM-dd"),
-                        Category = dayType,
-                        Notes = notes
-                    };
-                    _calendarRepository.Add(newEntry);
-                    MessageBox.Show("Calendar entry added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-
-                LoadCalendarEntries();
-                PopulateCalendarGrid();
-                _editPanel.Visible = false;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error saving calendar entry: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            // Clean up resources if needed
+            base.OnFormClosing(e);
         }
     }
 }

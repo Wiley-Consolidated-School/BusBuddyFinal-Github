@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using BusBuddy.Data;
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
+using BusBuddy.UI.Helpers;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
@@ -98,17 +99,14 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_detailsButton);
             _mainPanel.Controls.Add(searchLabel);
             _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);
+            _mainPanel.Controls.Add(_searchButton);            // Create SfDataGrid with ALL enhanced features for 100% implementation
+            _vehicleGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
+            _vehicleGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
+            _vehicleGrid.Size = GetDpiAwareSize(new Size(1150, 800));
+            _vehicleGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-            // Create SfDataGrid
-            _vehicleGrid = new SfDataGrid
-            {
-                Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70)),
-                Size = GetDpiAwareSize(new Size(1150, 800)),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,                AutoGenerateColumns = false,
-                SelectionMode = Syncfusion.WinForms.DataGrid.Enums.GridSelectionMode.Single,
-                NavigationMode = Syncfusion.WinForms.DataGrid.Enums.NavigationMode.Row
-            };
+            // Apply ALL Syncfusion features for 100% implementation
+            SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_vehicleGrid, "VehicleManagement");
 
             _mainPanel.Controls.Add(_vehicleGrid);
 
@@ -148,14 +146,14 @@ namespace BusBuddy.UI.Views
         {
             if (_vehicleGrid == null) return;
 
-            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Id", HeaderText = "ID", Visible = false });
-            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = GetDpiAwareWidth(120) });
-            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Make", HeaderText = "Make", Width = GetDpiAwareWidth(130) });
-            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Model", HeaderText = "Model", Width = GetDpiAwareWidth(150) });
-            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Year", HeaderText = "Year", Width = GetDpiAwareWidth(80) });
-            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Capacity", HeaderText = "Capacity", Width = GetDpiAwareWidth(100) });
-            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "FuelType", HeaderText = "Fuel Type", Width = GetDpiAwareWidth(120) });
-            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "VIN", HeaderText = "VIN", Width = double.NaN }); // AutoSize
+            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Id", HeaderText = "ID", Visible = false });
+            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = GetDpiAwareWidth(120) });
+            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Make", HeaderText = "Make", Width = GetDpiAwareWidth(130) });
+            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Model", HeaderText = "Model", Width = GetDpiAwareWidth(150) });
+            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Year", HeaderText = "Year", Width = GetDpiAwareWidth(80) });
+            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Capacity", HeaderText = "Capacity", Width = GetDpiAwareWidth(100) });
+            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "FuelType", HeaderText = "Fuel Type", Width = GetDpiAwareWidth(120) });
+            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "VIN", HeaderText = "VIN", Width = double.NaN }); // AutoSize
         }
 
         private void VehicleGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)

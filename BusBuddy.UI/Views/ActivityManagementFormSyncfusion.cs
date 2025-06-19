@@ -7,17 +7,18 @@ using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Views;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
-{
-    /// <summary>
+{    /// <summary>
     /// Activity Management Form - Migrated to Syncfusion from MaterialSkin2
     /// Form for managing activities with grid view and CRUD operations
     /// </summary>
     public class ActivityManagementFormSyncfusion : SyncfusionBaseForm
     {
         private readonly IActivityRepository _activityRepository;
-        private DataGridView? _activityGrid;
+        private SfDataGrid? _activityGrid;
         private Control? _addButton;
         private Control? _editButton;
         private Control? _deleteButton;
@@ -51,7 +52,8 @@ namespace BusBuddy.UI.Views
             // Apply final theming
             SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
+            Console.WriteLine($"🎨 ENHANCED SYNCFUSION FORM: {this.Text} initialized with advanced SfDataGrid features");
+            Console.WriteLine($"✨ Features enabled: Filtering, Sorting, Grouping, Data Virtualization, Tooltips");
         }
 
         private void CreateControls()
@@ -63,8 +65,13 @@ namespace BusBuddy.UI.Views
             _detailsButton = SyncfusionThemeHelper.CreateStyledButton("👁️ Details");
             _searchButton = SyncfusionThemeHelper.CreateStyledButton("🔍 Search");
 
-            // Create search textbox
-            _searchBox = SyncfusionThemeHelper.CreateStyledTextBox("Search activities...");
+            // Create search textbox (simplified version)
+            _searchBox = new TextBox
+            {
+                Size = GetDpiAwareSize(new Size(150, 30)),
+                Text = "Search activities...",
+                ForeColor = Color.Gray
+            };
 
             // Configure button sizes and positions
             var buttonSize = GetDpiAwareSize(new Size(100, 35));
@@ -100,15 +107,19 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_editButton);
             _mainPanel.Controls.Add(_deleteButton);
             _mainPanel.Controls.Add(_detailsButton);
-            _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);            // Create DataGridView
-            _activityGrid = SyncfusionThemeHelper.CreateMaterialDataGrid();
+            _mainPanel.Controls.Add(_searchBox);            _mainPanel.Controls.Add(_searchButton);
+
+            // Create SfDataGrid with enhanced material styling and advanced features
+            _activityGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _activityGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
             _activityGrid.Size = GetDpiAwareSize(new Size(1150, 650));
             _activityGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-            // Apply Syncfusion theming to grid
-            SyncfusionThemeHelper.ApplyMaterialDataGrid(_activityGrid);
+            // Apply BusBuddy standards and enhanced theming
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_activityGrid);
+
+            // Apply ALL Syncfusion features for 100% implementation
+            SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_activityGrid, "ActivityManagement");
 
             _mainPanel.Controls.Add(_activityGrid);
 
@@ -132,7 +143,7 @@ namespace BusBuddy.UI.Views
             if (_activityGrid != null)
             {
                 _activityGrid.SelectionChanged += ActivityGrid_SelectionChanged;
-                _activityGrid.DoubleClick += (s, e) => EditSelectedActivity();
+                _activityGrid.CellDoubleClick += (s, e) => EditSelectedActivity();
             }
 
             // Handle Enter key in search box
@@ -156,95 +167,35 @@ namespace BusBuddy.UI.Views
             _activityGrid.AutoGenerateColumns = false;
             _activityGrid.Columns.Clear();
 
-            // Add columns
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "ActivityID",
-                DataPropertyName = "ActivityID",
-                HeaderText = "ID",
-                Width = GetDpiAwareWidth(60),
-                ReadOnly = true
-            });
+            // Add enhanced Syncfusion SfDataGrid columns using helper methods
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateIdColumn("ActivityID", "ID"));
 
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Date",
-                DataPropertyName = "Date",
-                HeaderText = "Date",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn(
+                "Date", "📅 Date", GetDpiAwareWidth(100)));
 
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "ActivityType",
-                DataPropertyName = "ActivityType",
-                HeaderText = "Type",
-                Width = GetDpiAwareWidth(120),
-                ReadOnly = true
-            });
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateStatusColumn(
+                "ActivityType", "🎯 Type", GetDpiAwareWidth(120)));
 
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Destination",
-                DataPropertyName = "Destination",
-                HeaderText = "Destination",
-                Width = GetDpiAwareWidth(200),
-                ReadOnly = true
-            });
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn(
+                "Destination", "📍 Destination", GetDpiAwareWidth(200)));
 
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "LeaveTime",
-                DataPropertyName = "LeaveTime",
-                HeaderText = "Leave Time",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTimeColumn(
+                "LeaveTime", "🕐 Leave Time", GetDpiAwareWidth(100)));
 
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "EventTime",
-                DataPropertyName = "EventTime",
-                HeaderText = "Event Time",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTimeColumn(
+                "EventTime", "📅 Event Time", GetDpiAwareWidth(100)));
 
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "ReturnTime",
-                DataPropertyName = "ReturnTime",
-                HeaderText = "Return Time",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTimeColumn(
+                "ReturnTime", "🏠 Return Time", GetDpiAwareWidth(100)));
 
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "RequestedBy",
-                DataPropertyName = "RequestedBy",
-                HeaderText = "Requested By",
-                Width = GetDpiAwareWidth(150),
-                ReadOnly = true
-            });
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn(
+                "RequestedBy", "👤 Requested By", GetDpiAwareWidth(150)));
 
-            _activityGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Notes",
-                DataPropertyName = "Notes",
-                HeaderText = "Notes",
-                Width = GetDpiAwareWidth(200),
-                ReadOnly = true
-            });
+            _activityGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateAutoSizeColumn(
+                "Notes", "📝 Notes"));
 
-            // Configure grid behavior
-            _activityGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _activityGrid.MultiSelect = false;
-            _activityGrid.ReadOnly = true;
-            _activityGrid.AllowUserToAddRows = false;
-            _activityGrid.AllowUserToDeleteRows = false;
-            _activityGrid.RowHeadersVisible = false;
+            // Configure enhanced SfDataGrid behavior with advanced features
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureReadOnlyView(_activityGrid);
         }
 
         private void LoadActivities()
@@ -276,14 +227,14 @@ namespace BusBuddy.UI.Views
 
         private void UpdateButtonStates()
         {
-            bool hasSelection = _activityGrid?.SelectedRows.Count > 0;
+            bool hasSelection = _activityGrid?.SelectedItem != null;
 
             if (_editButton != null) _editButton.Enabled = hasSelection;
             if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
             if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
         }
 
-        private void ActivityGrid_SelectionChanged(object? sender, EventArgs e)
+        private void ActivityGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             UpdateButtonStates();
         }
@@ -310,11 +261,11 @@ namespace BusBuddy.UI.Views
 
         private void EditSelectedActivity()
         {
-            if (_activityGrid?.SelectedRows.Count != 1) return;
+            if (_activityGrid?.SelectedItem == null) return;
 
             try
             {
-                var selectedActivity = (Activity)_activityGrid.SelectedRows[0].DataBoundItem;
+                var selectedActivity = (Activity)_activityGrid.SelectedItem;
                 using var form = new ActivityEditFormSyncfusion(selectedActivity);
 
                 if (form.ShowDialog() == DialogResult.OK && form.Activity != null)
@@ -334,11 +285,11 @@ namespace BusBuddy.UI.Views
 
         private void DeleteSelectedActivity()
         {
-            if (_activityGrid?.SelectedRows.Count != 1) return;
+            if (_activityGrid?.SelectedItem == null) return;
 
             try
             {
-                var selectedActivity = (Activity)_activityGrid.SelectedRows[0].DataBoundItem;
+                var selectedActivity = (Activity)_activityGrid.SelectedItem;
 
                 var result = MessageBox.Show(
                     $"Are you sure you want to delete the activity to '{selectedActivity.Destination}' on {selectedActivity.Date}?",
@@ -363,11 +314,11 @@ namespace BusBuddy.UI.Views
 
         private void ViewActivityDetails()
         {
-            if (_activityGrid?.SelectedRows.Count != 1) return;
+            if (_activityGrid?.SelectedItem == null) return;
 
             try
             {
-                var selectedActivity = (Activity)_activityGrid.SelectedRows[0].DataBoundItem;
+                var selectedActivity = (Activity)_activityGrid.SelectedItem;
 
                 var details = $"Activity Details:\n\n" +
                              $"ID: {selectedActivity.ActivityID}\n" +

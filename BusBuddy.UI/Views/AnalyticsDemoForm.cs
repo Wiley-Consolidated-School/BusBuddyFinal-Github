@@ -7,14 +7,17 @@ using System.Windows.Forms;
 using BusBuddy.Business;
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
+using BusBuddy.UI.Helpers;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
-{
-    /// <summary>
-    /// Demonstration form showcasing new BusBuddy analytics and optimization features
+{    /// <summary>
+    /// Analytics Demo Form - Enhanced Syncfusion Implementation
+    /// Showcases analytics and optimization features with advanced SfDataGrid
     /// Displays route efficiency, predictive maintenance, and time card improvements
     /// </summary>
-    public class AnalyticsDemoForm : Form
+    public class AnalyticsDemoFormSyncfusion : SyncfusionBaseForm
     {
         private readonly IRouteAnalyticsService _routeAnalyticsService;
         private readonly IPredictiveMaintenanceService _predictiveMaintenanceService;
@@ -22,22 +25,21 @@ namespace BusBuddy.UI.Views
         private TabControl _tabControl;
         private TabPage _routeAnalyticsTab;
         private TabPage _maintenanceTab;
-        private TabPage _timeCardTab;
-
-        // Route Analytics Controls
-        private DataGridView? _routeEfficiencyGrid;
-        private DataGridView? _optimizationSuggestionsGrid;
+        private TabPage _timeCardTab;        // Route Analytics Controls - Enhanced with SfDataGrid
+        private SfDataGrid? _routeEfficiencyGrid;
+        private SfDataGrid? _optimizationSuggestionsGrid;
         private Panel? _fleetSummaryPanel;
 
-        // Maintenance Controls
-        private DataGridView? _maintenancePredictionsGrid;
-        private DataGridView? _vehicleHealthGrid;        private DataGridView? _maintenanceAlertsGrid;
+        // Maintenance Controls - Enhanced with SfDataGrid
+        private SfDataGrid? _maintenancePredictionsGrid;
+        private SfDataGrid? _vehicleHealthGrid;
+        private SfDataGrid? _maintenanceAlertsGrid;
 
         // Time Card Controls
         private Button? _validateTimeCardButton;
         private Panel? _validationResultsPanel;
 
-        public AnalyticsDemoForm()
+        public AnalyticsDemoFormSyncfusion()
         {
             _routeAnalyticsService = new RouteAnalyticsService();
             _predictiveMaintenanceService = new PredictiveMaintenanceService();
@@ -81,23 +83,29 @@ namespace BusBuddy.UI.Views
 
             // Column styles
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60F));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));            // Route Efficiency Grid
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
+
+            // Route Efficiency Grid - Enhanced SfDataGrid
             var efficiencyGroup = new GroupBox();
-            efficiencyGroup.Text = "Route Efficiency Metrics";
-            _routeEfficiencyGrid = new DataGridView();
+            efficiencyGroup.Text = "📊 Route Efficiency Metrics";
+            _routeEfficiencyGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _routeEfficiencyGrid.Dock = DockStyle.Fill;
             _routeEfficiencyGrid.AutoGenerateColumns = true;
-            _routeEfficiencyGrid.ReadOnly = true;
+            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _routeEfficiencyGrid.AllowEditing = false;
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_routeEfficiencyGrid);
             efficiencyGroup.Controls.Add(_routeEfficiencyGrid);
             layout.Controls.Add(efficiencyGroup, 0, 0);
 
-            // Optimization Suggestions Grid
+            // Optimization Suggestions Grid - Enhanced SfDataGrid
             var optimizationGroup = new GroupBox();
-            optimizationGroup.Text = "Route Optimization Suggestions";
-            _optimizationSuggestionsGrid = new DataGridView();
+            optimizationGroup.Text = "🎯 Route Optimization Suggestions";
+            _optimizationSuggestionsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _optimizationSuggestionsGrid.Dock = DockStyle.Fill;
             _optimizationSuggestionsGrid.AutoGenerateColumns = true;
-            _optimizationSuggestionsGrid.ReadOnly = true;
+            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _optimizationSuggestionsGrid.AllowEditing = false;
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_optimizationSuggestionsGrid);
             optimizationGroup.Controls.Add(_optimizationSuggestionsGrid);
             layout.Controls.Add(optimizationGroup, 0, 1);
 
@@ -141,33 +149,41 @@ namespace BusBuddy.UI.Views
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));            // Maintenance Predictions
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+
+            // Maintenance Predictions - Enhanced SfDataGrid
             var predictionsGroup = new GroupBox();
-            predictionsGroup.Text = "Maintenance Predictions";
-            _maintenancePredictionsGrid = new DataGridView();
+            predictionsGroup.Text = "🔧 Maintenance Predictions";
+            _maintenancePredictionsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _maintenancePredictionsGrid.Dock = DockStyle.Fill;
             _maintenancePredictionsGrid.AutoGenerateColumns = true;
-            _maintenancePredictionsGrid.ReadOnly = true;
+            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _maintenancePredictionsGrid.AllowEditing = false;
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_maintenancePredictionsGrid);
             predictionsGroup.Controls.Add(_maintenancePredictionsGrid);
             layout.Controls.Add(predictionsGroup, 0, 0);
 
-            // Vehicle Health Scores
+            // Vehicle Health Scores - Enhanced SfDataGrid
             var healthGroup = new GroupBox();
-            healthGroup.Text = "Vehicle Health Scores";
-            _vehicleHealthGrid = new DataGridView();
+            healthGroup.Text = "🚗 Vehicle Health Scores";
+            _vehicleHealthGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _vehicleHealthGrid.Dock = DockStyle.Fill;
             _vehicleHealthGrid.AutoGenerateColumns = true;
-            _vehicleHealthGrid.ReadOnly = true;
+            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _vehicleHealthGrid.AllowEditing = false;
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_vehicleHealthGrid);
             healthGroup.Controls.Add(_vehicleHealthGrid);
             layout.Controls.Add(healthGroup, 1, 0);
 
-            // Maintenance Alerts
+            // Maintenance Alerts - Enhanced SfDataGrid
             var alertsGroup = new GroupBox();
-            alertsGroup.Text = "Priority Maintenance Alerts";
-            _maintenanceAlertsGrid = new DataGridView();
+            alertsGroup.Text = "🚨 Priority Maintenance Alerts";
+            _maintenanceAlertsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _maintenanceAlertsGrid.Dock = DockStyle.Fill;
             _maintenanceAlertsGrid.AutoGenerateColumns = true;
-            _maintenanceAlertsGrid.ReadOnly = true;
+            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _maintenanceAlertsGrid.AllowEditing = false;
+            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_maintenanceAlertsGrid);
             alertsGroup.Controls.Add(_maintenanceAlertsGrid);
             layout.Controls.Add(alertsGroup, 0, 1);
             layout.SetColumnSpan(alertsGroup, 2);

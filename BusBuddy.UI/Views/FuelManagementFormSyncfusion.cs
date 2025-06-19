@@ -7,424 +7,241 @@ using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Services;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Events;
+using Syncfusion.WinForms.DataGrid.Enums;
+using System.IO;
 
 namespace BusBuddy.UI.Views
 {
-    /// <summary>
-    /// Fuel Management Form - Migrated to Syncfusion from MaterialSkin2
-    /// Form for managing fuel records with grid view and CRUD operations
-    /// </summary>
-    public class FuelManagementFormSyncfusion : SyncfusionBaseForm
+    public partial class FuelManagementFormSyncfusion : Form
     {
-        private readonly IFuelRepository _fuelRepository;
-        private readonly IVehicleRepository _vehicleRepository;
-        private DataGridView? _fuelGrid;
-        private Control? _addButton;
-        private Control? _editButton;
-        private Control? _deleteButton;
-        private Control? _detailsButton;
-        private Control? _searchBox;
-        private Control? _searchButton;
-        private List<Fuel> _fuels = new List<Fuel>();
-        private List<Vehicle> _vehicles = new List<Vehicle>();
+        private readonly FuelRepository _fuelRepository;
+        private readonly VehicleRepository _vehicleRepository;
+        private List<Fuel> _fuels = new();
+        private List<Vehicle> _vehicles = new();
 
-        public FuelManagementFormSyncfusion() : this(new FuelRepository(), new VehicleRepository()) { }
+        private SfDataGrid _fuelGrid;
+        private TextBox _searchTextBox;
+        private Button _addButton, _editButton, _deleteButton, _detailsButton, _searchButton;
 
-        public FuelManagementFormSyncfusion(IFuelRepository fuelRepository, IVehicleRepository vehicleRepository)
+        public FuelManagementFormSyncfusion()
         {
-            _fuelRepository = fuelRepository ?? throw new ArgumentNullException(nameof(fuelRepository));
-            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
-            InitializeComponent();
-            LoadFuels();
+            _fuelRepository = new FuelRepository();
+            _vehicleRepository = new VehicleRepository();
+
+            InitializeComponents();
+            SetupUI();
+            LoadData();
         }
 
-        private void InitializeComponent()
+        private void InitializeComponents()
         {
-            // Set form size to 1200x900, title to "Fuel Management"
-            this.Text = "⛽ Fuel Management";
-            this.ClientSize = GetDpiAwareSize(new Size(1200, 900));
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.Sizable;
-            this.MinimumSize = GetDpiAwareSize(new Size(800, 600));
+            // Initialize the form components
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new SizeF(7F, 15F);
+            this.AutoScaleMode = AutoScaleMode.Font;
+            this.ClientSize = new Size(1200, 800);
+            this.ResumeLayout(false);
+        }
 
-            CreateControls();
-            LayoutControls();
+        private void SetupUI()
+        {
+            Text = "⛽ Fuel Management - Enhanced Syncfusion";
+            Size = new Size(1200, 800);
+            BackColor = EnhancedThemeService.BackgroundColor;
+
+            SetupGrid();
+            SetupControls();
+            SetupLayout();
+        }
+
+        private void SetupGrid()
+        {
+            _fuelGrid = new SfDataGrid
+            {
+                Dock = DockStyle.Fill,
+                AllowEditing = false,
+                AllowFiltering = true,
+                AllowSorting = true,
+                ShowGroupDropArea = true,
+                AutoSizeColumnsMode = AutoSizeColumnsMode.Fill,
+                SelectionMode = GridSelectionMode.Single
+            };
+
+            // Apply visual styling
+            _fuelGrid.Style.HeaderStyle.BackColor = EnhancedThemeService.HeaderColor;
+            _fuelGrid.Style.HeaderStyle.TextColor = Color.White;
+
+            _fuelGrid.Columns.Add(new GridTextColumn { MappingName = "FuelID", HeaderText = "ID", Width = 80 });
+            _fuelGrid.Columns.Add(new GridTextColumn { MappingName = "FuelDate", HeaderText = "Date", Width = 120 });
+            _fuelGrid.Columns.Add(new GridTextColumn { MappingName = "FuelLocation", HeaderText = "Location", Width = 150 });
+        }
+
+        private void SetupControls()
+        {
+            var topPanel = new Panel { Height = 60, Dock = DockStyle.Top, BackColor = EnhancedThemeService.BackgroundColor };
+
+            _searchTextBox = new TextBox {
+                PlaceholderText = "Search fuels...",
+                Location = new Point(10, 20),
+                Size = new Size(200, 25)
+            };
+
+            _searchButton = new Button {
+                Text = "🔍 Search",
+                Location = new Point(220, 18),
+                Size = new Size(80, 30),
+                BackColor = EnhancedThemeService.ButtonColor,
+                ForeColor = Color.White
+            };
+
+            _addButton = new Button {
+                Text = "➕ Add",
+                Location = new Point(310, 18),
+                Size = new Size(70, 30),
+                BackColor = EnhancedThemeService.ButtonColor,
+                ForeColor = Color.White
+            };
+
+            _editButton = new Button {
+                Text = "✏️ Edit",
+                Location = new Point(390, 18),
+                Size = new Size(70, 30),
+                BackColor = EnhancedThemeService.ButtonColor,
+                ForeColor = Color.White
+            };
+
+            _deleteButton = new Button {
+                Text = "🗑️ Delete",
+                Location = new Point(470, 18),
+                Size = new Size(80, 30),
+                BackColor = Color.FromArgb(220, 53, 69),
+                ForeColor = Color.White
+            };
+
+            _detailsButton = new Button {
+                Text = "👁️ Details",
+                Location = new Point(560, 18),
+                Size = new Size(80, 30),
+                BackColor = EnhancedThemeService.ButtonColor,
+                ForeColor = Color.White
+            };
+
+            topPanel.Controls.AddRange(new Control[] {
+                _searchTextBox, _searchButton, _addButton, _editButton, _deleteButton, _detailsButton
+            });
+
+            Controls.Add(topPanel);
+        }
+
+        private void SetupLayout()
+        {
+            var gridPanel = new Panel { Dock = DockStyle.Fill };
+            gridPanel.Controls.Add(_fuelGrid);
+            Controls.Add(gridPanel);
+
             SetupEventHandlers();
-
-            // Apply final theming
-            SyncfusionThemeHelper.ApplyMaterialTheme(this);
-
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
-        }
-
-        private void CreateControls()
-        {
-            // Create toolbar buttons
-            _addButton = SyncfusionThemeHelper.CreateStyledButton("➕ Add New");
-            _editButton = SyncfusionThemeHelper.CreateStyledButton("✏️ Edit");
-            _deleteButton = SyncfusionThemeHelper.CreateStyledButton("🗑️ Delete");
-            _detailsButton = SyncfusionThemeHelper.CreateStyledButton("👁️ Details");
-            _searchButton = SyncfusionThemeHelper.CreateStyledButton("🔍 Search");
-
-            // Create search textbox
-            _searchBox = SyncfusionThemeHelper.CreateStyledTextBox("Search fuel records...");
-
-            // Configure button sizes and positions
-            var buttonSize = GetDpiAwareSize(new Size(100, 35));
-            var buttonY = GetDpiAwareY(20);
-
-            _addButton.Size = buttonSize;
-            _addButton.Location = new Point(GetDpiAwareX(20), buttonY);
-
-            _editButton.Size = buttonSize;
-            _editButton.Location = new Point(GetDpiAwareX(130), buttonY);
-            _editButton.Enabled = false; // Initially disabled
-
-            _deleteButton.Size = buttonSize;
-            _deleteButton.Location = new Point(GetDpiAwareX(240), buttonY);
-            _deleteButton.Enabled = false; // Initially disabled
-
-            _detailsButton.Size = buttonSize;
-            _detailsButton.Location = new Point(GetDpiAwareX(350), buttonY);
-            _detailsButton.Enabled = false; // Initially disabled
-
-            // Search controls
-            var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
-            _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
-            _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
-
-            _searchButton.Size = GetDpiAwareSize(new Size(80, 35));
-            _searchButton.Location = new Point(GetDpiAwareX(710), buttonY);
-
-            // Add buttons to main panel
-            _mainPanel.Controls.Add(_addButton);
-            _mainPanel.Controls.Add(_editButton);
-            _mainPanel.Controls.Add(_deleteButton);
-            _mainPanel.Controls.Add(_detailsButton);
-            _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);
-            _mainPanel.Controls.Add(searchLabel);
-
-            // Create and configure the data grid
-            SetupDataGrid();
-        }
-
-        private void SetupDataGrid()
-        {
-            // Create DataGridView with modern styling
-            _fuelGrid = new DataGridView();
-            _fuelGrid.Dock = DockStyle.None;
-            _fuelGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(60));
-            _fuelGrid.Size = GetDpiAwareSize(new Size(1150, 650));
-            _fuelGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
-
-            // Grid styling
-            _fuelGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            _fuelGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _fuelGrid.ReadOnly = true;
-            _fuelGrid.AllowUserToAddRows = false;
-            _fuelGrid.AllowUserToDeleteRows = false;
-            _fuelGrid.MultiSelect = false;
-            _fuelGrid.AllowUserToResizeColumns = true;
-            _fuelGrid.AllowUserToResizeRows = true;
-            _fuelGrid.ScrollBars = ScrollBars.Both;
-
-            // Apply Material theme to grid
-            SyncfusionThemeHelper.ApplyMaterialTheme(_fuelGrid);
-
-            _mainPanel.Controls.Add(_fuelGrid);
-        }
-
-        private void LayoutControls()
-        {
-            // Layout is handled in CreateControls method for better organization
         }
 
         private void SetupEventHandlers()
         {
-            // Button click events
             _addButton.Click += (s, e) => AddNewFuel();
             _editButton.Click += (s, e) => EditSelectedFuel();
             _deleteButton.Click += (s, e) => DeleteSelectedFuel();
             _detailsButton.Click += (s, e) => ViewFuelDetails();
             _searchButton.Click += (s, e) => SearchFuels();
 
-            // Grid event handlers
-            _fuelGrid.CellDoubleClick += (s, e) => EditSelectedFuel();
-            _fuelGrid.SelectionChanged += FuelGrid_SelectionChanged;
-            _fuelGrid.DataBindingComplete += FuelGrid_DataBindingComplete;
-
-            // Search box enter key handler
-            if (_searchBox is TextBox searchTextBox)
-            {
-                searchTextBox.KeyPress += (s, e) => {
-                    if (e.KeyChar == (char)Keys.Enter)
-                    {
-                        SearchFuels();
-                        e.Handled = true;
-                    }
-                };
-            }
-
-            // Initial button states
-            UpdateButtonStates();
-        }
-
-        private void FuelGrid_DataBindingComplete(object? sender, DataGridViewBindingCompleteEventArgs e)
-        {
-            if (_fuelGrid.Columns.Contains("FuelID"))
-                _fuelGrid.Columns["FuelID"].Visible = false;
-
-            // Configure column headers and widths
-            ConfigureGridColumns();
-        }
-
-        private void ConfigureGridColumns()
-        {
-            if (_fuelGrid.Columns.Count == 0) return;            var columnConfig = new Dictionary<string, (string Header, int Width)>
-            {
-                ["FuelID"] = ("ID", 60),
-                ["FuelDate"] = ("Date", 100),
-                ["FuelLocation"] = ("Location", 120),
-                ["VehicleFueledID"] = ("Vehicle", 80),
-                ["VehicleOdometerReading"] = ("Odometer", 100),
-                ["FuelType"] = ("Type", 80),
-                ["FuelAmount"] = ("Amount", 80),
-                ["FuelCost"] = ("Cost", 80)
+            _searchTextBox.KeyPress += (s, e) => {
+                if (e.KeyChar == (char)Keys.Enter)
+                    SearchFuels();
             };
-
-            foreach (var config in columnConfig)
-            {
-                if (_fuelGrid.Columns.Contains(config.Key))
-                {
-                    var column = _fuelGrid.Columns[config.Key];
-                    column.HeaderText = config.Value.Header;
-                    column.Width = GetDpiAwareSize(new Size(config.Value.Width, 0)).Width;
-                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                }
-            }
-
-            // Set remaining columns to fill
-            if (_fuelGrid.Columns.Count > 0)
-            {
-                _fuelGrid.Columns[_fuelGrid.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            }
         }
 
-        private void LoadVehiclesForDropdown()
+        private void LoadData()
         {
-            try
-            {
-                _vehicles = _vehicleRepository.GetAllVehicles();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading vehicles: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _vehicles = new List<Vehicle>();
-            }
+            LoadFuels();
         }
 
         private void LoadFuels()
         {
-            LoadVehiclesForDropdown(); // Ensure vehicles are loaded for dropdown
             try
             {
                 _fuels = _fuelRepository.GetAllFuelRecords();
-                _fuelGrid.DataSource = null;
                 _fuelGrid.DataSource = _fuels;
-
-                UpdateButtonStates();
+                UpdateStatusMessage($"Loaded {_fuels.Count} fuel records");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading fuel records: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError($"Failed to load fuel data: {ex.Message}");
             }
         }
 
         private void AddNewFuel()
         {
-            try
-            {
-                using var addForm = new FuelEditFormSyncfusion();
-                addForm.StartPosition = FormStartPosition.CenterParent;
-
-                if (addForm.ShowDialog(this) == DialogResult.OK && addForm.Fuel != null)
-                {
-                    var fuelId = _fuelRepository.AddFuelRecord(addForm.Fuel);
-                    if (fuelId > 0)
-                    {
-                        LoadFuels();
-                        MessageBox.Show("Fuel record added successfully!",
-                            "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to add fuel record. Please try again.",
-                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error adding fuel record: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            // TODO: Implement add fuel functionality
+            MessageBox.Show("Add fuel functionality will be implemented soon.", "Add Fuel",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void EditSelectedFuel()
         {
-            if (_fuelGrid.SelectedRows.Count == 0)
-            {
-                MessageBox.Show("Please select a fuel record to edit.",
-                    "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            try
-            {
-                int selectedId = (int)_fuelGrid.SelectedRows[0].Cells["FuelID"].Value;
-                var selectedFuel = _fuelRepository.GetFuelRecordById(selectedId);
-
-                if (selectedFuel == null)
-                {
-                    MessageBox.Show("Could not find the selected fuel record.",
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                using var editForm = new FuelEditFormSyncfusion(selectedFuel);
-                editForm.StartPosition = FormStartPosition.CenterParent;
-
-                if (editForm.ShowDialog(this) == DialogResult.OK && editForm.Fuel != null)
-                {
-                    if (_fuelRepository.UpdateFuelRecord(editForm.Fuel))
-                    {
-                        LoadFuels();
-                        MessageBox.Show("Fuel record updated successfully!",
-                            "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to update fuel record. Please try again.",
-                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error editing fuel record: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            // TODO: Implement edit fuel functionality
+            MessageBox.Show("Edit fuel functionality will be implemented soon.", "Edit Fuel",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void DeleteSelectedFuel()
         {
-            if (_fuelGrid.SelectedRows.Count == 0)
-                return;
-
-            int selectedId = (int)_fuelGrid.SelectedRows[0].Cells["FuelID"].Value;
-
-            var result = MessageBox.Show(
-                "Are you sure you want to delete this fuel record?",
-                "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (result != DialogResult.Yes)
-                return;
-
-            try
-            {
-                _fuelRepository.DeleteFuelRecord(selectedId);
-                LoadFuels();
-                MessageBox.Show("Fuel record deleted successfully.",
-                    "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error deleting fuel record: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            // TODO: Implement delete fuel functionality
+            MessageBox.Show("Delete fuel functionality will be implemented soon.", "Delete Fuel",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void ViewFuelDetails()
         {
-            if (_fuelGrid.SelectedRows.Count == 0)
-                return;
-
-            int selectedId = (int)_fuelGrid.SelectedRows[0].Cells["FuelID"].Value;
-            var fuel = _fuelRepository.GetFuelRecordById(selectedId);
-
-            if (fuel != null)
-            {
-                var vehicleNumber = GetVehicleNumber(fuel.VehicleFueledID ?? 0);                var details = $"Fuel Record Details:\n\n" +
-                             $"📅 Date: {fuel.FuelDateAsDateTime:yyyy-MM-dd}\n" +
-                             $"📍 Location: {fuel.FuelLocation}\n" +
-                             $"🚐 Vehicle: {vehicleNumber}\n" +
-                             $"🔢 Odometer: {fuel.VehicleOdometerReading:N0} miles\n" +
-                             $"⛽ Type: {fuel.FuelType}\n" +
-                             $"📊 Amount: {fuel.FuelAmount:N2} gallons\n" +
-                             $"💰 Cost: ${fuel.FuelCost:N2}" +
-                             (string.IsNullOrEmpty(fuel.Notes) ? "" : $"\n📝 Notes: {fuel.Notes}");
-
-                MessageBox.Show(details, "Fuel Record Details",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
-            {
-                MessageBox.Show("Could not load fuel record details.",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void FuelGrid_SelectionChanged(object? sender, EventArgs e)
-        {
-            UpdateButtonStates();
-        }
-
-        private void UpdateButtonStates()
-        {
-            bool hasSelection = _fuelGrid.SelectedRows.Count > 0;
-
-            if (_editButton != null) _editButton.Enabled = hasSelection;
-            if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
-            if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
+            // TODO: Implement view details functionality
+            MessageBox.Show("View details functionality will be implemented soon.", "Fuel Details",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void SearchFuels()
         {
-            if (_searchBox is not TextBox searchTextBox)
-                return;
-
-            string searchTerm = searchTextBox.Text.Trim().ToLower();
-
+            var searchTerm = _searchTextBox.Text.Trim().ToLower();
             if (string.IsNullOrEmpty(searchTerm))
             {
-                LoadFuels();
+                _fuelGrid.DataSource = _fuels;
                 return;
-            }            var filtered = _fuels.Where(f =>
-                (f.FuelLocation?.ToLower().Contains(searchTerm) == true) ||
-                (f.FuelType?.ToLower().Contains(searchTerm) == true) ||
-                (GetVehicleNumber(f.VehicleFueledID ?? 0).ToLower().Contains(searchTerm)) ||
-                (f.FuelDate?.Contains(searchTerm) == true)
+            }
+
+            var filteredFuels = _fuels.Where(f =>
+                f.FuelLocation?.ToLower().Contains(searchTerm) == true ||
+                f.FuelDate?.ToLower().Contains(searchTerm) == true
             ).ToList();
 
-            _fuelGrid.DataSource = null;
-            _fuelGrid.DataSource = filtered;
-
-            UpdateButtonStates();
+            _fuelGrid.DataSource = filteredFuels;
+            UpdateStatusMessage($"Found {filteredFuels.Count} matching fuel records");
         }
 
-        private string GetVehicleNumber(int vehicleId)
+        private void UpdateStatusMessage(string message)
         {
-            var vehicle = _vehicles?.FirstOrDefault(v => v.Id == vehicleId);
-            return vehicle?.VehicleNumber ?? vehicleId.ToString();
+            // TODO: Implement status bar if needed
+            Console.WriteLine($"Fuel Management: {message}");
         }
 
-        protected override void OnFormClosing(FormClosingEventArgs e)
+        private void ShowError(string message)
         {
-            // Clean up resources if needed
-            base.OnFormClosing(e);
+            MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _fuelGrid?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

@@ -7,10 +7,11 @@ using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
-{
-    /// <summary>
+{    /// <summary>
     /// Maintenance Management Form - Migrated to Syncfusion from MaterialSkin2
     /// Form for managing maintenance records with grid view and CRUD operations
     /// </summary>
@@ -18,7 +19,7 @@ namespace BusBuddy.UI.Views
     {
         private readonly IMaintenanceRepository _maintenanceRepository;
         private readonly IVehicleRepository _vehicleRepository;
-        private DataGridView? _maintenanceGrid;
+        private SfDataGrid? _maintenanceGrid;
         private Control? _addButton;
         private Control? _editButton;
         private Control? _deleteButton;
@@ -119,16 +120,14 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_deleteButton);
             _mainPanel.Controls.Add(_detailsButton);
             _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);
-
-            // Create DataGridView
-            _maintenanceGrid = SyncfusionThemeHelper.CreateMaterialDataGrid();
+            _mainPanel.Controls.Add(_searchButton);            // Create SfDataGrid with modern styling
+            _maintenanceGrid = SyncfusionThemeHelper.CreateMaterialSfDataGrid();
             _maintenanceGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
             _maintenanceGrid.Size = GetDpiAwareSize(new Size(1150, 650));
             _maintenanceGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
             // Apply Syncfusion theming to grid
-            SyncfusionThemeHelper.ApplyMaterialDataGrid(_maintenanceGrid);
+            SyncfusionThemeHelper.ApplyMaterialSfDataGrid(_maintenanceGrid);
 
             _mainPanel.Controls.Add(_maintenanceGrid);
 
@@ -150,12 +149,10 @@ namespace BusBuddy.UI.Views
             _editButton.Click += (s, e) => EditSelectedMaintenance();
             _deleteButton.Click += (s, e) => DeleteSelectedMaintenance();
             _detailsButton.Click += (s, e) => ViewMaintenanceDetails();
-            _searchButton.Click += (s, e) => SearchMaintenances();
-
-            if (_maintenanceGrid != null)
+            _searchButton.Click += (s, e) => SearchMaintenances();            if (_maintenanceGrid != null)
             {
                 _maintenanceGrid.SelectionChanged += MaintenanceGrid_SelectionChanged;
-                _maintenanceGrid.DoubleClick += (s, e) => EditSelectedMaintenance();
+                _maintenanceGrid.CellDoubleClick += (s, e) => EditSelectedMaintenance();
             }
 
             // Handle Enter key in search box
@@ -170,88 +167,22 @@ namespace BusBuddy.UI.Views
                     }
                 };
             }
-        }
-
-        private void SetupDataGridColumns()
+        }        private void SetupDataGridColumns()
         {
             if (_maintenanceGrid == null) return;
 
             _maintenanceGrid.AutoGenerateColumns = false;
             _maintenanceGrid.Columns.Clear();
 
-            // Add columns with DPI-aware widths
-            _maintenanceGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "MaintenanceID",
-                DataPropertyName = "MaintenanceID",
-                HeaderText = "ID",
-                Width = GetDpiAwareWidth(60),
-                ReadOnly = true,
-                Visible = false
-            });
-
-            _maintenanceGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Date",
-                DataPropertyName = "Date",
-                HeaderText = "Date",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
-
-            _maintenanceGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Vehicle",
-                DataPropertyName = "Vehicle",
-                HeaderText = "Vehicle",
-                Width = GetDpiAwareWidth(120),
-                ReadOnly = true
-            });
-
-            _maintenanceGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Odometer",
-                DataPropertyName = "Odometer",
-                HeaderText = "Odometer",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
-
-            _maintenanceGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Category",
-                DataPropertyName = "Category",
-                HeaderText = "Category",
-                Width = GetDpiAwareWidth(120),
-                ReadOnly = true
-            });
-
-            _maintenanceGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Vendor",
-                DataPropertyName = "Vendor",
-                HeaderText = "Vendor",
-                Width = GetDpiAwareWidth(150),
-                ReadOnly = true
-            });
-
-            _maintenanceGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Cost",
-                DataPropertyName = "Cost",
-                HeaderText = "Cost",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
-
-            _maintenanceGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Description",
-                DataPropertyName = "Description",
-                HeaderText = "Description",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                ReadOnly = true
-            });
+            // Add columns with DPI-aware widths using Syncfusion SfDataGrid columns
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("MaintenanceID", "ID", GetDpiAwareWidth(60), false));
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateDateTimeColumn("Date", "Date", GetDpiAwareWidth(100)));
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Vehicle", "Vehicle", GetDpiAwareWidth(120)));
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateNumericColumn("Odometer", "Odometer", GetDpiAwareWidth(100)));
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Category", "Category", GetDpiAwareWidth(120)));
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Vendor", "Vendor", GetDpiAwareWidth(150)));
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateCurrencyTextColumn("Cost", "Cost", GetDpiAwareWidth(100)));
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Description", "Description", double.NaN)); // AutoSize
         }
 
         private void InitializeEditPanel()
@@ -409,11 +340,9 @@ namespace BusBuddy.UI.Views
             };
 
             _categoryComboBox.DataSource = categories.ToList();
-        }
-
-        private void MaintenanceGrid_SelectionChanged(object? sender, EventArgs e)
+        }        private void MaintenanceGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            bool hasSelection = _maintenanceGrid?.SelectedRows.Count > 0;
+            bool hasSelection = _maintenanceGrid?.SelectedItem != null;
             if (_editButton != null) _editButton.Enabled = hasSelection;
             if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
             if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
@@ -424,71 +353,45 @@ namespace BusBuddy.UI.Views
             _currentMaintenance = null;
             _isEditing = false;
             ShowEditPanel();
-        }
-
-        private void EditSelectedMaintenance()
+        }        private void EditSelectedMaintenance()
         {
-            if (_maintenanceGrid?.SelectedRows.Count > 0)
+            if (_maintenanceGrid?.SelectedItem is Maintenance selectedMaintenance)
             {
-                var selectedRow = _maintenanceGrid.SelectedRows[0];
-                var maintenanceId = (int)selectedRow.Cells["MaintenanceID"].Value;
-                _currentMaintenance = _maintenances.FirstOrDefault(m => m.MaintenanceID == maintenanceId);
-
-                if (_currentMaintenance != null)
-                {
-                    _isEditing = true;
-                    ShowEditPanel();
-                }
+                _currentMaintenance = selectedMaintenance;
+                _isEditing = true;
+                ShowEditPanel();
             }
-        }
-
-        private void DeleteSelectedMaintenance()
+        }        private void DeleteSelectedMaintenance()
         {
-            if (_maintenanceGrid?.SelectedRows.Count > 0)
+            if (_maintenanceGrid?.SelectedItem is Maintenance selectedMaintenance)
             {
-                var selectedRow = _maintenanceGrid.SelectedRows[0];
-                var maintenanceId = (int)selectedRow.Cells["MaintenanceID"].Value;
-                var maintenance = _maintenances.FirstOrDefault(m => m.MaintenanceID == maintenanceId);
+                var result = MessageBox.Show(
+                    $"Are you sure you want to delete the maintenance record for {selectedMaintenance.VehicleNumber} on {selectedMaintenance.Date}?",
+                    "Confirm Delete",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
 
-                if (maintenance != null)
+                if (result == DialogResult.Yes)
                 {
-                    var result = MessageBox.Show(
-                        $"Are you sure you want to delete the maintenance record for {maintenance.VehicleNumber} on {maintenance.Date}?",
-                        "Confirm Delete",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
+                    try
                     {
-                        try
-                        {
-                            _maintenanceRepository.DeleteMaintenance(maintenanceId);
-                            LoadMaintenances();
-                            MessageBox.Show("Maintenance record deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"Error deleting maintenance record: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
+                        _maintenanceRepository.DeleteMaintenance(selectedMaintenance.MaintenanceID);
+                        LoadMaintenances();
+                        MessageBox.Show("Maintenance record deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error deleting maintenance record: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
-        }
-
-        private void ViewMaintenanceDetails()
+        }        private void ViewMaintenanceDetails()
         {
-            if (_maintenanceGrid?.SelectedRows.Count > 0)
+            if (_maintenanceGrid?.SelectedItem is Maintenance selectedMaintenance)
             {
-                var selectedRow = _maintenanceGrid.SelectedRows[0];
-                var maintenanceId = (int)selectedRow.Cells["MaintenanceID"].Value;
-                var maintenance = _maintenances.FirstOrDefault(m => m.MaintenanceID == maintenanceId);
-
-                if (maintenance != null)
+                using (var detailForm = new MaintenanceEditFormSyncfusion(selectedMaintenance))
                 {
-                    using (var detailForm = new MaintenanceEditFormSyncfusion(maintenance))
-                    {
-                        detailForm.ShowDialog(this);
-                    }
+                    detailForm.ShowDialog(this);
                 }
             }
         }

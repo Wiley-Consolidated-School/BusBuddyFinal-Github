@@ -10,14 +10,32 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup><PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
+
+    <!-- Syncfusion Core Packages for 100% Feature Utilization -->
+    <PackageReference Include="Syncfusion.Core.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Shared.Base" Version="29.2.10" />
+
+    <!-- DataGrid and Export Packages -->
+    <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.DataGridExport.WinForms" Version="29.2.10" />
+
+    <!-- Input and UI Controls -->
+    <PackageReference Include="Syncfusion.SfInput.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Tools.Windows" Version="29.2.10" />
+
+    <!-- Chart and Visualization for Reports -->
+    <PackageReference Include="Syncfusion.Chart.Windows" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Gauge.Windows" Version="29.2.10" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BusBuddy.Models\BusBuddy.Models.csproj" />
     <ProjectReference Include="..\BusBuddy.Data\BusBuddy.Data.csproj" />
     <ProjectReference Include="..\BusBuddy.Business\BusBuddy.Business.csproj" />
+    <ProjectReference Include="..\BusBuddy.UI\BusBuddy.UI.csproj" />
   </ItemGroup>
 
 </Project>

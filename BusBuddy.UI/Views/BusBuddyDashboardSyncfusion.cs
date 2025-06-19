@@ -7,180 +7,39 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.IO;
 using BusBuddy.UI.Services;
-using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Base;
 using BusBuddy.Business;
+using BusBuddy.UI.Views;
 using Syncfusion.Windows.Forms;
 using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.Windows.Forms.Chart;
+using Syncfusion.Windows.Forms.Gauge;
 
 namespace BusBuddy.UI.Views
 {
-    #region Theme Service
-
-    /// <summary>
-    /// Enhanced theme service for consistent styling
-    /// </summary>
-    public static class EnhancedThemeService
-    {
-        public static Color BackgroundColor => Color.FromArgb(245, 245, 245);
-        public static Color SurfaceColor => Color.White;
-        public static Color HeaderColor => Color.FromArgb(33, 150, 243);
-        public static Color HeaderTextColor => Color.White;
-        public static Color SidebarColor => Color.FromArgb(98, 91, 113);
-        public static Color ButtonColor => Color.FromArgb(33, 150, 243);
-        public static Color ButtonTextColor => Color.White;
-        public static Color ButtonHoverColor => Color.FromArgb(30, 136, 229);
-        public static Color PrimaryDarkColor => Color.FromArgb(25, 118, 210);
-        public static Color AccentColor => Color.FromArgb(255, 152, 0);
-        public static Color TextColor => Color.FromArgb(33, 33, 33);
-        public static Color SecondaryTextColor => Color.FromArgb(117, 117, 117);
-        public static Color BorderColor => Color.FromArgb(224, 224, 224);
-        public static Color WarningColor => Color.FromArgb(255, 152, 0);
-
-        public static Font DefaultFont => new Font("Segoe UI", 9F, FontStyle.Regular);
-        public static Font HeaderFont => GetSafeFont(12F, FontStyle.Bold);
-        public static Font ButtonFont => GetSafeFont(9F, FontStyle.Regular);
-
-        public static Font GetSafeFont(float size, FontStyle style = FontStyle.Regular)
-        {
-            try
-            {
-                return new Font("Segoe UI", size, style);
-            }
-            catch
-            {
-                return new Font(FontFamily.GenericSansSerif, size, style);
-            }
-        }
-    }
-
-    #endregion
-
-    #region Logging
-
-    /// <summary>
-    /// Log levels for dashboard operations
-    /// </summary>
-    public enum LogLevel
-    {
-        Debug = 0,
-        Info = 1,
-        Warning = 2,
-        Error = 3
-    }
-
-    #endregion
-
-    #region Configuration Classes
-
-    /// <summary>
-    /// Centralized configuration for dashboard behavior and features
-    /// </summary>
-    public class DashboardConfiguration
-    {
-        public bool EnableDiagnostics { get; set; } = true;
-        public bool UseEnhancedLayout { get; set; } = true;
-        public bool UseSimpleWorkingLayout { get; set; } = false;
-        public bool UseDockingManagerLayout { get; set; } = true; // ENABLED: Professional docking layout
-        public bool UseEnhancedFormDiscovery { get; set; } = true;
-        public bool EnableDpiLogging { get; set; } = true;
-        public bool EnablePerformanceCaching { get; set; } = true;
-        public bool EnableAccessibilityValidation { get; set; } = true;
-        public bool EnableControlOverlapDetection { get; set; } = true;
-        public int MinimumLogLevel { get; set; } = 1; // Info level
-        public bool OptimizeForPerformance { get; set; } = true;
-        public bool EnableEmojiFallback { get; set; } = true;
-    }
-
-    /// <summary>
-    /// Form information for dashboard navigation
-    /// </summary>
-    public class FormInfo
-    {
-        public string DisplayName { get; set; }
-        public string FormTypeName { get; set; }
-        public Type FormType { get; set; }
-        public string Description { get; set; }
-        public string IconText { get; set; } = "📋";
-        public bool IsEnabled { get; set; } = true;
-        public string Category { get; set; } = "General";
-
-        public FormInfo(string displayName, Type formType, string description = "", string iconText = "📋")
-        {
-            DisplayName = displayName;
-            FormType = formType;
-            FormTypeName = formType?.Name ?? displayName;
-            Description = description;
-            IconText = iconText;
-        }
-    }
-
-    #endregion
-
-    /// <summary>
-    /// Enhanced BusBuddy Dashboard with comprehensive fixes for visibility and base form conflicts
-    /// Features: Diagnostic testing, multiple fallback strategies, enhanced error handling
-    /// </summary>
-    public partial class BusBuddyDashboardSyncfusion : Form // CRITICAL FIX: Inherit directly from Form instead of SyncfusionBaseForm
+    public partial class BusBuddyDashboardSyncfusion : SyncfusionBaseForm
     {
         private readonly INavigationService _navigationService;
         private readonly IDatabaseHelperService _databaseHelperService;
         private List<FormInfo> _cachedForms;
-        private Control? _dashboardMainPanel; // Use different name to avoid hiding base class member
+        private Control? _dashboardMainPanel;
         private Panel? _headerPanel;
-        private Control _titleLabel; // Changed to Control to support both AutoLabel and Label
+        private Control _titleLabel;
         private Panel? _contentPanel;
         private FlowLayoutPanel _formButtonsPanel;
+        private Panel? _statsPanel;
 
-        // Syncfusion Docking Manager for professional layout
-        private DockingManager? _dockingManager;
+        private static readonly bool ENABLE_DIAGNOSTICS = bool.Parse(Environment.GetEnvironmentVariable("BUSBUDDY_DIAGNOSTICS") ?? "true");
+        private static readonly bool USE_ENHANCED_LAYOUT = true;
+        private static readonly bool USE_SIMPLE_WORKING_LAYOUT = false;
+        private static readonly bool USE_ENHANCED_FORM_DISCOVERY = true;
+        private static readonly bool ENABLE_DPI_LOGGING = bool.Parse(Environment.GetEnvironmentVariable("BUSBUDDY_DPI_LOGGING") ?? "true");
+        private static readonly bool ENABLE_PERFORMANCE_CACHING = true;
+        private static readonly bool ENABLE_ACCESSIBILITY_VALIDATION = true;
+        private static readonly bool ENABLE_CONTROL_OVERLAP_DETECTION = true;
 
-        // OPTIMIZED: Configuration flags moved to centralized configuration
-        private static readonly DashboardConfiguration Config = LoadDashboardConfiguration();
-
-        /// <summary>
-        /// Load dashboard configuration from environment variables, config file, or defaults
-        /// </summary>
-        private static DashboardConfiguration LoadDashboardConfiguration()
-        {
-            var config = new DashboardConfiguration();
-
-            try
-            {
-                // Load from environment variables first (for runtime configuration)
-                config.EnableDiagnostics = bool.Parse(Environment.GetEnvironmentVariable("BUSBUDDY_DIAGNOSTICS") ?? config.EnableDiagnostics.ToString());
-                config.EnableDpiLogging = bool.Parse(Environment.GetEnvironmentVariable("BUSBUDDY_DPI_LOGGING") ?? config.EnableDpiLogging.ToString());
-                config.OptimizeForPerformance = bool.Parse(Environment.GetEnvironmentVariable("BUSBUDDY_OPTIMIZE_PERFORMANCE") ?? config.OptimizeForPerformance.ToString());
-
-                // TODO: In future versions, load from JSON configuration file
-                // var configFile = Path.Combine(Application.StartupPath, "dashboard.config.json");
-                // if (File.Exists(configFile)) { ... }
-
-                Console.WriteLine($"📋 Dashboard configuration loaded: Diagnostics={config.EnableDiagnostics}, Performance={config.OptimizeForPerformance}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Failed to load configuration, using defaults: {ex.Message}");
-            }
-
-            return config;
-        }
-
-        // Legacy support for existing code
-        private static readonly bool ENABLE_DIAGNOSTICS = Config.EnableDiagnostics;
-        private static readonly bool USE_ENHANCED_LAYOUT = Config.UseEnhancedLayout;
-        private static readonly bool USE_SIMPLE_WORKING_LAYOUT = Config.UseSimpleWorkingLayout;
-        private static readonly bool USE_ENHANCED_FORM_DISCOVERY = Config.UseEnhancedFormDiscovery;
-        private static readonly bool ENABLE_DPI_LOGGING = Config.EnableDpiLogging;
-        private static readonly bool ENABLE_PERFORMANCE_CACHING = Config.EnablePerformanceCaching;
-        private static readonly bool ENABLE_ACCESSIBILITY_VALIDATION = Config.EnableAccessibilityValidation;
-        private static readonly bool ENABLE_CONTROL_OVERLAP_DETECTION = Config.EnableControlOverlapDetection;
-
-        // Performance optimization: Static form cache to avoid repeated reflection
         private static readonly Dictionary<string, Type> _formTypeCache = new Dictionary<string, Type>();
         private static readonly object _cacheInitLock = new object();
-
-        // Cache for rendering validation
         private static readonly string CACHE_FILE = "form_cache.json";
         private static bool _syncfusionRenderingValidated = false;
 
@@ -189,8 +48,6 @@ namespace BusBuddy.UI.Views
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _databaseHelperService = databaseHelperService ?? throw new ArgumentNullException(nameof(databaseHelperService));
 
-            // Ensure _formButtonsPanel is always initialized to prevent null reference exceptions
-            Console.WriteLine("🔧 PRE-INIT: Initializing _formButtonsPanel to prevent null reference");
             _formButtonsPanel = new FlowLayoutPanel
             {
                 Name = "QuickActionsFlowPanel",
@@ -207,73 +64,24 @@ namespace BusBuddy.UI.Views
             InitializeComponent();
             ConfigureWindow();
 
-            // Add Load event handler for final positioning
             this.Load += BusBuddyDashboardSyncfusion_Load;
-
-            // Add resize handler to monitor title bar visibility
             this.Resize += BusBuddyDashboardSyncfusion_WindowStateChanged;
-
-            // Add DPI changed handler for dynamic DPI changes
             this.DpiChanged += BusBuddyDashboardSyncfusion_DpiChanged;
 
-            // Temporarily disable double buffering for debugging black screen issue
-            // this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
-            Console.WriteLine("⚠️ Double buffering temporarily disabled for debugging");
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
 
-            // Choose form discovery strategy
             if (USE_ENHANCED_FORM_DISCOVERY)
-            {
                 ScanAndCacheFormsEnhanced();
-            }
             else
-            {
-                // Simple fallback - initialize empty cache
                 _cachedForms = new List<FormInfo>();
-                Console.WriteLine("📋 Using simple form discovery fallback");
-            }
 
-            // Choose layout strategy with proper error handling
-            if (Config.UseDockingManagerLayout)
-            {
-                Console.WriteLine("🏗️ Using DOCKING MANAGER layout for professional UI");
-                try
-                {
-                    CreateDockingManagerLayout();
-                }
-                catch (Exception dockingEx)
-                {
-                    Console.WriteLine($"❌ Docking manager layout failed: {dockingEx.Message}");
-                    Console.WriteLine("🔄 Falling back to enhanced layout");
-                    CreateMainLayoutEnhanced();
-                }
-            }
-            else if (USE_SIMPLE_WORKING_LAYOUT)
-            {
-                Console.WriteLine("🔧 Using SIMPLE WORKING layout for debugging");
+            if (USE_SIMPLE_WORKING_LAYOUT)
                 CreateSimpleWorkingLayout();
-            }
             else if (USE_ENHANCED_LAYOUT)
-            {
-                Console.WriteLine("🔬 Using ENHANCED layout with fallbacks and diagnostics");
-                try
-                {
-                    CreateMainLayoutEnhanced();
-                }
-                catch (Exception layoutEx)
-                {
-                    Console.WriteLine($"❌ Enhanced layout failed: {layoutEx.Message}");
-                    Console.WriteLine("🔄 Falling back to simple working layout");
-                    CreateSimpleWorkingLayout();
-                }
-            }
+                try { CreateMainLayoutEnhanced(); }
+                catch (Exception ex) { Log(LogLevel.Error, "Enhanced layout failed", ex); CreateSimpleWorkingLayout(); }
             else
-            {
-                Console.WriteLine("🔧 Using ORIGINAL layout");
                 CreateMainLayout();
-            }
-
-            // Defer remaining setup to Load event to ensure handle creation
-            Console.WriteLine("⏰ Deferring final initialization to Load event");
         }
 
         #region Initialization Methods
@@ -286,41 +94,25 @@ namespace BusBuddy.UI.Views
             this.MinimumSize = new Size(1200, 700);
             this.AutoScaleMode = AutoScaleMode.Dpi;
 
-            // Log DPI information if enabled
             if (ENABLE_DPI_LOGGING)
-            {
                 LogDpiInformation();
-            }
         }
 
         private void ConfigureWindow()
         {
             this.Text = "BusBuddy Dashboard";
-
-            // Dashboard should be maximizable/minimizable unlike regular forms
             this.FormBorderStyle = FormBorderStyle.Sizable;
             this.ControlBox = true;
             this.MaximizeBox = true;
             this.MinimizeBox = true;
             this.ShowInTaskbar = true;
-
-            // Ensure proper window positioning before maximizing
             this.WindowState = FormWindowState.Normal;
             this.StartPosition = FormStartPosition.CenterScreen;
 
-            // Ensure window controls are accessible
             EnsureWindowControlsVisible();
-
-            // Apply DPI-aware positioning
             ApplyDpiAwarePositioning();
-
-            // Force the form to not be maximized initially to ensure title bar is visible
-            this.WindowState = FormWindowState.Normal;
         }
 
-        /// <summary>
-        /// Log DPI information for diagnostic purposes
-        /// </summary>
         private void LogDpiInformation()
         {
             try
@@ -330,12 +122,7 @@ namespace BusBuddy.UI.Views
                     var dpiX = graphics.DpiX;
                     var dpiY = graphics.DpiY;
                     var scale = dpiX / 96f;
-
-                    Console.WriteLine($"🔍 DPI DIAGNOSTICS:");
-                    Console.WriteLine($"   DPI X: {dpiX}, DPI Y: {dpiY}");
-                    Console.WriteLine($"   Scale Factor: {scale:F2}x");
-                    Console.WriteLine($"   High DPI Mode: {scale > 1.25f}");
-                    Console.WriteLine($"   Screen Resolution: {Screen.PrimaryScreen.Bounds}");
+                    Console.WriteLine($"🔍 DPI DIAGNOSTICS: DPI X: {dpiX}, DPI Y: {dpiY}, Scale: {scale:F2}x, High DPI: {scale > 1.25f}, Screen: {Screen.PrimaryScreen.Bounds}");
                 }
             }
             catch (Exception ex)
@@ -344,34 +131,23 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        /// <summary>
-        /// Original layout creation method for fallback compatibility
-        /// </summary>
         private void CreateMainLayout()
         {
-            Console.WriteLine("⚠️ Using original layout - consider switching to enhanced layout");
-            CreateMainLayoutEnhanced(); // Redirect to enhanced version
+            Console.WriteLine("⚠️ Using original layout - redirecting to enhanced");
+            CreateMainLayoutEnhanced();
         }
 
-        /// <summary>
-        /// Create a simple, guaranteed-to-work layout using basic Windows Forms controls
-        /// This bypasses all Syncfusion layout managers and theming issues
-        /// </summary>
         private void CreateSimpleWorkingLayout()
         {
             try
             {
                 Console.WriteLine("🔧 SIMPLE: Creating basic working layout...");
-
-                // Clear any existing controls
                 this.Controls.Clear();
                 this.SuspendLayout();
 
-                // Set basic form properties
-                this.BackColor = Color.FromArgb(240, 240, 240); // Light gray background
+                this.BackColor = Color.FromArgb(240, 240, 240);
                 this.Text = "BusBuddy Dashboard - Simple Layout";
 
-                // Create a simple TableLayoutPanel for main structure
                 var mainLayout = new TableLayoutPanel
                 {
                     Name = "MainLayout",
@@ -382,17 +158,15 @@ namespace BusBuddy.UI.Views
                     CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
                 };
 
-                // Set column and row styles
-                mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200)); // Sidebar 200px
-                mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); // Main content fills rest
-                mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 80)); // Header 80px
-                mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // Content fills rest
+                mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200));
+                mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+                mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));
+                mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-                // Create header panel
                 var headerPanel = new Panel
                 {
                     Name = "HeaderPanel",
-                    BackColor = Color.FromArgb(33, 150, 243), // Blue
+                    BackColor = EnhancedThemeService.HeaderColor,
                     Dock = DockStyle.Fill,
                     Padding = new Padding(10)
                 };
@@ -400,29 +174,22 @@ namespace BusBuddy.UI.Views
                 var titleLabel = new Label
                 {
                     Text = "🚌 BusBuddy Dashboard",
-                    Font = new Font("Segoe UI", 16F, FontStyle.Bold),
-                    ForeColor = Color.White,
+                    Font = EnhancedThemeService.HeaderFont,
+                    ForeColor = EnhancedThemeService.HeaderTextColor,
                     AutoSize = true,
                     Location = new Point(10, 25)
                 };
                 headerPanel.Controls.Add(titleLabel);
 
-                // Create sidebar panel
                 var sidebarPanel = new Panel
                 {
                     Name = "SidebarPanel",
-                    BackColor = Color.FromArgb(98, 91, 113), // Dark purple
+                    BackColor = EnhancedThemeService.SidebarColor,
                     Dock = DockStyle.Fill,
                     Padding = new Padding(5)
                 };
 
-                // Add sidebar buttons
-                var sidebarButtons = new[]
-                {
-                    "🚗 Vehicles", "👤 Drivers", "🚌 Routes", "⛽ Fuel",
-                    "🔧 Maintenance", "📅 Calendar", "📊 Reports", "⚙️ Settings"
-                };
-
+                var sidebarButtons = new[] { "🚗 Vehicles", "👤 Drivers", "🚌 Routes", "⛽ Fuel", "🔧 Maintenance", "📅 Calendar", "📊 Reports", "⚙️ Settings" };
                 int buttonY = 10;
                 foreach (var buttonText in sidebarButtons)
                 {
@@ -434,14 +201,13 @@ namespace BusBuddy.UI.Views
                         BackColor = Color.FromArgb(74, 68, 88),
                         ForeColor = Color.White,
                         FlatStyle = FlatStyle.Flat,
-                        Font = new Font("Segoe UI", 9F)
+                        Font = EnhancedThemeService.ButtonFont
                     };
                     button.FlatAppearance.BorderSize = 0;
                     sidebarPanel.Controls.Add(button);
                     buttonY += 45;
                 }
 
-                // Create main content panel
                 var contentPanel = new Panel
                 {
                     Name = "ContentPanel",
@@ -450,22 +216,20 @@ namespace BusBuddy.UI.Views
                     Padding = new Padding(20)
                 };
 
-                // Add welcome text
                 var welcomeLabel = new Label
                 {
-                    Text = "Welcome to BusBuddy Dashboard\n\nThis is a simplified layout for debugging purposes.\nAll controls should be visible and functional.",
-                    Font = new Font("Segoe UI", 12F),
-                    ForeColor = Color.FromArgb(64, 64, 64),
+                    Text = "Welcome to BusBuddy Dashboard\n\nThis is a simplified layout for debugging.",
+                    Font = EnhancedThemeService.DefaultFont,
+                    ForeColor = EnhancedThemeService.TextColor,
                     AutoSize = true,
                     Location = new Point(20, 20)
                 };
                 contentPanel.Controls.Add(welcomeLabel);
 
-                // Create a stats panel
-                var statsPanel = new Panel
+                _statsPanel = new Panel
                 {
                     Name = "StatsPanel",
-                    BackColor = Color.FromArgb(250, 250, 250),
+                    BackColor = EnhancedThemeService.BackgroundColor,
                     Dock = DockStyle.Fill,
                     Padding = new Padding(10)
                 };
@@ -473,46 +237,34 @@ namespace BusBuddy.UI.Views
                 var statsLabel = new Label
                 {
                     Text = "📊 Quick Stats\n\n• Active Vehicles: 25\n• Available Drivers: 18\n• Routes Today: 12\n• Maintenance Due: 3",
-                    Font = new Font("Segoe UI", 10F),
-                    ForeColor = Color.FromArgb(64, 64, 64),
+                    Font = EnhancedThemeService.DefaultFont,
+                    ForeColor = EnhancedThemeService.TextColor,
                     AutoSize = true,
                     Location = new Point(10, 10)
                 };
-                statsPanel.Controls.Add(statsLabel);
+                _statsPanel.Controls.Add(statsLabel);
 
-                // Add panels to the table layout
-                mainLayout.Controls.Add(sidebarPanel, 0, 0); // Top-left (sidebar spans both rows)
-                mainLayout.Controls.Add(headerPanel, 1, 0); // Top-right (header)
-                mainLayout.Controls.Add(statsPanel, 0, 1);  // Bottom-left (stats)
-                mainLayout.Controls.Add(contentPanel, 1, 1); // Bottom-right (main content)
-
-                // Set row span for sidebar
+                mainLayout.Controls.Add(sidebarPanel, 0, 0);
+                mainLayout.Controls.Add(headerPanel, 1, 0);
+                mainLayout.Controls.Add(_statsPanel, 0, 1);
+                mainLayout.Controls.Add(contentPanel, 1, 1);
                 mainLayout.SetRowSpan(sidebarPanel, 2);
 
-                // Add the main layout to the form
                 this.Controls.Add(mainLayout);
-
-                // Force layout updates
                 this.ResumeLayout(true);
                 this.PerformLayout();
 
-                Console.WriteLine("✅ SIMPLE: Basic working layout created successfully");
-                Console.WriteLine($"   Form size: {this.Size}, Client size: {this.ClientSize}");
-                Console.WriteLine($"   Main layout size: {mainLayout.Size}");
-
-                // Store reference for compatibility
+                Console.WriteLine($"✅ SIMPLE: Layout created. Form size: {this.Size}, Client size: {this.ClientSize}");
                 _dashboardMainPanel = mainLayout;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ SIMPLE: Failed to create simple layout: {ex.Message}");
-
-                // Ultimate fallback - just show a message
+                Console.WriteLine($"❌ SIMPLE: Layout failed: {ex.Message}");
                 this.Controls.Clear();
                 var errorLabel = new Label
                 {
-                    Text = $"Error creating dashboard layout:\n{ex.Message}\n\nPlease check the console for details.",
-                    Font = new Font("Segoe UI", 12F),
+                    Text = $"Error creating layout:\n{ex.Message}\n\nCheck console.",
+                    Font = EnhancedThemeService.DefaultFont,
                     ForeColor = Color.Red,
                     BackColor = Color.White,
                     Dock = DockStyle.Fill,
@@ -526,68 +278,53 @@ namespace BusBuddy.UI.Views
 
         #region Enhanced Layout Creation
 
-        /// <summary>
-        /// OPTIMIZED: Enhanced CreateMainLayout with streamlined rendering and accessibility fixes
-        /// </summary>
         private void CreateMainLayoutEnhanced()
         {
             try
             {
-                Log(LogLevel.Info, "Creating enhanced main layout with optimized rendering...");
-                Console.WriteLine("🔬 STEP 1: Starting optimized CreateMainLayoutEnhanced");
+                Log(LogLevel.Info, "Creating enhanced main layout...");
                 this.SuspendLayout();
-
-                // Clear existing controls
                 this.Controls.Clear();
 
-                // Set form properties early with WCAG-compliant colors
                 this.Size = new Size(1400, 900);
                 this.MinimumSize = new Size(1200, 700);
-                this.BackColor = EnhancedThemeService.BackgroundColor; // Use theme color for consistency
 
-                // Create main container with solid background for accessibility
                 var mainTableLayout = new TableLayoutPanel
                 {
                     Name = "mainContainer",
                     Dock = DockStyle.Fill,
                     ColumnCount = 2,
                     RowCount = 2,
-                    BackColor = EnhancedThemeService.BackgroundColor, // Solid background
-                    Visible = false, // Defer visibility until layout complete
+                    BackColor = EnhancedThemeService.BackgroundColor,
+                    Visible = true,
                     MinimumSize = new Size(1200, 700)
                 };
-                Console.WriteLine($"🔬 STEP 2: Main TableLayoutPanel created - deferred visibility");
 
-                // Configure table layout with percentage-based sizing
-                mainTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20)); // Sidebar 20% of width
-                mainTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80)); // Main content 80% of width
-                mainTableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 96)); // Header row (fixed height)
-                mainTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // Content row (remaining space)
+                ControlExtensions.SetDoubleBuffered(mainTableLayout, true);
+                mainTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+                mainTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80));
+                mainTableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 96));
+                mainTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-                // Create header panel with WCAG-compliant colors
                 _headerPanel = new Panel
                 {
                     Name = "HeaderPanel",
                     Dock = DockStyle.Top,
                     Height = 96,
                     Padding = new Padding(20),
-                    BackColor = EnhancedThemeService.HeaderColor, // Solid header color for accessibility
-                    ForeColor = EnhancedThemeService.HeaderTextColor, // White text for proper contrast
-                    Visible = false // Defer visibility
+                    BackColor = EnhancedThemeService.HeaderColor,
+                    ForeColor = EnhancedThemeService.HeaderTextColor,
+                    Visible = true
                 };
-                Console.WriteLine($"🔬 STEP 3: Header panel created with solid background");
 
-                // Create sidebar panel with improved contrast
                 var sidebarPanel = new Panel
                 {
                     Name = "SidebarPanel",
                     Dock = DockStyle.Fill,
-                    BackColor = EnhancedThemeService.SidebarColor, // Solid sidebar color for accessibility
-                    Visible = false // Defer visibility
+                    BackColor = EnhancedThemeService.SidebarColor,
+                    Visible = true
                 };
-                Console.WriteLine($"🔬 STEP 4: Sidebar panel created with solid background");
 
-                // Add sidebar module buttons with improved accessibility and user feedback
                 var sidebarModules = new[]
                 {
                     new { Text = "🚗 Vehicles", Enabled = true },
@@ -600,7 +337,7 @@ namespace BusBuddy.UI.Views
                     new { Text = "⚙️ Settings", Enabled = false }
                 };
 
-                var buttonY = 10;
+                int buttonY = 10;
                 foreach (var module in sidebarModules)
                 {
                     var moduleButton = new Button
@@ -608,110 +345,98 @@ namespace BusBuddy.UI.Views
                         Text = module.Enabled ? module.Text : module.Text + " (Coming Soon)",
                         Size = new Size(220, 40),
                         Location = new Point(10, buttonY),
-                        BackColor = EnhancedThemeService.ButtonColor, // High-contrast background
-                        ForeColor = EnhancedThemeService.ButtonTextColor, // White text for contrast
+                        BackColor = EnhancedThemeService.ButtonColor,
+                        ForeColor = EnhancedThemeService.ButtonTextColor,
                         FlatStyle = FlatStyle.Flat,
                         TextAlign = ContentAlignment.MiddleLeft,
-                        Visible = false, // Defer visibility
-                        Enabled = module.Enabled,
-                        AccessibleName = module.Text.Replace("🚗", "").Replace("👤", "").Replace("🚌", "").Replace("⛽", "").Replace("🔧", "").Replace("📅", "").Replace("📊", "").Replace("⚙️", "").Trim() // Remove emojis for screen readers
+                        Visible = true,
+                        Enabled = module.Enabled
                     };
                     moduleButton.FlatAppearance.BorderSize = 0;
-
-                    // Improve UX for disabled buttons with tooltip
-                    if (!module.Enabled)
-                    {
-                        var tooltip = new ToolTip();
-                        tooltip.SetToolTip(moduleButton, "This feature will be available in a future update. Check our roadmap for more details.");
-                        moduleButton.BackColor = Color.FromArgb(100, EnhancedThemeService.ButtonColor.R, EnhancedThemeService.ButtonColor.G, EnhancedThemeService.ButtonColor.B);
-                    }
-                    else
-                    {
+                    if (module.Enabled)
                         moduleButton.Click += (sender, e) => HandleSidebarModuleClick(module.Text);
-                        // Add hover effects for enabled buttons only
-                        moduleButton.MouseEnter += (sender, e) => moduleButton.BackColor = EnhancedThemeService.PrimaryDarkColor;
-                        moduleButton.MouseLeave += (sender, e) => moduleButton.BackColor = EnhancedThemeService.ButtonColor;
-                    }
-
+                    moduleButton.MouseEnter += (sender, e) => moduleButton.BackColor = EnhancedThemeService.PrimaryDarkColor;
+                    moduleButton.MouseLeave += (sender, e) => moduleButton.BackColor = EnhancedThemeService.ButtonColor;
                     sidebarPanel.Controls.Add(moduleButton);
                     buttonY += 50;
                 }
-                Console.WriteLine($"🔬 STEP 5: Added {sidebarModules.Length} sidebar module buttons with accessibility improvements");
 
-                // Create sidebar toggle button with solid background
                 var sidebarToggleButton = new Button
                 {
                     Name = "SidebarToggleButton",
                     Text = "☰",
                     Size = new Size(40, 30),
                     Location = new Point(10, 10),
-                    BackColor = EnhancedThemeService.ButtonColor, // Solid background for accessibility
-                    ForeColor = EnhancedThemeService.ButtonTextColor, // White text for contrast
+                    BackColor = EnhancedThemeService.ButtonColor,
                     FlatStyle = FlatStyle.Flat,
+                    ForeColor = EnhancedThemeService.ButtonTextColor,
                     Anchor = AnchorStyles.Top | AnchorStyles.Left,
-                    Visible = false, // Defer visibility
-                    AccessibleName = "Toggle Sidebar Menu" // Clear accessible name for screen readers
+                    Visible = true
                 };
                 sidebarToggleButton.FlatAppearance.BorderSize = 0;
-                Console.WriteLine($"🔬 STEP 6: Sidebar toggle button created with accessibility features");
 
-                // Create title label with safe font fallback
                 _titleLabel = ExecuteWithFallback(
                     () => CreateTitleLabelWithFallbacks(),
                     () => CreateBasicTitleLabel(),
                     "Title Label Creation"
                 );
-                Console.WriteLine($"🔬 STEP 7: Title label created");
 
-                // Create stats panel
-                var statsPanel = new Panel
+                _statsPanel = new Panel
                 {
                     Name = "StatsPanel",
                     Dock = DockStyle.Fill,
-                    BackColor = EnhancedThemeService.SurfaceColor, // Solid background for accessibility
+                    BackColor = EnhancedThemeService.BackgroundColor,
                     Padding = new Padding(10),
-                    Visible = false // Defer visibility
+                    Visible = true
                 };
 
-                // Add stats labels with theme colors for better contrast
-                var statLabel1 = new Label
+                // Add ChartControl for vehicle usage (Windows Forms)
+                var vehicleChart = new ChartControl
                 {
-                    Text = "Active Vehicles: 25",
-                    AutoSize = true,
-                    Dock = DockStyle.Top, // Use dock instead of hardcoded position
-                    ForeColor = EnhancedThemeService.TextColor,
-                    BackColor = Color.Transparent,
-                    Font = EnhancedThemeService.DefaultFont,
-                    Margin = new Padding(0, 5, 0, 5), // Add some margin for spacing
-                    Visible = false
+                    Name = "VehicleUsageChart",
+                    Size = new Size(300, 200),
+                    Location = new Point(10, 10),
+                    Visible = true,
+                    Text = "Vehicle Usage",
+                    BackColor = EnhancedThemeService.BackgroundColor
                 };
-                var statLabel2 = new Label
-                {
-                    Text = "Available Drivers: 18",
-                    AutoSize = true,
-                    Dock = DockStyle.Top, // Use dock instead of hardcoded position
-                    ForeColor = EnhancedThemeService.TextColor,
-                    BackColor = Color.Transparent,
-                    Font = EnhancedThemeService.DefaultFont,
-                    Margin = new Padding(0, 5, 0, 5), // Add some margin for spacing
-                    Visible = false
-                };
-                statsPanel.Controls.Add(statLabel1);
-                statsPanel.Controls.Add(statLabel2);
-                Console.WriteLine($"🔬 STEP 8: Stats panel created with theme colors");
 
-                // Create main content panel
+                // Create series with sample data
+                var series = new ChartSeries("Vehicle Usage", ChartSeriesType.Column);
+                series.Points.Add(1, 20); // Monday
+                series.Points.Add(2, 22); // Tuesday
+                series.Points.Add(3, 18); // Wednesday
+                series.Points.Add(4, 25); // Thursday
+                series.Points.Add(5, 23); // Friday
+                series.Text = "Vehicles in Use";
+                vehicleChart.Series.Add(series);
+                _statsPanel.Controls.Add(vehicleChart);
+
+                // Add RadialGauge for maintenance status (Windows Forms)
+                var maintenanceGauge = new RadialGauge
+                {
+                    Name = "MaintenanceGauge",
+                    Size = new Size(200, 200),
+                    Location = new Point(320, 10),
+                    Visible = true,
+                    Value = 75,
+                    MinimumValue = 0,
+                    MaximumValue = 100,
+                    MajorDifference = 20,
+                    MinorDifference = 5,
+                    BackColor = EnhancedThemeService.BackgroundColor
+                };
+                _statsPanel.Controls.Add(maintenanceGauge);
+
                 _contentPanel = new Panel
                 {
                     Name = "ContentPanel",
                     Dock = DockStyle.Fill,
-                    BackColor = EnhancedThemeService.SurfaceColor, // Solid background for accessibility
+                    BackColor = EnhancedThemeService.BackgroundColor,
                     Padding = new Padding(20),
-                    Visible = false // Defer visibility
+                    Visible = true
                 };
-                Console.WriteLine($"🔬 STEP 9: Content panel created");
 
-                // Create quick actions flow panel with enhanced overflow handling
                 _formButtonsPanel = new FlowLayoutPanel
                 {
                     Name = "QuickActionsFlowPanel",
@@ -720,811 +445,545 @@ namespace BusBuddy.UI.Views
                     WrapContents = true,
                     AutoScroll = true,
                     Padding = new Padding(10),
-                    BackColor = EnhancedThemeService.SurfaceColor, // Consistent theme color
+                    BackColor = EnhancedThemeService.BackgroundColor,
                     MinimumSize = new Size(400, 200),
-                    Visible = false // Defer visibility
+                    Visible = true
                 };
-                Console.WriteLine($"🔬 STEP 10: Form buttons panel created");
 
-                // Create QuickActionsPanel alias for test compatibility
                 var quickActionsPanel = new Panel
                 {
                     Name = "QuickActionsPanel",
                     Dock = DockStyle.Fill,
-                    BackColor = EnhancedThemeService.SurfaceColor,
-                    Visible = false // Defer visibility
+                    BackColor = EnhancedThemeService.BackgroundColor,
+                    Visible = true
                 };
                 quickActionsPanel.Controls.Add(_formButtonsPanel);
-                Console.WriteLine($"🔬 STEP 11: Quick actions panel created and configured");
 
-                // Build control hierarchy efficiently
                 _headerPanel.Controls.Add(sidebarToggleButton);
                 _headerPanel.Controls.Add(_titleLabel);
                 _contentPanel.Controls.Add(quickActionsPanel);
 
-                // Add controls to table layout in single operation
-                mainTableLayout.Controls.Add(sidebarPanel, 0, 0); // Sidebar top-left
-                mainTableLayout.Controls.Add(_headerPanel, 1, 0); // Header top-right
-                mainTableLayout.Controls.Add(statsPanel, 0, 1); // Stats bottom-left
-                mainTableLayout.Controls.Add(_contentPanel, 1, 1); // Content bottom-right
-
-                // Set table layout spans
-                mainTableLayout.SetRowSpan(sidebarPanel, 2); // Sidebar spans both rows
+                mainTableLayout.Controls.Add(sidebarPanel, 0, 0);
+                mainTableLayout.Controls.Add(_headerPanel, 1, 0);
+                mainTableLayout.Controls.Add(_statsPanel, 0, 1);
+                mainTableLayout.Controls.Add(_contentPanel, 1, 1);
+                mainTableLayout.SetRowSpan(sidebarPanel, 2);
 
                 this.Controls.Add(mainTableLayout);
-                Console.WriteLine($"🔬 STEP 12: Control hierarchy built and added to form");
+                this.ResumeLayout(false);
+                mainTableLayout.PerformLayout();
+                this.PerformLayout();
 
-                // OPTIMIZED: Single layout pass with consolidated operations
-                this.ResumeLayout(true); // Allow layout during resume
-                Console.WriteLine($"🔬 STEP 13: Layout operations completed");
+                SetControlVisibility(mainTableLayout, true);
+                mainTableLayout.Refresh();
+                this.Refresh();
 
-                // Set visibility in single recursive pass AFTER layout
-                SetControlVisibilityRecursive(mainTableLayout, true);
-                Console.WriteLine($"🔬 STEP 14: Visibility set for all controls");
+                Application.DoEvents();
 
-                // Force immediate rendering (removed to prevent handle creation issues)
-                // this.Refresh();
-                Console.WriteLine($"🔬 STEP 15: Skipped form refresh to prevent handle creation issues");
-
-                // Store reference to main panel for compatibility
                 _dashboardMainPanel = mainTableLayout;
+                ControlExtensions.SetDoubleBuffered(_contentPanel, true);
+                ControlExtensions.SetDoubleBuffered(_headerPanel, true);
+                ControlExtensions.SetDoubleBuffered(_formButtonsPanel, true);
+                ControlExtensions.SetDoubleBuffered(_statsPanel, true);
 
-                // Enable double buffering for key panels AFTER visibility is set AND handles are created
-                if (_contentPanel?.IsHandleCreated == true)
-                {
-                    ControlExtensions.SetDoubleBuffered(_contentPanel, true);
-                }
-                if (_headerPanel?.IsHandleCreated == true)
-                {
-                    ControlExtensions.SetDoubleBuffered(_headerPanel, true);
-                }
-                if (_formButtonsPanel?.IsHandleCreated == true)
-                {
-                    ControlExtensions.SetDoubleBuffered(_formButtonsPanel, true);
-                }
-
-                // Perform post-layout validations
                 if (ENABLE_CONTROL_OVERLAP_DETECTION)
-                {
                     CheckForControlOverlaps(this);
-                }
 
                 if (ENABLE_ACCESSIBILITY_VALIDATION)
-                {
                     ValidateAccessibilityContrast();
-                }
 
-                // Log the final state
-                Log(LogLevel.Info, "Enhanced layout created with optimized rendering and accessibility");
+                Log(LogLevel.Info, "Enhanced layout created successfully");
                 if (ENABLE_DIAGNOSTICS)
-                {
                     LogControlHierarchy();
-                }
-
-                Console.WriteLine("🔬 STEP 16: Enhanced layout creation completed successfully with optimizations");
             }
             catch (Exception ex)
             {
                 Log(LogLevel.Error, "Enhanced layout creation failed", ex);
-                Console.WriteLine($"❌ Enhanced layout failed: {ex.Message}");
-
-                // Display user-friendly error message
-                var result = MessageBox.Show(
-                    "Failed to create the dashboard layout. Using fallback mode.\n\nWould you like to view technical details?",
-                    "Layout Error",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning
-                );
-
+                var result = MessageBox.Show("Failed to create dashboard layout. View details?", "Layout Error", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.Yes)
-                {
-                    MessageBox.Show(
-                        $"Technical Details:\n\n{ex.Message}\n\nStack Trace:\n{ex.StackTrace}",
-                        "Technical Error Details",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
-                }
-
+                    MessageBox.Show($"Error: {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CreateFallbackLayout();
             }
         }
 
-        /// <summary>
-        /// Create professional dashboard layout using Syncfusion Docking Manager
-        /// This eliminates hardcoded positioning and provides better UI flexibility
-        /// </summary>
-        private void CreateDockingManagerLayout()
+        private Control CreateBasicTitleLabel()
+        {
+            Log(LogLevel.Warning, "Creating basic title label");
+            return new Label
+            {
+                Text = "🚌 BusBuddy Dashboard",
+                Location = new Point(60, 25),
+                ForeColor = EnhancedThemeService.HeaderTextColor,
+                AutoSize = true,
+                Font = EnhancedThemeService.HeaderFont,
+                BackColor = Color.Transparent,
+                Visible = true
+            };
+        }
+
+        private Control CreateTitleLabelWithFallbacks()
+        {
+            Log(LogLevel.Info, "Creating title label");
+            return ControlFactory.CreateLabel(
+                "🚌 BusBuddy Dashboard",
+                EnhancedThemeService.HeaderFont,
+                EnhancedThemeService.HeaderTextColor,
+                true
+            );
+        }
+
+        private Font GetSafeFontWithFallback(string preferredFontName, float size, FontStyle style)
         {
             try
             {
-                Console.WriteLine("🔧 Creating professional docking manager layout");
-
-                // Initialize components container if not already initialized
-                if (components == null)
+                var font = new Font(preferredFontName, size, style);
+                Console.WriteLine($"✅ Font: {font.FontFamily.Name}");
+                return font;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Font '{preferredFontName}' failed: {ex.Message}");
+                string[] fallbackFonts = { "Arial", "Microsoft Sans Serif", "Tahoma" };
+                foreach (var fallbackFont in fallbackFonts)
                 {
-                    components = new System.ComponentModel.Container();
+                    try
+                    {
+                        var font = new Font(fallbackFont, size, style);
+                        Console.WriteLine($"✅ Fallback font: {font.FontFamily.Name}");
+                        return font;
+                    }
+                    catch { }
+                }
+                Console.WriteLine("⚠️ Using default font");
+                return SystemFonts.DefaultFont;
+            }
+        }
+
+        private void CreateFallbackLayout()
+        {
+            Console.WriteLine("🆘 FALLBACK: Creating emergency layout");
+            Log(LogLevel.Warning, "Creating fallback layout");
+
+            this.Controls.Clear();
+            var fallbackPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.LightGray,
+                Padding = new Padding(20)
+            };
+
+            var statusMessage = _syncfusionRenderingValidated ?
+                "BusBuddy Dashboard - Layout Failed\nUsing simplified layout." :
+                "BusBuddy Dashboard - Fallback Mode\nSyncfusion controls unavailable.";
+
+            var fallbackLabel = new Label
+            {
+                Text = statusMessage,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = Color.Black,
+                BackColor = Color.White,
+                Font = EnhancedThemeService.DefaultFont,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            var navPanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 60,
+                BackColor = EnhancedThemeService.HeaderColor
+            };
+
+            var titleLabel = new Label
+            {
+                Text = "🚌 BusBuddy - Safe Mode",
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = EnhancedThemeService.HeaderTextColor,
+                Font = EnhancedThemeService.HeaderFont
+            };
+
+            navPanel.Controls.Add(titleLabel);
+            fallbackPanel.Controls.Add(fallbackLabel);
+            this.Controls.Add(navPanel);
+            this.Controls.Add(fallbackPanel);
+
+            Console.WriteLine("✅ FALLBACK: Emergency layout created");
+        }
+
+        #endregion
+
+        #region Enhanced Form Discovery
+
+        private void ScanAndCacheFormsEnhanced()
+        {
+            _cachedForms = new List<FormInfo>();
+            try
+            {
+                Console.WriteLine("🔍 SCAN: Discovering Syncfusion forms...");
+                if (ENABLE_PERFORMANCE_CACHING && LoadFormsFromCache())
+                {
+                    Console.WriteLine($"📋 Loaded {_cachedForms.Count} forms from cache");
+                    return;
                 }
 
-                // Create DockingManager instance with proper configuration
-                _dockingManager = new DockingManager(components)
+                IEnumerable<Type> syncfusionFormTypes;
+                lock (_cacheInitLock)
                 {
-                    HostControl = this,
-                    AutoHideTabForeColor = Color.Black,
-                    EnableAutoAdjustCaption = true,
-                    ShowCaption = true,
-                    EnableContextMenu = true,
-                    DockToFill = true, // Occupy whole window for better space utilization
-                    MaximizeButtonEnabled = true, // Allow maximizing dock windows
-                    DockLabelAlignment = DockLabelAlignmentStyle.Left,
-                    SplitterWidth = 4, // Thinner splitters for modern look
-                    MetroSplitterBackColor = EnhancedThemeService.AccentColor
-                };
+                    if (_formTypeCache.Count == 0)
+                    {
+                        Console.WriteLine("📋 Initializing form cache...");
+                        var assembly = Assembly.GetExecutingAssembly();
+                        var types = assembly.GetTypes()
+                            .Where(type => type.Namespace == "BusBuddy.UI.Views" &&
+                                          type.Name.EndsWith("Syncfusion") &&
+                                          type.IsSubclassOf(typeof(Form)) &&
+                                          !type.IsAbstract &&
+                                          type != typeof(BusBuddyDashboardSyncfusion))
+                            .ToList();
+                        foreach (var type in types)
+                            _formTypeCache[type.Name] = type;
+                        Console.WriteLine($"📋 Cached {_formTypeCache.Count} form types");
+                    }
+                }
+                syncfusionFormTypes = _formTypeCache.Values;
 
-                // Set visual style if available
+                foreach (var formType in syncfusionFormTypes)
+                {
+                    try
+                    {
+                        var formInfo = CreateFormInfoFromType(formType);
+                        _cachedForms.Add(formInfo);
+                        Console.WriteLine($"✅ Added: {formInfo.DisplayName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Failed to process {formType.Name}: {ex.Message}");
+                    }
+                }
+
+                if (ENABLE_PERFORMANCE_CACHING && _cachedForms.Count > 0)
+                    SaveFormsToCache();
+
+                if (_cachedForms.Count == 0)
+                {
+                    Console.WriteLine("⚠️ Discovery failed, using manual list");
+                    AddManualFormList();
+                }
+
+                Console.WriteLine($"📊 SCAN: Total forms: {_cachedForms.Count}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ SCAN ERROR: {ex.Message}");
+                AddManualFormList();
+            }
+        }
+
+        private bool LoadFormsFromCache()
+        {
+            try
+            {
+                if (!File.Exists(CACHE_FILE))
+                    return false;
+                var json = File.ReadAllText(CACHE_FILE);
+                var cachedData = System.Text.Json.JsonSerializer.Deserialize<List<FormInfo>>(json);
+                if (cachedData != null && cachedData.Count > 0)
+                {
+                    _cachedForms = cachedData;
+                    Log(LogLevel.Info, $"Loaded {_cachedForms.Count} forms from cache");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Warning, "Failed to load cache", ex);
+            }
+            return false;
+        }
+
+        private void SaveFormsToCache()
+        {
+            try
+            {
+                var json = System.Text.Json.JsonSerializer.Serialize(_cachedForms, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(CACHE_FILE, json);
+                Log(LogLevel.Debug, $"Saved {_cachedForms.Count} forms to cache");
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Warning, "Failed to save cache", ex);
+            }
+        }
+
+        private FormInfo CreateFormInfoFromType(Type formType)
+        {
+            var formInfo = new FormInfo
+            {
+                Name = formType.Name,
+                FormTypeName = formType.AssemblyQualifiedName,
+                NavigationMethod = MapToNavigationMethod(formType.Name)
+            };
+
+            var displayNameAttribute = formType.GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+            formInfo.DisplayName = displayNameAttribute != null ? displayNameAttribute.DisplayName : GenerateDisplayName(formType.Name);
+
+            var descriptionAttribute = formType.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>();
+            formInfo.Description = descriptionAttribute != null ? descriptionAttribute.Description : $"Manage {formInfo.DisplayName.ToLower()}";
+
+            return formInfo;
+        }
+
+        private string GenerateDisplayName(string typeName)
+        {
+            var cleanName = typeName.Replace("FormSyncfusion", "").Replace("Form", "");
+            var spacedName = Regex.Replace(cleanName, "(?<!^)([A-Z])", " $1");
+            var emojiMap = new Dictionary<string, string>
+            {
+                { "Vehicle", "🚗" }, { "Driver", "👤" }, { "Route", "🚌" }, { "Activity", "🎯" },
+                { "Fuel", "⛽" }, { "Maintenance", "🔧" }, { "School Calendar", "📅" }, { "Activity Schedule", "📋" }
+            };
+            foreach (var kvp in emojiMap)
+                if (spacedName.Contains(kvp.Key))
+                    return $"{kvp.Value} {spacedName}";
+            return spacedName;
+        }
+
+        #endregion
+
+        #region Enhanced Button Creation
+
+        private Control CreateFormButtonEnhanced(FormInfo formInfo)
+        {
+            try
+            {
+                Button button = null;
                 try
                 {
-                    _dockingManager.VisualStyle = VisualStyle.Metro;
+                    button = (Button)Activator.CreateInstance(typeof(ButtonAdv));
+                    Console.WriteLine($"✅ ButtonAdv for {formInfo.DisplayName}");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Console.WriteLine("⚠️ Metro visual style not available, using default");
+                    Console.WriteLine($"⚠️ ButtonAdv failed: {ex.Message}");
+                    button = new Button();
+                    Console.WriteLine($"✅ Standard Button for {formInfo.DisplayName}");
                 }
 
-                this.SuspendLayout();
+                button.Text = formInfo.DisplayName;
+                button.Size = new Size(220, 80);
+                button.Margin = new Padding(10);
+                button.BackColor = EnhancedThemeService.ButtonColor;
+                button.ForeColor = EnhancedThemeService.ButtonTextColor;
+                button.FlatStyle = FlatStyle.Flat;
+                button.FlatAppearance.BorderSize = 0;
+                button.Font = EnhancedThemeService.ButtonFont;
+                button.TextAlign = ContentAlignment.MiddleCenter;
+                button.UseVisualStyleBackColor = false;
+                button.Cursor = Cursors.Hand;
+                button.Visible = true;
 
-                // Create main panels for docking with enhanced theming
-                var sidebarPanel = new Panel
+                button.MouseEnter += (s, e) => button.BackColor = EnhancedThemeService.PrimaryDarkColor;
+                button.MouseLeave += (s, e) => button.BackColor = EnhancedThemeService.ButtonColor;
+                button.Click += (s, e) => NavigateToForm(formInfo);
+
+                if (ENABLE_DIAGNOSTICS)
                 {
-                    Name = "SidebarPanel",
-                    BackColor = EnhancedThemeService.SidebarColor,
-                    Padding = new Padding(5),
-                    Size = new Size(280, 400) // Wider sidebar for better navigation
-                };
+                    Console.WriteLine($"🔘 Button created: {formInfo.DisplayName}, Type: {button.GetType().Name}, Visible: {button.Visible}");
+                }
 
-                var headerPanel = new Panel
-                {
-                    Name = "HeaderPanel",
-                    BackColor = EnhancedThemeService.HeaderColor,
-                    Size = new Size(500, 100), // Taller header for better title display
-                    Padding = new Padding(15)
-                };
-
-                var quickActionsPanel = new Panel
-                {
-                    Name = "QuickActionsPanel",
-                    BackColor = EnhancedThemeService.SurfaceColor,
-                    Size = new Size(600, 500),
-                    Padding = new Padding(15)
-                };
-
-                var statusPanel = new Panel
-                {
-                    Name = "StatusPanel",
-                    BackColor = EnhancedThemeService.SurfaceColor,
-                    Size = new Size(500, 180), // Taller status panel for more info
-                    Padding = new Padding(15)
-                };
-
-                // Add controls to form
-                this.Controls.AddRange(new Control[] { sidebarPanel, headerPanel, quickActionsPanel, statusPanel });
-
-                // Configure docking for each panel with enhanced settings
-                _dockingManager.SetEnableDocking(sidebarPanel, true);
-                _dockingManager.SetEnableDocking(headerPanel, true);
-                _dockingManager.SetEnableDocking(quickActionsPanel, true);
-                _dockingManager.SetEnableDocking(statusPanel, true);
-
-                // Set professional dock labels with icons
-                _dockingManager.SetDockLabel(sidebarPanel, "📋 Navigation Menu");
-                _dockingManager.SetDockLabel(headerPanel, "🏠 BusBuddy Dashboard");
-                _dockingManager.SetDockLabel(quickActionsPanel, "⚡ Quick Actions");
-                _dockingManager.SetDockLabel(statusPanel, "📊 System Status");
-
-                // Configure dock positions with proper sizes
-                _dockingManager.DockControl(sidebarPanel, this, DockingStyle.Left, 280);
-                _dockingManager.DockControl(headerPanel, this, DockingStyle.Top, 100);
-                _dockingManager.DockControl(statusPanel, this, DockingStyle.Bottom, 180);
-                _dockingManager.DockControl(quickActionsPanel, this, DockingStyle.Fill, 200);
-
-                // Set minimum sizes to prevent panels from becoming too small
-                _dockingManager.SetControlMinimumSize(sidebarPanel, new Size(200, 300));
-                _dockingManager.SetControlMinimumSize(headerPanel, new Size(400, 80));
-                _dockingManager.SetControlMinimumSize(quickActionsPanel, new Size(400, 300));
-                _dockingManager.SetControlMinimumSize(statusPanel, new Size(300, 120));
-
-                // Configure caption button visibility for cleaner look
-                _dockingManager.SetCloseButtonVisibility(headerPanel, false); // Header shouldn't be closable
-                _dockingManager.SetAutoHideButtonVisibility(sidebarPanel, true); // Allow sidebar auto-hide
-                _dockingManager.SetAutoHideButtonVisibility(quickActionsPanel, false); // Main area always visible
-
-                // Create content for each panel
-                CreateSidebarContent(sidebarPanel);
-                CreateHeaderContent(headerPanel);
-                CreateQuickActionsContent(quickActionsPanel);
-                CreateStatusContent(statusPanel);
-
-                // Store references for tests and compatibility
-                _headerPanel = headerPanel;
-                _contentPanel = quickActionsPanel;
-                _dashboardMainPanel = this; // The form itself is the main container
-
-                this.ResumeLayout(true);
-
-                Console.WriteLine("✅ Docking manager layout created successfully");
-
-                // Enable persistence (save/restore layout)
-                _dockingManager.PersistState = true;
-
-                Log(LogLevel.Info, "Professional docking manager layout created successfully");
+                return button;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Docking manager layout failed: {ex.Message}");
-                Log(LogLevel.Error, "Docking manager layout creation failed", ex);
-
-                // Fallback to enhanced layout
-                CreateMainLayoutEnhanced();
-            }
-        }
-
-        /// <summary>
-        /// Create navigation content for the sidebar panel with enhanced styling
-        /// </summary>
-        private void CreateSidebarContent(Panel sidebarPanel)
-        {
-            // Create a flow layout for module buttons with better spacing
-            var moduleButtonsPanel = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.TopDown,
-                WrapContents = false,
-                AutoScroll = true,
-                Padding = new Padding(10),
-                BackColor = Color.Transparent
-            };
-
-            // Add module navigation buttons with enhanced styling
-            var moduleConfigs = LoadFormConfigurations();
-            foreach (var formInfo in moduleConfigs.Take(10)) // Allow more modules in sidebar
-            {
-                var moduleButton = CreateEnhancedSidebarButton(formInfo);
-                moduleButtonsPanel.Controls.Add(moduleButton);
-            }
-
-            // Add separator and quick settings
-            var separator = new Panel
-            {
-                Height = 2,
-                Width = 240,
-                BackColor = EnhancedThemeService.AccentColor,
-                Margin = new Padding(10, 15, 10, 15)
-            };
-            moduleButtonsPanel.Controls.Add(separator);
-
-            // Add quick settings buttons
-            var settingsButton = CreateEnhancedSidebarButton(
-                new FormInfo("⚙️ Dashboard Settings", typeof(Form), "Configure dashboard preferences"));
-            var helpButton = CreateEnhancedSidebarButton(
-                new FormInfo("❓ Help & Support", typeof(Form), "Get help and support"));
-
-            moduleButtonsPanel.Controls.Add(settingsButton);
-            moduleButtonsPanel.Controls.Add(helpButton);
-
-            sidebarPanel.Controls.Add(moduleButtonsPanel);
-        }
-
-        /// <summary>
-        /// Create enhanced sidebar button with modern styling
-        /// </summary>
-        private Button CreateEnhancedSidebarButton(FormInfo formInfo)
-        {
-            var button = new Button
-            {
-                Text = formInfo.DisplayName,
-                Size = new Size(240, 50), // Larger buttons for better touch/click targets
-                Margin = new Padding(5, 3, 5, 3),
-                BackColor = Color.Transparent,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = EnhancedThemeService.GetSafeFont(9.5F, FontStyle.Regular),
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(15, 0, 0, 0),
-                Cursor = Cursors.Hand,
-                UseVisualStyleBackColor = false
-            };
-
-            // Enhanced flat appearance
-            button.FlatAppearance.BorderSize = 0;
-            button.FlatAppearance.MouseOverBackColor = EnhancedThemeService.ButtonHoverColor;
-            button.FlatAppearance.MouseDownBackColor = EnhancedThemeService.PrimaryDarkColor;
-
-            button.Click += (s, e) => NavigateToForm(formInfo);
-
-            // Add enhanced hover effects with smooth transitions
-            button.MouseEnter += (s, e) =>
-            {
-                button.BackColor = EnhancedThemeService.ButtonHoverColor;
-                button.Font = EnhancedThemeService.GetSafeFont(9.5F, FontStyle.Bold);
-            };
-
-            button.MouseLeave += (s, e) =>
-            {
-                button.BackColor = Color.Transparent;
-                button.Font = EnhancedThemeService.GetSafeFont(9.5F, FontStyle.Regular);
-            };
-
-            return button;
-        }
-
-        /// <summary>
-        /// Create a modern module button for sidebar navigation
-        /// </summary>
-        private Button CreateModuleButton(FormInfo formInfo)
-        {
-            var button = new Button
-            {
-                Text = formInfo.DisplayName,
-                Size = new Size(220, 45),
-                Margin = new Padding(5),
-                BackColor = EnhancedThemeService.ButtonColor,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = EnhancedThemeService.GetSafeFont(9F, FontStyle.Regular),
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(10, 0, 0, 0),
-                Cursor = Cursors.Hand
-            };
-
-            button.FlatAppearance.BorderSize = 0;
-            button.Click += (s, e) => NavigateToForm(formInfo);
-
-            // Add hover effects
-            button.MouseEnter += (s, e) => button.BackColor = EnhancedThemeService.ButtonHoverColor;
-            button.MouseLeave += (s, e) => button.BackColor = EnhancedThemeService.ButtonColor;
-
-            return button;
-        }
-
-        /// <summary>
-        /// Create header content with enhanced branding and system controls
-        /// </summary>
-        private void CreateHeaderContent(Panel headerPanel)
-        {
-            // Create main layout for header
-            var headerLayout = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 3,
-                RowCount = 1,
-                BackColor = Color.Transparent
-            };
-
-            headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60)); // Title area
-            headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25)); // Status indicators
-            headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15)); // Control buttons
-
-            // Create enhanced title label with better typography
-            _titleLabel = new Label
-            {
-                Text = "🚌 BusBuddy Transportation Management System",
-                Dock = DockStyle.Fill,
-                AutoSize = false,
-                Font = EnhancedThemeService.GetSafeFont(16F, FontStyle.Bold),
-                ForeColor = EnhancedThemeService.HeaderTextColor,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(20, 0, 0, 0)
-            };
-
-            // Create status indicators panel
-            var statusIndicatorsPanel = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.LeftToRight,
-                WrapContents = false,
-                Padding = new Padding(10, 20, 10, 20)
-            };
-
-            // Add system status indicators
-            var dbStatusLabel = new Label
-            {
-                Text = "🟢 DB Online",
-                AutoSize = true,
-                Font = EnhancedThemeService.GetSafeFont(9F),
-                ForeColor = Color.LightGreen,
-                Margin = new Padding(5, 0, 15, 0)
-            };
-
-            var userLabel = new Label
-            {
-                Text = $"👤 {Environment.UserName}",
-                AutoSize = true,
-                Font = EnhancedThemeService.GetSafeFont(9F),
-                ForeColor = EnhancedThemeService.HeaderTextColor,
-                Margin = new Padding(5, 0, 0, 0)
-            };
-
-            statusIndicatorsPanel.Controls.AddRange(new Control[] { dbStatusLabel, userLabel });
-
-            // Create system controls panel with modern buttons
-            var systemControlsPanel = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.LeftToRight,
-                WrapContents = false,
-                Padding = new Padding(5, 15, 15, 15)
-            };
-
-            // Add refresh button with modern styling
-            var refreshButton = new Button
-            {
-                Text = "🔄",
-                Size = new Size(35, 35),
-                BackColor = EnhancedThemeService.AccentColor,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = EnhancedThemeService.GetSafeFont(12F),
-                Cursor = Cursors.Hand,
-                Margin = new Padding(2)
-            };
-            refreshButton.FlatAppearance.BorderSize = 0;
-            refreshButton.Click += (s, e) => RefreshDashboard();
-
-            // Add settings button
-            var settingsButton = new Button
-            {
-                Text = "⚙️",
-                Size = new Size(35, 35),
-                BackColor = EnhancedThemeService.ButtonColor,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = EnhancedThemeService.GetSafeFont(12F),
-                Cursor = Cursors.Hand,
-                Margin = new Padding(2)
-            };
-            settingsButton.FlatAppearance.BorderSize = 0;
-            settingsButton.Click += (s, e) => ShowDashboardSettings();
-
-            systemControlsPanel.Controls.AddRange(new Control[] { refreshButton, settingsButton });
-
-            // Add all sections to header layout
-            headerLayout.Controls.Add(_titleLabel, 0, 0);
-            headerLayout.Controls.Add(statusIndicatorsPanel, 1, 0);
-            headerLayout.Controls.Add(systemControlsPanel, 2, 0);
-
-            headerPanel.Controls.Add(headerLayout);
-        }
-
-        /// <summary>
-        /// Show dashboard settings dialog
-        /// </summary>
-        private void ShowDashboardSettings()
-        {
-            MessageBox.Show("Dashboard settings will be available in a future update.\n\nFeatures planned:\n• Theme customization\n• Layout preferences\n• Notification settings",
-                          "Dashboard Settings",
-                          MessageBoxButtons.OK,
-                          MessageBoxIcon.Information);
-        }
-
-        /// <summary>
-        /// Create quick actions content with main functionality buttons
-        /// </summary>
-        private void CreateQuickActionsContent(Panel quickActionsPanel)
-        {
-            // Create flow layout for action buttons
-            _formButtonsPanel = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.LeftToRight,
-                WrapContents = true,
-                AutoScroll = true,
-                Padding = new Padding(10)
-            };
-
-            // Add quick action buttons
-            var quickActionConfigs = LoadFormConfigurations();
-            foreach (var formInfo in quickActionConfigs.Take(12)) // Show more in main area
-            {
-                var actionButton = CreateFormButtonEnhanced(formInfo);
-                _formButtonsPanel.Controls.Add(actionButton);
-            }
-
-            quickActionsPanel.Controls.Add(_formButtonsPanel);
-        }
-
-        /// <summary>
-        /// Create status content with system information
-        /// </summary>
-        private void CreateStatusContent(Panel statusPanel)
-        {
-            var statusLayout = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 2,
-                RowCount = 2,
-                Padding = new Padding(5)
-            };
-
-            statusLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            statusLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-
-            // Add status information
-            var statusLabels = new[]
-            {
-                new Label { Text = "🚗 Active Vehicles: 25", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft },
-                new Label { Text = "👤 Available Drivers: 18", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft },
-                new Label { Text = "🚌 Routes Today: 12", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft },
-                new Label { Text = "⚠️ Maintenance Due: 3", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }
-            };
-
-            foreach (var label in statusLabels)
-            {
-                label.Font = EnhancedThemeService.DefaultFont;
-                label.ForeColor = EnhancedThemeService.TextColor;
-                statusLayout.Controls.Add(label);
-            }
-
-            statusPanel.Controls.Add(statusLayout);
-        }
-
-        /// <summary>
-        /// Refresh dashboard data and UI
-        /// </summary>
-        private void RefreshDashboard()
-        {
-            try
-            {
-                Console.WriteLine("🔄 Refreshing dashboard...");
-                // Add refresh logic here
-                this.Refresh();
-                Console.WriteLine("✅ Dashboard refreshed successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Dashboard refresh failed: {ex.Message}");
-                Log(LogLevel.Warning, "Dashboard refresh failed", ex);
+                Console.WriteLine($"❌ Button creation failed: {ex.Message}");
+                var fallbackLabel = new Label
+                {
+                    Text = formInfo.DisplayName,
+                    Size = new Size(220, 80),
+                    Margin = new Padding(10),
+                    BackColor = Color.LightBlue,
+                    ForeColor = Color.Black,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Font = EnhancedThemeService.ButtonFont,
+                    Cursor = Cursors.Hand,
+                    Visible = true
+                };
+                fallbackLabel.Click += (s, e) => NavigateToForm(formInfo);
+                Console.WriteLine($"🆘 Fallback label: {formInfo.DisplayName}");
+                return fallbackLabel;
             }
         }
 
         #endregion
 
-        #region Missing Methods
+        #region Diagnostic Methods
 
-        /// <summary>
-        /// Load form configurations for dashboard navigation
-        /// </summary>
-        private List<FormInfo> LoadFormConfigurations()
+        private void LogControlHierarchy()
         {
-            if (_cachedForms != null && _cachedForms.Count > 0)
-                return _cachedForms;
-
-            var forms = new List<FormInfo>
-            {
-                new FormInfo("🚗 Vehicle Management", typeof(Form), "Manage fleet vehicles and assignments", "🚗"),
-                new FormInfo("👤 Driver Management", typeof(Form), "Manage driver information and schedules", "👤"),
-                new FormInfo("🚌 Route Planning", typeof(Form), "Plan and optimize bus routes", "🚌"),
-                new FormInfo("⛽ Fuel Management", typeof(Form), "Track fuel consumption and costs", "⛽"),
-                new FormInfo("🔧 Maintenance", typeof(Form), "Schedule and track vehicle maintenance", "🔧"),
-                new FormInfo("📅 School Calendar", typeof(Form), "Manage school calendar and events", "📅"),
-                new FormInfo("📊 Reports", typeof(Form), "Generate and view reports", "📊"),
-                new FormInfo("⚙️ Settings", typeof(Form), "Application settings and preferences", "⚙️")
-            };
-
-            _cachedForms = forms;
-            return forms;
+            Console.WriteLine($"📋 CONTROL HIERARCHY: Form: {this.Text} ({this.Size})");
+            LogControlRecursive(this, 1);
         }
 
-        /// <summary>
-        /// Create enhanced form button with improved styling
-        /// </summary>
-        private Button CreateFormButtonEnhanced(FormInfo formInfo)
+        private void LogControlRecursive(Control parent, int depth)
         {
-            var button = new Button
+            var indent = new string(' ', depth * 2);
+            foreach (Control control in parent.Controls)
             {
-                Text = $"{formInfo.IconText} {formInfo.DisplayName}",
-                Size = new Size(180, 60),
-                Margin = new Padding(10),
-                BackColor = EnhancedThemeService.ButtonColor,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = EnhancedThemeService.GetSafeFont(9F, FontStyle.Regular),
-                TextAlign = ContentAlignment.MiddleCenter,
-                Cursor = Cursors.Hand,
-                Tag = formInfo
-            };
-
-            button.FlatAppearance.BorderSize = 0;
-            button.Click += (s, e) => NavigateToForm(formInfo);
-
-            // Add hover effects
-            button.MouseEnter += (s, e) => button.BackColor = EnhancedThemeService.ButtonHoverColor;
-            button.MouseLeave += (s, e) => button.BackColor = EnhancedThemeService.ButtonColor;
-
-            return button;
+                var info = $"{indent}- {control.GetType().Name}";
+                if (!string.IsNullOrEmpty(control.Text))
+                    info += $": '{control.Text}'";
+                info += $" (Visible={control.Visible}, Size={control.Size}, HandleCreated={control.IsHandleCreated})";
+                if (control.ForeColor != Color.Empty)
+                    info += $" ForeColor={control.ForeColor}";
+                if (control.BackColor != Color.Empty)
+                    info += $" BackColor={control.BackColor}";
+                if (!control.Visible)
+                    info += " ⚠️ HIDDEN";
+                if (control.Size.Width <= 0 || control.Size.Height <= 0)
+                    info += " ⚠️ ZERO_SIZE";
+                if (!control.IsHandleCreated)
+                    info += " ⚠️ NO_HANDLE";
+                Console.WriteLine(info);
+                if (control.Controls.Count > 0 && depth < 3)
+                    LogControlRecursive(control, depth + 1);
+            }
         }
 
-        /// <summary>
-        /// Navigate to specified form
-        /// </summary>
+        private void SetControlVisibility(Control parent, bool visible)
+        {
+            if (parent == null) return;
+            parent.Visible = visible;
+            Console.WriteLine($"🔬 Setting {parent.GetType().Name} '{parent.Name}' visible = {visible}");
+            foreach (Control child in parent.Controls)
+                child.Visible = visible;
+        }
+
+        #endregion
+
+        #region Helper Methods and Classes
+
+        private class FormInfo
+        {
+            public string Name { get; set; }
+            public string DisplayName { get; set; }
+            public string Description { get; set; }
+            public string Icon { get; set; }
+            public string FormTypeName { get; set; }
+            public string NavigationMethod { get; set; }
+            [System.Text.Json.Serialization.JsonIgnore]
+            public Type FormType
+            {
+                get => !string.IsNullOrEmpty(FormTypeName) ? Type.GetType(FormTypeName) : null;
+                set => FormTypeName = value?.AssemblyQualifiedName;
+            }
+        }
+
         private void NavigateToForm(FormInfo formInfo)
         {
             try
             {
-                Console.WriteLine($"📍 Navigating to: {formInfo.DisplayName}");
-
-                if (_navigationService != null)
+                Log(LogLevel.Info, $"Navigating to {formInfo.DisplayName}...");
+                var method = _navigationService.GetType().GetMethod(formInfo.NavigationMethod);
+                if (method != null)
                 {
-                    // Map form types to navigation service methods
-                    switch (formInfo.DisplayName.ToLower())
-                    {
-                        case var name when name.Contains("vehicle"):
-                            _navigationService.ShowVehicleManagement();
-                            break;
-                        case var name when name.Contains("driver"):
-                            _navigationService.ShowDriverManagement();
-                            break;
-                        case var name when name.Contains("route"):
-                            _navigationService.ShowRouteManagement();
-                            break;
-                        case var name when name.Contains("fuel"):
-                            _navigationService.ShowFuelManagement();
-                            break;
-                        case var name when name.Contains("maintenance"):
-                            _navigationService.ShowMaintenanceManagement();
-                            break;
-                        case var name when name.Contains("calendar"):
-                            _navigationService.ShowCalendarManagement();
-                            break;
-                        case var name when name.Contains("reports"):
-                            _navigationService.ShowReports();
-                            break;
-                        default:
-                            MessageBox.Show($"Navigation to {formInfo.DisplayName} not yet implemented.",
-                                          "Feature Coming Soon",
-                                          MessageBoxButtons.OK,
-                                          MessageBoxIcon.Information);
-                            break;
-                    }
+                    Log(LogLevel.Debug, $"Using method: {formInfo.NavigationMethod}");
+                    method.Invoke(_navigationService, null);
                 }
                 else
                 {
-                    MessageBox.Show($"Navigation to {formInfo.DisplayName} not yet implemented.",
-                                  "Feature Coming Soon",
-                                  MessageBoxButtons.OK,
-                                  MessageBoxIcon.Information);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Navigation failed: {ex.Message}");
-                Log(LogLevel.Error, $"Navigation to {formInfo.DisplayName} failed", ex);
-            }
-        }
-
-        /// <summary>
-        /// Handle sidebar module clicks
-        /// </summary>
-        private void HandleSidebarModuleClick(string moduleText)
-        {
-            Console.WriteLine($"📱 Sidebar module clicked: {moduleText}");
-            // Implementation for sidebar navigation
-        }
-
-        /// <summary>
-        /// Scan and cache forms for enhanced discovery
-        /// </summary>
-        private void ScanAndCacheFormsEnhanced()
-        {
-            try
-            {
-                Console.WriteLine("🔍 Scanning and caching forms...");
-                LoadFormConfigurations();
-                Console.WriteLine("✅ Forms cached successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Form caching failed: {ex.Message}");
-                Log(LogLevel.Warning, "Form caching failed", ex);
-            }
-        }
-
-        /// <summary>
-        /// Event handler for form load
-        /// </summary>
-        private void BusBuddyDashboardSyncfusion_Load(object sender, EventArgs e)
-        {
-            try
-            {
-                Console.WriteLine("📋 Dashboard loading...");
-                // Additional load logic here
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Dashboard load failed: {ex.Message}");
-                Log(LogLevel.Error, "Dashboard load failed", ex);
-            }
-        }
-
-        /// <summary>
-        /// Event handler for window state changes
-        /// </summary>
-        private void BusBuddyDashboardSyncfusion_WindowStateChanged(object sender, EventArgs e)
-        {
-            try
-            {
-                Console.WriteLine($"🖼️ Window state changed: {this.WindowState}");
-                // Handle window state changes
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Window state change handling failed: {ex.Message}");
-                Log(LogLevel.Warning, "Window state change handling failed", ex);
-            }
-        }
-
-        /// <summary>
-        /// Event handler for DPI changes
-        /// </summary>
-        private void BusBuddyDashboardSyncfusion_DpiChanged(object sender, DpiChangedEventArgs e)
-        {
-            try
-            {
-                Console.WriteLine($"🔍 DPI changed: {e.DeviceDpiNew}");
-                // Handle DPI changes
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ DPI change handling failed: {ex.Message}");
-                Log(LogLevel.Warning, "DPI change handling failed", ex);
-            }
-        }
-
-        /// <summary>
-        /// Ensure window controls are visible
-        /// </summary>
-        private void EnsureWindowControlsVisible()
-        {
-            // Ensure title bar and controls are accessible
-            if (this.WindowState == FormWindowState.Maximized)
-            {
-                this.WindowState = FormWindowState.Normal;
-            }
-        }
-
-        /// <summary>
-        /// Apply DPI-aware positioning
-        /// </summary>
-        private void ApplyDpiAwarePositioning()
-        {
-            try
-            {
-                using (var graphics = this.CreateGraphics())
-                {
-                    var scale = graphics.DpiX / 96f;
-                    if (scale > 1.0f)
+                    Log(LogLevel.Info, $"Creating form: {formInfo.FormType.Name}");
+                    var form = Activator.CreateInstance(formInfo.FormType) as Form;
+                    if (form != null)
                     {
-                        // Apply DPI scaling adjustments
-                        this.Font = new Font(this.Font.FontFamily, this.Font.Size * scale);
+                        EnhancedThemeService.ApplyTheme(form);
+                        Log(LogLevel.Info, $"Showing {formInfo.DisplayName}");
+                        form.ShowDialog(this);
+                    }
+                    else
+                    {
+                        Log(LogLevel.Error, $"Failed to create {formInfo.FormType.Name}");
+                        MessageBox.Show($"Failed to create {formInfo.DisplayName}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ DPI positioning failed: {ex.Message}");
+                Log(LogLevel.Error, $"Failed to open {formInfo.DisplayName}", ex);
+                MessageBox.Show($"Failed to open {formInfo.DisplayName}: {ex.Message}", "Navigation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void AddManualFormList()
+        {
+            try
+            {
+                Log(LogLevel.Info, "Adding manual form list");
+                var configurations = LoadFormConfigurations();
+                foreach (var config in configurations.Where(c => c.IsEnabled))
+                {
+                    Type formType = null;
+                    try
+                    {
+                        formType = Type.GetType($"BusBuddy.UI.Views.{config.Name}, {Assembly.GetExecutingAssembly().GetName().Name}");
+                    }
+                    catch
+                    {
+                        Log(LogLevel.Warning, $"Could not load type for {config.Name}");
+                    }
+                    var formInfo = new FormInfo
+                    {
+                        Name = config.Name,
+                        DisplayName = config.DisplayName,
+                        Description = config.Description,
+                        NavigationMethod = config.NavigationMethod,
+                        FormType = formType
+                    };
+                    _cachedForms.Add(formInfo);
+                    Log(LogLevel.Debug, $"Added: {config.DisplayName}");
+                }
+                Log(LogLevel.Info, $"Added {_cachedForms.Count} forms");
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, "Failed to add manual list", ex);
+            }
+        }
+
+        private string MapToNavigationMethod(string formName)
+        {
+            var mappings = new Dictionary<string, string>
+            {
+                ["VehicleManagementFormSyncfusion"] = "ShowVehicleManagement",
+                ["DriverManagementFormSyncfusion"] = "ShowDriverManagement",
+                ["RouteManagementFormSyncfusion"] = "ShowRouteManagement",
+                ["ActivityManagementFormSyncfusion"] = "ShowActivityManagement",
+                ["FuelManagementFormSyncfusion"] = "ShowFuelManagement",
+                ["MaintenanceManagementFormSyncfusion"] = "ShowMaintenanceManagement",
+                ["SchoolCalendarManagementFormSyncfusion"] = "ShowSchoolCalendarManagement",
+                ["ActivityScheduleManagementFormSyncfusion"] = "ShowActivityScheduleManagement"
+            };
+            return mappings.GetValueOrDefault(formName, "ShowForm");
         }
 
         #endregion
 
-        #region Utility Methods
+        #region Enhanced Error Handling and Logging
 
-        /// <summary>
-        /// Log method for dashboard operations
-        /// </summary>
-        private void Log(LogLevel level, string message, Exception ex = null)
+        public enum LogLevel
         {
-            if ((int)level < Config.MinimumLogLevel) return;
+            Debug = 0,
+            Info = 1,
+            Warning = 2,
+            Error = 3
+        }
 
+        private static readonly LogLevel CURRENT_LOG_LEVEL = ENABLE_DIAGNOSTICS ? LogLevel.Debug : LogLevel.Warning;
+
+        private static void Log(LogLevel level, string message, Exception ex = null)
+        {
+            if (level < CURRENT_LOG_LEVEL) return;
             var prefix = level switch
             {
                 LogLevel.Debug => "🔍 DEBUG",
@@ -1533,144 +992,505 @@ namespace BusBuddy.UI.Views
                 LogLevel.Error => "❌ ERROR",
                 _ => "📝 LOG"
             };
-
-            var logMessage = $"{prefix}: {message}";
+            Console.WriteLine($"{prefix}: {message}");
             if (ex != null)
             {
-                logMessage += $" - Exception: {ex.Message}";
+                Console.WriteLine($"Exception: {ex.Message}");
+                if (level >= LogLevel.Error)
+                    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                try
+                {
+                    File.AppendAllText("error.log", $"{DateTime.Now}: {prefix}: {message}\n{ex?.ToString()}\n\n");
+                }
+                catch { }
             }
-
-            Console.WriteLine(logMessage);
         }
 
-        /// <summary>
-        /// Execute a method with fallback
-        /// </summary>
-        private T ExecuteWithFallback<T>(Func<T> primaryAction, Func<T> fallbackAction, string actionName)
+        private T ExecuteWithFallback<T>(Func<T> primaryAction, Func<T> fallbackAction, string operationName)
         {
             try
             {
-                return primaryAction();
+                Log(LogLevel.Debug, $"Executing {operationName}...");
+                var result = primaryAction();
+                Log(LogLevel.Debug, $"{operationName} completed");
+                return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ {actionName} failed, using fallback: {ex.Message}");
-                return fallbackAction();
+                Log(LogLevel.Warning, $"{operationName} failed, using fallback", ex);
+                try
+                {
+                    var result = fallbackAction();
+                    Log(LogLevel.Info, $"{operationName} fallback succeeded");
+                    return result;
+                }
+                catch (Exception fallbackEx)
+                {
+                    Log(LogLevel.Error, $"{operationName} fallback failed", fallbackEx);
+                    throw new AggregateException($"Both primary and fallback failed for {operationName}", ex, fallbackEx);
+                }
             }
         }
 
-        /// <summary>
-        /// Set control visibility recursively
-        /// </summary>
-        private void SetControlVisibilityRecursive(Control control, bool visible)
+        private bool ValidateSyncfusionLicense()
         {
-            control.Visible = visible;
-            foreach (Control child in control.Controls)
-            {
-                SetControlVisibilityRecursive(child, visible);
-            }
+            return true; // Licensing fixed as per user update
         }
 
-        /// <summary>
-        /// Create title label with fallbacks
-        /// </summary>
-        private Control CreateTitleLabelWithFallbacks()
+        private bool ValidateFontRendering()
         {
             try
             {
-                var titleLabel = new Label
+                var testFonts = new[] { "Segoe UI", "Arial", "Microsoft Sans Serif" };
+                foreach (var fontName in testFonts)
                 {
-                    Text = "🚌 BusBuddy Dashboard",
-                    Font = EnhancedThemeService.GetSafeFont(16F, FontStyle.Bold),
-                    ForeColor = EnhancedThemeService.HeaderTextColor,
-                    BackColor = Color.Transparent,
-                    AutoSize = true,
-                    Anchor = AnchorStyles.Left | AnchorStyles.Top,
-                    Location = new Point(60, 30),
-                    AccessibleName = "BusBuddy Dashboard Title"
-                };
-                return titleLabel;
+                    using (var font = new Font(fontName, 10F))
+                    using (var label = new AutoLabel { Text = "Test", Font = font })
+                    {
+                        label.CreateControl();
+                        if (label.IsHandleCreated)
+                        {
+                            Log(LogLevel.Debug, $"Font test passed: {fontName}");
+                            return true;
+                        }
+                    }
+                }
+                Log(LogLevel.Warning, "All font tests failed");
+                return false;
             }
-            catch
+            catch (Exception ex)
             {
-                return CreateBasicTitleLabel();
+                Log(LogLevel.Warning, "Font validation failed", ex);
+                return false;
             }
         }
 
-        /// <summary>
-        /// Create basic title label
-        /// </summary>
-        private Control CreateBasicTitleLabel()
+        #endregion
+
+        #region Configuration Support
+
+        public class FormConfiguration
         {
-            return new Label
+            public string Name { get; set; }
+            public string DisplayName { get; set; }
+            public string Description { get; set; }
+            public string Icon { get; set; }
+            public string NavigationMethod { get; set; }
+            public bool IsEnabled { get; set; } = true;
+            public int SortOrder { get; set; }
+        }
+
+        private List<FormConfiguration> LoadFormConfigurations()
+        {
+            return new List<FormConfiguration>
             {
-                Text = "BusBuddy Dashboard",
-                Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold),
-                ForeColor = Color.White,
-                BackColor = Color.Transparent,
-                AutoSize = true,
-                Location = new Point(60, 30)
+                new FormConfiguration { Name = "VehicleManagementFormSyncfusion", DisplayName = "🚗 Vehicle Management", Description = "Manage vehicle fleet", NavigationMethod = "ShowVehicleManagement", SortOrder = 1 },
+                new FormConfiguration { Name = "DriverManagementFormSyncfusion", DisplayName = "👤 Driver Management", Description = "Manage drivers", NavigationMethod = "ShowDriverManagement", SortOrder = 2 },
+                new FormConfiguration { Name = "RouteManagementFormSyncfusion", DisplayName = "🚌 Route Management", Description = "Manage routes", NavigationMethod = "ShowRouteManagement", SortOrder = 3 },
+                new FormConfiguration { Name = "ActivityManagementFormSyncfusion", DisplayName = "🎯 Activity Management", Description = "Manage activities", NavigationMethod = "ShowActivityManagement", SortOrder = 4 },
+                new FormConfiguration { Name = "FuelManagementFormSyncfusion", DisplayName = "⛽ Fuel Management", Description = "Manage fuel records", NavigationMethod = "ShowFuelManagement", SortOrder = 5 },
+                new FormConfiguration { Name = "MaintenanceManagementFormSyncfusion", DisplayName = "🔧 Maintenance Management", Description = "Manage maintenance records", NavigationMethod = "ShowMaintenanceManagement", SortOrder = 6 },
+                new FormConfiguration { Name = "SchoolCalendarManagementFormSyncfusion", DisplayName = "📅 School Calendar", Description = "Manage school calendar", NavigationMethod = "ShowSchoolCalendarManagement", SortOrder = 7 },
+                new FormConfiguration { Name = "ActivityScheduleManagementFormSyncfusion", DisplayName = "📋 Activity Schedule", Description = "Manage activity schedules", NavigationMethod = "ShowActivityScheduleManagement", SortOrder = 8 }
             };
         }
 
-        /// <summary>
-        /// Check for control overlaps
-        /// </summary>
-        private void CheckForControlOverlaps(Control parent)
-        {
-            // Basic overlap detection implementation
-            Console.WriteLine("🔍 Checking for control overlaps...");
-        }
-
-        /// <summary>
-        /// Validate accessibility contrast
-        /// </summary>
-        private void ValidateAccessibilityContrast()
-        {
-            Console.WriteLine("♿ Validating accessibility contrast...");
-        }
-
-        /// <summary>
-        /// Log control hierarchy for debugging
-        /// </summary>
-        private void LogControlHierarchy()
-        {
-            Console.WriteLine("📋 Logging control hierarchy...");
-        }
-
-        /// <summary>
-        /// Create fallback layout
-        /// </summary>
-        private void CreateFallbackLayout()
-        {
-            Console.WriteLine("🔄 Creating fallback layout...");
-            CreateSimpleWorkingLayout();
-        }
-
         #endregion
 
-        #region Control Extensions
-
-        /// <summary>
-        /// Control extensions for enhanced functionality
-        /// </summary>
-        public static class ControlExtensions
+        private void PopulateFormButtonsEnhanced()
         {
-            public static void SetDoubleBuffered(Control control, bool value)
+            try
             {
-                try
+                if (_formButtonsPanel == null)
+                    throw new InvalidOperationException("_formButtonsPanel is null");
+                _formButtonsPanel.Controls.Clear();
+                Log(LogLevel.Info, $"Populating {_cachedForms.Count} form buttons...");
+
+                var configurations = LoadFormConfigurations();
+                var configDict = configurations.ToDictionary(c => c.Name, c => c);
+                foreach (var formInfo in _cachedForms.OrderBy(f => configDict.ContainsKey(f.Name) ? configDict[f.Name].SortOrder : int.MaxValue))
                 {
-                    var property = typeof(Control).GetProperty("DoubleBuffered",
-                        BindingFlags.NonPublic | BindingFlags.Instance);
-                    property?.SetValue(control, value, null);
+                    if (configDict.ContainsKey(formInfo.Name) && !configDict[formInfo.Name].IsEnabled)
+                    {
+                        Log(LogLevel.Debug, $"Skipping disabled: {formInfo.DisplayName}");
+                        continue;
+                    }
+                    var button = ControlFactory.CreateButton(formInfo.DisplayName, new Size(200, 80), (s, e) => NavigateToForm(formInfo));
+                    button.Margin = new Padding(10);
+                    button.Cursor = Cursors.Hand;
+                    _formButtonsPanel.Controls.Add(button);
+                    Log(LogLevel.Debug, $"Added button: {formInfo.DisplayName}");
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"⚠️ Failed to set double buffering: {ex.Message}");
-                }
+                Log(LogLevel.Info, $"Added {_formButtonsPanel.Controls.Count} buttons");
+                ExecuteWithFallback(
+                    () =>
+                    {
+                        _formButtonsPanel.PerformLayout();
+                        _contentPanel?.PerformLayout();
+                        _dashboardMainPanel?.PerformLayout();
+                        this.PerformLayout();
+                        return true;
+                    },
+                    () => { _formButtonsPanel.Refresh(); return true; },
+                    "Layout Refresh"
+                );
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, "Failed to populate buttons", ex);
+                CreateEmergencyButtons();
             }
         }
 
-        #endregion
+        private void CreateEmergencyButtons()
+        {
+            Log(LogLevel.Warning, "Creating emergency buttons");
+            if (_formButtonsPanel == null)
+            {
+                Console.WriteLine("⚠️ _formButtonsPanel null, creating fallback");
+                _formButtonsPanel = new FlowLayoutPanel
+                {
+                    Name = "EmergencyQuickActionsFlowPanel",
+                    Dock = DockStyle.Fill,
+                    FlowDirection = FlowDirection.LeftToRight,
+                    WrapContents = true,
+                    AutoScroll = true,
+                    Padding = new Padding(10),
+                    BackColor = EnhancedThemeService.BackgroundColor,
+                    MinimumSize = new Size(400, 200),
+                    Visible = true
+                };
+                if (_contentPanel != null)
+                    _contentPanel.Controls.Add(_formButtonsPanel);
+                else
+                    this.Controls.Add(_formButtonsPanel);
+            }
+            _formButtonsPanel.Controls.Clear();
+            var emergencyButton = new Label
+            {
+                Text = "Dashboard Error\nCheck console",
+                Size = new Size(300, 100),
+                BackColor = EnhancedThemeService.ErrorColor,
+                ForeColor = Color.White,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = EnhancedThemeService.DefaultFont,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            _formButtonsPanel.Controls.Add(emergencyButton);
+            Console.WriteLine("✅ Emergency button added");
+        }
+
+        private void CompleteInitialization()
+        {
+            try
+            {
+                Log(LogLevel.Info, "Completing initialization...");
+                PopulateFormButtonsEnhanced();
+                Log(LogLevel.Info, "Initialization completed");
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, "Initialization failed", ex);
+                CreateEmergencyButtons();
+            }
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            CompleteInitialization();
+        }
+
+        private void BusBuddyDashboardSyncfusion_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                Console.WriteLine("🚀 Dashboard Load");
+                var loadStartTime = DateTime.Now;
+                var maxLoadTime = TimeSpan.FromSeconds(10);
+
+                EnsureWindowControlsVisible();
+                ApplyDpiAwarePositioning();
+
+                if (_dashboardMainPanel != null && DateTime.Now - loadStartTime < maxLoadTime)
+                {
+                    SetControlVisibility(_dashboardMainPanel, true);
+                    _dashboardMainPanel.Refresh();
+                }
+
+                this.Refresh();
+                Application.DoEvents();
+
+                this.Focus();
+                this.BringToFront();
+
+                if (ENABLE_DIAGNOSTICS && DateTime.Now - loadStartTime < maxLoadTime)
+                {
+                    Console.WriteLine("🔬 Final hierarchy:");
+                    LogControlHierarchy();
+                }
+
+                var totalLoadTime = DateTime.Now - loadStartTime;
+                Console.WriteLine($"✅ Load completed in {totalLoadTime.TotalMilliseconds:F0}ms");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Load failed: {ex.Message}");
+                Log(LogLevel.Error, "Load failed", ex);
+            }
+        }
+
+        private void ApplyDpiAwarePositioning()
+        {
+            try
+            {
+                using (var graphics = this.CreateGraphics())
+                {
+                    var dpiScale = graphics.DpiX / 96f;
+                    var workingArea = Screen.PrimaryScreen.WorkingArea;
+                    var centeredX = workingArea.X + (workingArea.Width - this.Width) / 2;
+                    var centeredY = workingArea.Y + (workingArea.Height - this.Height) / 2;
+                    centeredX = Math.Max(workingArea.X, Math.Min(centeredX, workingArea.Right - this.Width));
+                    centeredY = Math.Max(workingArea.Y, Math.Min(centeredY, workingArea.Bottom - this.Height));
+                    this.Location = new Point(centeredX, centeredY);
+                    Console.WriteLine($"🎯 DPI positioning: Scale: {dpiScale:F2}x, Location: {this.Location}, Size: {this.Size}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ DPI positioning failed: {ex.Message}");
+                this.CenterToScreen();
+            }
+        }
+
+        private void EnsureWindowControlsVisible()
+        {
+            try
+            {
+                this.FormBorderStyle = FormBorderStyle.Sizable;
+                this.ControlBox = true;
+                this.MaximizeBox = true;
+                this.MinimizeBox = true;
+                this.ShowInTaskbar = true;
+                this.WindowState = FormWindowState.Normal;
+                this.Refresh();
+                Console.WriteLine($"✅ Window controls: Border: {this.FormBorderStyle}, State: {this.WindowState}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Window controls failed: {ex.Message}");
+            }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            try
+            {
+                if (keyData == (Keys.Control | Keys.Home))
+                {
+                    Console.WriteLine("🏠 Reset position (Ctrl+Home)");
+                    this.WindowState = FormWindowState.Normal;
+                    ApplyDpiAwarePositioning();
+                    return true;
+                }
+                if (keyData == (Keys.Control | Keys.M))
+                {
+                    Console.WriteLine("🔄 Toggle state (Ctrl+M)");
+                    this.WindowState = this.WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Shortcut failed: {ex.Message}");
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void HandleSidebarModuleClick(string module)
+        {
+            try
+            {
+                Console.WriteLine($"🖱️ Sidebar clicked: {module}");
+                var moduleName = module.Substring(module.IndexOf(' ') + 1).Trim();
+                string navigationMethod = moduleName.ToLower() switch
+                {
+                    "vehicles" => "ShowVehicleManagement",
+                    "drivers" => "ShowDriverManagement",
+                    "routes" => "ShowRouteManagement",
+                    "fuel" => "ShowFuelManagement",
+                    "maintenance" => "ShowMaintenanceManagement",
+                    "calendar" => "ShowSchoolCalendarManagement",
+                    "reports" => null,
+                    "settings" => null,
+                    _ => null
+                };
+                if (navigationMethod == null)
+                {
+                    MessageBox.Show($"{moduleName} coming soon!", "Not Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                var method = _navigationService.GetType().GetMethod(navigationMethod);
+                if (method != null)
+                {
+                    Console.WriteLine($"✅ Navigating: {navigationMethod}");
+                    method.Invoke(_navigationService, null);
+                }
+                else
+                {
+                    Console.WriteLine($"⚠️ Method not found: {navigationMethod}");
+                    MessageBox.Show($"Navigation for '{moduleName}' not available.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Sidebar error: {ex.Message}");
+                MessageBox.Show($"Error navigating to {module}: {ex.Message}", "Navigation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void BusBuddyDashboardSyncfusion_WindowStateChanged(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Maximized && this.Location.Y < 0)
+            {
+                Console.WriteLine("⚠️ Title bar hidden, adjusting");
+                this.Location = new Point(this.Location.X, 0);
+            }
+        }
+
+        private void BusBuddyDashboardSyncfusion_DpiChanged(object sender, DpiChangedEventArgs e)
+        {
+            try
+            {
+                using (var graphics = this.CreateGraphics())
+                {
+                    float currentDpi = graphics.DpiX;
+                    Log(LogLevel.Info, $"DPI changed: {currentDpi:F0}");
+                    var scaleFactor = currentDpi / 96f;
+                    this.AutoScaleDimensions = new SizeF(currentDpi, currentDpi);
+                    _dashboardMainPanel?.PerformLayout();
+                    _contentPanel?.PerformLayout();
+                    _headerPanel?.PerformLayout();
+                    _titleLabel?.PerformLayout();
+                    _formButtonsPanel?.PerformLayout();
+                    _statsPanel?.PerformLayout();
+                    if (ENABLE_CONTROL_OVERLAP_DETECTION)
+                        CheckForControlOverlaps(this);
+                    if (ENABLE_ACCESSIBILITY_VALIDATION)
+                        ValidateAccessibilityContrast();
+                    Log(LogLevel.Info, "DPI handling completed");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, "DPI change failed", ex);
+            }
+        }
+
+        private void CheckForControlOverlaps(Control parent)
+        {
+            try
+            {
+                if (parent?.Controls == null || parent.Controls.Count < 2)
+                    return;
+                for (int i = 0; i < parent.Controls.Count; i++)
+                {
+                    for (int j = i + 1; j < parent.Controls.Count; j++)
+                    {
+                        var control1 = parent.Controls[i];
+                        var control2 = parent.Controls[j];
+                        if (control1.Bounds.IntersectsWith(control2.Bounds) && control1.Visible && control2.Visible &&
+                            !string.IsNullOrEmpty(control1.Name) && !string.IsNullOrEmpty(control2.Name))
+                        {
+                            Log(LogLevel.Warning, $"Overlap: {control1.Name} and {control2.Name}");
+                            if (parent is FlowLayoutPanel flowPanel)
+                            {
+                                flowPanel.PerformLayout();
+                                Log(LogLevel.Info, "Resolved via FlowLayoutPanel");
+                            }
+                        }
+                    }
+                }
+                foreach (Control control in parent.Controls)
+                    if (control.HasChildren)
+                        CheckForControlOverlaps(control);
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Warning, "Overlap detection failed", ex);
+            }
+        }
+
+        private void ValidateAccessibilityContrast()
+        {
+            try
+            {
+                var controls = new List<Control>();
+                CollectAllControls(this, controls);
+                foreach (var control in controls)
+                {
+                    if (control.ForeColor != Color.Empty && control.BackColor != Color.Empty)
+                    {
+                        if (!IsAccessibleContrast(control.ForeColor, control.BackColor))
+                        {
+                            Log(LogLevel.Warning, $"Low contrast: {control.Name ?? control.GetType().Name} (Fore={control.ForeColor.Name}, Back={control.BackColor.Name})");
+                            control.ForeColor = control.BackColor.GetBrightness() > 0.5 ? Color.Black : Color.White;
+                        }
+                    }
+                }
+                Log(LogLevel.Info, $"Accessibility validated for {controls.Count} controls");
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Warning, "Accessibility validation failed", ex);
+            }
+        }
+
+        private bool IsAccessibleContrast(Color foreground, Color background)
+        {
+            double GetLuminance(Color c)
+            {
+                double GetLinearRGB(double value)
+                {
+                    value /= 255.0;
+                    return value <= 0.03928 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
+                }
+                var r = GetLinearRGB(c.R);
+                var g = GetLinearRGB(c.G);
+                var b = GetLinearRGB(c.B);
+                return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            }
+            double l1 = GetLuminance(foreground);
+            double l2 = GetLuminance(background);
+            double contrast = (Math.Max(l1, l2) + 0.05) / (Math.Min(l1, l2) + 0.05);
+            if (contrast < 4.5)
+                Log(LogLevel.Warning, $"Contrast ratio {contrast:F2} < 4.5: Fore={foreground.Name}, Back={background.Name}");
+            return contrast >= 4.5;
+        }
+
+        private void CollectAllControls(Control parent, List<Control> collection)
+        {
+            if (parent == null) return;
+            collection.Add(parent);
+            foreach (Control child in parent.Controls)
+                CollectAllControls(child, collection);
+        }
+    }
+
+    public static class ControlExtensions
+    {
+        public static void SetDoubleBuffered(Control control, bool value)
+        {
+            try
+            {
+                typeof(Control).InvokeMember("DoubleBuffered",
+                    BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic,
+                    null, control, new object[] { value });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Failed to set double buffering on {control.GetType().Name}: {ex.Message}");
+            }
+        }
     }
 }
