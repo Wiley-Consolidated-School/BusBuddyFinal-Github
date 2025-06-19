@@ -34,5 +34,10 @@ namespace BusBuddy.Business
         /// Get fleet-wide analytics summary
         /// </summary>
         Task<FleetAnalyticsSummary> GetFleetAnalyticsSummaryAsync(DateTime startDate, DateTime endDate);
+
+        /// <summary>
+        /// Calculate simplified cost per student metrics for routes and activities
+        /// </summary>
+        Task<CostPerStudentMetrics> CalculateCostPerStudentMetricsAsync(DateTime startDate, DateTime endDate);
     }
 }

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using BusBuddy.UI.Services;
@@ -428,6 +429,9 @@ namespace BusBuddy.UI.Views
                 };
                 _statsPanel.Controls.Add(maintenanceGauge);
 
+                // Add cost analytics panel
+                AddCostAnalyticsToStatsPanel();
+
                 _contentPanel = new Panel
                 {
                     Name = "ContentPanel",
@@ -556,6 +560,98 @@ namespace BusBuddy.UI.Views
                 }
                 Console.WriteLine("⚠️ Using default font");
                 return SystemFonts.DefaultFont;
+            }
+        }
+
+        private void AddCostAnalyticsToStatsPanel()
+        {
+            try
+            {
+                if (_statsPanel == null) return;
+
+                // Create cost analytics panel
+                var costAnalyticsPanel = new Panel
+                {
+                    Name = "CostAnalyticsPanel",
+                    Size = new Size(250, 180),
+                    Location = new Point(530, 10),
+                    BackColor = Color.White,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Visible = true
+                };
+
+                // Title label
+                var titleLabel = new Label
+                {
+                    Text = "💰 Cost Per Student",
+                    Font = EnhancedThemeService.GetSafeFont(12, FontStyle.Bold),
+                    ForeColor = EnhancedThemeService.HeaderColor,
+                    Location = new Point(10, 10),
+                    Size = new Size(230, 25),
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+                costAnalyticsPanel.Controls.Add(titleLabel);
+
+                // Loading label (will be replaced with actual data)
+                var loadingLabel = new Label
+                {
+                    Text = "Loading cost data...",
+                    Font = EnhancedThemeService.GetSafeFont(9),
+                    ForeColor = Color.Gray,
+                    Location = new Point(10, 45),
+                    Size = new Size(230, 120),
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+                costAnalyticsPanel.Controls.Add(loadingLabel);
+
+                _statsPanel.Controls.Add(costAnalyticsPanel);
+
+                // Load actual cost data asynchronously
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var routeAnalyticsService = new RouteAnalyticsService();
+                        var endDate = DateTime.Now;
+                        var startDate = endDate.AddDays(-30); // Last 30 days
+
+                        var costMetrics = await routeAnalyticsService.CalculateCostPerStudentMetricsAsync(startDate, endDate);
+
+                        // Update UI on main thread
+                        this.Invoke(new System.Action(() =>
+                        {
+                            costAnalyticsPanel.Controls.Remove(loadingLabel);
+
+                            var metricsText = $"📊 Last 30 Days\n\n" +
+                                            $"Route Cost/Student/Day:\n${costMetrics.RouteCostPerStudentPerDay:F2}\n\n" +
+                                            $"Sports Cost/Student:\n${costMetrics.SportsCostPerStudent:F2}\n\n" +
+                                            $"Field Trip Cost/Student:\n${costMetrics.FieldTripCostPerStudent:F2}";
+
+                            var metricsLabel = new Label
+                            {
+                                Text = metricsText,
+                                Font = EnhancedThemeService.GetSafeFont(9),
+                                ForeColor = Color.Black,
+                                Location = new Point(10, 45),
+                                Size = new Size(230, 120),
+                                TextAlign = ContentAlignment.TopLeft
+                            };
+                            costAnalyticsPanel.Controls.Add(metricsLabel);
+                        }));
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Invoke(new System.Action(() =>
+                        {
+                            loadingLabel.Text = $"Error loading cost data:\n{ex.Message}";
+                            loadingLabel.ForeColor = Color.Red;
+                        }));
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, "Failed to add cost analytics panel", ex);
             }
         }
 

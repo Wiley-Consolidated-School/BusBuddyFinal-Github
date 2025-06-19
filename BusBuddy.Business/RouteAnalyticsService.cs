@@ -6,8 +6,7 @@ using BusBuddy.Models;
 using BusBuddy.Data;
 
 namespace BusBuddy.Business
-{
-    /// <summary>
+{    /// <summary>
     /// Service for analyzing route efficiency and providing optimization insights
     /// Supports the roadmap goal of analytics for future web dashboard
     /// </summary>
@@ -17,17 +16,20 @@ namespace BusBuddy.Business
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IFuelRepository _fuelRepository;
+        private readonly IActivityRepository _activityRepository;
 
         public RouteAnalyticsService(
             IRouteRepository? routeRepository = null,
             IVehicleRepository? vehicleRepository = null,
             IDriverRepository? driverRepository = null,
-            IFuelRepository? fuelRepository = null)
+            IFuelRepository? fuelRepository = null,
+            IActivityRepository? activityRepository = null)
         {
             _routeRepository = routeRepository ?? new RouteRepository();
             _vehicleRepository = vehicleRepository ?? new VehicleRepository();
             _driverRepository = driverRepository ?? new DriverRepository();
             _fuelRepository = fuelRepository ?? new FuelRepository();
+            _activityRepository = activityRepository ?? new ActivityRepository();
         }
 
         /// <summary>
@@ -281,6 +283,106 @@ namespace BusBuddy.Business
                     .ToList();
 
                 return summary;
+            });
+        }
+
+        /// <summary>
+        /// Calculate simplified cost per student metrics for routes and activities
+        /// </summary>
+        public async Task<CostPerStudentMetrics> CalculateCostPerStudentMetricsAsync(DateTime startDate, DateTime endDate)
+        {
+            return await Task.Run(() =>
+            {
+                var metrics = new CostPerStudentMetrics
+                {
+                    StartDate = startDate,
+                    EndDate = endDate
+                };
+
+                // Get all routes in the date range
+                var routes = new List<Route>();
+                var currentDate = startDate.Date;
+                while (currentDate <= endDate.Date)
+                {
+                    routes.AddRange(_routeRepository.GetRoutesByDate(currentDate));
+                    currentDate = currentDate.AddDays(1);
+                }
+
+                // Get all activities in the date range
+                var activities = _activityRepository.GetAllActivities()
+                    .Where(a => a.DateAsDateTime.HasValue &&
+                               a.DateAsDateTime.Value.Date >= startDate.Date &&
+                               a.DateAsDateTime.Value.Date <= endDate.Date)
+                    .ToList();
+
+                // Calculate route costs and student-days
+                metrics.TotalRouteStudentDays = routes.Sum(r => (r.AMRiders ?? 0) + (r.PMRiders ?? 0));
+
+                foreach (var route in routes)
+                {
+                    // Calculate miles for each route
+                    var amMiles = CalculatePeriodMiles(route.AMBeginMiles, route.AMEndMiles);
+                    var pmMiles = CalculatePeriodMiles(route.PMBeginMiles, route.PMEndMiles);
+                    var totalMiles = amMiles + pmMiles;
+
+                    // Basic cost calculation: fuel + maintenance estimate + driver time
+                    var fuelCost = CalculateEstimatedFuelCost(totalMiles);
+                    var maintenanceCost = (decimal)totalMiles * 0.20m; // $0.20 per mile maintenance estimate
+
+                    // Driver cost - assume 2 hours per route (AM + PM) at $16.50/hour
+                    var driverCost = 2m * 16.50m;
+
+                    metrics.TotalRouteCosts += fuelCost + maintenanceCost + driverCost;
+                }
+
+                // Calculate activity costs
+                var sportsActivities = activities.Where(a =>
+                    a.ActivityType?.Contains("Sports", StringComparison.OrdinalIgnoreCase) == true).ToList();
+                var fieldTripActivities = activities.Where(a =>
+                    a.ActivityType?.Contains("Field", StringComparison.OrdinalIgnoreCase) == true ||
+                    a.ActivityType?.Contains("Trip", StringComparison.OrdinalIgnoreCase) == true).ToList();
+
+                // Estimate activity costs (simplified - could be enhanced with actual mileage data)
+                foreach (var activity in sportsActivities)
+                {
+                    // Estimate 50 miles average for sports trips
+                    var estimatedMiles = 50.0;
+                    var fuelCost = CalculateEstimatedFuelCost(estimatedMiles);
+                    var maintenanceCost = (decimal)estimatedMiles * 0.20m;
+                    var driverCost = 50m; // Flat rate for activity trips (teacher/coach stipend)
+
+                    metrics.TotalSportsCosts += fuelCost + maintenanceCost + driverCost;
+                }
+
+                foreach (var activity in fieldTripActivities)
+                {
+                    // Estimate 75 miles average for field trips
+                    var estimatedMiles = 75.0;
+                    var fuelCost = CalculateEstimatedFuelCost(estimatedMiles);
+                    var maintenanceCost = (decimal)estimatedMiles * 0.20m;
+                    var driverCost = 50m; // Flat rate for activity trips
+
+                    metrics.TotalFieldTripCosts += fuelCost + maintenanceCost + driverCost;
+                }
+
+                // Count students for activities (estimate if not available)
+                metrics.TotalSportsStudents = sportsActivities.Count * 20; // Estimate 20 students per sports trip
+                metrics.TotalFieldTripStudents = fieldTripActivities.Count * 25; // Estimate 25 students per field trip
+
+                // Calculate cost per student metrics
+                metrics.RouteCostPerStudentPerDay = metrics.TotalRouteStudentDays > 0
+                    ? metrics.TotalRouteCosts / metrics.TotalRouteStudentDays
+                    : 0;
+
+                metrics.SportsCostPerStudent = metrics.TotalSportsStudents > 0
+                    ? metrics.TotalSportsCosts / metrics.TotalSportsStudents
+                    : 0;
+
+                metrics.FieldTripCostPerStudent = metrics.TotalFieldTripStudents > 0
+                    ? metrics.TotalFieldTripCosts / metrics.TotalFieldTripStudents
+                    : 0;
+
+                return metrics;
             });
         }
 

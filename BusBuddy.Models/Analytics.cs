@@ -236,4 +236,53 @@ namespace BusBuddy.Models
         Urgent,
         Critical
     }
+
+    /// <summary>
+    /// Simplified cost metrics focused on cost per student calculations
+    /// </summary>
+    public class CostPerStudentMetrics
+    {
+        /// <summary>
+        /// Cost per student per day for regular bus routes
+        /// </summary>
+        public decimal RouteCostPerStudentPerDay { get; set; }
+
+        /// <summary>
+        /// Cost per student for sports activities/trips
+        /// </summary>
+        public decimal SportsCostPerStudent { get; set; }
+
+        /// <summary>
+        /// Cost per student for field trip activities
+        /// </summary>
+        public decimal FieldTripCostPerStudent { get; set; }
+
+        /// <summary>
+        /// Date range these metrics cover
+        /// </summary>
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+
+        /// <summary>
+        /// Total number of regular route student-days
+        /// </summary>
+        public int TotalRouteStudentDays { get; set; }
+
+        /// <summary>
+        /// Total number of sports trip students
+        /// </summary>
+        public int TotalSportsStudents { get; set; }
+
+        /// <summary>
+        /// Total number of field trip students
+        /// </summary>
+        public int TotalFieldTripStudents { get; set; }
+
+        /// <summary>
+        /// Total costs broken down by category
+        /// </summary>
+        public decimal TotalRouteCosts { get; set; }
+        public decimal TotalSportsCosts { get; set; }
+        public decimal TotalFieldTripCosts { get; set; }
+    }
 }
