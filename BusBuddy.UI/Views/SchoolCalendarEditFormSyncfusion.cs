@@ -52,7 +52,7 @@ namespace BusBuddy.UI.Views
             SetupEventHandlers();
 
             // Apply final theming
-            RefreshMaterialTheme();
+            SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
@@ -60,8 +60,8 @@ namespace BusBuddy.UI.Views
         private void CreateControls()
         {
             // Create text boxes
-            _descriptionTextBox = CreateTextBox(20, 50, 440);
-            _notesTextBox = CreateTextBox(20, 300, 440);
+            _descriptionTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
+            _notesTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
 
             // Make notes textbox multiline
             if (_notesTextBox is TextBox notesTextBox)
@@ -126,11 +126,11 @@ namespace BusBuddy.UI.Views
         private void LayoutControls()
         {
             // Labels
-            CreateLabel("Description:", 20, 25);
-            CreateLabel("Category:", 20, 95);
-            CreateLabel("Start Date:", 20, 155);
-            CreateLabel("End Date:", 260, 155);
-            CreateLabel("Notes:", 20, 275);
+            ControlFactory.CreateLabel("Description:");
+            ControlFactory.CreateLabel("Category:");
+            ControlFactory.CreateLabel("Start Date:");
+            ControlFactory.CreateLabel("End Date:");
+            ControlFactory.CreateLabel("Notes:");
 
             // Set placeholder text
             SetPlaceholderText(_descriptionTextBox, "Enter event description");
@@ -330,21 +330,19 @@ namespace BusBuddy.UI.Views
             }
 
             return true;
-        }
-
-        // Helper methods for validation and form management
-        private void ClearAllValidationErrors()
+        }        // Helper methods for validation and form management
+        protected override void ClearAllValidationErrors()
         {
             _errorProvider.Clear();
         }
 
-        private void SetValidationError(Control? control, string message)
+        protected override void SetValidationError(Control control, string message)
         {
             if (control != null)
                 _errorProvider.SetError(control, message);
         }
 
-        private void ShowErrorMessage(string message)
+        protected new void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }

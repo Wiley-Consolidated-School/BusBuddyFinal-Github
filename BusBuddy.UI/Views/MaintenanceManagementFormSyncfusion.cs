@@ -67,7 +67,7 @@ namespace BusBuddy.UI.Views
             SetupEventHandlers();
 
             // Apply final theming
-            RefreshMaterialTheme();
+            SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
@@ -104,7 +104,9 @@ namespace BusBuddy.UI.Views
             _detailsButton.Enabled = false; // Initially disabled
 
             // Search controls
-            var searchLabel = CreateLabel("🔍 Search:", 500, 25);
+            var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
+            searchLabel.Location = new Point(500, 25);
+            _mainPanel.Controls.Add(searchLabel);
             _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
             _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
 
@@ -120,7 +122,7 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_searchButton);
 
             // Create DataGridView
-            _maintenanceGrid = CreateDataGrid();
+            _maintenanceGrid = SyncfusionThemeHelper.CreateMaterialDataGrid();
             _maintenanceGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
             _maintenanceGrid.Size = GetDpiAwareSize(new Size(1150, 650));
             _maintenanceGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -263,7 +265,7 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_editPanel);
 
             // Maintenance form-specific fields: Date, Vehicle, Odometer, Category, Vendor, Cost, Description
-            var dateLabel = CreateLabel("Date:", 10, 15);
+            var dateLabel = ControlFactory.CreateLabel("Date:");
             _editPanel.Controls.Add(dateLabel);
             _datePicker = new DateTimePicker();
             _datePicker.Location = new Point(GetDpiAwareX(60), GetDpiAwareY(10));
@@ -271,7 +273,7 @@ namespace BusBuddy.UI.Views
             _datePicker.Value = DateTime.Today;
             _editPanel.Controls.Add(_datePicker);
 
-            var vehicleLabel = CreateLabel("Vehicle:", 230, 15);
+            var vehicleLabel = ControlFactory.CreateLabel("Vehicle:");
             _editPanel.Controls.Add(vehicleLabel);
             _vehicleComboBox = new ComboBox();
             _vehicleComboBox.Location = new Point(GetDpiAwareX(290), GetDpiAwareY(10));
@@ -279,14 +281,14 @@ namespace BusBuddy.UI.Views
             _vehicleComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             _editPanel.Controls.Add(_vehicleComboBox);
 
-            var odometerLabel = CreateLabel("Odometer:", 460, 15);
+            var odometerLabel = ControlFactory.CreateLabel("Odometer:");
             _editPanel.Controls.Add(odometerLabel);
             _odometerTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
             _odometerTextBox.Location = new Point(GetDpiAwareX(530), GetDpiAwareY(10));
             _odometerTextBox.Size = GetDpiAwareSize(new Size(100, 23));
             _editPanel.Controls.Add(_odometerTextBox);
 
-            var categoryLabel = CreateLabel("Category:", 650, 15);
+            var categoryLabel = ControlFactory.CreateLabel("Category:");
             _editPanel.Controls.Add(categoryLabel);
             _categoryComboBox = new ComboBox();
             _categoryComboBox.Location = new Point(GetDpiAwareX(720), GetDpiAwareY(10));
@@ -295,21 +297,21 @@ namespace BusBuddy.UI.Views
             _categoryComboBox.Items.AddRange(new object[] { "Routine", "Repair", "Inspection", "Preventive" });
             _editPanel.Controls.Add(_categoryComboBox);
 
-            var vendorLabel = CreateLabel("Vendor:", 10, 55);
+            var vendorLabel = ControlFactory.CreateLabel("Vendor:");
             _editPanel.Controls.Add(vendorLabel);
             _vendorTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
             _vendorTextBox.Location = new Point(GetDpiAwareX(70), GetDpiAwareY(50));
             _vendorTextBox.Size = GetDpiAwareSize(new Size(150, 23));
             _editPanel.Controls.Add(_vendorTextBox);
 
-            var costLabel = CreateLabel("Cost:", 240, 55);
+            var costLabel = ControlFactory.CreateLabel("Cost:");
             _editPanel.Controls.Add(costLabel);
             _costTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
             _costTextBox.Location = new Point(GetDpiAwareX(280), GetDpiAwareY(50));
             _costTextBox.Size = GetDpiAwareSize(new Size(100, 23));
             _editPanel.Controls.Add(_costTextBox);
 
-            var descLabel = CreateLabel("Description:", 400, 55);
+            var descLabel = ControlFactory.CreateLabel("Description:");
             _editPanel.Controls.Add(descLabel);
             _descriptionTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
             _descriptionTextBox.Location = new Point(GetDpiAwareX(480), GetDpiAwareY(50));

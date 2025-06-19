@@ -11,7 +11,7 @@ namespace BusBuddy.Tests.UI
     public class ComponentTests : UITestBase
     {
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ShouldHaveHeaderPanel()
         {
             // Arrange & Act
@@ -23,7 +23,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(headerPanel.Height > 0);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ShouldHaveQuickActionsFlowPanel()
         {
             // Arrange
@@ -37,7 +37,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(flowPanel is FlowLayoutPanel);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ShouldHaveStatsPanel()
         {
             // Arrange
@@ -52,7 +52,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(statsPanel.Size.Height > 0);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_SidebarPanel_ShouldBeInitiallyHidden()
         {
             // Arrange
@@ -64,7 +64,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(sidebarPanel.Visible, "Sidebar should be initially visible by default");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MaterialDesignElements_ShouldBePresent()
         {
             // Arrange
@@ -84,7 +84,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ActionCards_ShouldHaveCorrectProperties()
         {
             // Arrange
@@ -101,7 +101,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(cardCount > 0, "Should have action cards in the flow panel");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_Layout_ShouldUseTableLayoutPanel()
         {
             // Arrange

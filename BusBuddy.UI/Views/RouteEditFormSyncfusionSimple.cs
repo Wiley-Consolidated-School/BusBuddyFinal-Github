@@ -223,7 +223,7 @@ namespace BusBuddy.UI.Views
             this.Close();
         }
 
-        private bool ValidateForm()
+        protected override bool ValidateForm()
         {
             var errors = new List<string>();
 

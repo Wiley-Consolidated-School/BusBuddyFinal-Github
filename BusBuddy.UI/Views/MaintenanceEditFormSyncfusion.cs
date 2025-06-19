@@ -17,17 +17,14 @@ namespace BusBuddy.UI.Views
 {
     public class MaintenanceEditFormSyncfusion : SyncfusionBaseForm
     {
-        public Maintenance Maintenance { get; private set; }
-
-        private ComboBox? cboVehicle;
-        private TextBox? txtMaintenanceCompleted;
+        public Maintenance Maintenance { get; private set; }        private ComboBoxAdv? cboVehicle;
+        private TextBoxExt? txtMaintenanceCompleted;
         private DateTimePicker? dtpDate;
-        private TextBox? txtVendor;
-        private TextBox? txtCost;
-        private ComboBox? cboMaintenanceType;
-        private TextBox? txtNotes;
-        private Button? btnSave;
-        private Button? btnCancel;
+        private TextBoxExt? txtVendor;
+        private TextBoxExt? txtCost;
+        private ComboBoxAdv? cboMaintenanceType;        private TextBoxExt? txtNotes;
+        private SfButton? btnSave;
+        private SfButton? btnCancel;
 
         public MaintenanceEditFormSyncfusion(Maintenance? maintenance = null)
         {
@@ -68,32 +65,44 @@ namespace BusBuddy.UI.Views
             int labelX = 30;
             int controlX = 150;
             int spacing = 60;
-            int controlWidth = 280;
-
-            // Vehicle
-            var lblVehicle = CreateLabel("🚌 Vehicle:", labelX, y);
-            cboVehicle = CreateComboBox("Select Vehicle", controlX, y, controlWidth);
+            int controlWidth = 280;            // Vehicle
+            var lblVehicle = ControlFactory.CreateLabel("🚌 Vehicle:");
+            lblVehicle.Location = new Point(labelX, y);
+            this.Controls.Add(lblVehicle);
+            cboVehicle = ControlFactory.CreateComboBox();
+            cboVehicle.Location = new Point(controlX, y);
+            cboVehicle.Size = new Size(controlWidth, 30);
+            this.Controls.Add(cboVehicle);
             y += spacing;
 
             // Maintenance Type
-            var lblMaintenanceType = CreateLabel("🔧 Type:", labelX, y);
-            cboMaintenanceType = CreateComboBox("Maintenance Type", controlX, y, controlWidth);
+            var lblMaintenanceType = ControlFactory.CreateLabel("🔧 Type:");
+            lblMaintenanceType.Location = new Point(labelX, y);
+            this.Controls.Add(lblMaintenanceType);
+            cboMaintenanceType = ControlFactory.CreateComboBox();
+            cboMaintenanceType.Location = new Point(controlX, y);
+            cboMaintenanceType.Size = new Size(controlWidth, 30);
             cboMaintenanceType.Items.AddRange(new[] {
                 "Oil Change", "Tire Replacement", "Brake Service", "Engine Repair",
                 "Transmission Service", "Inspection", "Battery Replacement", "Other"
             });
+            this.Controls.Add(cboMaintenanceType);
             y += spacing;
 
             // Maintenance Completed
-            var lblMaintenanceCompleted = CreateLabel("📋 Description:", labelX, y);
-            txtMaintenanceCompleted = (TextBox)CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtMaintenanceCompleted, "Describe the maintenance performed");
-            SetTextBoxMultiline(txtMaintenanceCompleted, true);
-            txtMaintenanceCompleted.Height = 60;
+            var lblMaintenanceCompleted = ControlFactory.CreateLabel("📋 Description:");
+            lblMaintenanceCompleted.Location = new Point(labelX, y);
+            this.Controls.Add(lblMaintenanceCompleted);
+            txtMaintenanceCompleted = ControlFactory.CreateTextBox(_bannerTextProvider, "Describe the maintenance performed", true);
+            txtMaintenanceCompleted.Location = new Point(controlX, y);
+            txtMaintenanceCompleted.Size = new Size(controlWidth, 60);
+            this.Controls.Add(txtMaintenanceCompleted);
             y += 80;
 
             // Date
-            var lblDate = CreateLabel("📅 Date:", labelX, y);
+            var lblDate = ControlFactory.CreateLabel("📅 Date:");
+            lblDate.Location = new Point(labelX, y);
+            this.Controls.Add(lblDate);
             dtpDate = new DateTimePicker
             {
                 Location = new Point(controlX, y),
@@ -104,30 +113,43 @@ namespace BusBuddy.UI.Views
             y += spacing;
 
             // Vendor
-            var lblVendor = CreateLabel("🏢 Vendor:", labelX, y);
-            txtVendor = (TextBox)CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtVendor, "Maintenance vendor/shop");
+            var lblVendor = ControlFactory.CreateLabel("🏢 Vendor:");
+            lblVendor.Location = new Point(labelX, y);
+            this.Controls.Add(lblVendor);
+            txtVendor = ControlFactory.CreateTextBox(_bannerTextProvider, "Maintenance vendor/shop");
+            txtVendor.Location = new Point(controlX, y);
+            txtVendor.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtVendor);
             y += spacing;
 
             // Cost
-            var lblCost = CreateLabel("💰 Cost:", labelX, y);
-            txtCost = (TextBox)CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtCost, "Total cost (e.g., 125.50)");
+            var lblCost = ControlFactory.CreateLabel("💰 Cost:");
+            lblCost.Location = new Point(labelX, y);
+            this.Controls.Add(lblCost);
+            txtCost = ControlFactory.CreateTextBox(_bannerTextProvider, "Total cost (e.g., 125.50)");
+            txtCost.Location = new Point(controlX, y);
+            txtCost.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtCost);
             y += spacing;
 
             // Notes
-            var lblNotes = CreateLabel("📝 Notes:", labelX, y);
-            txtNotes = (TextBox)CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtNotes, "Additional notes");
-            SetTextBoxMultiline(txtNotes, true);
-            txtNotes.Height = 60;
-            y += 80;
-
-            // Buttons
-            btnSave = (Button)CreateButton("💾 Save", controlX, y, btnSave_Click);
+            var lblNotes = ControlFactory.CreateLabel("📝 Notes:");
+            lblNotes.Location = new Point(labelX, y);
+            this.Controls.Add(lblNotes);
+            txtNotes = ControlFactory.CreateTextBox(_bannerTextProvider, "Additional notes", true);
+            txtNotes.Location = new Point(controlX, y);
+            txtNotes.Size = new Size(controlWidth, 60);
+            this.Controls.Add(txtNotes);
+            y += 80;            // Buttons
+            btnSave = ControlFactory.CreatePrimaryButton("💾 Save", btnSave_Click);
+            btnSave.Location = new Point(controlX, y);
             btnSave.Size = new Size(120, 36);
+            this.Controls.Add(btnSave);
 
-            btnCancel = (Button)CreateButton("❌ Cancel", controlX + 140, y, btnCancel_Click);
+            btnCancel = ControlFactory.CreateSecondaryButton("❌ Cancel", btnCancel_Click);
+            btnCancel.Location = new Point(controlX + 140, y);
+            btnCancel.Size = new Size(120, 36);
+            this.Controls.Add(btnCancel);
             btnCancel.Size = new Size(120, 36);
 
             // Apply Material Design styling
@@ -260,99 +282,20 @@ namespace BusBuddy.UI.Views
         {
             DialogResult = DialogResult.Cancel;
             Close();
-        }
-
-        // Helper methods for validation and form management
-        private void ClearAllValidationErrors()
+        }        // Helper methods for validation and form management
+        protected override void ClearAllValidationErrors()
         {
             _errorProvider.Clear();
         }
 
-        private void SetValidationError(Control control, string message)
+        protected override void SetValidationError(Control control, string message)
         {
             _errorProvider.SetError(control, message);
         }
 
-        private void ShowErrorMessage(string message)
+        protected new void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-
-        // Helper methods for Syncfusion form creation
-        private ComboBox CreateComboBox(string placeholder, int x, int y, int width)
-        {
-            var comboBox = new ComboBox
-            {
-                Location = new Point(x, y),
-                Size = new Size(width, 35),
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-
-            // Apply Material theming
-            comboBox.BackColor = SyncfusionThemeHelper.MaterialColors.Surface;
-            comboBox.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
-            comboBox.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
-
-            this.Controls.Add(comboBox);
-            return comboBox;
-        }
-
-        private void SetPlaceholderText(Control textBox, string placeholder)
-        {
-            if (textBox is TextBox tb)
-            {
-                tb.Text = placeholder;
-                tb.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
-
-                tb.GotFocus += (s, e) =>
-                {
-                    if (tb.Text == placeholder)
-                    {
-                        tb.Text = "";
-                        tb.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
-                    }
-                };
-
-                tb.LostFocus += (s, e) =>
-                {
-                    if (string.IsNullOrEmpty(tb.Text))
-                    {
-                        tb.Text = placeholder;
-                        tb.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
-                    }
-                };
-            }
-        }
-
-        private void SetTextBoxMultiline(Control textBox, bool multiline)
-        {
-            if (textBox is TextBox tb)
-            {
-                tb.Multiline = multiline;
-                if (multiline)
-                {
-                    tb.ScrollBars = ScrollBars.Vertical;
-                }
-            }
-        }
-
-        private Control CreateButton(string text, int x, int y, EventHandler clickHandler)
-        {
-            var button = new Button
-            {
-                Text = text,
-                Location = new Point(x, y),
-                Size = new Size(120, 36),
-                Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-
-            button.FlatAppearance.BorderSize = 0;
-            button.Click += clickHandler;
-            this.Controls.Add(button);
-            return button;
         }
     }
 }

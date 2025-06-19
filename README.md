@@ -1,5 +1,13 @@
 # BusBuddy - School Bus Management System
 
+## 📄 License and Intellectual Property
+
+**Copyright © 2025 Steve McKitrick. All rights reserved.**
+
+This software is the intellectual property of Steve McKitrick, developed independently for personal professional use. See [LICENSE.md](LICENSE.md) for complete licensing terms.
+
+**Important**: This project is NOT the property of Wiley School District and was developed using only personal funds and open source technologies.
+
 [![.NET Build and Test](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/dotnet.yml)
 [![codecov](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github/branch/master/graph/badge.svg)](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github)
 
@@ -298,16 +306,73 @@ The project uses pre-commit hooks to ensure code quality:
 - **Code Coverage**: [![codecov](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github/branch/master/graph/badge.svg)](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github)
 - **Test Results**: Available in GitHub Actions runs
 
+## 🧹 Repository Maintenance
+
+### Cleanup and Housekeeping
+Run the cleanup script regularly to maintain repository health:
+
+```powershell
+# General cleanup
+.\cleanup-repository.ps1
+
+# Fix trailing whitespace (preview changes)
+.\fix-whitespace.ps1 -WhatIf
+
+# Fix trailing whitespace (apply changes)
+.\fix-whitespace.ps1
+```
+
+This script removes:
+- Build artifacts (`bin/`, `obj/`, `TestResults/`)
+- Temporary files (`*.tmp`, `*.bak`, `*_new.*`, etc.)
+- Backup directories (`Migration_Backups/`, etc.)
+- Empty directories
+- Untracked git files
+- Reports trailing whitespace issues
+
+### File Management Best Practices
+- Remove temporary files (`.new`, `.bak`, `.backup`) after use
+- Clean up migration backups after successful migrations
+- Use `.gitignore` to prevent tracking build artifacts
+- Monitor repository size with `git count-objects -vH`
+- **Remove trailing whitespace** from all source files
+- Ensure files end with exactly one newline character
+
+## � Intellectual Property and Ownership
+
+**IMPORTANT LEGAL NOTICE**
+
+This software is the **exclusive intellectual property of Steve McKitrick** and was developed independently using only personal resources:
+
+### 🏠 Personal Development
+- ✅ **Personal funds only** - No tax money used
+- ✅ **Open source technologies** - Properly licensed components
+- ✅ **Personal time and equipment** - Developed outside work hours
+- ✅ **Personally purchased tools** - All software licenses paid personally
+
+### 🚫 What This Is NOT
+- ❌ **NOT property of Wiley School District**
+- ❌ **NOT funded by tax dollars**
+- ❌ **NOT a work-for-hire project**
+- ❌ **NOT using school district resources**
+
+### 📋 Legal Documentation
+- See [LICENSE.md](LICENSE.md) for complete licensing terms
+- See [NOTICE.txt](NOTICE.txt) for detailed ownership statement
+- Copyright notices embedded in source code and assembly metadata
+
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a Personal Use License - see the [LICENSE.md](LICENSE.md) file for details.
+
+**Copyright © 2025 Steve McKitrick. All rights reserved.**
 
 ## 🤝 Support
 
 For support and questions:
-- Create an [Issue](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/issues)
-- Check the [Wiki](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/wiki) for documentation
-- Contact the development team
+- Contact: Steve McKitrick (project owner)
+- Check project documentation
+- Review source code comments
 
 ## 🎯 Roadmap
 

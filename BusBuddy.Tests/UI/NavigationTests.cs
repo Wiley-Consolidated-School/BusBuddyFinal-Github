@@ -14,7 +14,7 @@ namespace BusBuddy.Tests.UI
     public class NavigationTests : UITestBase
     {
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_NavigationService_ShouldBeInjected()
         {
             // Arrange & Act
@@ -25,7 +25,7 @@ namespace BusBuddy.Tests.UI
             // Navigation service should be available through dependency injection
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_SidebarToggle_ShouldWork()
         {
             // Arrange
@@ -41,7 +41,7 @@ namespace BusBuddy.Tests.UI
             // In a real test, we would click the button and verify sidebar state changes
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_QuickActionCards_ShouldTriggerNavigation()
         {
             // Arrange
@@ -58,7 +58,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(true, "Navigation service is properly injected and available");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_Layout_ShouldBeResponsive()
         {
             // Arrange

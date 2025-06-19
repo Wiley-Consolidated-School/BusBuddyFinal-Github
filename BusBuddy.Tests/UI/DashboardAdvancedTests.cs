@@ -3,14 +3,14 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Xunit;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
 namespace BusBuddy.Tests.UI
 {
     [Collection("UI Tests")]
     public class DashboardAdvancedTests : UITestBase
     {
-        [Fact]
+        [UITestFact]
         public void Dashboard_QuickActionButtons_ShouldBeAccessible()
         {
             // Arrange
@@ -38,14 +38,14 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MaterialDesignButtons_ShouldBeStyled()
         {
             // Arrange
             _dashboard = CreateDashboardSafely();
 
             // Act
-            var materialButtons = GetAllControlsOfType<MaterialButton>(_dashboard);
+            var materialButtons = GetAllControlsOfType<Button>(_dashboard);
 
             // Assert
             Assert.True(materialButtons.Count > 0, "Should have Material Design buttons");
@@ -58,7 +58,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_LayoutContainers_ShouldBeProperlyNested()
         {
             // Arrange
@@ -84,7 +84,7 @@ namespace BusBuddy.Tests.UI
                 "Main container should be direct child of dashboard");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_FormProperties_ShouldBeConfiguredCorrectly()
         {
             // Arrange & Act
@@ -94,13 +94,13 @@ namespace BusBuddy.Tests.UI
             Assert.Equal("BusBuddy Dashboard", _dashboard.Text);
             Assert.True(_dashboard.Size.Width >= 800, "Dashboard should have minimum width of 800px");
             Assert.True(_dashboard.Size.Height >= 600, "Dashboard should have minimum height of 600px");
-            // MaterialForm defaults to FormBorderStyle.None, not Sizable
+            // Form defaults to FormBorderStyle.None, not Sizable
             Assert.Equal(FormBorderStyle.None, _dashboard.FormBorderStyle);
             Assert.True(_dashboard.ShowInTaskbar, "Dashboard should appear in taskbar");
             Assert.False(_dashboard.TopMost, "Dashboard should not be topmost");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_SidebarModules_ShouldBePresent()
         {
             // Arrange
@@ -111,7 +111,7 @@ namespace BusBuddy.Tests.UI
             Assert.NotNull(sidebarPanel);
 
             // Get all buttons in sidebar (module navigation buttons)
-            var sidebarButtons = GetAllControlsOfType<MaterialButton>(sidebarPanel);
+            var sidebarButtons = GetAllControlsOfType<Button>(sidebarPanel);
 
             // Assert
             Assert.True(sidebarButtons.Count >= 5, "Should have at least 5 module buttons in sidebar");
@@ -128,7 +128,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_StatsPanel_ShouldDisplayInformation()
         {
             // Arrange
@@ -143,14 +143,14 @@ namespace BusBuddy.Tests.UI
 
             // Check for labels or other controls that might display stats
             var labels = GetAllControlsOfType<Label>(statsPanel);
-            var materialLabels = GetAllControlsOfType<MaterialLabel>(statsPanel);
+            var materialLabels = GetAllControlsOfType<Label>(statsPanel);
 
             // Should have some form of text display in stats panel
             Assert.True(labels.Count + materialLabels.Count > 0,
                 "Stats panel should contain labels or text displays");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ResponsiveLayout_ShouldAdaptToWindowSize()
         {
             // Arrange
@@ -187,7 +187,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_TabOrder_ShouldBeLogical()
         {
             // Arrange
@@ -210,7 +210,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_KeyboardNavigation_ShouldWork()
         {
             // Arrange
@@ -225,7 +225,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(toggleButton.TabStop, "Toggle button should be included in tab order");
 
             // Test that important navigation elements are keyboard accessible
-            var importantButtons = GetAllControlsOfType<MaterialButton>(_dashboard)
+            var importantButtons = GetAllControlsOfType<Button>(_dashboard)
                 .Where(b => b.Visible && b.Enabled)
                 .ToList();
 
@@ -238,7 +238,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlStates_ShouldBeConsistent()
         {
             // Arrange
@@ -262,7 +262,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ErrorHandling_ShouldBeGraceful()
         {
             // Arrange
@@ -283,7 +283,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(count >= 0); // Should return 0 or positive, not throw
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MemoryUsage_ShouldBeReasonable()
         {
             // Arrange & Act

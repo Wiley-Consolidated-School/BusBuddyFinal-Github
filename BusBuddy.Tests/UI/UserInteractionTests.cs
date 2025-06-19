@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Xunit;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 using Moq;
 
 namespace BusBuddy.Tests.UI
@@ -11,7 +11,7 @@ namespace BusBuddy.Tests.UI
     [Collection("UI Tests")]
     public class UserInteractionTests : UITestBase
     {
-        [Fact]
+        [UITestFact]
         public void Dashboard_SidebarToggle_ShouldChangeVisibility()
         {
             // Arrange
@@ -37,13 +37,13 @@ namespace BusBuddy.Tests.UI
             Assert.True(initialWidth > 0, "Sidebar should have positive width");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ModuleNavigation_ShouldTriggerNavigationService()
         {
             // Arrange
             _dashboard = CreateDashboardSafely();
             var sidebarPanel = FindControlByName(_dashboard, "SidebarPanel");
-            var moduleButtons = sidebarPanel != null ? GetAllControlsOfType<MaterialButton>(sidebarPanel) : new List<MaterialButton>();
+            var moduleButtons = sidebarPanel != null ? GetAllControlsOfType<Button>(sidebarPanel) : new List<Button>();
 
             // Act & Assert
             Assert.True(moduleButtons.Count > 0, "Should have module navigation buttons");
@@ -64,7 +64,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_QuickActions_ShouldBeInteractive()
         {
             // Arrange
@@ -87,7 +87,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_FormResize_ShouldMaintainUsability()
         {
             // Arrange
@@ -125,7 +125,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_KeyboardShortcuts_ShouldBeSupported()
         {
             // Arrange
@@ -152,7 +152,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MouseInteraction_ShouldBeResponsive()
         {
             // Arrange
@@ -178,7 +178,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_WindowStates_ShouldWorkCorrectly()
         {
             // Arrange
@@ -210,7 +210,7 @@ namespace BusBuddy.Tests.UI
             _dashboard.WindowState = originalState;
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ContextMenus_ShouldBeAvailable()
         {
             // Arrange
@@ -234,7 +234,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ToolTips_ShouldProvideHelpfulInformation()
         {
             // Arrange
@@ -264,7 +264,7 @@ namespace BusBuddy.Tests.UI
             return string.Empty;
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ErrorStates_ShouldBeHandledGracefully()
         {
             // Arrange - Setup mock to simulate error conditions
@@ -291,7 +291,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(buttons.Count > 0, "Some buttons should remain functional during error states");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_Performance_ShouldBeResponsive()
         {
             // Arrange & Act - Measure dashboard creation time

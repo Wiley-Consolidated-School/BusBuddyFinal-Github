@@ -9,7 +9,7 @@ using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.TimeCard.Services;
 using BusBuddy.TimeCard.Utilities;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
 namespace BusBuddy.TimeCard.Views
 {

@@ -4,14 +4,14 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Xunit;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
 namespace BusBuddy.Tests.UI
 {
     [Collection("UI Tests")]
     public class AdvancedInteractionTests : UITestBase
     {
-        [Fact]
+        [UITestFact]
         public void Dashboard_KeyboardNavigation_ShouldWorkSeamlessly()
         {
             // Arrange
@@ -44,7 +44,7 @@ namespace BusBuddy.Tests.UI
             Assert.NotNull(FindControlByName(_dashboard, "HeaderPanel"));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_AccessibilityKeystrokes_ShouldBeSupported()
         {
             // Arrange
@@ -73,13 +73,13 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MouseInteraction_ShouldBeAccurate()
         {
             // Arrange
             _dashboard = CreateDashboardSafely();
             var clickableControls = GetAllControlsOfType<Control>(_dashboard)
-                .Where(c => c is Button || c is MaterialButton)
+                .Where(c => c is Button || c is Button)
                 .ToList();
 
             // Act & Assert - Mouse interactions
@@ -105,7 +105,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_DragDrop_ShouldHandleGracefully()
         {
             // Arrange
@@ -128,7 +128,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.Visible);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ContextualActions_ShouldBeAppropriate()
         {
             // Arrange
@@ -157,13 +157,13 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_VisualFeedback_ShouldBePresent()
         {
             // Arrange
             _dashboard = CreateDashboardSafely();
             var interactiveControls = GetAllControlsOfType<Control>(_dashboard)
-                .Where(c => c is Button || c is MaterialButton)
+                .Where(c => c is Button || c is Button)
                 .ToList();
 
             // Act & Assert - Visual feedback
@@ -190,7 +190,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ResponsiveInteraction_ShouldAdaptToInput()
         {
             // Arrange
@@ -221,7 +221,7 @@ namespace BusBuddy.Tests.UI
             Assert.NotNull(FindControlByName(_dashboard, "HeaderPanel"));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MultiModalInput_ShouldBeSupported()
         {
             // Arrange
@@ -247,9 +247,9 @@ namespace BusBuddy.Tests.UI
 
                     // Test programmatic activation
                     var programmaticException = Record.Exception(() => {
-                        if (button is MaterialButton materialButton)
+                        if (button is Button Button)
                         {
-                            materialButton.PerformClick();
+                            Button.PerformClick();
                         }
                         else
                         {
@@ -266,7 +266,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.Visible);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_InputValidation_ShouldPreventErrors()
         {
             // Arrange
@@ -303,7 +303,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_PerformanceUnderLoad_ShouldRemainResponsive()
         {
             // Arrange
@@ -343,7 +343,7 @@ namespace BusBuddy.Tests.UI
             Assert.NotNull(FindControlByName(_dashboard, "HeaderPanel"));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ErrorRecoveryDuringInteraction_ShouldBeGraceful()
         {
             // Arrange

@@ -65,7 +65,7 @@ namespace BusBuddy.UI.Views
             SetupEventHandlers();
 
             // Apply final theming
-            RefreshMaterialTheme();
+            SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
@@ -73,9 +73,9 @@ namespace BusBuddy.UI.Views
         private void CreateControls()
         {
             // Create text boxes
-            _destinationTextBox = CreateTextBox(150, 50, 400);
-            _notesTextBox = CreateTextBox(150, 480, 400);
-            _ridersTextBox = CreateTextBox(150, 430, 100);
+            _destinationTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
+            _notesTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
+            _ridersTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
 
             // Make notes textbox multiline
             if (_notesTextBox is TextBox notesTextBox)
@@ -161,16 +161,16 @@ namespace BusBuddy.UI.Views
         private void LayoutControls()
         {
             // Create labels
-            CreateLabel("🎯 Destination:", 20, 55);
-            CreateLabel("🚌 Trip Type:", 20, 105);
-            CreateLabel("🚐 Vehicle:", 20, 155);
-            CreateLabel("👤 Driver:", 20, 205);
-            CreateLabel("📅 Date:", 20, 255);
-            CreateLabel("🕐 Leave Time:", 20, 305);
-            CreateLabel("🕑 Event Time:", 20, 355);
-            CreateLabel("🕒 Return Time:", 20, 405);
-            CreateLabel("👥 # Riders:", 20, 435);
-            CreateLabel("📝 Notes:", 20, 485);
+            ControlFactory.CreateLabel("🎯 Destination:");
+            ControlFactory.CreateLabel("🚌 Trip Type:");
+            ControlFactory.CreateLabel("🚐 Vehicle:");
+            ControlFactory.CreateLabel("👤 Driver:");
+            ControlFactory.CreateLabel("📅 Date:");
+            ControlFactory.CreateLabel("🕐 Leave Time:");
+            ControlFactory.CreateLabel("🕑 Event Time:");
+            ControlFactory.CreateLabel("🕒 Return Time:");
+            ControlFactory.CreateLabel("👥 # Riders:");
+            ControlFactory.CreateLabel("📝 Notes:");
 
             // Set placeholder text
             SetPlaceholderText(_destinationTextBox, "Enter destination");
@@ -458,21 +458,17 @@ namespace BusBuddy.UI.Views
             }
 
             return true;
-        }
-
-        // Helper methods for validation and form management
-        private void ClearAllValidationErrors()
+        }        // Helper methods for validation and form management
+        private new void ClearAllValidationErrors()
         {
             _errorProvider.Clear();
         }
 
-        private void SetValidationError(Control? control, string message)
+        private new void SetValidationError(Control? control, string message)
         {
             if (control != null)
                 _errorProvider.SetError(control, message);
-        }
-
-        private void ShowErrorMessage(string message)
+        }private new void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }

@@ -1,356 +1,206 @@
-using System;
-using Syncfusion.Windows.Forms;
-using Syncfusion.Windows.Forms.Tools;
-using Syncfusion.Windows.Forms.Grid;
-using Syncfusion.WinForms.Controls;
-using Syncfusion.WinForms.DataGrid;
-using Syncfusion.WinForms.Input;
-using Syncfusion.WinForms.ListView;
-using BusBuddy.UI.Helpers;
-using System.Drawing;
-using System.Windows.Forms;
-
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
+using BusBuddy.UI.Theme;
+using Syncfusion.WinForms.Controls;
+using Syncfusion.WinForms.Input;
+using Syncfusion.Windows.Forms.Tools;
+using System;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace BusBuddy.UI.Views
 {
     public partial class VehicleFormSyncfusion : SyncfusionBaseForm
     {
+        private TextBoxExt _vehicleNumberTextBox;
+        private TextBoxExt _makeTextBox;
+        private TextBoxExt _modelTextBox;
+        private SfNumericTextBox _yearNumericTextBox;
+        private SfNumericTextBox _capacityNumericTextBox;
+        private ComboBoxAdv _fuelTypeComboBox;
+        private ComboBoxAdv _statusComboBox;
+        private TextBoxExt _vinNumberTextBox;
+        private TextBoxExt _licenseNumberTextBox;
+        private SfDateTimeEdit _lastInspectionDatePicker;
+        private TextBoxExt _notesTextBox;
+        private SfButton _saveButton;
+        private SfButton _cancelButton;
+
         public Vehicle Vehicle { get; private set; }
 
-        // UI Controls
-        private Control? txtBusNumber;
-        private NumericUpDown numYear;
-        private Control? txtMake;
-        private Control? txtModel;
-        private NumericUpDown numSeatingCapacity;
-        private Control? txtVINNumber;
-        private Control? txtLicenseNumber;
-        private DateTimePicker? dtpDateLastInspection;
-        private ComboBox? cboFuelType;
-        private ComboBox? cboStatus;
-        private Control? txtNotes;
-        private Control? btnSave;
-        private Control? btnCancel;
-
-        public VehicleFormSyncfusion(Vehicle? vehicle = null)
+        public VehicleFormSyncfusion() : this(new Vehicle())
         {
+        }
+
+        public VehicleFormSyncfusion(Vehicle vehicle)
+        {
+            Vehicle = vehicle;
             InitializeComponent();
-            Vehicle = vehicle != null ? new Vehicle
+            if (vehicle != null)
             {
-                VehicleID = vehicle.VehicleID,
-                BusNumber = vehicle.BusNumber,
-                VehicleNumber = vehicle.VehicleNumber,
-                Year = vehicle.Year,
-                Make = vehicle.Make,
-                Model = vehicle.Model,
-                SeatingCapacity = vehicle.SeatingCapacity,
-                VINNumber = vehicle.VINNumber,
-                LicenseNumber = vehicle.LicenseNumber,
-                DateLastInspection = vehicle.DateLastInspection,
-                FuelType = vehicle.FuelType,
-                Status = vehicle.Status,
-                Notes = vehicle.Notes
-            } : new Vehicle();
-            LoadVehicleData();
+                PopulateFields(vehicle);
+            }
         }
 
         private void InitializeComponent()
         {
-            this.txtBusNumber = CreateTextBox(130, 20, 200);
-            this.numYear = new NumericUpDown();
-            this.txtMake = CreateTextBox(130, 90, 200);
-            this.txtModel = CreateTextBox(130, 125, 200);
-            this.numSeatingCapacity = new NumericUpDown();
-            this.txtVINNumber = CreateTextBox(130, 195, 200);
-            this.txtLicenseNumber = CreateTextBox(130, 230, 200);
-            this.dtpDateLastInspection = new DateTimePicker();
-            this.cboFuelType = new ComboBox();
-            this.cboStatus = new ComboBox();
-            this.txtNotes = CreateTextBox(130, 335, 200);
-            this.btnSave = CreateButton("💾 Save", 130, 380, btnSave_Click);
-            this.btnCancel = CreateButton("❌ Cancel", 240, 380, btnCancel_Click);
-
-            // Form properties - Enhanced with KillerSampleForm styling
-            this.Text = "🚌 Vehicle Details";
-            this.Size = new Size(400, 450);
+            this.Text = Vehicle.Id == 0 ? "Add Vehicle" : "Edit Vehicle";
+            this.ClientSize = new Size(600, 750);
             this.StartPosition = FormStartPosition.CenterParent;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.BackColor = Color.FromArgb(245, 245, 245);
 
-            SetupFormLayout();
+            CreateControls();
+            LayoutControls();
+            SetupEventHandlers();
         }
 
-        private void SetupFormLayout()
+        private void CreateControls()
         {
-            // Layout controls
-            int y = 20;
-            int labelX = 20;
-            int controlX = 130;
-            int spacing = 35;
+            // Create labels and place them directly
+            var vehicleNumberLabel = ControlFactory.CreateLabel("Vehicle Number:");
+            vehicleNumberLabel.Location = new Point(20, 25);
+            _mainPanel.Controls.Add(vehicleNumberLabel);
 
-            // Bus Number
-            var lblBusNumber = new Label { Text = "🚌 Bus Number:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            txtBusNumber.Location = new Point(controlX, y);
-            txtBusNumber.Size = new Size(200, 23);
-            this.Controls.Add(lblBusNumber);
-            this.Controls.Add(txtBusNumber);
-            y += spacing;
+            var makeLabel = ControlFactory.CreateLabel("Make:");
+            makeLabel.Location = new Point(300, 25);
+            _mainPanel.Controls.Add(makeLabel);
 
-            // Year
-            var lblYear = new Label { Text = "📅 Year:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            numYear.Location = new Point(controlX, y);
-            numYear.Size = new Size(200, 23);
-            numYear.Minimum = 1990;
-            numYear.Maximum = DateTime.Now.Year + 2;
-            numYear.Value = DateTime.Now.Year;
-            this.Controls.Add(lblYear);
-            this.Controls.Add(numYear);
-            y += spacing;
+            var modelLabel = ControlFactory.CreateLabel("Model:");
+            modelLabel.Location = new Point(20, 95);
+            _mainPanel.Controls.Add(modelLabel);
 
-            // Make
-            var lblMake = new Label { Text = "🏭 Make:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            txtMake.Location = new Point(controlX, y);
-            txtMake.Size = new Size(200, 23);
-            this.Controls.Add(lblMake);
-            this.Controls.Add(txtMake);
-            y += spacing;
+            var yearLabel = ControlFactory.CreateLabel("Year:");
+            yearLabel.Location = new Point(300, 95);
+            _mainPanel.Controls.Add(yearLabel);
 
-            // Model
-            var lblModel = new Label { Text = "🚗 Model:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            txtModel.Location = new Point(controlX, y);
-            txtModel.Size = new Size(200, 23);
-            this.Controls.Add(lblModel);
-            this.Controls.Add(txtModel);
-            y += spacing;
+            var capacityLabel = ControlFactory.CreateLabel("Capacity:");
+            capacityLabel.Location = new Point(20, 165);
+            _mainPanel.Controls.Add(capacityLabel);
 
-            // Seating Capacity
-            var lblCapacity = new Label { Text = "👥 Capacity:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            numSeatingCapacity.Location = new Point(controlX, y);
-            numSeatingCapacity.Size = new Size(200, 23);
-            numSeatingCapacity.Minimum = 1;
-            numSeatingCapacity.Maximum = 100;
-            this.Controls.Add(lblCapacity);
-            this.Controls.Add(numSeatingCapacity);
-            y += spacing;
+            var fuelTypeLabel = ControlFactory.CreateLabel("Fuel Type:");
+            fuelTypeLabel.Location = new Point(300, 165);
+            _mainPanel.Controls.Add(fuelTypeLabel);
 
-            // VIN Number
-            var lblVIN = new Label { Text = "🔢 VIN Number:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            txtVINNumber.Location = new Point(controlX, y);
-            txtVINNumber.Size = new Size(200, 23);
-            this.Controls.Add(lblVIN);
-            this.Controls.Add(txtVINNumber);
-            y += spacing;
+            var vinNumberLabel = ControlFactory.CreateLabel("VIN Number:");
+            vinNumberLabel.Location = new Point(20, 235);
+            _mainPanel.Controls.Add(vinNumberLabel);
 
-            // License Number
-            var lblLicense = new Label { Text = "📄 License:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            txtLicenseNumber.Location = new Point(controlX, y);
-            txtLicenseNumber.Size = new Size(200, 23);
-            this.Controls.Add(lblLicense);
-            this.Controls.Add(txtLicenseNumber);
-            y += spacing;
+            var licenseNumberLabel = ControlFactory.CreateLabel("License Number:");
+            licenseNumberLabel.Location = new Point(300, 235);
+            _mainPanel.Controls.Add(licenseNumberLabel);
 
-            // Last Inspection Date
-            var lblInspection = new Label { Text = "🔧 Inspection:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            dtpDateLastInspection.Location = new Point(controlX, y);
-            dtpDateLastInspection.Size = new Size(200, 23);
-            this.Controls.Add(lblInspection);
-            this.Controls.Add(dtpDateLastInspection);
-            y += spacing;
+            var statusLabel = ControlFactory.CreateLabel("Status:");
+            statusLabel.Location = new Point(20, 305);
+            _mainPanel.Controls.Add(statusLabel);
 
-            // Fuel Type
-            var lblFuelType = new Label { Text = "⛽ Fuel Type:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            cboFuelType.Location = new Point(controlX, y);
-            cboFuelType.Size = new Size(200, 23);
-            cboFuelType.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboFuelType.Items.AddRange(new[] { "Gasoline", "Diesel", "Electric", "Hybrid", "CNG", "Other" });
-            this.Controls.Add(lblFuelType);
-            this.Controls.Add(cboFuelType);
-            y += spacing;
+            var lastInspectionLabel = ControlFactory.CreateLabel("Last Inspection:");
+            lastInspectionLabel.Location = new Point(300, 305);
+            _mainPanel.Controls.Add(lastInspectionLabel);
 
-            // Status
-            var lblStatus = new Label { Text = "📊 Status:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            cboStatus.Location = new Point(controlX, y);
-            cboStatus.Size = new Size(200, 23);
-            cboStatus.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboStatus.Items.AddRange(new[] { "Active", "Maintenance", "Inactive", "Retired" });
-            this.Controls.Add(lblStatus);
-            this.Controls.Add(cboStatus);
-            y += spacing;
+            var notesLabel = ControlFactory.CreateLabel("Notes:");
+            notesLabel.Location = new Point(20, 375);
+            _mainPanel.Controls.Add(notesLabel);
 
-            // Notes
-            var lblNotes = new Label { Text = "📝 Notes:", Location = new Point(labelX, y), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
-            txtNotes.Location = new Point(controlX, y);
-            txtNotes.Size = new Size(200, 23);
-            this.Controls.Add(lblNotes);
-            this.Controls.Add(txtNotes);
+            // Text boxes
+            _vehicleNumberTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter vehicle number");
+            _makeTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter make");
+            _modelTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter model");
+            _vinNumberTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter VIN");
+            _licenseNumberTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter license plate");
+            _notesTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter notes", multiline: true);
+
+            // Numeric Text boxes
+            _yearNumericTextBox = ControlFactory.CreateNumericTextBox(1990, DateTime.Now.Year + 1);
+            _capacityNumericTextBox = ControlFactory.CreateNumericTextBox(1, 100);
+
+            // Combo boxes
+            _fuelTypeComboBox = ControlFactory.CreateComboBox();
+            _statusComboBox = ControlFactory.CreateStatusComboBox();
+
+            // Date picker
+            _lastInspectionDatePicker = ControlFactory.CreateDateTimePicker();
+
+            // Buttons
+            _saveButton = ControlFactory.CreatePrimaryButton("Save");
+            _cancelButton = ControlFactory.CreateSecondaryButton("Cancel");
         }
 
-        private void LoadVehicleData()
+        private void LayoutControls()
         {
-            txtBusNumber.Text = Vehicle.BusNumber ?? Vehicle.VehicleNumber ?? string.Empty;
-            numYear.Value = Vehicle.Year > 0 ? Vehicle.Year : DateTime.Now.Year;
-            txtMake.Text = Vehicle.Make ?? string.Empty;
-            txtModel.Text = Vehicle.Model ?? string.Empty;
-            numSeatingCapacity.Value = Vehicle.SeatingCapacity > 0 ? Vehicle.SeatingCapacity : 1;
-            txtVINNumber.Text = Vehicle.VINNumber ?? string.Empty;
-            txtLicenseNumber.Text = Vehicle.LicenseNumber ?? string.Empty;
-            dtpDateLastInspection.Value = Vehicle.DateLastInspectionAsDateTime ?? DateTime.Now;
+            // Set locations
+            _vehicleNumberTextBox.Location = new Point(20, 50);
+            _makeTextBox.Location = new Point(300, 50);
+            _modelTextBox.Location = new Point(20, 120);
+            _yearNumericTextBox.Location = new Point(300, 120);
+            _capacityNumericTextBox.Location = new Point(20, 190);
+            _fuelTypeComboBox.Location = new Point(300, 190);
+            _vinNumberTextBox.Location = new Point(20, 260);
+            _licenseNumberTextBox.Location = new Point(300, 260);
+            _statusComboBox.Location = new Point(20, 330);
+            _lastInspectionDatePicker.Location = new Point(300, 330);
+            _notesTextBox.Location = new Point(20, 400);
+            _notesTextBox.Size = new Size(560, 100);
 
-            // Set combo box values with defaults
-            cboFuelType.SelectedItem = Vehicle.FuelType ?? "Diesel";
-            cboStatus.SelectedItem = Vehicle.Status ?? "Active";
-            txtNotes.Text = Vehicle.Notes ?? string.Empty;
-        }
-        private void btnSave_Click(object? sender, EventArgs e)
-        {
-            // Apply KillerSampleForm validation patterns
-            if (!ValidateVehicle())
-                return;
+            _saveButton.Location = new Point(20, 650);
+            _cancelButton.Location = new Point(150, 650);
 
-            Vehicle.BusNumber = txtBusNumber.Text.Trim();
-            Vehicle.VehicleNumber = txtBusNumber.Text.Trim(); // Ensure both properties are set
-            Vehicle.Year = (int)numYear.Value;
-            Vehicle.Make = txtMake.Text.Trim();
-            Vehicle.Model = txtModel.Text.Trim();
-            Vehicle.SeatingCapacity = (int)numSeatingCapacity.Value;
-            Vehicle.VINNumber = txtVINNumber.Text.Trim();
-            Vehicle.LicenseNumber = txtLicenseNumber.Text.Trim();
-            Vehicle.DateLastInspectionAsDateTime = dtpDateLastInspection.Value;
-            Vehicle.FuelType = cboFuelType.SelectedItem?.ToString();
-            Vehicle.Status = cboStatus.SelectedItem?.ToString();
-            Vehicle.Notes = txtNotes.Text.Trim();
-
-            DialogResult = DialogResult.OK;
-            Close();
-        }
-
-        /// <summary>
-        /// Enhanced validation following KillerSampleForm patterns
-        /// </summary>
-        private bool ValidateVehicle()
-        {
-            // Clear any previous error highlighting
-            ResetValidationStyles();
-
-            // Vehicle Number validation
-            if (string.IsNullOrWhiteSpace(txtBusNumber.Text))
+            _mainPanel.Controls.AddRange(new Control[]
             {
-                ShowValidationError(txtBusNumber, "Vehicle/Bus number is required.", "Validation Error");
-                return false;
+                _vehicleNumberTextBox, _makeTextBox, _modelTextBox, _yearNumericTextBox,
+                _capacityNumericTextBox, _fuelTypeComboBox, _statusComboBox, _vinNumberTextBox,
+                _licenseNumberTextBox, _lastInspectionDatePicker, _notesTextBox,
+                _saveButton, _cancelButton
+            });
+
+            // Setup combo box items
+            _fuelTypeComboBox.DataSource = new[] { "Diesel", "Gasoline", "Electric", "Hybrid", "Propane" };
+        }
+
+
+
+        private void SetupEventHandlers()
+        {
+            _saveButton.Click += SaveButton_Click;
+            _cancelButton.Click += CancelButton_Click;
+        }
+
+        private void PopulateFields(Vehicle vehicle)
+        {
+            _vehicleNumberTextBox.Text = vehicle.VehicleNumber ?? string.Empty;
+            _makeTextBox.Text = vehicle.Make ?? string.Empty;
+            _modelTextBox.Text = vehicle.Model ?? string.Empty;
+            _yearNumericTextBox.Value = vehicle.Year;
+            _capacityNumericTextBox.Value = vehicle.Capacity;
+            _fuelTypeComboBox.SelectedItem = vehicle.FuelType;
+            _statusComboBox.SelectedItem = vehicle.Status;
+            _vinNumberTextBox.Text = vehicle.VINNumber ?? string.Empty;
+            _licenseNumberTextBox.Text = vehicle.LicenseNumber ?? string.Empty;
+            _lastInspectionDatePicker.Value = vehicle.DateLastInspectionAsDateTime;
+            _notesTextBox.Text = vehicle.Notes ?? string.Empty;
+        }        private void SaveButton_Click(object? sender, EventArgs e)
+        {
+            if (ValidateChildren())
+            {
+                Vehicle.VehicleNumber = _vehicleNumberTextBox.Text;
+                Vehicle.Make = _makeTextBox.Text;
+                Vehicle.Model = _modelTextBox.Text;
+                Vehicle.Year = _yearNumericTextBox.Value.HasValue ? (int)_yearNumericTextBox.Value : DateTime.Now.Year;
+                Vehicle.Capacity = _capacityNumericTextBox.Value.HasValue ? (int)_capacityNumericTextBox.Value : 0;
+                Vehicle.FuelType = _fuelTypeComboBox.SelectedItem?.ToString();
+                Vehicle.Status = _statusComboBox.SelectedItem?.ToString();
+                Vehicle.VINNumber = _vinNumberTextBox.Text;
+                Vehicle.LicenseNumber = _licenseNumberTextBox.Text;
+                Vehicle.DateLastInspectionAsDateTime = _lastInspectionDatePicker.Value;
+                Vehicle.Notes = _notesTextBox.Text;
+
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
-
-            // Make validation
-            if (string.IsNullOrWhiteSpace(txtMake.Text))
-            {
-                ShowValidationError(txtMake, "Vehicle manufacturer is required.", "Validation Error");
-                return false;
-            }
-
-            // Model validation
-            if (string.IsNullOrWhiteSpace(txtModel.Text))
-            {
-                ShowValidationError(txtModel, "Vehicle model is required.", "Validation Error");
-                return false;
-            }
-
-            // Year validation
-            if (numYear.Value < 1990 || numYear.Value > DateTime.Now.Year + 2)
-            {
-                ShowValidationError(numYear, $"Invalid year. Please enter a year between 1990 and {DateTime.Now.Year + 2}.", "Validation Error");
-                return false;
-            }
-
-            // Capacity validation
-            if (numSeatingCapacity.Value <= 0)
-            {
-                ShowValidationError(numSeatingCapacity, "Vehicle capacity must be greater than 0.", "Validation Error");
-                return false;
-            }
-
-            if (numSeatingCapacity.Value > 100)
-            {
-                ShowValidationError(numSeatingCapacity, "Vehicle capacity seems unusually high. Please verify.", "Validation Warning");
-                return false;
-            }
-
-            return true;
         }
 
-        /// <summary>
-        /// Show validation error with enhanced UX
-        /// </summary>
-        private void ShowValidationError(Control control, string message, string title)
+        private void CancelButton_Click(object? sender, EventArgs e)
         {
-            // Highlight the problematic field
-            control.BackColor = Color.FromArgb(255, 240, 240);
-            control.Focus();
-
-            // Show user-friendly error message
-            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-
-        /// <summary>
-        /// Reset validation styles
-        /// </summary>
-        private void ResetValidationStyles()
-        {
-            var normalBackColor = Color.White;
-            txtBusNumber.BackColor = normalBackColor;
-            txtMake.BackColor = normalBackColor;
-            txtModel.BackColor = normalBackColor;
-            txtVINNumber.BackColor = normalBackColor;
-            txtLicenseNumber.BackColor = normalBackColor;
-            txtNotes.BackColor = normalBackColor;
-            numYear.BackColor = normalBackColor;
-            numSeatingCapacity.BackColor = normalBackColor;
-            cboFuelType.BackColor = normalBackColor;
-            cboStatus.BackColor = normalBackColor;
-        }
-
-        private void btnCancel_Click(object? sender, EventArgs e)
-        {
-            DialogResult = DialogResult.Cancel;
-            Close();
-        }
-
-        // Helper methods for Syncfusion form creation
-        private new Control CreateTextBox(int x, int y, int width)
-        {
-            var textBox = new TextBox
-            {
-                Location = new Point(x, y),
-                Size = new Size(width, 23),
-                Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Surface,
-                ForeColor = SyncfusionThemeHelper.MaterialColors.Text,
-                BorderStyle = BorderStyle.FixedSingle
-            };
-
-            this.Controls.Add(textBox);
-            return textBox;
-        }
-
-        private Control CreateButton(string text, int x, int y, EventHandler clickHandler)
-        {
-            var button = new Button
-            {
-                Text = text,
-                Location = new Point(x, y),
-                Size = new Size(120, 36),
-                Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-
-            button.FlatAppearance.BorderSize = 0;
-            button.Click += clickHandler;
-            this.Controls.Add(button);
-            return button;
+            this.DialogResult = DialogResult.Cancel;
+            this.Close();
         }
     }
 }

@@ -4,14 +4,14 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Xunit;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
 namespace BusBuddy.Tests.UI
 {
     [Collection("UI Tests")]
     public class IntegrationScenarioTests : UITestBase
     {
-        [Fact]
+        [UITestFact]
         public void Dashboard_FullUserWorkflow_ShouldBeSeamless()
         {
             // Arrange
@@ -61,7 +61,7 @@ namespace BusBuddy.Tests.UI
             Assert.NotNull(FindControlByName(_dashboard, "HeaderPanel"));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MultipleNavigation_ShouldMaintainState()
         {
             // Arrange
@@ -94,7 +94,7 @@ namespace BusBuddy.Tests.UI
             Assert.Equal(initialControlCount, finalControlCount);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ResponsiveLayout_ShouldAdaptToSizeChanges()
         {
             // Arrange
@@ -147,7 +147,7 @@ namespace BusBuddy.Tests.UI
             _dashboard.Size = originalSize;
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ThemeIntegration_ShouldWorkAcrossComponents()
         {
             // Arrange
@@ -155,7 +155,7 @@ namespace BusBuddy.Tests.UI
 
             // Act - Get theme-related properties from different components
             var allControls = GetAllControlsOfType<Control>(_dashboard);
-            var materialControls = GetAllControlsOfType<MaterialButton>(_dashboard);
+            var materialControls = GetAllControlsOfType<Button>(_dashboard);
 
             // Assert - Theme consistency checks
             foreach (var control in allControls)
@@ -177,7 +177,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_AccessibilityIntegration_ShouldBeComplete()
         {
             // Arrange
@@ -185,7 +185,7 @@ namespace BusBuddy.Tests.UI
 
             // Act - Check accessibility across all interactive elements
             var buttons = GetAllControlsOfType<Button>(_dashboard);
-            var materialButtons = GetAllControlsOfType<MaterialButton>(_dashboard);
+            var materialButtons = GetAllControlsOfType<Button>(_dashboard);
 
             // Assert - Accessibility requirements
             foreach (var button in buttons)
@@ -199,11 +199,11 @@ namespace BusBuddy.Tests.UI
                 Assert.True(button.Height >= 20);
             }
 
-            foreach (var materialButton in materialButtons)
+            foreach (var Button in materialButtons)
             {
                 // Material buttons should also be accessible
-                Assert.True(!string.IsNullOrWhiteSpace(materialButton.Text) ||
-                           !string.IsNullOrWhiteSpace(materialButton.AccessibleName));
+                Assert.True(!string.IsNullOrWhiteSpace(Button.Text) ||
+                           !string.IsNullOrWhiteSpace(Button.AccessibleName));
             }
 
             // Color contrast should be maintained
@@ -216,7 +216,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_DataDisplayIntegration_ShouldHandleUpdates()
         {
             // Arrange
@@ -254,7 +254,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ErrorHandlingIntegration_ShouldBeGraceful()
         {
             // Arrange
@@ -297,7 +297,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(errors < operations.Count); // Not all operations should fail
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_PerformanceIntegration_ShouldBeAcceptable()
         {
             // Arrange
@@ -324,7 +324,7 @@ namespace BusBuddy.Tests.UI
             Assert.NotNull(FindControlByName(_dashboard, "HeaderPanel"));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_WindowStateIntegration_ShouldHandleChanges()
         {
             // Arrange

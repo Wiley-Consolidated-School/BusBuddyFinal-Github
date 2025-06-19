@@ -6,6 +6,7 @@ using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Views;
 
 namespace BusBuddy.UI.Views
 {
@@ -48,7 +49,7 @@ namespace BusBuddy.UI.Views
             SetupEventHandlers();
 
             // Apply final theming
-            RefreshMaterialTheme();
+            SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
@@ -85,7 +86,9 @@ namespace BusBuddy.UI.Views
             _detailsButton.Enabled = false; // Initially disabled
 
             // Search controls
-            var searchLabel = CreateLabel("🔍 Search:", 500, 25);
+            var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
+            searchLabel.Location = new Point(500, 25);
+            _mainPanel.Controls.Add(searchLabel);
             _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
             _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
 
@@ -98,10 +101,8 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_deleteButton);
             _mainPanel.Controls.Add(_detailsButton);
             _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);
-
-            // Create DataGridView
-            _activityGrid = CreateDataGrid();
+            _mainPanel.Controls.Add(_searchButton);            // Create DataGridView
+            _activityGrid = SyncfusionThemeHelper.CreateMaterialDataGrid();
             _activityGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
             _activityGrid.Size = GetDpiAwareSize(new Size(1150, 650));
             _activityGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;

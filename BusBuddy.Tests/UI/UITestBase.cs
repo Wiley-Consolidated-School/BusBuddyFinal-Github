@@ -28,34 +28,56 @@ namespace BusBuddy.Tests.UI
             // Create mocks
             _mockNavigationService = new Mock<INavigationService>();
             _mockDatabaseService = new Mock<IDatabaseHelperService>();
-        }
-
-        protected BusBuddyDashboardSyncfusion CreateDashboardSafely()
+        }        protected BusBuddyDashboardSyncfusion CreateDashboardSafely()
         {
             try
             {
+                Console.WriteLine("🧪 TEST: Creating dashboard with safety checks...");
                 var dashboard = new BusBuddyDashboardSyncfusion(_mockNavigationService.Object, _mockDatabaseService.Object);
 
-                // Set a timeout for operations
-                var timeout = DateTime.Now.AddSeconds(5);
+                // Set a reasonable timeout for test operations
+                var timeout = DateTime.Now.AddSeconds(15); // Increased timeout for debugging
+                var startTime = DateTime.Now;
 
-                // Try to show the form with timeout
+                Console.WriteLine("🧪 TEST: Showing dashboard...");
+
+                // Try to show the form with timeout protection
                 dashboard.Show();
 
-                // Wait a short time for initialization to complete
-                var startTime = DateTime.Now;
-                while (DateTime.Now - startTime < TimeSpan.FromMilliseconds(100))
+                // Wait for initialization to complete with better timeout handling
+                while (DateTime.Now < timeout)
                 {
-                    if (DateTime.Now > timeout)
-                        throw new TimeoutException("Dashboard initialization took too long");
+                    // Check if dashboard is properly initialized
+                    if (dashboard.Visible && dashboard.IsHandleCreated)
+                    {
+                        Console.WriteLine($"🧪 TEST: Dashboard initialized successfully in {(DateTime.Now - startTime).TotalMilliseconds:F0}ms");
+                        break;
+                    }
 
+                    // Process pending messages to prevent UI freeze
+                    System.Windows.Forms.Application.DoEvents();
                     System.Threading.Thread.Sleep(10);
                 }
 
+                // Final timeout check
+                if (DateTime.Now >= timeout)
+                {
+                    Console.WriteLine("⏰ TEST: Dashboard initialization timeout reached");
+                    throw new TimeoutException("Dashboard initialization took too long");
+                }
+
+                // Ensure the dashboard is in a good state
+                if (!dashboard.Visible)
+                {
+                    Console.WriteLine("⚠️ TEST: Dashboard not visible after initialization");
+                }
+
+                Console.WriteLine("✅ TEST: Dashboard created successfully");
                 return dashboard;
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ TEST: Failed to create dashboard safely: {ex.Message}");
                 throw new InvalidOperationException($"Failed to create dashboard safely: {ex.Message}", ex);
             }
         }

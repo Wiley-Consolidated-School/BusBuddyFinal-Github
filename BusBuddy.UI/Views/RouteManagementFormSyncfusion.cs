@@ -70,7 +70,7 @@ namespace BusBuddy.UI.Views
             SetupEventHandlers();
 
             // Apply final theming
-            RefreshMaterialTheme();
+            SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
@@ -107,7 +107,7 @@ namespace BusBuddy.UI.Views
             _detailsButton.Enabled = false; // Initially disabled
 
             // Search controls
-            var searchLabel = CreateLabel("🔍 Search:", 500, 25);
+            var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
             _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
             _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
 
@@ -123,7 +123,7 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_searchButton);
 
             // Create DataGridView
-            _routeGrid = CreateDataGrid();
+            _routeGrid = SyncfusionThemeHelper.CreateMaterialDataGrid();
             _routeGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
             _routeGrid.Size = GetDpiAwareSize(new Size(1150, 800));
             _routeGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;

@@ -67,7 +67,7 @@ namespace BusBuddy.UI.Views
             SetupEventHandlers();
 
             // Apply final theming
-            RefreshMaterialTheme();
+            SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
@@ -75,7 +75,7 @@ namespace BusBuddy.UI.Views
         private void CreateControls()
         {
             // Month/year navigation
-            var monthLabel = CreateLabel("Month:", 20, 25);
+            var monthLabel = ControlFactory.CreateLabel("Month:");
             _mainPanel.Controls.Add(monthLabel);
 
             _monthComboBox = new ComboBox
@@ -88,7 +88,7 @@ namespace BusBuddy.UI.Views
             _monthComboBox.SelectedIndex = _displayMonth - 1;
             _mainPanel.Controls.Add(_monthComboBox);
 
-            var yearLabel = CreateLabel("Year:", 220, 25);
+            var yearLabel = ControlFactory.CreateLabel("Year:");
             _mainPanel.Controls.Add(yearLabel);
 
             _yearUpDown = new NumericUpDown
@@ -148,7 +148,7 @@ namespace BusBuddy.UI.Views
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
             };
 
-            var dayTypeLabel = CreateLabel("Day Type:", 10, 15);
+            var dayTypeLabel = ControlFactory.CreateLabel("Day Type:");
             _editPanel.Controls.Add(dayTypeLabel);
 
             _dayTypeComboBox = new ComboBox
@@ -160,7 +160,7 @@ namespace BusBuddy.UI.Views
             _dayTypeComboBox.Items.AddRange(_dayTypes);
             _editPanel.Controls.Add(_dayTypeComboBox);
 
-            var notesLabel = CreateLabel("Notes:", 300, 15);
+            var notesLabel = ControlFactory.CreateLabel("Notes:");
             _editPanel.Controls.Add(notesLabel);
 
             _notesTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");

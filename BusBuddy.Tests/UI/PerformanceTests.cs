@@ -14,7 +14,7 @@ namespace BusBuddy.Tests.UI
     [Collection("UI Tests")]
     public class PerformanceTests : UITestBase
     {
-        [Fact]
+        [UITestFact]
         public void Dashboard_CreationTime_ShouldBeOptimal()
         {
             // Arrange
@@ -32,7 +32,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.Visible, "Dashboard should be visible after creation");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlSearch_ShouldBeEfficient()
         {
             // Arrange
@@ -64,7 +64,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(true, "Test skipped to prevent resource exhaustion");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlEnumeration_ShouldBeScalable()
         {
             // Arrange
@@ -86,7 +86,7 @@ namespace BusBuddy.Tests.UI
                 $"10 control enumerations took {stopwatch.ElapsedMilliseconds}ms, should be under 500ms");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ResizePerformance_ShouldBeSmooth()
         {
             // Arrange
@@ -141,7 +141,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(true, "Test skipped to prevent resource exhaustion");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_RepeatedOperations_ShouldNotDegrade()
         {
             // Arrange
@@ -177,7 +177,7 @@ namespace BusBuddy.Tests.UI
                 $"Performance degraded: first half avg {firstHalf:F2}ms, second half avg {secondHalf:F2}ms");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_LargeDataLoad_ShouldRemainResponsive()
         {
             // Arrange

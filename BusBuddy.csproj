@@ -9,11 +9,23 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604;CS0436;CS8602;CS8625;CS8601;CS8600</NoWarn>
     <StartupObject>BusBuddy.Program</StartupObject>
+
+    <!-- Copyright and Intellectual Property Information -->
+    <!-- Note: Assembly attributes are defined in Properties/AssemblyInfo.cs -->
   </PropertyGroup>
 
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+
+    <!-- Assembly Information -->
+    <AssemblyTitle>BusBuddy</AssemblyTitle>
+    <AssemblyConfiguration></AssemblyConfiguration>
+    <AssemblyCompany>Steve McKitrick</AssemblyCompany>
+    <AssemblyProduct>BusBuddy School Bus Management System</AssemblyProduct>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyInformationalVersion>1.0.0</AssemblyInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -58,7 +70,6 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
-    <PackageReference Include="MaterialSkin.2" Version="2.3.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />

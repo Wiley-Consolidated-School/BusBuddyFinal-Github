@@ -109,6 +109,50 @@
     "./CODE_REFINEMENT_PROMPT.md"
   ],
   "github.copilot.chat.useProjectContext": true,
+
+  // GitHub Copilot file exclusions for memory optimization
+  "github.copilot.excludedFiles": [
+    "**/form_cache.json",
+    "**/node_modules/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/TestResults/**",
+    "**/*.dll",
+    "**/*.exe",
+    "**/*.tmp",
+    "**/*.backup*",
+    "**/*_backup*"
+  ],
+
+  // Enhanced file exclusions
+  "files.exclude": {
+    "**/form_cache.json": true,
+    "**/node_modules": true,
+    "**/bin": true,
+    "**/obj": true,
+    "**/TestResults": true,
+    "**/*.dll": true,
+    "**/*.exe": true,
+    "**/*.tmp": true,
+    "**/*.backup*": true,
+    "**/*_backup*": true
+  },
+
+  "search.exclude": {
+    "**/form_cache.json": true,
+    "**/node_modules": true,
+    "**/bin": true,
+    "**/obj": true,
+    "**/TestResults": true
+  },
+
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/bin/**": true,
+    "**/obj/**": true,
+    "**/TestResults/**": true
+  },
+
   "cSpell.words": [
     "Argb",
     "buildtransitive",

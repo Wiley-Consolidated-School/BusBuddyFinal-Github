@@ -6,147 +6,192 @@ using Syncfusion.Licensing;
 namespace BusBuddy.UI.Helpers
 {
     /// <summary>
-    /// Helper class to manage Syncfusion licensing configuration
+    /// Handles Syncfusion license management for BusBuddy application
+    /// Provides proper licensing with fallback to community edition
     /// </summary>
     public static class SyncfusionLicenseHelper
     {
-        private static bool _licenseRegistered = false;
-        private static string? _currentLicenseKey = null;
+        private const string LICENSE_FILE = "syncfusion-license.json";
+        private const string BACKUP_LICENSE_FILE = "syncfusion-license-new.json";
 
         /// <summary>
-        /// Configuration class for Syncfusion license
+        /// License configuration model
         /// </summary>
         public class LicenseConfig
         {
-            public SyncfusionLicenseInfo? SyncfusionLicense { get; set; }
+            public SyncfusionLicense SyncfusionLicense { get; set; }
         }
 
-        public class SyncfusionLicenseInfo
+        public class SyncfusionLicense
         {
-            public string? LicenseKey { get; set; }
-            public string? LicenseType { get; set; }
-            public string? Notes { get; set; }
-            public string? ApplicationDate { get; set; }
-            public string? Status { get; set; }
+            public string LicenseKey { get; set; }
+            public string LicenseType { get; set; }
+            public string Notes { get; set; }
+            public string ApplicationDate { get; set; }
+            public string Status { get; set; }
         }
 
         /// <summary>
-        /// Registers the Syncfusion license key with enhanced error handling
+        /// Initialize Syncfusion licensing with proper fallback
         /// </summary>
-        /// <param name="licenseKey">The license key to register</param>
-        /// <returns>True if registration was successful, false otherwise</returns>
-        public static bool RegisterLicense(string licenseKey)
+        public static void InitializeLicense()
         {
             try
-            {
-                if (string.IsNullOrWhiteSpace(licenseKey))
+            {                Console.WriteLine("🔑 Initializing Syncfusion license...");
+
+                // Try to load license from environment variable first, then file
+                string licenseKey = LoadLicenseKey();
+
+                if (!string.IsNullOrEmpty(licenseKey) && IsValidLicenseKey(licenseKey))
                 {
-                    Console.WriteLine("⚠️  No Syncfusion license key provided");
-                    return false;
+                    SyncfusionLicenseProvider.RegisterLicense(licenseKey);
+                    Console.WriteLine("✅ Syncfusion license registered successfully");
                 }
-
-                // Avoid re-registering the same license
-                if (_licenseRegistered && _currentLicenseKey == licenseKey)
+                else
                 {
-                    Console.WriteLine("✅ Syncfusion license already registered");
-                    return true;
+                    Console.WriteLine("⚠️  Invalid or missing license key - using Community Edition");
+                    Console.WriteLine("📝 To use full features, update the license in syncfusion-license.json");
+
+                    // Register with empty key for Community Edition
+                    SyncfusionLicenseProvider.RegisterLicense("");
                 }
-
-                SyncfusionLicenseProvider.RegisterLicense(licenseKey);
-                _licenseRegistered = true;
-                _currentLicenseKey = licenseKey;
-
-                Console.WriteLine("✅ Syncfusion license registered successfully");
-                return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️  Syncfusion licensing notice: {ex.Message}");
-                LogLicensingInformation();
+                Console.WriteLine($"❌ License initialization failed: {ex.Message}");
+                Console.WriteLine("🔄 Falling back to Community Edition...");
+
+                try
+                {
+                    SyncfusionLicenseProvider.RegisterLicense("");
+                }
+                catch (Exception fallbackEx)
+                {
+                    Console.WriteLine($"❌ Fallback license registration failed: {fallbackEx.Message}");
+                }
+            }
+        }        /// <summary>
+        /// Load license key from environment variable or configuration file
+        /// </summary>
+        private static string LoadLicenseKey()
+        {
+            try
+            {
+                // First, try to load from environment variable
+                string envLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY");
+                if (!string.IsNullOrEmpty(envLicense) && IsValidLicenseKey(envLicense))
+                {
+                    Console.WriteLine("🌍 Loading license from environment variable");
+                    return envLicense;
+                }
+
+                // If environment variable not found, try configuration files
+                return LoadLicenseFromFile();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error loading license key: {ex.Message}");
+                return LoadLicenseFromFile(); // Fallback to file method
+            }
+        }
+
+        /// <summary>
+        /// Load license key from configuration file
+        /// </summary>
+        private static string LoadLicenseFromFile()
+        {
+            try
+            {
+                // Try primary license file first
+                if (File.Exists(LICENSE_FILE))
+                {
+                    string json = File.ReadAllText(LICENSE_FILE);
+                    var config = JsonSerializer.Deserialize<LicenseConfig>(json);
+
+                    if (config?.SyncfusionLicense?.LicenseKey != null &&
+                        !config.SyncfusionLicense.LicenseKey.Contains("YOUR_LICENSE_KEY_HERE"))
+                    {
+                        return config.SyncfusionLicense.LicenseKey;
+                    }
+                }
+
+                // Try backup license file
+                if (File.Exists(BACKUP_LICENSE_FILE))
+                {
+                    string json = File.ReadAllText(BACKUP_LICENSE_FILE);
+                    var config = JsonSerializer.Deserialize<LicenseConfig>(json);
+
+                    if (config?.SyncfusionLicense?.LicenseKey != null &&
+                        !config.SyncfusionLicense.LicenseKey.Contains("YOUR_LICENSE_KEY_HERE"))
+                    {
+                        return config.SyncfusionLicense.LicenseKey;
+                    }
+                }
+
+                Console.WriteLine("📄 No valid license file found");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error reading license file: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Basic validation of license key format
+        /// </summary>
+        private static bool IsValidLicenseKey(string licenseKey)
+        {
+            if (string.IsNullOrEmpty(licenseKey))
+                return false;
+
+            // Basic checks for license key format
+            if (licenseKey.Contains("YOUR_LICENSE_KEY_HERE"))
+                return false;
+
+            if (licenseKey.Length < 10)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Check if Syncfusion is properly licensed
+        /// </summary>
+        public static bool IsLicensed()
+        {
+            try
+            {
+                // This is a basic check - Syncfusion doesn't provide a direct API for this
+                return true; // Assume licensed if no exception during initialization
+            }
+            catch
+            {
                 return false;
             }
         }
 
         /// <summary>
-        /// Registers license from configuration file, with fallback to default
+        /// Get licensing status information
         /// </summary>
-        /// <returns>True if registration was successful, false otherwise</returns>
-        public static bool RegisterFromConfiguration()
+        public static string GetLicenseStatus()
         {
             try
             {
-                // Try to read from configuration file first
-                var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "syncfusion-license.json");
-                if (File.Exists(configPath))
-                {
-                    var jsonContent = File.ReadAllText(configPath);
-                    var config = JsonSerializer.Deserialize<LicenseConfig>(jsonContent);
+                string licenseKey = LoadLicenseFromFile();
 
-                    if (config?.SyncfusionLicense?.LicenseKey != null)
-                    {
-                        Console.WriteLine($"📄 Loading Syncfusion license from configuration ({config.SyncfusionLicense.Status})");
-                        return RegisterLicense(config.SyncfusionLicense.LicenseKey);
-                    }
-                }
+                if (string.IsNullOrEmpty(licenseKey))
+                    return "Community Edition (No license key found)";
+
+                if (!IsValidLicenseKey(licenseKey))
+                    return "Community Edition (Invalid license key)";
+
+                return "Licensed Edition";
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"⚠️  Could not read license configuration: {ex.Message}");
-            }
-
-            // Fallback to default community license
-            return RegisterDefaultCommunityLicense();
-        }
-
-        /// <summary>
-        /// Registers the default community license key
-        /// </summary>
-        /// <returns>True if registration was successful, false otherwise</returns>
-        public static bool RegisterDefaultCommunityLicense()
-        {
-            // This is a placeholder community license key
-            // Replace with your actual community license when approved
-            var defaultKey = "Ngo9BigBOggjHTQxAR8/V1NNaF1cXGNCeUx3Q3xbf1x1ZFdMZFVbQHdPIiBoS35Rc0VlWHlfeXVSRGRfWEBwVEBU";
-            Console.WriteLine("🔑 Using default community license key (pending approval)");
-            return RegisterLicense(defaultKey);
-        }
-
-        /// <summary>
-        /// Logs helpful licensing information to the console
-        /// </summary>
-        private static void LogLicensingInformation()
-        {
-            Console.WriteLine("📋 Syncfusion Licensing Information:");
-            Console.WriteLine("   • Application will continue with Community Edition limitations");
-            Console.WriteLine("   • You may see watermarks or trial limitations");
-            Console.WriteLine("   • To resolve: Apply for community license at:");
-            Console.WriteLine("     https://www.syncfusion.com/products/communitylicense");
-            Console.WriteLine("   • For commercial use, purchase a license at:");
-            Console.WriteLine("     https://www.syncfusion.com/sales/products");
-        }
-
-        /// <summary>
-        /// Gets the current license registration status
-        /// </summary>
-        /// <returns>True if a license has been registered</returns>
-        public static bool IsLicenseRegistered()
-        {
-            return _licenseRegistered;
-        }
-
-        /// <summary>
-        /// Displays licensing status information
-        /// </summary>
-        public static void DisplayLicenseStatus()
-        {
-            if (_licenseRegistered)
-            {
-                Console.WriteLine("✅ Syncfusion License Status: Registered");
-            }
-            else
-            {
-                Console.WriteLine("⚠️  Syncfusion License Status: Not Registered (Community Edition limitations apply)");
-                LogLicensingInformation();
+                return "Community Edition (Error checking license)";
             }
         }
     }

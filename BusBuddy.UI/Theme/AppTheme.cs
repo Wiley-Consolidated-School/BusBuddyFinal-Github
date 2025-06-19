@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using MaterialSkin;
+// MaterialSkin removed - using Syncfusion theming
 
 namespace BusBuddy.UI.Theme
 {
@@ -281,15 +281,7 @@ namespace BusBuddy.UI.Theme
             form.AutoScaleMode = AutoScaleMode.Dpi;
         }
 
-        // MaterialSkin Integration
-        public static MaterialSkin.Primary GetMaterialPrimary()
-        {
-            return MaterialSkin.Primary.Blue600;
-        }
-
-        public static MaterialSkin.Accent GetMaterialAccent()
-        {
-            return MaterialSkin.Accent.LightBlue200;
-        }
+        // MaterialSkin Integration removed - using Syncfusion theming instead
+        // These methods are deprecated and no longer used
     }
 }

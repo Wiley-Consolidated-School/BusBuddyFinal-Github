@@ -33,22 +33,22 @@ namespace BusBuddy.UI.Helpers
         {
             var mappings = new Dictionary<string, string>
             {
-                {"MaterialForm", "SfForm"},
+                {"Form", "SfForm"},
                 {"MaterialSkinManager", "SfSkinManager"},
                 {"MaterialRaisedButton", "SfButton"},
                 {"MaterialFlatButton", "SfButton"},
                 {"MaterialSingleLineTextField", "SfTextBox"},
-                {"MaterialLabel", "Label"},
-                {"MaterialTabControl", "SfTabControl"},
-                {"MaterialTabPage", "TabPageAdv"},
-                {"MaterialComboBox", "SfComboBox"},
+                {"Label", "Label"},
+                {"TabControl", "SfTabControl"},
+                {"TabPage", "TabPageAdv"},
+                {"ComboBox", "SfComboBox"},
                 {"MaterialDateTimePicker", "SfDateTimeEdit"},
                 {"DataGridView", "SfDataGrid"},
-                {"MaterialCheckBox", "SfCheckBox"},
-                {"MaterialRadioButton", "SfRadioButton"},
+                {"CheckBox", "SfCheckBox"},
+                {"RadioButton", "SfRadioButton"},
                 {"MaterialContextMenuStrip", "SfContextMenu"},
-                {"MaterialProgressBar", "SfProgressBar"},
-                {"MaterialCard", "SfGradientPanel"},
+                {"ProgressBar", "SfProgressBar"},
+                {"Panel", "SfGradientPanel"},
                 {"MaterialDivider", "SfSeparator"},
                 {"StandardMaterialForm", "StandardSyncfusionForm"},
                 {"StandardMaterialManagementForm", "StandardSyncfusionManagementForm"}
@@ -82,9 +82,9 @@ namespace BusBuddy.UI.Helpers
         {
             return new List<string>
             {
-                "using MaterialSkin;",
-                "using MaterialSkin.Controls;",
-                "using MaterialSkin.Animations;"
+                "// MaterialSkin removed - using Syncfusion theming",
+                "// MaterialSkin.Controls removed - using standard controls with Syncfusion theming",
+                "// MaterialSkin.Animations removed"
             };
         }
 
@@ -177,12 +177,12 @@ namespace BusBuddy.UI.Helpers
         {
             var notes = new Dictionary<string, string>
             {
-                {"MaterialForm", "Replace with SfForm or use standard Form with SyncfusionThemeHelper.ApplyMaterialTheme()"},
+                {"Form", "Replace with SfForm or use standard Form with SyncfusionThemeHelper.ApplyMaterialTheme()"},
                 {"MaterialRaisedButton", "Replace with SfButton or standard Button with material styling"},
                 {"MaterialSingleLineTextField", "Replace with SfTextBox or standard TextBox with material styling"},
-                {"MaterialTabControl", "Replace with SfTabControl for enhanced features"},
+                {"TabControl", "Replace with SfTabControl for enhanced features"},
                 {"DataGridView", "Consider upgrading to SfDataGrid for better performance and features"},
-                {"MaterialComboBox", "Replace with SfComboBox for consistent styling"},
+                {"ComboBox", "Replace with SfComboBox for consistent styling"},
                 {"MaterialDateTimePicker", "Replace with SfDateTimeEdit for better date/time handling"}
             };
 

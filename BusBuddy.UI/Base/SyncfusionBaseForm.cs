@@ -1,21 +1,25 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using BusBuddy.Business;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Theme;
+using Syncfusion.Windows.Forms;
 using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.WinForms.Controls;
 
 namespace BusBuddy.UI.Base
 {
     /// <summary>
-    /// Syncfusion-based replacement for StandardDataForm
-    /// Provides standardized Material Design UI using Syncfusion controls instead of MaterialSkin2
+    /// Native Syncfusion base form using SfButton, SfTextBox, SfComboBox, and AutoLabel
+    /// Provides standardized MaterialLight UI with proper theming and DPI support
     /// </summary>
     public class SyncfusionBaseForm : Form
     {
         protected readonly ErrorProvider _errorProvider;
         protected readonly DatabaseHelperService _databaseService;
+        protected readonly BannerTextProvider _bannerTextProvider;
 
         // Common UI elements
         protected Panel _mainPanel;
@@ -30,6 +34,7 @@ namespace BusBuddy.UI.Base
             // Initialize services
             _errorProvider = new ErrorProvider();
             _databaseService = new DatabaseHelperService();
+            _bannerTextProvider = new BannerTextProvider();
 
             // Initialize DPI awareness
             InitializeDpiAwareness();
@@ -55,8 +60,6 @@ namespace BusBuddy.UI.Base
         {
             _dpiScale = SyncfusionThemeHelper.HighDpiSupport.GetDpiScale(this);
             _isHighDpi = SyncfusionThemeHelper.HighDpiSupport.IsHighDpiMode(this);
-
-            Console.WriteLine($"🔍 SYNCFUSION FORM: DPI Scale: {_dpiScale:F2}x, High DPI: {_isHighDpi}");
         }
 
         private void InitializeSyncfusionDesign()
@@ -64,101 +67,42 @@ namespace BusBuddy.UI.Base
             // Load dark theme DLL if available
             SyncfusionThemeHelper.LoadDarkTheme();
 
-            // Apply current theme to the form
-            SyncfusionThemeHelper.ApplyCurrentTheme(this);
-
-            Console.WriteLine("🎨 SYNCFUSION FORM: Current theme applied");
+            // Apply MaterialLight theme using SfSkinManager
+            SfSkinManager.SetVisualStyle(this, "MaterialLight");
         }
 
         protected virtual void InitializeLayout()
         {
-            // Create main panel with DPI-aware sizing
+            // Create main panel with DPI-aware sizing and solid background
             _mainPanel = new Panel
             {
                 Dock = DockStyle.Fill,
                 Padding = GetDpiAwarePadding(new Padding(20)),
-                BackColor = Color.Transparent
+                BackColor = EnhancedThemeService.SurfaceColor
             };
-            SyncfusionThemeHelper.ApplyMaterialPanel(_mainPanel);
             this.Controls.Add(_mainPanel);
 
-            // Create button panel with DPI-aware sizing
+            // Create button panel with DPI-aware sizing and solid background
             _buttonPanel = new Panel
             {
                 Height = GetDpiAwareHeight(60),
                 Dock = DockStyle.Bottom,
-                BackColor = Color.Transparent,
+                BackColor = EnhancedThemeService.SurfaceColor,
                 Padding = GetDpiAwarePadding(new Padding(20, 10, 20, 10))
             };
-            SyncfusionThemeHelper.ApplyMaterialPanel(_buttonPanel);
             this.Controls.Add(_buttonPanel);
-        }
-
-        #endregion
-
-        #region Control Creation Helpers        /// <summary>
-        /// Create a Syncfusion Material Design label
-        /// Replaces MaterialLabel creation
-        /// </summary>
-        protected Control CreateLabel(string text, int x, int y)
-        {
-            var label = SyncfusionThemeHelper.CreateMaterialLabel(text,
-                GetDpiAwareX(x), GetDpiAwareY(y));
-            _mainPanel.Controls.Add(label);
-            return label;
-        }
-
-        /// <summary>
-        /// Create a Syncfusion Material Design text box
-        /// Replaces MaterialTextBox creation
-        /// </summary>
-        protected Control CreateTextBox(int x, int y, int width = 200)
-        {
-            var textBox = SyncfusionThemeHelper.CreateMaterialTextBox(
-                GetDpiAwareX(x), GetDpiAwareY(y), GetDpiAwareWidth(width));
-            _mainPanel.Controls.Add(textBox);
-            return textBox;
-        }
-
-        /// <summary>
-        /// Create a Syncfusion Material Design button
-        /// Replaces MaterialButton creation
-        /// </summary>
-        protected Control CreateButton(string text, int x, int y, int width = 120)
-        {
-            var button = SyncfusionThemeHelper.CreateMaterialButton(text,
-                GetDpiAwareX(x), GetDpiAwareY(y), GetDpiAwareWidth(width));
-            _buttonPanel.Controls.Add(button);
-            return button;
-        }
-
-        /// <summary>
-        /// Create a Material Design styled data grid
-        /// </summary>
-        protected DataGridView CreateDataGrid()
-        {
-            var dataGrid = SyncfusionThemeHelper.CreateMaterialDataGrid();
-            return dataGrid;
         }
 
         #endregion
 
         #region DPI Awareness Helpers
 
-        protected Size GetDpiAwareSize(Size originalSize)
-        {
-            return SyncfusionThemeHelper.HighDpiSupport.GetDpiAwareSize(originalSize, _dpiScale);
-        }
-
-        protected Padding GetDpiAwarePadding(Padding originalPadding)
-        {
-            return SyncfusionThemeHelper.HighDpiSupport.GetDpiAwarePadding(originalPadding, _dpiScale);
-        }
-
-        protected int GetDpiAwareX(int x) => (int)(x * _dpiScale);
-        protected int GetDpiAwareY(int y) => (int)(y * _dpiScale);
-        protected int GetDpiAwareWidth(int width) => (int)(width * _dpiScale);
-        protected int GetDpiAwareHeight(int height) => (int)(height * _dpiScale);
+        protected Size GetDpiAwareSize(Size originalSize) => EnhancedThemeService.GetDpiAwareSize(originalSize, _dpiScale);
+        protected Padding GetDpiAwarePadding(Padding originalPadding) => EnhancedThemeService.GetDpiAwarePadding(originalPadding, _dpiScale);
+        protected int GetDpiAwareX(int x) => EnhancedThemeService.ScaleByDpi(x, _dpiScale);
+        protected int GetDpiAwareY(int y) => EnhancedThemeService.ScaleByDpi(y, _dpiScale);
+        protected int GetDpiAwareWidth(int width) => EnhancedThemeService.ScaleByDpi(width, _dpiScale);
+        protected int GetDpiAwareHeight(int height) => EnhancedThemeService.ScaleByDpi(height, _dpiScale);
 
         #endregion
 
@@ -168,73 +112,70 @@ namespace BusBuddy.UI.Base
         {
             base.OnLoad(e);
 
-            // Apply high-DPI theming after load
-            if (_isHighDpi)
-            {
-                SyncfusionThemeHelper.ApplyHighDpiMaterialTheme(this);
-            }
+            // Apply high DPI theming if necessary
+            if (_isHighDpi) SyncfusionThemeHelper.ApplyHighDpiMaterialTheme(this);
 
-            // Apply theme recursively to all controls
-            SyncfusionThemeHelper.ApplyMaterialThemeRecursive(this);
-
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.GetType().Name} loaded with Material theme");
+            // Ensure MaterialLight theme is applied
+            SfSkinManager.SetVisualStyle(this, "MaterialLight");
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
-
-            // Clean up resources
             _errorProvider?.Dispose();
         }
 
         #endregion
 
-        #region Public Methods
+        #region Validation and Messaging
 
         /// <summary>
-        /// Apply Material theme to all controls on the form
-        /// Call this after adding new controls
+        /// Override this method to implement form-specific validation
         /// </summary>
-        public void RefreshMaterialTheme()
+        protected virtual bool ValidateForm() => true;
+
+        /// <summary>
+        /// Clear all validation errors from the form
+        /// </summary>
+        protected virtual void ClearAllValidationErrors()
         {
-            SyncfusionThemeHelper.ApplyMaterialThemeRecursive(this);
+            _errorProvider?.Clear();
         }
 
         /// <summary>
-        /// Get current DPI information for debugging
+        /// Set validation error for a specific control
         /// </summary>
-        public string GetDpiInfo()
+        protected virtual void SetValidationError(Control control, string message)
         {
-            return $"DPI Scale: {_dpiScale:F2}x, Description: {SyncfusionThemeHelper.HighDpiSupport.GetDpiDescription(this)}";
+            _errorProvider?.SetError(control, message);
         }
 
         /// <summary>
-        /// Switch the form theme dynamically
+        /// Show validation errors to the user
         /// </summary>
-        public virtual void SwitchTheme(SyncfusionThemeHelper.ThemeMode newTheme)
+        protected void ShowValidationErrors(List<string> errors)
         {
-            SyncfusionThemeHelper.SetThemeMode(newTheme);
-            SyncfusionThemeHelper.ApplyCurrentTheme(this);
-
-            // Refresh child forms if this is a parent form
-            RefreshMaterialTheme();
-
-            Console.WriteLine($"🔄 Theme switched to: {newTheme}");
-        }
-
-        /// <summary>
-        /// Get current theme information
-        /// </summary>
-        public virtual string GetThemeInfo()
-        {
-            var info = $"Theme: {SyncfusionThemeHelper.GetCurrentThemeMode()}, DPI: {_dpiScale:F2}x";
-            if (SyncfusionThemeHelper.IsDarkThemeDllLoaded())
+            if (errors?.Count > 0)
             {
-                info += " (Dark Theme DLL Available)";
+                string message = "Please correct the following errors:\n\n" + string.Join("\n", errors);
+                MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-            return info;
         }
+
+        /// <summary>
+        /// Show error message to the user
+        /// </summary>
+        protected void ShowErrorMessage(string message) => MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+        /// <summary>
+        /// Show success message to the user
+        /// </summary>
+        protected void ShowSuccessMessage(string message) => MessageBox.Show(message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        /// <summary>
+        /// Show confirmation dialog
+        /// </summary>
+        protected bool ConfirmDelete(string itemType) => MessageBox.Show($"Are you sure you want to delete this {itemType}?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
 
         #endregion
     }

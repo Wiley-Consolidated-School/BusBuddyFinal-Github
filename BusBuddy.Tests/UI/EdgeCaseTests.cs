@@ -3,14 +3,14 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Xunit;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
 namespace BusBuddy.Tests.UI
 {
     [Collection("UI Tests")]
     public class EdgeCaseTests : UITestBase
     {
-        [Fact]
+        [UITestFact]
         public void Dashboard_MultipleInstances_ShouldNotInterfere()
         {
             // Arrange & Act
@@ -39,7 +39,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_EmptyState_ShouldHandleGracefully()
         {
             // Arrange
@@ -59,7 +59,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.Height > 0);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_RapidToggle_ShouldBeStable()
         {
             // Arrange
@@ -81,7 +81,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_InvalidInput_ShouldNotCrash()
         {
             // Arrange
@@ -95,7 +95,7 @@ namespace BusBuddy.Tests.UI
             var exception4 = Record.Exception(() => FindControlByName(_dashboard, longString));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_HighDpiScaling_ShouldAdaptProperly()
         {
             // Arrange
@@ -124,7 +124,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MinimumSize_ShouldBeRespected()
         {
             // Arrange
@@ -143,7 +143,7 @@ namespace BusBuddy.Tests.UI
             Assert.NotNull(FindControlByName(_dashboard, "HeaderPanel"));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MaximumSize_ShouldBeRespected()
         {
             // Arrange
@@ -163,7 +163,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.Visible);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlEnumeration_ShouldBeConsistent()
         {
             // Arrange
@@ -183,7 +183,7 @@ namespace BusBuddy.Tests.UI
             Assert.Equal(controls1.Count(c => c is Panel), controls2.Count(c => c is Panel));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_NestedControlAccess_ShouldWorkCorrectly()
         {
             // Arrange
@@ -210,7 +210,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ErrorRecovery_ShouldBeRobust()
         {
             // Arrange
@@ -247,7 +247,7 @@ namespace BusBuddy.Tests.UI
             Assert.Equal(initialControlCount, currentControlCount);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlStateConsistency_ShouldBeMaintained()
         {
             // Arrange

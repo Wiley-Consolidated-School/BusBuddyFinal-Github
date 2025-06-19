@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
-using BusBuddy.UI.Helpers;
+using Syncfusion.WinForms.Controls;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Events;
+using Syncfusion.WinForms.Input;
+using Syncfusion.Windows.Forms.Tools;
 
 namespace BusBuddy.UI.Views
 {
@@ -15,15 +19,14 @@ namespace BusBuddy.UI.Views
     /// Form for managing vehicle fleet with grid view and CRUD operations
     /// </summary>
     public class VehicleManagementFormSyncfusion : SyncfusionBaseForm
-    {
-        private readonly IVehicleRepository _vehicleRepository;
-        private DataGridView? _vehicleGrid;
-        private Control? _addButton;
-        private Control? _editButton;
-        private Control? _deleteButton;
-        private Control? _detailsButton;
-        private Control? _searchBox;
-        private Control? _searchButton;
+    {        private readonly IVehicleRepository _vehicleRepository;
+        private SfDataGrid? _vehicleGrid;
+        private SfButton? _addButton;
+        private SfButton? _editButton;
+        private SfButton? _deleteButton;
+        private SfButton? _detailsButton;
+        private TextBoxExt? _searchBox;
+        private SfButton? _searchButton;
         private List<Vehicle> _vehicles;
 
         // VehicleManagementForm uses VehicleForm dialog instead of edit panel
@@ -50,49 +53,42 @@ namespace BusBuddy.UI.Views
             LayoutControls();
             SetupEventHandlers();
 
-            // Apply final theming
-            RefreshMaterialTheme();
-
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
 
         private void CreateControls()
         {
-            // Create toolbar buttons
-            _addButton = SyncfusionThemeHelper.CreateStyledButton("➕ Add New");
-            _editButton = SyncfusionThemeHelper.CreateStyledButton("✏️ Edit");
-            _deleteButton = SyncfusionThemeHelper.CreateStyledButton("🗑️ Delete");
-            _detailsButton = SyncfusionThemeHelper.CreateStyledButton("👁️ Details");
-            _searchButton = SyncfusionThemeHelper.CreateStyledButton("🔍 Search");
-
-            // Create search textbox
-            _searchBox = SyncfusionThemeHelper.CreateStyledTextBox("Search vehicles...");
-
-            // Configure button sizes and positions
             var buttonSize = GetDpiAwareSize(new Size(100, 35));
             var buttonY = GetDpiAwareY(20);
 
-            _addButton.Size = buttonSize;
+            // Create toolbar buttons
+            _addButton = ControlFactory.CreateButton("➕ Add New", buttonSize, (s, e) => AddNewVehicle());
+            _editButton = ControlFactory.CreateButton("✏️ Edit", buttonSize, (s, e) => EditSelectedVehicle());
+            _deleteButton = ControlFactory.CreateButton("🗑️ Delete", buttonSize, (s, e) => DeleteSelectedVehicle());
+            _detailsButton = ControlFactory.CreateButton("👁️ Details", buttonSize, (s, e) => ViewVehicleDetails());
+            _searchButton = ControlFactory.CreateButton("🔍 Search", GetDpiAwareSize(new Size(80, 35)), (s, e) => SearchVehicles());
+
+            // Create search textbox
+            _searchBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Search vehicles...");
+
+            // Configure button positions
             _addButton.Location = new Point(GetDpiAwareX(20), buttonY);
 
-            _editButton.Size = buttonSize;
             _editButton.Location = new Point(GetDpiAwareX(130), buttonY);
             _editButton.Enabled = false; // Initially disabled
 
-            _deleteButton.Size = buttonSize;
             _deleteButton.Location = new Point(GetDpiAwareX(240), buttonY);
             _deleteButton.Enabled = false; // Initially disabled
 
-            _detailsButton.Size = buttonSize;
             _detailsButton.Location = new Point(GetDpiAwareX(350), buttonY);
             _detailsButton.Enabled = false; // Initially disabled
 
             // Search controls
-            var searchLabel = CreateLabel("🔍 Search:", 500, 25);
+            var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
+            searchLabel.Location = new Point(GetDpiAwareX(500), GetDpiAwareY(25));
             _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
             _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
 
-            _searchButton.Size = GetDpiAwareSize(new Size(80, 35));
             _searchButton.Location = new Point(GetDpiAwareX(710), buttonY);
 
             // Add buttons to main panel
@@ -100,17 +96,19 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_editButton);
             _mainPanel.Controls.Add(_deleteButton);
             _mainPanel.Controls.Add(_detailsButton);
+            _mainPanel.Controls.Add(searchLabel);
             _mainPanel.Controls.Add(_searchBox);
             _mainPanel.Controls.Add(_searchButton);
 
-            // Create DataGridView
-            _vehicleGrid = CreateDataGrid();
-            _vehicleGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
-            _vehicleGrid.Size = GetDpiAwareSize(new Size(1150, 800));
-            _vehicleGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-
-            // Apply Syncfusion theming to grid
-            SyncfusionThemeHelper.ApplyMaterialDataGrid(_vehicleGrid);
+            // Create SfDataGrid
+            _vehicleGrid = new SfDataGrid
+            {
+                Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70)),
+                Size = GetDpiAwareSize(new Size(1150, 800)),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,                AutoGenerateColumns = false,
+                SelectionMode = Syncfusion.WinForms.DataGrid.Enums.GridSelectionMode.Single,
+                NavigationMode = Syncfusion.WinForms.DataGrid.Enums.NavigationMode.Row
+            };
 
             _mainPanel.Controls.Add(_vehicleGrid);
 
@@ -125,20 +123,14 @@ namespace BusBuddy.UI.Views
 
         private void SetupEventHandlers()
         {
-            _addButton.Click += (s, e) => AddNewVehicle();
-            _editButton.Click += (s, e) => EditSelectedVehicle();
-            _deleteButton.Click += (s, e) => DeleteSelectedVehicle();
-            _detailsButton.Click += (s, e) => ViewVehicleDetails();
-            _searchButton.Click += (s, e) => SearchVehicles();
-
             if (_vehicleGrid != null)
             {
                 _vehicleGrid.SelectionChanged += VehicleGrid_SelectionChanged;
-                _vehicleGrid.DoubleClick += (s, e) => EditSelectedVehicle();
+                _vehicleGrid.CellDoubleClick += (s, e) => EditSelectedVehicle();
             }
 
             // Handle Enter key in search box
-            if (_searchBox is TextBox searchTb)
+            if (_searchBox is TextBoxExt searchTb)
             {
                 searchTb.KeyDown += (s, e) =>
                 {
@@ -146,6 +138,7 @@ namespace BusBuddy.UI.Views
                     {
                         SearchVehicles();
                         e.Handled = true;
+                        e.SuppressKeyPress = true;
                     }
                 };
             }
@@ -155,87 +148,19 @@ namespace BusBuddy.UI.Views
         {
             if (_vehicleGrid == null) return;
 
-            _vehicleGrid.AutoGenerateColumns = false;
-            _vehicleGrid.Columns.Clear();
-
-            // Add columns with DPI-aware widths
-            _vehicleGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Id",
-                DataPropertyName = "Id",
-                HeaderText = "ID",
-                Width = GetDpiAwareWidth(60),
-                ReadOnly = true,
-                Visible = false
-            });
-
-            _vehicleGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "VehicleNumber",
-                DataPropertyName = "VehicleNumber",
-                HeaderText = "Vehicle #",
-                Width = GetDpiAwareWidth(120),
-                ReadOnly = true
-            });
-
-            _vehicleGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Make",
-                DataPropertyName = "Make",
-                HeaderText = "Make",
-                Width = GetDpiAwareWidth(130),
-                ReadOnly = true
-            });
-
-            _vehicleGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Model",
-                DataPropertyName = "Model",
-                HeaderText = "Model",
-                Width = GetDpiAwareWidth(150),
-                ReadOnly = true
-            });
-
-            _vehicleGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Year",
-                DataPropertyName = "Year",
-                HeaderText = "Year",
-                Width = GetDpiAwareWidth(80),
-                ReadOnly = true
-            });
-
-            _vehicleGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Capacity",
-                DataPropertyName = "Capacity",
-                HeaderText = "Capacity",
-                Width = GetDpiAwareWidth(100),
-                ReadOnly = true
-            });
-
-            _vehicleGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "FuelType",
-                DataPropertyName = "FuelType",
-                HeaderText = "Fuel Type",
-                Width = GetDpiAwareWidth(120),
-                ReadOnly = true
-            });
-
-            _vehicleGrid.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "VIN",
-                DataPropertyName = "VIN",
-                HeaderText = "VIN",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                ReadOnly = true
-            });
+            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Id", HeaderText = "ID", Visible = false });
+            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = GetDpiAwareWidth(120) });
+            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Make", HeaderText = "Make", Width = GetDpiAwareWidth(130) });
+            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Model", HeaderText = "Model", Width = GetDpiAwareWidth(150) });
+            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Year", HeaderText = "Year", Width = GetDpiAwareWidth(80) });
+            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "Capacity", HeaderText = "Capacity", Width = GetDpiAwareWidth(100) });
+            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "FuelType", HeaderText = "Fuel Type", Width = GetDpiAwareWidth(120) });
+            _vehicleGrid.Columns.Add(new GridTextColumn() { MappingName = "VIN", HeaderText = "VIN", Width = double.NaN }); // AutoSize
         }
 
-        private void VehicleGrid_SelectionChanged(object? sender, EventArgs e)
+        private void VehicleGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            bool hasSelection = _vehicleGrid?.SelectedRows.Count > 0;
+            bool hasSelection = _vehicleGrid?.SelectedItem != null;
             if (_editButton != null) _editButton.Enabled = hasSelection;
             if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
             if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
@@ -246,8 +171,10 @@ namespace BusBuddy.UI.Views
             try
             {
                 _vehicles = _vehicleRepository.GetAllVehicles();
-                _vehicleGrid.DataSource = null;
-                _vehicleGrid.DataSource = _vehicles;
+                if (_vehicleGrid != null)
+                {
+                    _vehicleGrid.DataSource = _vehicles;
+                }
             }
             catch (Exception ex)
             {
@@ -257,7 +184,6 @@ namespace BusBuddy.UI.Views
 
         private void AddNewVehicle()
         {
-            // Show VehicleForm dialog for add new
             try
             {
                 using (var vehicleForm = new VehicleFormSyncfusion())
@@ -266,7 +192,7 @@ namespace BusBuddy.UI.Views
                     {
                         _vehicleRepository.AddVehicle(vehicleForm.Vehicle);
                         LoadVehicles();
-                        MessageBox.Show("Vehicle added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        ShowSuccessMessage("Vehicle added successfully.");
                     }
                 }
             }
@@ -278,27 +204,25 @@ namespace BusBuddy.UI.Views
 
         private void EditSelectedVehicle()
         {
-            if (_vehicleGrid?.SelectedRows.Count == 0)
+            if (_vehicleGrid?.SelectedItem is not Vehicle selectedVehicle)
                 return;
 
             try
             {
-                int selectedId = (int)_vehicleGrid.SelectedRows[0].Cells["Id"].Value;
-                var vehicle = _vehicleRepository.GetVehicleById(selectedId);
+                var vehicle = _vehicleRepository.GetVehicleById(selectedVehicle.Id);
                 if (vehicle == null)
                 {
                     MessageBox.Show("Could not find the selected vehicle.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // Show VehicleForm dialog for edit
                 using (var vehicleForm = new VehicleFormSyncfusion(vehicle))
                 {
                     if (vehicleForm.ShowDialog() == DialogResult.OK)
                     {
                         _vehicleRepository.UpdateVehicle(vehicleForm.Vehicle);
                         LoadVehicles();
-                        MessageBox.Show("Vehicle updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        ShowSuccessMessage("Vehicle updated successfully.");
                     }
                 }
             }
@@ -310,28 +234,16 @@ namespace BusBuddy.UI.Views
 
         private void DeleteSelectedVehicle()
         {
-            if (_vehicleGrid?.SelectedRows.Count == 0)
+            if (_vehicleGrid?.SelectedItem is not Vehicle selectedVehicle)
                 return;
 
             try
             {
-                int selectedId = (int)_vehicleGrid.SelectedRows[0].Cells["Id"].Value;
-                var vehicle = _vehicleRepository.GetVehicleById(selectedId);
-
-                if (vehicle != null)
+                if (ConfirmDelete($"vehicle '{selectedVehicle.VehicleNumber}'"))
                 {
-                    var result = MessageBox.Show(
-                        $"Are you sure you want to delete vehicle '{vehicle.VehicleNumber}' ({vehicle.Make} {vehicle.Model})?",
-                        "Confirm Delete",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
-                    {
-                        _vehicleRepository.DeleteVehicle(selectedId);
-                        LoadVehicles();
-                        MessageBox.Show("Vehicle deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
+                    _vehicleRepository.DeleteVehicle(selectedVehicle.Id);
+                    LoadVehicles();
+                    ShowSuccessMessage("Vehicle deleted successfully.");
                 }
             }
             catch (Exception ex)
@@ -342,30 +254,21 @@ namespace BusBuddy.UI.Views
 
         private void ViewVehicleDetails()
         {
-            if (_vehicleGrid?.SelectedRows.Count == 0)
+            if (_vehicleGrid?.SelectedItem is not Vehicle vehicle)
                 return;
 
             try
             {
-                int selectedId = (int)_vehicleGrid.SelectedRows[0].Cells["Id"].Value;
-                var vehicle = _vehicleRepository.GetVehicleById(selectedId);
-                if (vehicle != null)
-                {
-                    var details = $"Vehicle Details:\n\n" +
-                                $"Number: {vehicle.VehicleNumber}\n" +
-                                $"Make: {vehicle.Make}\n" +
-                                $"Model: {vehicle.Model}\n" +
-                                $"Year: {vehicle.Year}\n" +
-                                $"Capacity: {vehicle.Capacity}\n" +
-                                $"Fuel Type: {vehicle.FuelType}\n" +
-                                $"VIN: {vehicle.VIN}";
+                var details = $"Vehicle Details:\n\n" +
+                              $"Number: {vehicle.VehicleNumber}\n" +
+                              $"Make: {vehicle.Make}\n" +
+                              $"Model: {vehicle.Model}\n" +
+                              $"Year: {vehicle.Year}\n" +
+                              $"Capacity: {vehicle.Capacity}\n" +
+                              $"Fuel Type: {vehicle.FuelType}\n" +
+                              $"VIN: {vehicle.VIN}";
 
-                    MessageBox.Show(details, "Vehicle Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    MessageBox.Show("Could not load vehicle details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                MessageBox.Show(details, "Vehicle Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -375,33 +278,33 @@ namespace BusBuddy.UI.Views
 
         private void SearchVehicles()
         {
-            if (_searchBox is TextBox searchBox)
+            if (_searchBox is not TextBoxExt searchBox) return;
+
+            try
             {
                 string searchTerm = searchBox.Text?.Trim().ToLower() ?? "";
-
                 if (string.IsNullOrEmpty(searchTerm))
                 {
-                    LoadVehicles();
+                    _vehicleGrid.DataSource = _vehicles;
                     return;
                 }
 
-                try
-                {
-                    List<Vehicle> filtered = _vehicles.FindAll(v =>
-                        (v.VehicleNumber?.ToLower().Contains(searchTerm) == true) ||
-                        (v.Make?.ToLower().Contains(searchTerm) == true) ||
-                        (v.Model?.ToLower().Contains(searchTerm) == true) ||
-                        (v.FuelType?.ToLower().Contains(searchTerm) == true) ||
-                        (v.VIN?.ToLower().Contains(searchTerm) == true)
-                    );
+                List<Vehicle> filtered = _vehicles.FindAll(v =>
+                    (v.VehicleNumber?.ToLower().Contains(searchTerm) == true) ||
+                    (v.Make?.ToLower().Contains(searchTerm) == true) ||
+                    (v.Model?.ToLower().Contains(searchTerm) == true) ||
+                    (v.FuelType?.ToLower().Contains(searchTerm) == true) ||
+                    (v.VIN?.ToLower().Contains(searchTerm) == true)
+                );
 
-                    _vehicleGrid.DataSource = null;
+                if(_vehicleGrid != null)
+                {
                     _vehicleGrid.DataSource = filtered;
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error searching vehicles: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error searching vehicles: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

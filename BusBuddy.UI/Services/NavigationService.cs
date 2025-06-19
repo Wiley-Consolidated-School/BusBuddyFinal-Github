@@ -38,47 +38,43 @@ namespace BusBuddy.UI.Services
         public NavigationService(IFormFactory formFactory)
         {
             _formFactory = formFactory ?? throw new ArgumentNullException(nameof(formFactory));
-        }
-
-        public void ShowVehicleManagement()
+        }        public void ShowVehicleManagement()
         {
             Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowVehicleManagement() called");
-            ShowFormDialog<VehicleManagementForm>();
+            ShowFormDialog<VehicleManagementFormSyncfusion>();
         }
 
         public void ShowDriverManagement()
         {
-            ShowFormDialog<DriverManagementForm>();
+            ShowFormDialog<DriverManagementFormSyncfusion>();
         }
 
         public void ShowRouteManagement()
         {
-            ShowFormDialog<RouteManagementForm>();
+            ShowFormDialog<RouteManagementFormSyncfusion>();
         }
 
         public void ShowActivityManagement()
         {
-            ShowFormDialog<ActivityManagementForm>();
+            ShowFormDialog<ActivityManagementFormSyncfusion>();
         }
 
         public void ShowFuelManagement()
         {
-            ShowFormDialog<FuelManagementForm>();
+            ShowFormDialog<FuelManagementFormSyncfusion>();
         }
 
         public void ShowMaintenanceManagement()
         {
-            ShowFormDialog<MaintenanceManagementForm>();
-        }
-
-        public void ShowCalendarManagement()
+            ShowFormDialog<MaintenanceManagementFormSyncfusion>();
+        }        public void ShowCalendarManagement()
         {
-            ShowFormDialog<SchoolCalendarManagementForm>();
+            ShowFormDialog<SchoolCalendarManagementFormSyncfusion>();
         }
 
         public void ShowScheduleManagement()
         {
-            ShowFormDialog<ActivityScheduleManagementForm>();
+            ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
         }
 
         public void ShowTimeCardManagement()
@@ -91,16 +87,12 @@ namespace BusBuddy.UI.Services
         public void ShowReportsManagement()
         {
             Console.WriteLine("INFO: Reports Management functionality will be implemented soon.");
-        }
-
-        public void ShowSchoolCalendarManagement()
+        }        public void ShowSchoolCalendarManagement()
         {
-            ShowFormDialog<SchoolCalendarManagementForm>();
-        }
-
-        public void ShowActivityScheduleManagement()
+            ShowFormDialog<SchoolCalendarManagementFormSyncfusion>();
+        }        public void ShowActivityScheduleManagement()
         {
-            ShowFormDialog<ActivityScheduleManagementForm>();
+            ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
         }
 
         public void ShowAnalyticsDemo()

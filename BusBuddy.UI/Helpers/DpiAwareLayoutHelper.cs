@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Theme;
 
@@ -59,11 +59,11 @@ namespace BusBuddy.UI.Helpers
                 DpiScaleHelper.ScaleSize(minHeight, scaleFactor)
             );
 
-            // Apply Material Design colors if it's a MaterialForm
-            if (form is MaterialForm materialForm)
+            // Apply Material Design colors if it's a Form
+            if (form is Form Form)
             {
-                form.BackColor = MaterialDesignThemeManager.DarkTheme.Surface;
-                form.ForeColor = MaterialDesignThemeManager.DarkTheme.OnSurface;
+                form.BackColor = SyncfusionThemeHelper.DarkTheme.Surface;
+                form.ForeColor = SyncfusionThemeHelper.DarkTheme.OnSurface;
             }
 
             // Set appropriate font
@@ -136,12 +136,12 @@ namespace BusBuddy.UI.Helpers
             };
 
             // Create section title
-            var titleLabel = new MaterialLabel
+            var titleLabel = new Label
             {
                 Text = title,
                 Dock = DockStyle.Top,
                 AutoSize = true,
-                ForeColor = MaterialDesignThemeManager.DarkTheme.Primary,
+                ForeColor = SyncfusionThemeHelper.DarkTheme.Primary,
                 Font = DpiScaleHelper.CreateFont(
                     SystemFonts.DefaultFont.FontFamily,
                     10f,
@@ -169,7 +169,7 @@ namespace BusBuddy.UI.Helpers
         /// <param name="buttons">Buttons to add</param>
         /// <param name="alignment">Button alignment</param>
         /// <returns>Configured button panel</returns>
-        public static Panel CreateButtonRow(Control parent, MaterialButton[] buttons, ContentAlignment alignment = ContentAlignment.MiddleRight)
+        public static Panel CreateButtonRow(Control parent, Button[] buttons, ContentAlignment alignment = ContentAlignment.MiddleRight)
         {
             var buttonPanel = new Panel
             {
@@ -241,12 +241,12 @@ namespace BusBuddy.UI.Helpers
             };
 
             // Create label
-            var label = new MaterialLabel
+            var label = new Label
             {
                 Text = isRequired ? $"{labelText} *" : labelText,
                 Dock = DockStyle.Top,
                 AutoSize = true,
-                ForeColor = isRequired ? MaterialDesignThemeManager.DarkTheme.Error : MaterialDesignThemeManager.DarkTheme.OnSurface,
+                ForeColor = isRequired ? SyncfusionThemeHelper.DarkTheme.Error : SyncfusionThemeHelper.DarkTheme.OnSurface,
                 Font = DpiScaleHelper.CreateFont(
                     SystemFonts.DefaultFont.FontFamily,
                     9f,
@@ -276,27 +276,27 @@ namespace BusBuddy.UI.Helpers
         /// <param name="parent">Parent control</param>
         /// <param name="title">Optional card title</param>
         /// <param name="content">Card content</param>
-        /// <returns>Configured MaterialCard</returns>
-        public static MaterialCard CreateMaterialCard(Control parent, string? title, Control content)
+        /// <returns>Configured Panel</returns>
+        public static Panel CreateMaterialCard(Control parent, string? title, Control content)
         {
-            var card = new MaterialCard
+            var card = new Panel
             {
                 Dock = DockStyle.Top,
                 AutoSize = true,
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                BackColor = MaterialDesignThemeManager.DarkTheme.SurfaceContainer,
+                BackColor = SyncfusionThemeHelper.DarkTheme.SurfaceContainer,
                 Margin = new Padding(StandardSpacing.GetMedium(parent)),
                 Padding = new Padding(StandardSpacing.GetLarge(parent))
             };
 
             if (!string.IsNullOrEmpty(title))
             {
-                var titleLabel = new MaterialLabel
+                var titleLabel = new Label
                 {
                     Text = title,
                     Dock = DockStyle.Top,
                     AutoSize = true,
-                    ForeColor = MaterialDesignThemeManager.DarkTheme.OnSurface,
+                    ForeColor = SyncfusionThemeHelper.DarkTheme.OnSurface,
                     Font = DpiScaleHelper.CreateFont(
                         SystemFonts.DefaultFont.FontFamily,
                         12f,

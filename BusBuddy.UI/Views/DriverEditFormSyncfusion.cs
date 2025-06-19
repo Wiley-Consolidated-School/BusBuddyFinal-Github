@@ -1,9 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
+using BusBuddy.UI.Views;
+using Syncfusion.WinForms.Controls;
+using Syncfusion.WinForms.Input;
+using Syncfusion.Windows.Forms.Tools;
+using System;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace BusBuddy.UI.Views
 {
@@ -13,21 +16,21 @@ namespace BusBuddy.UI.Views
     /// </summary>
     public partial class DriverEditFormSyncfusion : SyncfusionBaseForm
     {
-        private Control? _firstNameTextBox;
-        private Control? _lastNameTextBox;
-        private Control? _phoneTextBox;
-        private Control? _emailTextBox;
-        private Control? _addressTextBox;
-        private Control? _cityTextBox;
-        private Control? _stateTextBox;
-        private Control? _zipTextBox;
-        private Control? _notesTextBox;
-        private ComboBox? _licenseTypeComboBox;
-        private ComboBox? _statusComboBox;
-        private CheckBox? _trainingCompleteCheckBox;
-        private DateTimePicker? _cdlExpirationDatePicker;
-        private Control? _saveButton;
-        private Control? _cancelButton;
+        private TextBoxExt _firstNameTextBox;
+        private TextBoxExt _lastNameTextBox;
+        private TextBoxExt _phoneTextBox;
+        private TextBoxExt _emailTextBox;
+        private TextBoxExt _addressTextBox;
+        private TextBoxExt _cityTextBox;
+        private TextBoxExt _stateTextBox;
+        private TextBoxExt _zipTextBox;
+        private TextBoxExt _notesTextBox;
+        private ComboBoxAdv _licenseTypeComboBox;
+        private ComboBoxAdv _statusComboBox;
+        private CheckBox _trainingCompleteCheckBox; // Using standard CheckBox as Syncfusion CheckBox is not available
+        private SfDateTimeEdit _cdlExpirationDatePicker;
+        private SfButton _saveButton;
+        private SfButton _cancelButton;
 
         public Driver? Driver { get; private set; }
 
@@ -48,80 +51,124 @@ namespace BusBuddy.UI.Views
         private void InitializeComponent()
         {
             this.Text = Driver == null ? "Add Driver" : "Edit Driver";
-            this.ClientSize = GetDpiAwareSize(new Size(600, 650));
+            this.ClientSize = new Size(600, 650); // DPI scaling is handled in SyncfusionBaseForm
             this.StartPosition = FormStartPosition.CenterParent;
 
             CreateControls();
             LayoutControls();
             SetupEventHandlers();
-
-            // Apply final theming
-            RefreshMaterialTheme();
-
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
 
         private void CreateControls()
         {
-            // Text boxes
-            _firstNameTextBox = CreateTextBox(20, 50, 250);
-            _lastNameTextBox = CreateTextBox(300, 50, 250);
-            _phoneTextBox = CreateTextBox(20, 120, 250);
-            _emailTextBox = CreateTextBox(300, 120, 250);
-            _addressTextBox = CreateTextBox(20, 190, 530);
-            _cityTextBox = CreateTextBox(20, 260, 200);
-            _stateTextBox = CreateTextBox(240, 260, 80);
-            _zipTextBox = CreateTextBox(340, 260, 100);
-            _notesTextBox = CreateTextBox(20, 400, 530);
+            // Labels - create and position manually
+            var firstNameLabel = ControlFactory.CreateLabel("First Name:");
+            firstNameLabel.Location = new Point(20, 25);
+            _mainPanel.Controls.Add(firstNameLabel);
+
+            var lastNameLabel = ControlFactory.CreateLabel("Last Name:");
+            lastNameLabel.Location = new Point(300, 25);
+            _mainPanel.Controls.Add(lastNameLabel);
+
+            var phoneLabel = ControlFactory.CreateLabel("Phone:");
+            phoneLabel.Location = new Point(20, 95);
+            _mainPanel.Controls.Add(phoneLabel);
+
+            var emailLabel = ControlFactory.CreateLabel("Email:");
+            emailLabel.Location = new Point(300, 95);
+            _mainPanel.Controls.Add(emailLabel);
+
+            var addressLabel = ControlFactory.CreateLabel("Address:");
+            addressLabel.Location = new Point(20, 165);
+            _mainPanel.Controls.Add(addressLabel);
+
+            var cityLabel = ControlFactory.CreateLabel("City:");
+            cityLabel.Location = new Point(20, 235);
+            _mainPanel.Controls.Add(cityLabel);
+
+            var stateLabel = ControlFactory.CreateLabel("State:");
+            stateLabel.Location = new Point(240, 235);
+            _mainPanel.Controls.Add(stateLabel);
+
+            var zipLabel = ControlFactory.CreateLabel("ZIP:");
+            zipLabel.Location = new Point(340, 235);
+            _mainPanel.Controls.Add(zipLabel);
+
+            var licenseTypeLabel = ControlFactory.CreateLabel("License Type:");
+            licenseTypeLabel.Location = new Point(20, 305);
+            _mainPanel.Controls.Add(licenseTypeLabel);
+
+            var statusLabel = ControlFactory.CreateLabel("Status:");
+            statusLabel.Location = new Point(300, 305);
+            _mainPanel.Controls.Add(statusLabel);
+
+            var notesLabel = ControlFactory.CreateLabel("Notes:");
+            notesLabel.Location = new Point(20, 375);
+            _mainPanel.Controls.Add(notesLabel);
+
+            var cdlExpirationLabel = ControlFactory.CreateLabel("CDL Expiration:");
+            cdlExpirationLabel.Location = new Point(300, 445);
+            _mainPanel.Controls.Add(cdlExpirationLabel);
+
+            // Text boxes - use BannerTextProvider from base class
+            _firstNameTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter first name");
+            _lastNameTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter last name");
+            _phoneTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter phone number");
+            _emailTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter email address");
+            _addressTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter address");
+            _cityTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter city");
+            _stateTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter state");
+            _zipTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter ZIP code");
+            _notesTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter notes", multiline: true);
 
             // Combo boxes
-            _licenseTypeComboBox = CreateComboBox(20, 330, 250);
-            _statusComboBox = CreateComboBox(300, 330, 250);
+            _licenseTypeComboBox = ControlFactory.CreateComboBox();
+            _statusComboBox = ControlFactory.CreateStatusComboBox();
 
             // Checkbox
-            _trainingCompleteCheckBox = CreateCheckBox("Training Complete", 20, 470);
+            _trainingCompleteCheckBox = new CheckBox { Text = "Training Complete", AutoSize = true, BackColor = Color.Transparent };
 
-            // Date picker (standard control, will be themed)
-            _cdlExpirationDatePicker = new DateTimePicker
-            {
-                Location = new Point(GetDpiAwareX(300), GetDpiAwareY(470)),
-                Size = new Size(GetDpiAwareWidth(250), GetDpiAwareHeight(35)),
-                Format = DateTimePickerFormat.Short
-            };
-            Helpers.SyncfusionThemeHelper.ApplyMaterialTheme(_cdlExpirationDatePicker);
-            _mainPanel.Controls.Add(_cdlExpirationDatePicker);
+            // Date picker
+            _cdlExpirationDatePicker = ControlFactory.CreateDateTimePicker();
 
             // Buttons
-            _saveButton = CreateButton("Save", 20, 20, 100);
-            _cancelButton = CreateButton("Cancel", 140, 20, 100);
+            _saveButton = ControlFactory.CreatePrimaryButton("Save");
+            _cancelButton = ControlFactory.CreateSecondaryButton("Cancel");
 
-            // Labels
-            CreateLabel("First Name:", 20, 25);
-            CreateLabel("Last Name:", 300, 25);
-            CreateLabel("Phone:", 20, 95);
-            CreateLabel("Email:", 300, 95);
-            CreateLabel("Address:", 20, 165);
-            CreateLabel("City:", 20, 235);
-            CreateLabel("State:", 240, 235);
-            CreateLabel("ZIP:", 340, 235);
-            CreateLabel("License Type:", 20, 305);
-            CreateLabel("Status:", 300, 305);
-            CreateLabel("Notes:", 20, 375);
-            CreateLabel("CDL Expiration:", 300, 445);
+            // Set locations and add to panel
+            _firstNameTextBox.Location = new Point(20, 50);
+            _lastNameTextBox.Location = new Point(300, 50);
+            _phoneTextBox.Location = new Point(20, 120);
+            _emailTextBox.Location = new Point(300, 120);
+            _addressTextBox.Location = new Point(20, 190);
+            _addressTextBox.Size = new Size(530, 30);
+            _cityTextBox.Location = new Point(20, 260);
+            _stateTextBox.Location = new Point(240, 260);
+            _stateTextBox.Size = new Size(80, 30);
+            _zipTextBox.Location = new Point(340, 260);
+            _zipTextBox.Size = new Size(100, 30);
+            _notesTextBox.Location = new Point(20, 400);
+            _notesTextBox.Size = new Size(530, 60);
+            _licenseTypeComboBox.Location = new Point(20, 330);
+            _statusComboBox.Location = new Point(300, 330);
+            _trainingCompleteCheckBox.Location = new Point(20, 470);
+            _cdlExpirationDatePicker.Location = new Point(300, 470);
+            _saveButton.Location = new Point(20, 550);
+            _cancelButton.Location = new Point(150, 550);
+
+            _mainPanel.Controls.AddRange(new Control[]
+            {
+                _firstNameTextBox, _lastNameTextBox, _phoneTextBox, _emailTextBox,
+                _addressTextBox, _cityTextBox, _stateTextBox, _zipTextBox, _notesTextBox,
+                _licenseTypeComboBox, _statusComboBox, _trainingCompleteCheckBox,
+                _cdlExpirationDatePicker, _saveButton, _cancelButton
+            });
         }
 
         private void LayoutControls()
         {
-            // Additional layout adjustments if needed
-            if (_notesTextBox is TextBox notesTextBox)
-            {
-                notesTextBox.Multiline = true;
-                notesTextBox.Height = GetDpiAwareHeight(60);
-            }
-
             // Setup combo box items
-            _licenseTypeComboBox.Items.AddRange(new[] { "CDL Class A", "CDL Class B", "CDL Class C", "Regular License" });
-            _statusComboBox.Items.AddRange(new[] { "Active", "Inactive", "On Leave", "Terminated" });
+            _licenseTypeComboBox.DataSource = new[] { "CDL Class A", "CDL Class B", "CDL Class C", "Regular License" };
         }
 
         private void SetupEventHandlers()
@@ -130,60 +177,21 @@ namespace BusBuddy.UI.Views
             _cancelButton.Click += CancelButton_Click;
         }
 
-        #region Control Creation Helpers
-
-        private ComboBox CreateComboBox(int x, int y, int width)
-        {
-            var comboBox = new ComboBox
-            {
-                Location = new Point(GetDpiAwareX(x), GetDpiAwareY(y)),
-                Size = new Size(GetDpiAwareWidth(width), GetDpiAwareHeight(35)),
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-
-            // Apply Material theming
-            comboBox.BackColor = Helpers.SyncfusionThemeHelper.MaterialColors.Surface;
-            comboBox.ForeColor = Helpers.SyncfusionThemeHelper.MaterialColors.Text;
-            comboBox.Font = Helpers.SyncfusionThemeHelper.MaterialTheme.DefaultFont;
-
-            _mainPanel.Controls.Add(comboBox);
-            return comboBox;
-        }
-
-        private CheckBox CreateCheckBox(string text, int x, int y)
-        {
-            var checkBox = new CheckBox
-            {
-                Text = text,
-                Location = new Point(GetDpiAwareX(x), GetDpiAwareY(y)),
-                AutoSize = true
-            };
-
-            // Apply Material theming
-            checkBox.BackColor = Color.Transparent;
-            checkBox.ForeColor = Helpers.SyncfusionThemeHelper.MaterialColors.Text;
-            checkBox.Font = Helpers.SyncfusionThemeHelper.MaterialTheme.DefaultFont;
-              _mainPanel.Controls.Add(checkBox);
-            return checkBox;
-        }
-
-        #endregion
-
         #region Data Handling
 
         private void PopulateFields(Driver driver)
         {
             try
             {
-                if (_firstNameTextBox is TextBox firstNameTb) firstNameTb.Text = driver.FirstName ?? string.Empty;
-                if (_lastNameTextBox is TextBox lastNameTb) lastNameTb.Text = driver.LastName ?? string.Empty;
-                if (_phoneTextBox is TextBox phoneTb) phoneTb.Text = driver.DriverPhone ?? string.Empty;
-                if (_emailTextBox is TextBox emailTb) emailTb.Text = driver.DriverEmail ?? string.Empty;
-                if (_addressTextBox is TextBox addressTb) addressTb.Text = driver.Address ?? string.Empty;
-                if (_cityTextBox is TextBox cityTb) cityTb.Text = driver.City ?? string.Empty;
-                if (_stateTextBox is TextBox stateTb) stateTb.Text = driver.State ?? string.Empty;
-                if (_zipTextBox is TextBox zipTb) zipTb.Text = driver.Zip ?? string.Empty;
-                if (_notesTextBox is TextBox notesTb) notesTb.Text = driver.Notes ?? string.Empty;
+                _firstNameTextBox.Text = driver.FirstName ?? string.Empty;
+                _lastNameTextBox.Text = driver.LastName ?? string.Empty;
+                _phoneTextBox.Text = driver.DriverPhone ?? string.Empty;
+                _emailTextBox.Text = driver.DriverEmail ?? string.Empty;
+                _addressTextBox.Text = driver.Address ?? string.Empty;
+                _cityTextBox.Text = driver.City ?? string.Empty;
+                _stateTextBox.Text = driver.State ?? string.Empty;
+                _zipTextBox.Text = driver.Zip ?? string.Empty;
+                _notesTextBox.Text = driver.Notes ?? string.Empty;
 
                 if (!string.IsNullOrEmpty(driver.DriversLicenseType))
                 {
@@ -210,15 +218,15 @@ namespace BusBuddy.UI.Views
             return new Driver
             {
                 DriverID = Driver?.DriverID ?? 0,
-                FirstName = (_firstNameTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
-                LastName = (_lastNameTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
-                DriverPhone = (_phoneTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
-                DriverEmail = (_emailTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
-                Address = (_addressTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
-                City = (_cityTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
-                State = (_stateTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
-                Zip = (_zipTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
-                Notes = (_notesTextBox as TextBox)?.Text?.Trim() ?? string.Empty,
+                FirstName = _firstNameTextBox.Text.Trim(),
+                LastName = _lastNameTextBox.Text.Trim(),
+                DriverPhone = _phoneTextBox.Text.Trim(),
+                DriverEmail = _emailTextBox.Text.Trim(),
+                Address = _addressTextBox.Text.Trim(),
+                City = _cityTextBox.Text.Trim(),
+                State = _stateTextBox.Text.Trim(),
+                Zip = _zipTextBox.Text.Trim(),
+                Notes = _notesTextBox.Text.Trim(),
                 DriversLicenseType = _licenseTypeComboBox.SelectedItem?.ToString(),
                 Status = _statusComboBox.SelectedItem?.ToString() ?? "Active",
                 IsTrainingComplete = _trainingCompleteCheckBox.Checked,
@@ -232,64 +240,33 @@ namespace BusBuddy.UI.Views
 
         private void SaveButton_Click(object? sender, EventArgs e)
         {
-            try
+            if (ValidateChildren())
             {
-                if (!ValidateForm())
-                    return;
+                Driver ??= new Driver();
 
-                var driver = GetDriverFromForm();
+                Driver.FirstName = _firstNameTextBox.Text;
+                Driver.LastName = _lastNameTextBox.Text;
+                Driver.DriverPhone = _phoneTextBox.Text;
+                Driver.DriverEmail = _emailTextBox.Text;
+                Driver.Address = _addressTextBox.Text;
+                Driver.City = _cityTextBox.Text;
+                Driver.State = _stateTextBox.Text;
+                Driver.Zip = _zipTextBox.Text;
+                Driver.Notes = _notesTextBox.Text;
+                Driver.DriversLicenseType = _licenseTypeComboBox.SelectedItem?.ToString();
+                Driver.Status = _statusComboBox.SelectedItem?.ToString();
+                Driver.IsTrainingComplete = _trainingCompleteCheckBox.Checked;
+                Driver.CDLExpirationDate = _cdlExpirationDatePicker.Value;
 
-                // Here you would typically save to database
-                // _databaseService.SaveDriver(driver);
-
-                DialogResult = DialogResult.OK;
-                Driver = driver;
-                Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error saving driver: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
         }
 
         private void CancelButton_Click(object? sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
-            Close();
-        }
-
-        #endregion
-
-        #region Validation
-
-        private bool ValidateForm()
-        {
-            var errors = new List<string>();
-
-            if (string.IsNullOrWhiteSpace((_firstNameTextBox as TextBox)?.Text))
-                errors.Add("First name is required");
-
-            if (string.IsNullOrWhiteSpace((_lastNameTextBox as TextBox)?.Text))
-                errors.Add("Last name is required");
-
-            if (string.IsNullOrWhiteSpace((_phoneTextBox as TextBox)?.Text))
-                errors.Add("Phone number is required");
-
-            if (_licenseTypeComboBox.SelectedItem == null)
-                errors.Add("License type is required");
-
-            if (_statusComboBox.SelectedItem == null)
-                errors.Add("Status is required");
-
-            if (errors.Count > 0)
-            {
-                MessageBox.Show($"Please correct the following errors:\n\n{string.Join("\n", errors)}",
-                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-
-            return true;
+            this.DialogResult = DialogResult.Cancel;
+            this.Close();
         }
 
         #endregion

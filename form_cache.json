@@ -1,0 +1,130 @@
+[
+  {
+    "Name": "ActivityEditFormSyncfusion",
+    "DisplayName": "\uD83C\uDFAF Activity Edit",
+    "Description": "Manage \uD83C\uDFAF activity edit",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.ActivityEditFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowForm"
+  },
+  {
+    "Name": "ActivityManagementFormSyncfusion",
+    "DisplayName": "\uD83C\uDFAF Activity Management",
+    "Description": "Manage \uD83C\uDFAF activity management",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.ActivityManagementFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowActivityManagement"
+  },
+  {
+    "Name": "ActivityScheduleEditFormSyncfusion",
+    "DisplayName": "\uD83C\uDFAF Activity Schedule Edit",
+    "Description": "Manage \uD83C\uDFAF activity schedule edit",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.ActivityScheduleEditFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowForm"
+  },
+  {
+    "Name": "ActivityScheduleManagementFormSyncfusion",
+    "DisplayName": "\uD83C\uDFAF Activity Schedule Management",
+    "Description": "Manage \uD83C\uDFAF activity schedule management",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.ActivityScheduleManagementFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowActivityScheduleManagement"
+  },
+  {
+    "Name": "DriverEditFormSyncfusion",
+    "DisplayName": "\uD83D\uDC64 Driver Edit",
+    "Description": "Manage \uD83D\uDC64 driver edit",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.DriverEditFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowForm"
+  },
+  {
+    "Name": "DriverManagementFormSyncfusion",
+    "DisplayName": "\uD83D\uDC64 Driver Management",
+    "Description": "Manage \uD83D\uDC64 driver management",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.DriverManagementFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowDriverManagement"
+  },
+  {
+    "Name": "FuelEditFormSyncfusion",
+    "DisplayName": "\u26FD Fuel Edit",
+    "Description": "Manage \u26FD fuel edit",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.FuelEditFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowForm"
+  },
+  {
+    "Name": "FuelManagementFormSyncfusion",
+    "DisplayName": "\u26FD Fuel Management",
+    "Description": "Manage \u26FD fuel management",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.FuelManagementFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowFuelManagement"
+  },
+  {
+    "Name": "MaintenanceEditFormSyncfusion",
+    "DisplayName": "\uD83D\uDD27 Maintenance Edit",
+    "Description": "Manage \uD83D\uDD27 maintenance edit",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.MaintenanceEditFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowForm"
+  },
+  {
+    "Name": "MaintenanceManagementFormSyncfusion",
+    "DisplayName": "\uD83D\uDD27 Maintenance Management",
+    "Description": "Manage \uD83D\uDD27 maintenance management",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.MaintenanceManagementFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowMaintenanceManagement"
+  },
+  {
+    "Name": "RouteEditFormSyncfusion",
+    "DisplayName": "\uD83D\uDE8C Route Edit",
+    "Description": "Manage \uD83D\uDE8C route edit",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.RouteEditFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowForm"
+  },
+  {
+    "Name": "RouteManagementFormSyncfusion",
+    "DisplayName": "\uD83D\uDE8C Route Management",
+    "Description": "Manage \uD83D\uDE8C route management",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.RouteManagementFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowRouteManagement"
+  },
+  {
+    "Name": "SchoolCalendarEditFormSyncfusion",
+    "DisplayName": "\uD83D\uDCC5 School Calendar Edit",
+    "Description": "Manage \uD83D\uDCC5 school calendar edit",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.SchoolCalendarEditFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowForm"
+  },
+  {
+    "Name": "SchoolCalendarManagementFormSyncfusion",
+    "DisplayName": "\uD83D\uDCC5 School Calendar Management",
+    "Description": "Manage \uD83D\uDCC5 school calendar management",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.SchoolCalendarManagementFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowSchoolCalendarManagement"
+  },
+  {
+    "Name": "VehicleFormSyncfusion",
+    "DisplayName": "\uD83D\uDE97 Vehicle",
+    "Description": "Manage \uD83D\uDE97 vehicle",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.VehicleFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowForm"
+  },
+  {
+    "Name": "VehicleManagementFormSyncfusion",
+    "DisplayName": "\uD83D\uDE97 Vehicle Management",
+    "Description": "Manage \uD83D\uDE97 vehicle management",
+    "Icon": null,
+    "FormTypeName": "BusBuddy.UI.Views.VehicleManagementFormSyncfusion, BusBuddy.UI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NavigationMethod": "ShowVehicleManagement"
+  }
+]

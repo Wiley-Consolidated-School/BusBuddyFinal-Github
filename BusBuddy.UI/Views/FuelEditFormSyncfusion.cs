@@ -5,11 +5,10 @@ using Syncfusion.Windows.Forms.Grid;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.Input;
-using Syncfusion.WinForms.ListView;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Views;
 using System.Drawing;
 using System.Windows.Forms;
-
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
 
@@ -19,13 +18,13 @@ namespace BusBuddy.UI.Views
     {
         public Fuel Fuel { get; private set; }
 
-        private ComboBox? cboVehicle;
+        private ComboBoxAdv? cboVehicle;
         private DateTimePicker? dtpFuelDate;
-        private Control? txtFuelAmount;
-        private Control? txtFuelCost;
-        private Control? txtNotes;
-        private Control? btnSave;
-        private Control? btnCancel;
+        private TextBoxExt? txtFuelAmount;
+        private TextBoxExt? txtFuelCost;
+        private TextBoxExt? txtNotes;
+        private SfButton? btnSave;
+        private SfButton? btnCancel;
 
         public FuelEditFormSyncfusion(Fuel? fuel = null)
         {
@@ -65,15 +64,20 @@ namespace BusBuddy.UI.Views
             int labelX = 30;
             int controlX = 150;
             int spacing = 60;
-            int controlWidth = 250;
-
-            // Vehicle
-            var lblVehicle = CreateLabel("🚌 Vehicle:", labelX, y);
-            cboVehicle = CreateComboBox("Select Vehicle", controlX, y, controlWidth);
+            int controlWidth = 250;            // Vehicle
+            var lblVehicle = ControlFactory.CreateLabel("🚌 Vehicle:");
+            lblVehicle.Location = new Point(labelX, y);
+            this.Controls.Add(lblVehicle);
+            cboVehicle = ControlFactory.CreateComboBox();
+            cboVehicle.Location = new Point(controlX, y);
+            cboVehicle.Size = new Size(controlWidth, 30);
+            this.Controls.Add(cboVehicle);
             y += spacing;
 
             // Fuel Date
-            var lblFuelDate = CreateLabel("📅 Date:", labelX, y);
+            var lblFuelDate = ControlFactory.CreateLabel("📅 Date:");
+            lblFuelDate.Location = new Point(labelX, y);
+            this.Controls.Add(lblFuelDate);
             dtpFuelDate = new DateTimePicker
             {
                 Location = new Point(controlX, y),
@@ -84,30 +88,44 @@ namespace BusBuddy.UI.Views
             y += spacing;
 
             // Fuel Amount
-            var lblFuelAmount = CreateLabel("⛽ Gallons:", labelX, y);
-            txtFuelAmount = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtFuelAmount, "Enter gallons (e.g., 15.50)");
+            var lblFuelAmount = ControlFactory.CreateLabel("⛽ Gallons:");
+            lblFuelAmount.Location = new Point(labelX, y);
+            this.Controls.Add(lblFuelAmount);
+            txtFuelAmount = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter gallons (e.g., 15.50)");
+            txtFuelAmount.Location = new Point(controlX, y);
+            txtFuelAmount.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtFuelAmount);
             y += spacing;
 
             // Fuel Cost
-            var lblFuelCost = CreateLabel("💰 Total Cost:", labelX, y);
-            txtFuelCost = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtFuelCost, "Enter cost (e.g., 45.75)");
+            var lblFuelCost = ControlFactory.CreateLabel("💰 Total Cost:");
+            lblFuelCost.Location = new Point(labelX, y);
+            this.Controls.Add(lblFuelCost);
+            txtFuelCost = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter cost (e.g., 45.75)");
+            txtFuelCost.Location = new Point(controlX, y);
+            txtFuelCost.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtFuelCost);
             y += spacing;
 
             // Notes
-            var lblNotes = CreateLabel("📝 Notes:", labelX, y);
-            txtNotes = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtNotes, "Optional notes");
-            SetTextBoxMultiline(txtNotes, 60);
+            var lblNotes = ControlFactory.CreateLabel("📝 Notes:");
+            lblNotes.Location = new Point(labelX, y);
+            this.Controls.Add(lblNotes);
+            txtNotes = ControlFactory.CreateTextBox(_bannerTextProvider, "Optional notes", true);
+            txtNotes.Location = new Point(controlX, y);
+            txtNotes.Size = new Size(controlWidth, 60);
+            this.Controls.Add(txtNotes);
             y += 80;
 
             // Buttons
-            btnSave = CreateButton("💾 Save", controlX, y, btnSave_Click);
+            btnSave = ControlFactory.CreatePrimaryButton("💾 Save", btnSave_Click);
+            btnSave.Location = new Point(controlX, y);
             btnSave.BackColor = SyncfusionThemeHelper.MaterialColors.Primary;
             btnSave.Size = new Size(120, 36);
+            this.Controls.Add(btnSave);
 
-            btnCancel = CreateButton("❌ Cancel", controlX + 130, y, btnCancel_Click);
+            btnCancel = ControlFactory.CreateSecondaryButton("❌ Cancel", btnCancel_Click);
+            btnCancel.Location = new Point(controlX + 130, y);
             btnCancel.BackColor = SyncfusionThemeHelper.MaterialColors.Background;
             btnCancel.Size = new Size(120, 36);
 
@@ -309,20 +327,18 @@ namespace BusBuddy.UI.Views
             button.Click += clickHandler;
             this.Controls.Add(button);
             return button;
-        }
-
-        // Validation methods
-        private void ClearAllValidationErrors()
+        }        // Validation methods
+        protected override void ClearAllValidationErrors()
         {
             _errorProvider.Clear();
         }
 
-        private void SetValidationError(Control control, string message)
+        protected override void SetValidationError(Control control, string message)
         {
             _errorProvider.SetError(control, message);
         }
 
-        private void ShowErrorMessage(string message)
+        protected new void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }

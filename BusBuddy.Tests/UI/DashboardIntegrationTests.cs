@@ -8,8 +8,7 @@ namespace BusBuddy.Tests.UI
 {
     [Collection("UI Tests")]
     public class DashboardIntegrationTests : UITestBase
-    {
-        [Fact]
+    {        [UITestFact]
         public void Dashboard_ShouldInitializeCorrectly()
         {
             // Arrange & Act
@@ -20,7 +19,7 @@ namespace BusBuddy.Tests.UI
             Assert.False(string.IsNullOrEmpty(_dashboard.Text));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ShouldShowAndHideCorrectly()
         {
             // Arrange
@@ -41,7 +40,7 @@ namespace BusBuddy.Tests.UI
             Assert.False(_dashboard.Visible);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ShouldHandleResize()
         {
             // Arrange
@@ -59,7 +58,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.Size.Height >= 600); // Minimum height should be respected
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_Controls_ShouldBeAccessible()
         {
             // Arrange

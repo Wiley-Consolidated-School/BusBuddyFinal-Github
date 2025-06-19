@@ -4,14 +4,14 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Xunit;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
 namespace BusBuddy.Tests.UI
 {
     [Collection("UI Tests")]
     public class ValidationAndRobustnessTests : UITestBase
     {
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlHierarchy_ShouldBeWellFormed()
         {
             // Arrange
@@ -42,7 +42,7 @@ namespace BusBuddy.Tests.UI
             Assert.Equal(_dashboard, GetRootControl(_dashboard));
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlNaming_ShouldBeConsistent()
         {
             // Arrange
@@ -74,7 +74,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_LayoutConstraints_ShouldBeRespected()
         {
             // Arrange
@@ -110,7 +110,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_EventHandling_ShouldBeRobust()
         {
             // Arrange
@@ -148,7 +148,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.Visible, "Dashboard should remain stable after event operations");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ResourceManagement_ShouldBeProper()
         {
             // Arrange
@@ -176,7 +176,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.IsHandleCreated || !_dashboard.Visible);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_StateConsistency_ShouldBeMaintained()
         {
             // Arrange
@@ -206,7 +206,7 @@ namespace BusBuddy.Tests.UI
             // Dashboard should maintain its fundamental properties
             Assert.True(_dashboard.Visible);
             Assert.NotNull(FindControlByName(_dashboard, "HeaderPanel"));
-        }        [Fact]
+        }        [UITestFact]
         public async System.Threading.Tasks.Task Dashboard_ConcurrentAccess_ShouldBeThreadSafe()
         {
             // Arrange
@@ -261,7 +261,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(_dashboard.Visible, "Dashboard should remain functional");
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_MemoryFootprint_ShouldBeReasonable()
         {
             // Arrange
@@ -284,7 +284,7 @@ namespace BusBuddy.Tests.UI
             Assert.True(allControls.Count > 0);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_DisposalCleanup_ShouldBeComplete()
         {
             // Arrange

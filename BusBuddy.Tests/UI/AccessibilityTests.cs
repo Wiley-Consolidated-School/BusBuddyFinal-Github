@@ -3,14 +3,14 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Xunit;
-using MaterialSkin.Controls;
+// MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
 namespace BusBuddy.Tests.UI
 {
     [Collection("UI Tests")]
     public class AccessibilityTests : UITestBase
     {
-        [Fact]
+        [UITestFact]
         public void Dashboard_ColorContrast_ShouldBeAccessible()
         {
             // Arrange
@@ -30,7 +30,7 @@ namespace BusBuddy.Tests.UI
             Assert.NotEqual(isLightBackground, isLightForeground);
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_TextReadability_ShouldBeOptimal()
         {
             // Arrange
@@ -68,7 +68,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_KeyboardNavigation_ShouldBeComplete()
         {
             // Arrange
@@ -100,7 +100,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlSizing_ShouldBeAppropriate()
         {
             // Arrange
@@ -128,7 +128,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ControlSpacing_ShouldAllowEasyInteraction()
         {
             // Arrange
@@ -164,7 +164,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_VisualFeedback_ShouldBeProvided()
         {
             // Arrange
@@ -190,7 +190,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ErrorMessages_ShouldBeAccessible()
         {
             // Arrange
@@ -198,7 +198,7 @@ namespace BusBuddy.Tests.UI
 
             // Act - Look for any error display areas or labels
             var labels = GetAllControlsOfType<Label>(_dashboard)
-                .Concat(GetAllControlsOfType<MaterialLabel>(_dashboard).Cast<Control>())
+                .Concat(GetAllControlsOfType<Label>(_dashboard).Cast<Control>())
                 .Where(l => l.Visible)
                 .ToList();
 
@@ -214,7 +214,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_HighDPI_ShouldScale()
         {
             // Arrange
@@ -248,7 +248,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_ScreenReader_ShouldHaveAccessibleNames()
         {
             // Arrange
@@ -283,7 +283,7 @@ namespace BusBuddy.Tests.UI
             }
         }
 
-        [Fact]
+        [UITestFact]
         public void Dashboard_LanguageSupport_ShouldHandleText()
         {
             // Arrange

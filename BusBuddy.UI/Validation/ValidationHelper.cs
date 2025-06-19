@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Windows.Forms;
-using MaterialSkin.Controls;
-using BusBuddy.UI.Theme;
+using System.Drawing;
+using BusBuddy.UI.Helpers;
 
 namespace BusBuddy.UI.Validation
 {
@@ -47,27 +47,28 @@ namespace BusBuddy.UI.Validation
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
                 MinimizeBox = false,
-                BackColor = MaterialDesignThemeManager.DarkTheme.Surface
+                BackColor = SyncfusionThemeHelper.DarkTheme.Surface
             };
 
-            var errorLabel = new MaterialLabel
+            var errorLabel = new Label
             {
                 Text = errorMessage,
                 Dock = DockStyle.Fill,
-                ForeColor = MaterialDesignThemeManager.DarkTheme.Error,
-                Font = MaterialDesignThemeManager.Typography.GetBodyMedium(errorDialog),
+                ForeColor = SyncfusionThemeHelper.DarkTheme.Error,
+                Font = SyncfusionThemeHelper.Typography.GetBodyMedium(errorDialog),
                 Padding = new Padding(16)
-            };
-
-            var okButton = new MaterialButton
+            };            var okButton = new Button
             {
                 Text = "OK",
-                Type = MaterialButton.MaterialButtonType.Contained,
-                UseAccentColor = true,
+                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
                 Size = new Size(100, 36),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
                 Location = new Point(280, 220)
             };
+
+            okButton.FlatAppearance.BorderSize = 0;
 
             okButton.Click += (s, e) => errorDialog.Close();
 
@@ -83,14 +84,14 @@ namespace BusBuddy.UI.Validation
         {
             var isValid = true;
 
-            if (control is MaterialTextBox textBox)
+            if (control is TextBox textBox)
             {
                 isValid = validator(textBox.Text);
                 if (!isValid)
                 {
-                    // Add error styling to MaterialTextBox
-                    textBox.BackColor = MaterialDesignThemeManager.DarkTheme.ErrorContainer;
-                    textBox.ForeColor = MaterialDesignThemeManager.DarkTheme.OnErrorContainer;
+                    // Add error styling to TextBox
+                    textBox.BackColor = SyncfusionThemeHelper.DarkTheme.ErrorContainer;
+                    textBox.ForeColor = SyncfusionThemeHelper.DarkTheme.OnErrorContainer;
 
                     // Show tooltip with error
                     var toolTip = new ToolTip();
@@ -99,8 +100,8 @@ namespace BusBuddy.UI.Validation
                 else
                 {
                     // Reset to normal styling
-                    textBox.BackColor = MaterialDesignThemeManager.DarkTheme.Surface;
-                    textBox.ForeColor = MaterialDesignThemeManager.DarkTheme.OnSurface;
+                    textBox.BackColor = SyncfusionThemeHelper.DarkTheme.Surface;
+                    textBox.ForeColor = SyncfusionThemeHelper.DarkTheme.OnSurface;
                 }
             }
 
@@ -120,27 +121,28 @@ namespace BusBuddy.UI.Validation
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
                 MinimizeBox = false,
-                BackColor = MaterialDesignThemeManager.DarkTheme.Surface
+                BackColor = SyncfusionThemeHelper.DarkTheme.Surface
             };
 
-            var successLabel = new MaterialLabel
+            var successLabel = new Label
             {
                 Text = message,
                 Dock = DockStyle.Fill,
-                ForeColor = MaterialDesignThemeManager.DarkTheme.Success,
-                Font = MaterialDesignThemeManager.Typography.GetBodyMedium(successDialog),
+                ForeColor = SyncfusionThemeHelper.DarkTheme.Success,
+                Font = SyncfusionThemeHelper.Typography.GetBodyMedium(successDialog),
                 Padding = new Padding(16)
-            };
-
-            var okButton = new MaterialButton
+            };            var okButton = new Button
             {
                 Text = "OK",
-                Type = MaterialButton.MaterialButtonType.Contained,
-                UseAccentColor = true,
+                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
                 Size = new Size(100, 36),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
                 Location = new Point(230, 120)
             };
+
+            okButton.FlatAppearance.BorderSize = 0;
 
             okButton.Click += (s, e) => successDialog.Close();
 

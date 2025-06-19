@@ -1,9 +1,9 @@
 {
   "SyncfusionLicense": {
-    "LicenseKey": "Ngo9BigBOggjHTQxAR8/V1NNaF1cXGNCeUx3Q3xbf1x1ZFdMZFVbQHdPIiBoS35Rc0VlWHlfeXVSRGRfWEBwVEBU",
+    "LicenseKey": "YOUR_LICENSE_KEY_HERE",
     "LicenseType": "Community",
-    "Notes": "Replace this with your approved community license key when received",
-    "ApplicationDate": "2025-06-16",
-    "Status": "Pending Community License Approval"
+    "Notes": "DEPRECATED: Use syncfusion-license-new.json instead. Get FREE Community License at https://www.syncfusion.com/products/communitylicense",
+    "ApplicationDate": "2025-06-18",
+    "Status": "Deprecated - Use syncfusion-license-new.json"
   }
 }

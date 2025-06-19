@@ -9,9 +9,9 @@ using Syncfusion.WinForms.ListView;
 using BusBuddy.UI.Helpers;
 using System.Drawing;
 using System.Windows.Forms;
-
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
+using BusBuddy.UI.Views; // Add this for ControlFactory access
 
 namespace BusBuddy.UI.Views
 {
@@ -76,7 +76,9 @@ namespace BusBuddy.UI.Views
             int controlWidth = 280;
 
             // Date
-            var lblDate = CreateLabel("📅 Date:", labelX, y);
+            var lblDate = ControlFactory.CreateLabel("📅 Date:");
+            lblDate.Location = new Point(labelX, y);
+            this.Controls.Add(lblDate);
             dtpDate = new DateTimePicker
             {
                 Location = new Point(controlX, y),
@@ -87,56 +89,89 @@ namespace BusBuddy.UI.Views
             y += spacing;
 
             // Activity Type
-            var lblActivityType = CreateLabel("🎭 Activity Type:", labelX, y);
-            cboActivityType = CreateComboBox(controlX, y, controlWidth);
+            var lblActivityType = ControlFactory.CreateLabel("🎭 Activity Type:");
+            lblActivityType.Location = new Point(labelX, y);
+            this.Controls.Add(lblActivityType);
+            cboActivityType = new ComboBox
+            {
+                Location = new Point(controlX, y),
+                Size = new Size(controlWidth, 30),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
             cboActivityType.Items.AddRange(new[] { "Sports Trip", "Activity Trip", "Field Trip", "Special Event" });
+            this.Controls.Add(cboActivityType);
             y += spacing;
 
             // Destination
-            var lblDestination = CreateLabel("📍 Destination:", labelX, y);
-            txtDestination = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtDestination, "Enter destination");
+            var lblDestination = ControlFactory.CreateLabel("📍 Destination:");
+            lblDestination.Location = new Point(labelX, y);
+            this.Controls.Add(lblDestination);
+            txtDestination = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter destination");
+            txtDestination.Location = new Point(controlX, y);
+            txtDestination.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtDestination);
             y += spacing;
 
             // Leave Time
-            var lblLeaveTime = CreateLabel("🕐 Leave Time:", labelX, y);
-            txtLeaveTime = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtLeaveTime, "HH:MM (e.g., 08:30)");
+            var lblLeaveTime = ControlFactory.CreateLabel("🕐 Leave Time:");
+            lblLeaveTime.Location = new Point(labelX, y);
+            this.Controls.Add(lblLeaveTime);
+            txtLeaveTime = ControlFactory.CreateTextBox(_bannerTextProvider, "HH:MM (e.g., 08:30)");
+            txtLeaveTime.Location = new Point(controlX, y);
+            txtLeaveTime.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtLeaveTime);
             y += spacing;
 
             // Event Time
-            var lblEventTime = CreateLabel("🕒 Event Time:", labelX, y);
-            txtEventTime = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtEventTime, "HH:MM (e.g., 10:00)");
+            var lblEventTime = ControlFactory.CreateLabel("🕒 Event Time:");
+            lblEventTime.Location = new Point(labelX, y);
+            this.Controls.Add(lblEventTime);
+            txtEventTime = ControlFactory.CreateTextBox(_bannerTextProvider, "HH:MM (e.g., 10:00)");
+            txtEventTime.Location = new Point(controlX, y);
+            txtEventTime.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtEventTime);
             y += spacing;
 
             // Return Time
-            var lblReturnTime = CreateLabel("🕕 Return Time:", labelX, y);
-            txtReturnTime = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtReturnTime, "HH:MM (e.g., 15:30)");
+            var lblReturnTime = ControlFactory.CreateLabel("🕕 Return Time:");
+            lblReturnTime.Location = new Point(labelX, y);
+            this.Controls.Add(lblReturnTime);
+            txtReturnTime = ControlFactory.CreateTextBox(_bannerTextProvider, "HH:MM (e.g., 15:30)");
+            txtReturnTime.Location = new Point(controlX, y);
+            txtReturnTime.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtReturnTime);
             y += spacing;
 
             // Requested By
-            var lblRequestedBy = CreateLabel("👤 Requested By:", labelX, y);
-            txtRequestedBy = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtRequestedBy, "Enter requester name");
+            var lblRequestedBy = ControlFactory.CreateLabel("👤 Requested By:");
+            lblRequestedBy.Location = new Point(labelX, y);
+            this.Controls.Add(lblRequestedBy);
+            txtRequestedBy = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter requester name");
+            txtRequestedBy.Location = new Point(controlX, y);
+            txtRequestedBy.Size = new Size(controlWidth, 30);
+            this.Controls.Add(txtRequestedBy);
             y += spacing;
 
             // Notes
-            var lblNotes = CreateLabel("📝 Notes:", labelX, y);
-            txtNotes = CreateTextBox(controlX, y, controlWidth);
-            SetPlaceholderText(txtNotes, "Additional notes");
-            SetTextBoxMultiline(txtNotes, 60);
+            var lblNotes = ControlFactory.CreateLabel("📝 Notes:");
+            lblNotes.Location = new Point(labelX, y);
+            this.Controls.Add(lblNotes);
+            txtNotes = ControlFactory.CreateTextBox(_bannerTextProvider, "Additional notes", true);
+            txtNotes.Location = new Point(controlX, y);
+            txtNotes.Size = new Size(controlWidth, 60);
+            this.Controls.Add(txtNotes);
             y += 80;
 
             // Buttons
-            btnSave = CreateButton("💾 Save", controlX, y, btnSave_Click);
+            btnSave = ControlFactory.CreateButton("💾 Save", new Size(120, 36), btnSave_Click);
+            btnSave.Location = new Point(controlX, y);
             btnSave.BackColor = SyncfusionThemeHelper.MaterialColors.Primary;
-            btnSave.Size = new Size(120, 36);
+            this.Controls.Add(btnSave);
 
-            btnCancel = CreateButton("❌ Cancel", controlX + 140, y, btnCancel_Click);
+            btnCancel = ControlFactory.CreateButton("❌ Cancel", new Size(120, 36), btnCancel_Click);
+            btnCancel.Location = new Point(controlX + 140, y);
             btnCancel.BackColor = SyncfusionThemeHelper.MaterialColors.Background;
-            btnCancel.Size = new Size(120, 36);
+            this.Controls.Add(btnCancel);
 
             // Apply Syncfusion Material Design styling
             ApplySyncfusionStyling();
@@ -256,97 +291,6 @@ namespace BusBuddy.UI.Views
         {
             DialogResult = DialogResult.Cancel;
             Close();
-        }
-
-        // Helper methods for validation and form management
-        private void ClearAllValidationErrors()
-        {
-            _errorProvider.Clear();
-        }
-
-        private void SetValidationError(Control control, string message)
-        {
-            _errorProvider.SetError(control, message);
-        }
-
-        private void ShowErrorMessage(string message)
-        {
-            MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-
-        // Helper methods for Syncfusion form creation
-        private ComboBox CreateComboBox(int x, int y, int width)
-        {
-            var comboBox = new ComboBox
-            {
-                Location = new Point(x, y),
-                Size = new Size(width, 35),
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-
-            // Apply Material theming
-            comboBox.BackColor = SyncfusionThemeHelper.MaterialColors.Surface;
-            comboBox.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
-            comboBox.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
-
-            this.Controls.Add(comboBox);
-            return comboBox;
-        }
-
-        private void SetPlaceholderText(Control textBox, string placeholder)
-        {
-            if (textBox is TextBox tb)
-            {
-                tb.Text = placeholder;
-                tb.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
-
-                tb.GotFocus += (s, e) =>
-                {
-                    if (tb.Text == placeholder)
-                    {
-                        tb.Text = "";
-                        tb.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
-                    }
-                };
-
-                tb.LostFocus += (s, e) =>
-                {
-                    if (string.IsNullOrEmpty(tb.Text))
-                    {
-                        tb.Text = placeholder;
-                        tb.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
-                    }
-                };
-            }
-        }
-
-        private void SetTextBoxMultiline(Control textBox, int height)
-        {
-            if (textBox is TextBox tb)
-            {
-                tb.Multiline = true;
-                tb.Height = height;
-                tb.ScrollBars = ScrollBars.Vertical;
-            }
-        }
-
-        private Control CreateButton(string text, int x, int y, EventHandler clickHandler)
-        {
-            var button = new Button
-            {
-                Text = text,
-                Location = new Point(x, y),
-                Size = new Size(120, 36),
-                Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-
-            button.FlatAppearance.BorderSize = 0;
-            button.Click += clickHandler;
-            this.Controls.Add(button);
-            return button;
         }
     }
 }
