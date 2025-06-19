@@ -1,4 +1,4 @@
-# BusBuddy - School Bus Management System
+# BusBuddy - School Bus Management System v1.0.0
 
 ## 📄 License and Intellectual Property
 
@@ -12,6 +12,13 @@ This software is the intellectual property of Steve McKitrick, developed indepen
 [![codecov](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github/branch/master/graph/badge.svg)](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github)
 
 A comprehensive school bus management system built with .NET 8 and Windows Forms, designed to help school districts manage their transportation operations efficiently.
+
+**🎉 Version 1.0.0 Release - Production Ready**
+- ✅ Complete Syncfusion UI migration (18/18 forms)
+- ✅ Advanced analytics and reporting
+- ✅ SQL Server Express integration
+- ✅ Professional dashboard with docking manager
+- ✅ Comprehensive cost analytics system
 
 ## 🚌 Features
 
@@ -155,234 +162,84 @@ BusBuddy/
    dotnet run --project . --configuration Release
    ```
 
-## 🗄️ Database Setup
+## 🛠️ Database Setup
 
-### SQLite (Default)
-- The app uses SQLite by default. No setup required; the database file will be created automatically.
+### SQL Server Express Setup
+BusBuddy requires SQL Server Express for data storage. Follow these steps:
 
-### SQL Server (Optional)
-1. Start a SQL Server instance (local or Docker):
-   ```pwsh
-   docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
+1. **Install SQL Server Express**:
+   - Download from [Microsoft SQL Server Express](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
+   - Install with default settings
+   - Note your server instance name (e.g., `ST-LPTP9-23\SQLEXPRESS01`)
+
+2. **Configure Connection**:
+   ```xml
+   <!-- App.config -->
+   <connectionStrings>
+     <add name="DefaultConnection"
+          connectionString="Server=YOUR_SERVER\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;"
+          providerName="Microsoft.Data.SqlClient" />
+   </connectionStrings>
    ```
-2. Run the setup script to initialize the database:
-   ```pwsh
-   cd Db
-   ./setup.ps1 -SqlServer localhost -User sa -Password YourStrong@Passw0rd -Script setup.sql
+
+3. **Create Database**:
+   ```sql
+   -- Connect to SQL Server Express
+   sqlcmd -S YOUR_SERVER\SQLEXPRESS01 -Q "CREATE DATABASE BusBuddy;"
+
+   -- Run database scripts
+   sqlcmd -S YOUR_SERVER\SQLEXPRESS01 -d BusBuddy -i "BusBuddy.Data\DatabaseScript.SqlServer.sql"
+   sqlcmd -S YOUR_SERVER\SQLEXPRESS01 -d BusBuddy -i "BusBuddy.Data\TestSeedData.sql"
    ```
-3. In `BusBuddy.Tests/App.config`, comment out the SQLite connection string and uncomment the SQL Server one.
 
-### Schema & ERD
-- See [`Db/SCHEMA.md`](Db/SCHEMA.md) for a full schema reference.
-- (ER diagram: `Db/ERD.png` to be added)
+### 💾 Database Backup and Restore
 
-### Troubleshooting
-- Ensure SQL Server is running and accessible.
-- For Docker, use `localhost,1433` as the server.
-- If you see connection errors, check firewall and authentication settings.
-
-## 🧪 Testing
-
-### Run All Tests
-```bash
-dotnet test BusBuddy.sln --configuration Release
+**Backup Database**:
+```sql
+BACKUP DATABASE BusBuddy TO DISK = 'C:\Backups\BusBuddy.bak'
+WITH FORMAT, INIT, NAME = 'BusBuddy-Full Database Backup', SKIP, NOREWIND, NOUNLOAD, STATS = 10;
 ```
 
-### Run Tests with Local Coverage Analysis
+**Restore Database**:
+```sql
+RESTORE DATABASE BusBuddy FROM DISK = 'C:\Backups\BusBuddy.bak'
+WITH REPLACE, STATS = 10;
+```
+
+**Automated Backup Script**:
 ```powershell
-# Easy one-click coverage (recommended for single developer)
-.\run-coverage-local.ps1
+# backup-database.ps1
+$backupPath = "C:\Backups\BusBuddy_$(Get-Date -Format 'yyyyMMdd_HHmmss').bak"
+sqlcmd -S YOUR_SERVER\SQLEXPRESS01 -Q "BACKUP DATABASE BusBuddy TO DISK = '$backupPath'"
 ```
 
-This will:
-- Run all tests with coverage collection
-- Generate HTML coverage report
-- Automatically open the report in your browser
-- Show detailed line-by-line coverage analysis
+## 📊 Cost Analytics Usage
 
-### Manual Coverage Commands
-```bash
-# Run tests with coverage
-dotnet test BusBuddy.sln --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
+The cost analytics system provides real-time insights into transportation costs:
 
-# Install ReportGenerator (one time)
-dotnet tool install -g dotnet-reportgenerator-globaltool
+**Route Cost Analysis** (Expected values for June 2025):
+- Regular Routes: ~$2.70 per student per day
+- Sports/Activities: ~$5.67 per student per day
+- Special Events: Varies based on distance and group size
 
-# Generate HTML report
-reportgenerator -reports:"TestResults\**\coverage.cobertura.xml" -targetdir:"TestResults\CoverageReport" -reporttypes:Html
+**Usage Examples**:
+```csharp
+// Get monthly cost breakdown
+var analytics = new RouteAnalyticsService();
+var costs = await analytics.CalculateCostPerStudentMetricsAsync(
+    DateTime.Now.AddDays(-30),
+    DateTime.Now
+);
+
+Console.WriteLine($"Route Cost/Student/Day: ${costs.RouteCostPerStudentPerDay:F2}");
+Console.WriteLine($"Sports Cost/Student/Day: ${costs.SportsCostPerStudentPerDay:F2}");
 ```
 
-### Current Test Status
-- **19 tests passing**, 1 skipped (SQL Server test)
-- **Coverage focus**: Core business logic and data access layers
-- **Test categories**: Unit tests, integration tests, database tests
+## 🎨 UI Features
 
-### Current Test Status
-- ✅ **19 tests passing**
-- ⏭️ **1 test skipped** (SQL Server integration - requires database instance)
-- 🎯 **Code Coverage**: Tracked via [Codecov](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github)
-
-## 📊 Code Quality & CI/CD
-
-### GitHub Actions Workflow
-- ✅ **Automated builds** on every push/PR
-- ✅ **Test execution** with results reporting
-- ✅ **Code coverage** analysis via Codecov
-- ✅ **Deployment artifacts** for releases
-
-### Code Coverage
-We use Codecov to track test coverage and maintain code quality:
-
-- **Coverage reports** generated on every CI run
-- **PR comments** with coverage changes
-- **Coverage trends** tracked over time
-- **Quality gates** ensure coverage standards
-
-## 🛠️ Development
-
-### Project Structure
-
-- **Models**: Data entities representing vehicles, drivers, routes, etc.
-- **Repositories**: Data access layer with interface-based design
-- **Services**: Business logic and domain operations
-- **Forms**: Windows Forms UI for user interaction
-- **Tests**: Comprehensive test suite with xUnit
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Code Standards
-
-- Follow C# coding conventions
-- Maintain test coverage above 70%
-- All tests must pass before merging
-- Use meaningful commit messages
-
-### Code Formatting
-
-- Run `dotnet format BusBuddy.sln` to format code according to project standards
-- Verify formatting with `dotnet format BusBuddy.sln --verify-no-changes`
-- CI pipeline will enforce code formatting standards
-
-### Pre-Commit Screening
-
-The project uses pre-commit hooks to ensure code quality:
-
-1. **Install pre-commit**:
-   ```
-   pip install pre-commit
-   ```
-
-2. **Install the hook**:
-   ```
-   pre-commit install
-   ```
-
-3. **Update pre-commit config**:
-   ```
-   pre-commit migrate-config
-   ```
-
-3. **Pre-commit checks include**:
-   - Code formatting verification
-   - Unit tests execution
-   - Test coverage (70%+ threshold)
-   - Code secrets detection
-
-4. **Fix common issues**:
-   - Formatting: `dotnet format BusBuddy.sln`
-   - Tests: Fix failing tests in BusBuddy.Tests
-   - Coverage: Add more unit tests to increase coverage
-   - Secrets: Move sensitive data to secure storage
-
-## 📈 Monitoring & Reporting
-
-- **Build Status**: ![Build Status](https://github.com/Wiley-Consolidated-School/BusBuddyFinal-Github/actions/workflows/dotnet.yml/badge.svg)
-- **Code Coverage**: [![codecov](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github/branch/master/graph/badge.svg)](https://codecov.io/gh/Wiley-Consolidated-School/BusBuddyFinal-Github)
-- **Test Results**: Available in GitHub Actions runs
-
-## 🧹 Repository Maintenance
-
-### Cleanup and Housekeeping
-Run the cleanup script regularly to maintain repository health:
-
-```powershell
-# General cleanup
-.\cleanup-repository.ps1
-
-# Fix trailing whitespace (preview changes)
-.\fix-whitespace.ps1 -WhatIf
-
-# Fix trailing whitespace (apply changes)
-.\fix-whitespace.ps1
-```
-
-This script removes:
-- Build artifacts (`bin/`, `obj/`, `TestResults/`)
-- Temporary files (`*.tmp`, `*.bak`, `*_new.*`, etc.)
-- Backup directories (`Migration_Backups/`, etc.)
-- Empty directories
-- Untracked git files
-- Reports trailing whitespace issues
-
-### File Management Best Practices
-- Remove temporary files (`.new`, `.bak`, `.backup`) after use
-- Clean up migration backups after successful migrations
-- Use `.gitignore` to prevent tracking build artifacts
-- Monitor repository size with `git count-objects -vH`
-- **Remove trailing whitespace** from all source files
-- Ensure files end with exactly one newline character
-
-## � Intellectual Property and Ownership
-
-**IMPORTANT LEGAL NOTICE**
-
-This software is the **exclusive intellectual property of Steve McKitrick** and was developed independently using only personal resources:
-
-### 🏠 Personal Development
-- ✅ **Personal funds only** - No tax money used
-- ✅ **Open source technologies** - Properly licensed components
-- ✅ **Personal time and equipment** - Developed outside work hours
-- ✅ **Personally purchased tools** - All software licenses paid personally
-
-### 🚫 What This Is NOT
-- ❌ **NOT property of Wiley School District**
-- ❌ **NOT funded by tax dollars**
-- ❌ **NOT a work-for-hire project**
-- ❌ **NOT using school district resources**
-
-### 📋 Legal Documentation
-- See [LICENSE.md](LICENSE.md) for complete licensing terms
-- See [NOTICE.txt](NOTICE.txt) for detailed ownership statement
-- Copyright notices embedded in source code and assembly metadata
-
-## 📝 License
-
-This project is licensed under a Personal Use License - see the [LICENSE.md](LICENSE.md) file for details.
-
-**Copyright © 2025 Steve McKitrick. All rights reserved.**
-
-## 🤝 Support
-
-For support and questions:
-- Contact: Steve McKitrick (project owner)
-- Check project documentation
-- Review source code comments
-
-## 🎯 Roadmap
-
-- [ ] Web-based dashboard interface
-- [ ] Mobile app for drivers
-- [ ] Advanced analytics and reporting
-- [ ] GPS integration for real-time tracking
-- [ ] Parent notification system
-- [ ] API for third-party integrations
-
----
-
-**Built with ❤️ by Wiley Consolidated School District**
+- **Syncfusion Enhanced Interface**: Professional Windows Forms controls with Material Design theming
+- **High-DPI Support**: Automatic scaling for modern displays
+- **Responsive Layouts**: Docking manager with professional panel organization
+- **Diagnostic Logging**: Real-time debugging and performance monitoring
+- **Fallback Strategies**: Graceful degradation for compatibility
+````

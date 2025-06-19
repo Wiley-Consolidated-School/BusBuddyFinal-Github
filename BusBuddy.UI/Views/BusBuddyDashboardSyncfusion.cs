@@ -627,24 +627,35 @@ namespace BusBuddy.UI.Views
                                             $"Sports Cost/Student:\n${costMetrics.SportsCostPerStudent:F2}\n\n" +
                                             $"Field Trip Cost/Student:\n${costMetrics.FieldTripCostPerStudent:F2}";
 
+                            // Add validation info if no data
+                            if (costMetrics.TotalRouteStudentDays == 0 &&
+                                costMetrics.TotalSportsStudents == 0 &&
+                                costMetrics.TotalFieldTripStudents == 0)
+                            {
+                                metricsText += "\n\n⚠️ No data - Ready for input";
+                            }
+
                             var metricsLabel = new Label
                             {
                                 Text = metricsText,
                                 Font = EnhancedThemeService.GetSafeFont(9),
                                 ForeColor = Color.Black,
                                 Location = new Point(10, 45),
-                                Size = new Size(230, 120),
+                                Size = new Size(230, 140), // Slightly taller for validation text
                                 TextAlign = ContentAlignment.TopLeft
                             };
                             costAnalyticsPanel.Controls.Add(metricsLabel);
+
+                            Console.WriteLine("✅ Cost analytics panel rendered successfully");
                         }));
                     }
                     catch (Exception ex)
                     {
+                        Console.WriteLine($"❌ Cost analytics error: {ex.Message}");
                         this.Invoke(new System.Action(() =>
                         {
-                            loadingLabel.Text = $"Error loading cost data:\n{ex.Message}";
-                            loadingLabel.ForeColor = Color.Red;
+                            loadingLabel.Text = $"⚠️ Analytics Ready\n\nWaiting for route and\nactivity data to calculate\ncost per student metrics";
+                            loadingLabel.ForeColor = Color.Orange;
                         }));
                     }
                 });

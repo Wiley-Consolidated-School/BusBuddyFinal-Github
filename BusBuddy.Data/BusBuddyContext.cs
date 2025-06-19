@@ -70,11 +70,10 @@ namespace BusBuddy.Data
                         {
                             throw new NotSupportedException($"Database provider '{provider}' is not supported. Only SqlServer is supported.");
                         }
-                    }
-                    catch
+                    }                    catch
                     {
-                        // Fallback to SQL Server Express
-                        var defaultConnectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BusBuddyDB;Integrated Security=True;TrustServerCertificate=True;";
+                        // Fallback to SQL Server Express with correct server name and database
+                        var defaultConnectionString = "Server=ST-LPTP9-23\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;";
                         optionsBuilder.UseSqlServer(defaultConnectionString);
                     }
                 }

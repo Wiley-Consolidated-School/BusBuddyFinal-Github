@@ -1,11 +1,13 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using BusBuddy.DependencyInjection;
 using BusBuddy.UI.Services;
 using BusBuddy.UI.Views;
 using BusBuddy.Business;
 using BusBuddy.UI.Helpers;
+using BusBuddy.Tests;
 
 namespace BusBuddy
 {
@@ -42,6 +44,20 @@ namespace BusBuddy
                 var serviceContainer = ServiceContainerInstance.Instance;
                 var navigationService = serviceContainer.GetService<INavigationService>();
                 var databaseHelperService = serviceContainer.GetService<IDatabaseHelperService>();
+
+                Console.WriteLine("🧪 Validating cost analytics...");
+                // Run analytics validation on startup (async/await not needed in static context)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await CostAnalyticsValidator.ValidateAnalytics();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Analytics validation error: {ex.Message}");
+                    }
+                });
 
                 Console.WriteLine("🚌 Creating dashboard...");
                 // Use the Syncfusion migrated dashboard - theme is already applied globally
