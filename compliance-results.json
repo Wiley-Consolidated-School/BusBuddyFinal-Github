@@ -1,0 +1,664 @@
+[
+  {
+    "File": "BusBuddy.Tests\\DriverEditFormTest.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": false,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.Tests\\UI\\PerformanceTests.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": false,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.Tests\\UI\\WindowsFormsTestInitializer.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": false,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.TimeCard\\Views\\TimeCardManagementForm.cs",
+    "Status": "❌ NON-COMPLIANT",
+    "IsCompliant": false,
+    "IsSyncfusionForm": false,
+    "DataGridViewCount": 17,
+    "SfDataGridCount": 0,
+    "Priority": "HIGH",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionMode",
+        "SelectionChanged"
+      ],
+      "Editing": [
+        "EditMode"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style",
+        "CellStyle"
+      ],
+      "RowOperations": [
+        "DeleteRow",
+        "RowHeight"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ]
+    },
+    "FeatureScore": 12,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 18.2,
+    "Recommendation": "Migrate to SfDataGrid immediately"
+  },
+  {
+    "File": "BusBuddy.TimeCard\\Views\\TimeCardManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 6,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionChanged"
+      ],
+      "ColumnTypes": [
+        "GridTextColumn"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ]
+    },
+    "FeatureScore": 8,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 12.1,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\FormValidator.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": false,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Services\\IFormFactory.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": false,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Testing\\SyncfusionPerformanceTester.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\ActivityEditFormSyncfusion.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\ActivityManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 17,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionChanged"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "Sorting": [
+        "Sort"
+      ]
+    },
+    "FeatureScore": 8,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 12.1,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\ActivityScheduleEditFormSyncfusion.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\ActivityScheduleManagementFormSyncfusion_Enhanced.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 7,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionChanged"
+      ],
+      "ColumnTypes": [
+        "GridTextColumn"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "Sorting": [
+        "Sort"
+      ]
+    },
+    "FeatureScore": 9,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 13.6,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\ActivityScheduleManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 7,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionChanged"
+      ],
+      "ColumnTypes": [
+        "GridTextColumn"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "Sorting": [
+        "Sort"
+      ]
+    },
+    "FeatureScore": 9,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 13.6,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\AnalyticsDemoForm.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 23,
+    "Priority": "",
+    "FeaturesFound": {
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns"
+      ],
+      "Editing": [
+        "AllowEditing"
+      ],
+      "Styling": [
+        "Style"
+      ]
+    },
+    "FeatureScore": 4,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 6.1,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\DriverEditFormSyncfusion.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\DriverManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 6,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionMode",
+        "SelectedItems",
+        "SelectionChanged"
+      ],
+      "ColumnOperations": [
+        "AutoSizeColumnsMode"
+      ],
+      "Editing": [
+        "AllowEditing"
+      ],
+      "ColumnTypes": [
+        "GridTextColumn",
+        "GridCheckBoxColumn"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "RowOperations": [
+        "RowHeight"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ]
+    },
+    "FeatureScore": 14,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 21.2,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\FormDiscovery.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": false,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\FuelEditFormSyncfusion.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\FuelManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 7,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionChanged"
+      ],
+      "ColumnTypes": [
+        "GridTextColumn"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "Sorting": [
+        "Sort"
+      ]
+    },
+    "FeatureScore": 9,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 13.6,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\MaintenanceEditFormSyncfusion.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\MaintenanceManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 13,
+    "Priority": "",
+    "FeaturesFound": {
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "Selection": [
+        "SelectionChanged"
+      ]
+    },
+    "FeatureScore": 6,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 9.1,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\RouteEditFormSyncfusion.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\RouteEditFormSyncfusionSimple.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\RouteManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 7,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionChanged"
+      ],
+      "ColumnTypes": [
+        "GridTextColumn"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "Sorting": [
+        "Sort"
+      ]
+    },
+    "FeatureScore": 9,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 13.6,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\SchoolCalendarEditFormSyncfusion.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\SchoolCalendarManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 5,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionChanged"
+      ],
+      "ColumnTypes": [
+        "GridTextColumn"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "Sorting": [
+        "Sort"
+      ]
+    },
+    "FeatureScore": 9,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 13.6,
+    "Recommendation": "Enhance with more Syncfusion features"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\VehicleFormSyncfusion.cs",
+    "Status": "ℹ️ NO GRID",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 0,
+    "Priority": "",
+    "FeaturesFound": {},
+    "FeatureScore": 0,
+    "MaxFeatureScore": 0,
+    "FeatureComplianceRate": 0,
+    "Recommendation": "No grid controls detected"
+  },
+  {
+    "File": "BusBuddy.UI\\Views\\VehicleManagementFormSyncfusion.cs",
+    "Status": "✅ COMPLIANT",
+    "IsCompliant": true,
+    "IsSyncfusionForm": true,
+    "DataGridViewCount": 0,
+    "SfDataGridCount": 3,
+    "Priority": "",
+    "FeaturesFound": {
+      "Selection": [
+        "SelectionMode",
+        "SelectionChanged"
+      ],
+      "ColumnTypes": [
+        "GridTextColumn"
+      ],
+      "Events": [
+        "CellDoubleClick"
+      ],
+      "Filtering": [
+        "Filter"
+      ],
+      "Styling": [
+        "Style"
+      ],
+      "DataBinding": [
+        "DataSource",
+        "AutoGenerateColumns",
+        "Columns.Add"
+      ]
+    },
+    "FeatureScore": 9,
+    "MaxFeatureScore": 66,
+    "FeatureComplianceRate": 13.6,
+    "Recommendation": "Enhance with more Syncfusion features"
+  }
+]

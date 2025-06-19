@@ -7,17 +7,18 @@ using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using Syncfusion.WinForms.DataGrid;
+using Syncfusion.WinForms.DataGrid.Enums;
 
 namespace BusBuddy.UI.Views
-{
-    /// <summary>
+{    /// <summary>
     /// Driver Management Form - Migrated to Syncfusion from MaterialSkin2
     /// Form for managing drivers with grid view and CRUD operations
     /// </summary>
     public class DriverManagementFormSyncfusion : SyncfusionBaseForm
     {
         private readonly IDriverRepository _driverRepository;
-        private DataGridView? _driverGrid;
+        private SfDataGrid? _driverGrid;
         private Control? _addButton;
         private Control? _editButton;
         private Control? _deleteButton;
@@ -99,45 +100,116 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(_deleteButton);
             _mainPanel.Controls.Add(_detailsButton);
             _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);
-            _mainPanel.Controls.Add(searchLabel);
+            _mainPanel.Controls.Add(_searchButton);            _mainPanel.Controls.Add(searchLabel);
 
             // Create and configure the data grid
             SetupDataGrid();
         }
-
-        private void SetupDataGrid()
+          private void SetupDataGrid()
         {
-            // Create DataGridView with modern styling
-            _driverGrid = new DataGridView();
+            // Create SfDataGrid with ALL enhanced features for 100% implementation
+            _driverGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _driverGrid.Dock = DockStyle.None;
             _driverGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(60));
             _driverGrid.Size = GetDpiAwareSize(new Size(1150, 650));
             _driverGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
 
-            // Grid styling
-            _driverGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            _driverGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _driverGrid.ReadOnly = true;
-            _driverGrid.AllowUserToAddRows = false;
-            _driverGrid.AllowUserToDeleteRows = false;
-            _driverGrid.MultiSelect = false;
-            _driverGrid.AllowUserToResizeColumns = true;
-            _driverGrid.AllowUserToResizeRows = true;
-            _driverGrid.ScrollBars = ScrollBars.Both;
+            // Apply ALL Syncfusion features for 100% implementation
+            SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_driverGrid, "DriverManagementForm");
 
-            // Apply Material theme to grid
-            SyncfusionThemeHelper.ApplyMaterialTheme(_driverGrid);
+            // Setup grid columns manually
+            SetupGridColumns();
 
             _mainPanel.Controls.Add(_driverGrid);
+        }        private void SetupGridColumns()
+        {
+            // Clear any existing columns first
+            _driverGrid.Columns.Clear();
+
+            // Define only the columns we want to display using Syncfusion SfDataGrid columns
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "DriverName",
+                HeaderText = "Name",
+                Width = GetDpiAwareSize(new Size(150, 0)).Width
+            });
+
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "DriverPhone",
+                HeaderText = "Phone",
+                Width = GetDpiAwareSize(new Size(120, 0)).Width
+            });
+
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "DriverEmail",
+                HeaderText = "Email",
+                Width = GetDpiAwareSize(new Size(200, 0)).Width
+            });
+
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "Address",
+                HeaderText = "Address",
+                Width = GetDpiAwareSize(new Size(150, 0)).Width
+            });
+
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "City",
+                HeaderText = "City",
+                Width = GetDpiAwareSize(new Size(100, 0)).Width
+            });
+
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "State",
+                HeaderText = "State",
+                Width = GetDpiAwareSize(new Size(60, 0)).Width
+            });
+
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "Zip",
+                HeaderText = "Zip",
+                Width = GetDpiAwareSize(new Size(80, 0)).Width
+            });
+
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "DriversLicenseType",
+                HeaderText = "License",
+                Width = GetDpiAwareSize(new Size(100, 0)).Width
+            });
+
+            _driverGrid.Columns.Add(new GridCheckBoxColumn()
+            {
+                MappingName = "IsTrainingComplete",
+                HeaderText = "Training",
+                Width = GetDpiAwareSize(new Size(80, 0)).Width
+            });
+
+            // Add hidden DriverID column for selection purposes
+            _driverGrid.Columns.Add(new GridTextColumn()
+            {
+                MappingName = "DriverID",
+                HeaderText = "ID",
+                Width = 0,
+                Visible = false
+            });
+
+            // Make the address column fill remaining space
+            if (_driverGrid.Columns.Count > 3)
+            {
+                _driverGrid.Columns[3].AutoSizeColumnsMode = AutoSizeColumnsMode.Fill;
+            }
         }
 
         private void LayoutControls()
         {
             // Layout is handled in CreateControls method for better organization
-        }
-
-        private void SetupEventHandlers()
+        }        private void SetupEventHandlers()
         {
             // Button click events
             _addButton.Click += (s, e) => AddNewDriver();
@@ -146,10 +218,9 @@ namespace BusBuddy.UI.Views
             _detailsButton.Click += (s, e) => ViewDriverDetails();
             _searchButton.Click += (s, e) => SearchDrivers();
 
-            // Grid event handlers
+            // Grid event handlers - use SfDataGrid events
             _driverGrid.CellDoubleClick += (s, e) => EditSelectedDriver();
             _driverGrid.SelectionChanged += DriverGrid_SelectionChanged;
-            _driverGrid.DataBindingComplete += DriverGrid_DataBindingComplete;
 
             // Search box enter key handler
             if (_searchBox is TextBox searchTextBox)
@@ -165,54 +236,7 @@ namespace BusBuddy.UI.Views
 
             // Initial button states
             UpdateButtonStates();
-        }
-
-        private void DriverGrid_DataBindingComplete(object? sender, DataGridViewBindingCompleteEventArgs e)
-        {
-            if (_driverGrid.Columns.Contains("DriverID"))
-                _driverGrid.Columns["DriverID"].Visible = false;
-
-            // Configure column headers and widths
-            ConfigureGridColumns();
-        }
-
-        private void ConfigureGridColumns()
-        {
-            if (_driverGrid.Columns.Count == 0) return;
-
-            var columnConfig = new Dictionary<string, (string Header, int Width)>
-            {
-                ["DriverID"] = ("ID", 60),
-                ["DriverName"] = ("Name", 150),
-                ["DriverPhone"] = ("Phone", 120),
-                ["DriverEmail"] = ("Email", 200),
-                ["DriversLicenseType"] = ("License", 100),
-                ["TrainingComplete"] = ("Training", 80),
-                ["Address"] = ("Address", 150),
-                ["City"] = ("City", 100),
-                ["State"] = ("State", 60),
-                ["Zip"] = ("Zip", 80)
-            };
-
-            foreach (var config in columnConfig)
-            {
-                if (_driverGrid.Columns.Contains(config.Key))
-                {
-                    var column = _driverGrid.Columns[config.Key];
-                    column.HeaderText = config.Value.Header;
-                    column.Width = GetDpiAwareSize(new Size(config.Value.Width, 0)).Width;
-                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                }
-            }
-
-            // Set remaining columns to fill
-            if (_driverGrid.Columns.Count > 0)
-            {
-                _driverGrid.Columns[_driverGrid.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            }
-        }
-
-        private void LoadDrivers()
+        }        private void LoadDrivers()
         {
             try
             {
@@ -249,11 +273,10 @@ namespace BusBuddy.UI.Views
                 MessageBox.Show($"Error adding driver: {ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private void EditSelectedDriver()
+        }        private void EditSelectedDriver()
         {
-            if (_driverGrid.SelectedRows.Count == 0)
+            var selectedItem = GetSelectedDriver();
+            if (selectedItem == null)
             {
                 MessageBox.Show("Please select a driver to edit.",
                     "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -262,8 +285,7 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                int selectedId = (int)_driverGrid.SelectedRows[0].Cells["DriverID"].Value;
-                var driverToEdit = _driverRepository.GetDriverById(selectedId);
+                var driverToEdit = _driverRepository.GetDriverById(selectedItem.DriverID);
 
                 if (driverToEdit == null)
                 {
@@ -290,12 +312,19 @@ namespace BusBuddy.UI.Views
             }
         }
 
+        private Driver? GetSelectedDriver()
+        {
+            if (_driverGrid.SelectedItems.Count == 0)
+                return null;
+
+            return _driverGrid.SelectedItems[0] as Driver;
+        }
+
         private void DeleteSelectedDriver()
         {
-            if (_driverGrid.SelectedRows.Count == 0)
+            var selectedDriver = GetSelectedDriver();
+            if (selectedDriver == null)
                 return;
-
-            int selectedId = (int)_driverGrid.SelectedRows[0].Cells["DriverID"].Value;
 
             var result = MessageBox.Show(
                 "Are you sure you want to delete this driver?",
@@ -306,7 +335,7 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                _driverRepository.DeleteDriver(selectedId);
+                _driverRepository.DeleteDriver(selectedDriver.DriverID);
                 LoadDrivers();
                 MessageBox.Show("Driver deleted successfully.",
                     "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -320,11 +349,11 @@ namespace BusBuddy.UI.Views
 
         private void ViewDriverDetails()
         {
-            if (_driverGrid.SelectedRows.Count == 0)
+            var selectedDriver = GetSelectedDriver();
+            if (selectedDriver == null)
                 return;
 
-            int selectedId = (int)_driverGrid.SelectedRows[0].Cells["DriverID"].Value;
-            var driver = _driverRepository.GetDriverById(selectedId);
+            var driver = _driverRepository.GetDriverById(selectedDriver.DriverID);
 
             if (driver != null)
             {
@@ -353,7 +382,7 @@ namespace BusBuddy.UI.Views
 
         private void UpdateButtonStates()
         {
-            bool hasSelection = _driverGrid.SelectedRows.Count > 0;
+            bool hasSelection = _driverGrid.SelectedItems.Count > 0;
 
             if (_editButton != null) _editButton.Enabled = hasSelection;
             if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
