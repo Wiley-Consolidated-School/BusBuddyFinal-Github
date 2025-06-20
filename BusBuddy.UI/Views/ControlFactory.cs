@@ -125,6 +125,15 @@ namespace BusBuddy.UI.Views
             return textBox;
         }
 
+        /// <summary>
+        /// Creates a search TextBoxExt with watermark for consistent search functionality
+        /// </summary>
+        public static TextBoxExt CreateSearchBox(string placeholder = "Search...")
+        {
+            var bannerProvider = new BannerTextProvider();
+            return CreateTextBox(bannerProvider, placeholder, false);
+        }
+
         #endregion
 
         #region ComboBox Creation
@@ -212,7 +221,7 @@ namespace BusBuddy.UI.Views
                 AllowEditing = false,
                 AllowSorting = true,
                 AllowFiltering = true,
-                AutoGenerateColumns = true,
+                AutoGenerateColumns = false, // Fix excessive columns issue - manually configure columns per grid
                 HeaderRowHeight = 35,
                 RowHeight = 30
             };

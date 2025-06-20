@@ -11,258 +11,189 @@ using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
-{    /// <summary>
-    /// Maintenance Management Form - Migrated to Syncfusion from MaterialSkin2
+{
+    /// <summary>
+    /// Maintenance Management Form - Standardized implementation using BaseManagementForm
     /// Form for managing maintenance records with grid view and CRUD operations
     /// </summary>
-    public class MaintenanceManagementFormSyncfusion : SyncfusionBaseForm
+    public class MaintenanceManagementFormSyncfusion : BaseManagementForm<Maintenance>
     {
         private readonly IMaintenanceRepository _maintenanceRepository;
         private readonly IVehicleRepository _vehicleRepository;
-        private SfDataGrid? _maintenanceGrid;
-        private Control? _addButton;
-        private Control? _editButton;
-        private Control? _deleteButton;
-        private Control? _detailsButton;
-        private Control? _searchBox;
-        private Control? _searchButton;
-        private List<Maintenance> _maintenances = new List<Maintenance>();
         private List<Vehicle> _vehicles = new List<Vehicle>();
 
-        // Fields for add/edit
-        private Panel _editPanel = null!;
-        private DateTimePicker _datePicker = null!;
-        private ComboBox _vehicleComboBox = null!;
-        private Control _odometerTextBox = null!;
-        private ComboBox _categoryComboBox = null!;
-        private Control _vendorTextBox = null!;
-        private Control _costTextBox = null!;
-        private Control _descriptionTextBox = null!;
-        private Control _saveButton = null!;
-        private Control _cancelButton = null!;
-        private Maintenance? _currentMaintenance = null;
-        private bool _isEditing = false;
+        #region Properties Override
+        protected override string FormTitle => "🔧 Maintenance Management";
+        protected override string SearchPlaceholder => "Search maintenance...";
+        protected override string EntityName => "Maintenance";
+        #endregion
 
-        public MaintenanceManagementFormSyncfusion() : this(new MaintenanceRepository()) { }
+        #region Constructors
+        public MaintenanceManagementFormSyncfusion() : this(new MaintenanceRepository(), new VehicleRepository()) { }
 
-        public MaintenanceManagementFormSyncfusion(IMaintenanceRepository maintenanceRepository)
+        public MaintenanceManagementFormSyncfusion(IMaintenanceRepository maintenanceRepository, IVehicleRepository vehicleRepository)
         {
             _maintenanceRepository = maintenanceRepository ?? throw new ArgumentNullException(nameof(maintenanceRepository));
-            _vehicleRepository = new VehicleRepository();
-            InitializeComponent();
+            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
             LoadVehicles();
-            LoadMaintenances();
+            LoadData();
         }
+        #endregion
 
-        private void InitializeComponent()
+        #region Base Implementation Override
+        protected override void LoadData()
         {
-            // Set form size to 1200x900, title to "Maintenance Management"
-            this.Text = "🔧 Maintenance Management";
-            this.ClientSize = GetDpiAwareSize(new Size(1200, 900));
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.Sizable;
-            this.MinimumSize = GetDpiAwareSize(new Size(800, 600));
-
-            CreateControls();
-            LayoutControls();
-            SetupEventHandlers();
-
-            // Apply final theming
-            SyncfusionThemeHelper.ApplyMaterialTheme(this);
-
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
-        }
-
-        private void CreateControls()
-        {
-            // Create toolbar buttons
-            _addButton = SyncfusionThemeHelper.CreateStyledButton("➕ Add New");
-            _editButton = SyncfusionThemeHelper.CreateStyledButton("✏️ Edit");
-            _deleteButton = SyncfusionThemeHelper.CreateStyledButton("🗑️ Delete");
-            _detailsButton = SyncfusionThemeHelper.CreateStyledButton("👁️ Details");
-            _searchButton = SyncfusionThemeHelper.CreateStyledButton("🔍 Search");
-
-            // Create search textbox
-            _searchBox = SyncfusionThemeHelper.CreateStyledTextBox("Search maintenance records...");
-
-            // Configure button sizes and positions
-            var buttonSize = GetDpiAwareSize(new Size(100, 35));
-            var buttonY = GetDpiAwareY(20);
-
-            _addButton.Size = buttonSize;
-            _addButton.Location = new Point(GetDpiAwareX(20), buttonY);
-
-            _editButton.Size = buttonSize;
-            _editButton.Location = new Point(GetDpiAwareX(130), buttonY);
-            _editButton.Enabled = false; // Initially disabled
-
-            _deleteButton.Size = buttonSize;
-            _deleteButton.Location = new Point(GetDpiAwareX(240), buttonY);
-            _deleteButton.Enabled = false; // Initially disabled
-
-            _detailsButton.Size = buttonSize;
-            _detailsButton.Location = new Point(GetDpiAwareX(350), buttonY);
-            _detailsButton.Enabled = false; // Initially disabled
-
-            // Search controls
-            var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
-            searchLabel.Location = new Point(500, 25);
-            _mainPanel.Controls.Add(searchLabel);
-            _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
-            _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
-
-            _searchButton.Size = GetDpiAwareSize(new Size(80, 35));
-            _searchButton.Location = new Point(GetDpiAwareX(710), buttonY);
-
-            // Add buttons to main panel
-            _mainPanel.Controls.Add(_addButton);
-            _mainPanel.Controls.Add(_editButton);
-            _mainPanel.Controls.Add(_deleteButton);
-            _mainPanel.Controls.Add(_detailsButton);
-            _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);            // Create SfDataGrid with modern styling
-            _maintenanceGrid = SyncfusionThemeHelper.CreateMaterialSfDataGrid();
-            _maintenanceGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
-            _maintenanceGrid.Size = GetDpiAwareSize(new Size(1150, 650));
-            _maintenanceGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-
-            // Apply Syncfusion theming to grid
-            SyncfusionThemeHelper.ApplyMaterialSfDataGrid(_maintenanceGrid);
-
-            _mainPanel.Controls.Add(_maintenanceGrid);
-
-            // Configure grid columns
-            SetupDataGridColumns();
-
-            // Initialize edit panel
-            InitializeEditPanel();
-        }
-
-        private void LayoutControls()
-        {
-            // Layout is handled in CreateControls for this form
-        }
-
-        private void SetupEventHandlers()
-        {
-            _addButton.Click += (s, e) => AddNewMaintenance();
-            _editButton.Click += (s, e) => EditSelectedMaintenance();
-            _deleteButton.Click += (s, e) => DeleteSelectedMaintenance();
-            _detailsButton.Click += (s, e) => ViewMaintenanceDetails();
-            _searchButton.Click += (s, e) => SearchMaintenances();            if (_maintenanceGrid != null)
+            try
             {
-                _maintenanceGrid.SelectionChanged += MaintenanceGrid_SelectionChanged;
-                _maintenanceGrid.CellDoubleClick += (s, e) => EditSelectedMaintenance();
+                _entities = _maintenanceRepository.GetAllMaintenanceRecords().ToList();
+                PopulateMaintenanceGrid();
             }
-
-            // Handle Enter key in search box
-            if (_searchBox is TextBox searchTb)
+            catch (Exception ex)
             {
-                searchTb.KeyDown += (s, e) =>
+                ShowErrorMessage($"Error loading maintenance records: {ex.Message}");
+            }
+        }
+
+        protected override void AddNewEntity()
+        {
+            try
+            {
+                var maintenanceForm = new MaintenanceEditFormSyncfusion();
+                if (maintenanceForm.ShowDialog() == DialogResult.OK)
                 {
-                    if (e.KeyCode == Keys.Enter)
-                    {
-                        SearchMaintenances();
-                        e.Handled = true;
-                    }
-                };
+                    RefreshGrid();
+                }
             }
-        }        private void SetupDataGridColumns()
-        {
-            if (_maintenanceGrid == null) return;
-
-            _maintenanceGrid.AutoGenerateColumns = false;
-            _maintenanceGrid.Columns.Clear();
-
-            // Add columns with DPI-aware widths using Syncfusion SfDataGrid columns
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("MaintenanceID", "ID", GetDpiAwareWidth(60)));
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateDateTimeColumn("Date", "Date", GetDpiAwareWidth(100)));
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Vehicle", "Vehicle", GetDpiAwareWidth(120)));
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateNumericColumn("Odometer", "Odometer", GetDpiAwareWidth(100)));
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Category", "Category", GetDpiAwareWidth(120)));
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Vendor", "Vendor", GetDpiAwareWidth(150)));
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateCurrencyTextColumn("Cost", "Cost", GetDpiAwareWidth(100)));
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateAutoSizeColumn("Description", "Description"));
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error adding new maintenance record: {ex.Message}");
+            }
         }
 
-        private void InitializeEditPanel()
+        protected override void EditSelectedEntity()
         {
-            // Create edit panel (1150x120, y=730, hidden)
-            _editPanel = new Panel();
-            _editPanel.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(730));
-            _editPanel.Size = GetDpiAwareSize(new Size(1150, 120));
-            _editPanel.Visible = false;
-            _editPanel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            _mainPanel.Controls.Add(_editPanel);
+            var selectedMaintenance = GetSelectedEntity();
+            if (selectedMaintenance == null)
+            {
+                ShowInfoMessage("Please select a maintenance record to edit.");
+                return;
+            }
 
-            // Maintenance form-specific fields: Date, Vehicle, Odometer, Category, Vendor, Cost, Description
-            var dateLabel = ControlFactory.CreateLabel("Date:");
-            _editPanel.Controls.Add(dateLabel);
-            _datePicker = new DateTimePicker();
-            _datePicker.Location = new Point(GetDpiAwareX(60), GetDpiAwareY(10));
-            _datePicker.Size = GetDpiAwareSize(new Size(150, 23));
-            _datePicker.Value = DateTime.Today;
-            _editPanel.Controls.Add(_datePicker);
-
-            var vehicleLabel = ControlFactory.CreateLabel("Vehicle:");
-            _editPanel.Controls.Add(vehicleLabel);
-            _vehicleComboBox = new ComboBox();
-            _vehicleComboBox.Location = new Point(GetDpiAwareX(290), GetDpiAwareY(10));
-            _vehicleComboBox.Size = GetDpiAwareSize(new Size(150, 23));
-            _vehicleComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            _editPanel.Controls.Add(_vehicleComboBox);
-
-            var odometerLabel = ControlFactory.CreateLabel("Odometer:");
-            _editPanel.Controls.Add(odometerLabel);
-            _odometerTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
-            _odometerTextBox.Location = new Point(GetDpiAwareX(530), GetDpiAwareY(10));
-            _odometerTextBox.Size = GetDpiAwareSize(new Size(100, 23));
-            _editPanel.Controls.Add(_odometerTextBox);
-
-            var categoryLabel = ControlFactory.CreateLabel("Category:");
-            _editPanel.Controls.Add(categoryLabel);
-            _categoryComboBox = new ComboBox();
-            _categoryComboBox.Location = new Point(GetDpiAwareX(720), GetDpiAwareY(10));
-            _categoryComboBox.Size = GetDpiAwareSize(new Size(120, 23));
-            _categoryComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            _categoryComboBox.Items.AddRange(new object[] { "Routine", "Repair", "Inspection", "Preventive" });
-            _editPanel.Controls.Add(_categoryComboBox);
-
-            var vendorLabel = ControlFactory.CreateLabel("Vendor:");
-            _editPanel.Controls.Add(vendorLabel);
-            _vendorTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
-            _vendorTextBox.Location = new Point(GetDpiAwareX(70), GetDpiAwareY(50));
-            _vendorTextBox.Size = GetDpiAwareSize(new Size(150, 23));
-            _editPanel.Controls.Add(_vendorTextBox);
-
-            var costLabel = ControlFactory.CreateLabel("Cost:");
-            _editPanel.Controls.Add(costLabel);
-            _costTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
-            _costTextBox.Location = new Point(GetDpiAwareX(280), GetDpiAwareY(50));
-            _costTextBox.Size = GetDpiAwareSize(new Size(100, 23));
-            _editPanel.Controls.Add(_costTextBox);
-
-            var descLabel = ControlFactory.CreateLabel("Description:");
-            _editPanel.Controls.Add(descLabel);
-            _descriptionTextBox = SyncfusionThemeHelper.CreateStyledTextBox("");
-            _descriptionTextBox.Location = new Point(GetDpiAwareX(480), GetDpiAwareY(50));
-            _descriptionTextBox.Size = GetDpiAwareSize(new Size(200, 23));
-            _editPanel.Controls.Add(_descriptionTextBox);
-
-            // Save/Cancel buttons at x=800, x=910
-            _saveButton = SyncfusionThemeHelper.CreateStyledButton("💾 Save");
-            _saveButton.Location = new Point(GetDpiAwareX(800), GetDpiAwareY(30));
-            _saveButton.Size = GetDpiAwareSize(new Size(80, 35));
-            _saveButton.Click += (s, e) => SaveMaintenance();
-            _editPanel.Controls.Add(_saveButton);
-
-            _cancelButton = SyncfusionThemeHelper.CreateStyledButton("❌ Cancel");
-            _cancelButton.Location = new Point(GetDpiAwareX(910), GetDpiAwareY(30));
-            _cancelButton.Size = GetDpiAwareSize(new Size(80, 35));
-            _cancelButton.Click += (s, e) => CancelEdit();
-            _editPanel.Controls.Add(_cancelButton);
+            try
+            {
+                var maintenanceForm = new MaintenanceEditFormSyncfusion(selectedMaintenance);
+                if (maintenanceForm.ShowDialog() == DialogResult.OK)
+                {
+                    RefreshGrid();
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error editing maintenance record: {ex.Message}");
+            }
         }
 
+        protected override void DeleteSelectedEntity()
+        {
+            var selectedMaintenance = GetSelectedEntity();
+            if (selectedMaintenance == null)
+            {
+                ShowInfoMessage("Please select a maintenance record to delete.");
+                return;
+            }
+
+            if (!ConfirmDelete("maintenance record")) return;
+
+            try
+            {
+                _maintenanceRepository.DeleteMaintenanceRecord(selectedMaintenance.MaintenanceID);
+                RefreshGrid();
+                ShowInfoMessage("Maintenance record deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error deleting maintenance record: {ex.Message}");
+            }
+        }
+
+        protected override void ViewEntityDetails()
+        {
+            var selectedMaintenance = GetSelectedEntity();
+            if (selectedMaintenance == null)
+            {
+                ShowInfoMessage("Please select a maintenance record to view details.");
+                return;
+            }
+
+            try
+            {
+                var details = $"Maintenance Record Details:\n\n" +
+                            $"ID: {selectedMaintenance.MaintenanceID}\n" +
+                            $"Date: {selectedMaintenance.Date}\n" +
+                            $"Vehicle: {GetVehicleName(selectedMaintenance.VehicleID)}\n" +
+                            $"Odometer: {selectedMaintenance.OdometerReading:N0}\n" +
+                            $"Type: {selectedMaintenance.MaintenanceCompleted}\n" +
+                            $"Vendor: {selectedMaintenance.Vendor}\n" +
+                            $"Cost: {selectedMaintenance.RepairCost:C}\n" +
+                            $"Notes: {selectedMaintenance.Notes}";
+
+                ShowInfoMessage(details, "Maintenance Details");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error viewing maintenance details: {ex.Message}");
+            }
+        }
+
+        protected override void SearchEntities()
+        {
+            if (_searchBox?.Text == null) return;
+
+            try
+            {
+                var searchTerm = _searchBox.Text.Trim();
+
+                if (string.IsNullOrEmpty(searchTerm) || searchTerm == SearchPlaceholder)
+                {
+                    LoadData();
+                    return;
+                }
+
+                var filteredMaintenance = _entities.Where(m =>
+                    (m.MaintenanceCompleted?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+                    (m.Vendor?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+                    (GetVehicleName(m.VehicleID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+
+                _entities = filteredMaintenance;
+                PopulateMaintenanceGrid();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error searching maintenance records: {ex.Message}");
+            }
+        }
+
+        protected override void SetupDataGridColumns()
+        {
+            if (_dataGrid == null) return;
+
+            _dataGrid.AutoGenerateColumns = false;
+            _dataGrid.Columns.Clear();
+
+            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "MaintenanceID", HeaderText = "ID", Visible = false });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Date", HeaderText = "Date", Width = GetDpiAwareWidth(120) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "VehicleName", HeaderText = "Vehicle", Width = GetDpiAwareWidth(120) });
+            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "OdometerReading", HeaderText = "Odometer", Width = GetDpiAwareWidth(100) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "MaintenanceCompleted", HeaderText = "Type", Width = GetDpiAwareWidth(150) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Vendor", HeaderText = "Vendor", Width = GetDpiAwareWidth(120) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "RepairCost", HeaderText = "Cost", Width = GetDpiAwareWidth(100) });
+
+            Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
+        }
+        #endregion
+
+        #region Helper Methods
         private void LoadVehicles()
         {
             try
@@ -271,274 +202,41 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading vehicles: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void LoadMaintenances()
-        {
-            try
-            {
-                _maintenances = _maintenanceRepository.GetAllMaintenances().ToList();
-                PopulateMaintenanceGrid();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading maintenance records: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage($"Error loading vehicles: {ex.Message}");
             }
         }
 
         private void PopulateMaintenanceGrid()
         {
-            _maintenanceGrid.DataSource = null;
+            if (_dataGrid == null) return;
 
-            if (_maintenances?.Any() == true)
-            {
-                var displayData = _maintenances.Select(m => new
-                {
-                    MaintenanceID = m.MaintenanceID,
-                    Date = m.Date ?? "",
-                    Vehicle = m.VehicleNumber ?? "",
-                    Odometer = m.OdometerReading?.ToString("N0") ?? "",
-                    Category = m.MaintenanceCompleted ?? "",
-                    Vendor = m.Vendor ?? "",
-                    Cost = m.RepairCost?.ToString("C2") ?? "",
-                    Description = m.Notes ?? ""
-                }).ToList();
-
-                _maintenanceGrid.DataSource = displayData;
-            }
-        }
-
-        private void PopulateComboBoxes()
-        {
-            // Populate vehicle combo box
-            _vehicleComboBox.DataSource = null;
-            var vehicleItems = _vehicles.Select(v => new { Text = v.VehicleNumber, Value = v }).ToList();
-            _vehicleComboBox.DataSource = vehicleItems;
-            _vehicleComboBox.DisplayMember = "Text";
-            _vehicleComboBox.ValueMember = "Value";
-
-            // Populate category combo box
-            var categories = new[]
-            {
-                "Tires",
-                "Windshield",
-                "Alignment",
-                "Mechanical",
-                "Car Wash",
-                "Cleaning",
-                "Accessory Install",
-                "Oil Change",
-                "Brake Service",
-                "Engine Service",
-                "Transmission Service",
-                "Electrical",
-                "Body Work",
-                "Safety Inspection",
-                "Other"
-            };
-
-            _categoryComboBox.DataSource = categories.ToList();
-        }        private void MaintenanceGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
-        {
-            bool hasSelection = _maintenanceGrid?.SelectedItem != null;
-            if (_editButton != null) _editButton.Enabled = hasSelection;
-            if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
-            if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
-        }
-
-        private void AddNewMaintenance()
-        {
-            _currentMaintenance = null;
-            _isEditing = false;
-            ShowEditPanel();
-        }        private void EditSelectedMaintenance()
-        {
-            if (_maintenanceGrid?.SelectedItem is Maintenance selectedMaintenance)
-            {
-                _currentMaintenance = selectedMaintenance;
-                _isEditing = true;
-                ShowEditPanel();
-            }
-        }        private void DeleteSelectedMaintenance()
-        {
-            if (_maintenanceGrid?.SelectedItem is Maintenance selectedMaintenance)
-            {
-                var result = MessageBox.Show(
-                    $"Are you sure you want to delete the maintenance record for {selectedMaintenance.VehicleNumber} on {selectedMaintenance.Date}?",
-                    "Confirm Delete",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (result == DialogResult.Yes)
-                {
-                    try
-                    {
-                        _maintenanceRepository.DeleteMaintenance(selectedMaintenance.MaintenanceID);
-                        LoadMaintenances();
-                        MessageBox.Show("Maintenance record deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error deleting maintenance record: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }        private void ViewMaintenanceDetails()
-        {
-            if (_maintenanceGrid?.SelectedItem is Maintenance selectedMaintenance)
-            {
-                using (var detailForm = new MaintenanceEditFormSyncfusion(selectedMaintenance))
-                {
-                    detailForm.ShowDialog(this);
-                }
-            }
-        }
-
-        private void SearchMaintenances()
-        {
-            if (_searchBox is TextBox searchBox)
-            {
-                var searchTerm = searchBox.Text?.Trim().ToLower() ?? "";
-
-                if (string.IsNullOrEmpty(searchTerm))
-                {
-                    LoadMaintenances();
-                    return;
-                }
-
-                try
-                {
-                    var allMaintenances = _maintenanceRepository.GetAllMaintenances().ToList();
-                    _maintenances = allMaintenances.Where(m =>
-                        (m.VehicleNumber?.ToLower().Contains(searchTerm) == true) ||
-                        (m.MaintenanceCompleted?.ToLower().Contains(searchTerm) == true) ||
-                        (m.Vendor?.ToLower().Contains(searchTerm) == true) ||
-                        (m.Notes?.ToLower().Contains(searchTerm) == true)
-                    ).ToList();
-
-                    PopulateMaintenanceGrid();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error searching maintenance records: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private void ShowEditPanel()
-        {
-            _editPanel.Visible = true;
-            PopulateComboBoxes();            if (_isEditing && _currentMaintenance != null)
-            {
-                // Populate form with current maintenance data
-                _datePicker.Value = _currentMaintenance.DateAsDateTime ?? DateTime.Today;
-
-                // Set vehicle selection
-                if (!string.IsNullOrEmpty(_currentMaintenance.VehicleNumber))
-                {
-                    var vehicle = _vehicles.FirstOrDefault(v => v.VehicleNumber == _currentMaintenance.VehicleNumber);
-                    if (vehicle != null)
-                    {
-                        _vehicleComboBox.SelectedValue = vehicle;
-                    }
-                }
-
-                if (_odometerTextBox is TextBox odometerTb)
-                    odometerTb.Text = _currentMaintenance.OdometerReading?.ToString() ?? "";
-
-                if (_categoryComboBox.Items.Contains(_currentMaintenance.MaintenanceCompleted))
-                    _categoryComboBox.SelectedItem = _currentMaintenance.MaintenanceCompleted;
-
-                if (_vendorTextBox is TextBox vendorTb)
-                    vendorTb.Text = _currentMaintenance.Vendor ?? "";
-
-                if (_costTextBox is TextBox costTb)
-                    costTb.Text = _currentMaintenance.RepairCost?.ToString("F2") ?? "";
-
-                if (_descriptionTextBox is TextBox descTb)
-                    descTb.Text = _currentMaintenance.Notes ?? "";
-            }
-            else
-            {
-                // Clear form for new maintenance
-                _datePicker.Value = DateTime.Today;
-                _vehicleComboBox.SelectedIndex = -1;
-
-                if (_odometerTextBox is TextBox odometerTb)
-                    odometerTb.Text = "";
-
-                _categoryComboBox.SelectedIndex = -1;
-
-                if (_vendorTextBox is TextBox vendorTb)
-                    vendorTb.Text = "";
-
-                if (_costTextBox is TextBox costTb)
-                    costTb.Text = "";
-
-                if (_descriptionTextBox is TextBox descTb)
-                    descTb.Text = "";
-            }
-        }
-
-        private void SaveMaintenance()
-        {
             try
             {
-                var maintenance = _currentMaintenance ?? new Maintenance();
-
-                // Validate required fields
-                if (_vehicleComboBox.SelectedValue == null)
+                var maintenanceData = _entities.Select(m => new
                 {
-                    MessageBox.Show("Please select a vehicle.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }                // Update maintenance object
-                maintenance.DateAsDateTime = _datePicker.Value;
-                maintenance.VehicleID = ((Vehicle)_vehicleComboBox.SelectedValue).VehicleID;
-                maintenance.VehicleNumber = ((Vehicle)_vehicleComboBox.SelectedValue).VehicleNumber;
+                    MaintenanceID = m.MaintenanceID,
+                    Date = m.Date ?? "Unknown",
+                    VehicleName = GetVehicleName(m.VehicleID),
+                    OdometerReading = m.OdometerReading ?? 0,
+                    MaintenanceCompleted = m.MaintenanceCompleted ?? "Unknown",
+                    Vendor = m.Vendor ?? "Unknown",
+                    RepairCost = m.RepairCost?.ToString("C") ?? "$0.00"
+                }).ToList();
 
-                if (_odometerTextBox is TextBox odometerTb && int.TryParse(odometerTb.Text, out int odometer))
-                    maintenance.OdometerReading = odometer;
-
-                if (_categoryComboBox.SelectedItem != null)
-                    maintenance.MaintenanceCompleted = _categoryComboBox.SelectedItem.ToString();
-
-                if (_vendorTextBox is TextBox vendorTb)
-                    maintenance.Vendor = vendorTb.Text;
-
-                if (_costTextBox is TextBox costTb && decimal.TryParse(costTb.Text, out decimal cost))
-                    maintenance.RepairCost = cost;
-
-                if (_descriptionTextBox is TextBox descTb)
-                    maintenance.Notes = descTb.Text;
-
-                // Save to repository
-                if (_isEditing)
-                {
-                    _maintenanceRepository.UpdateMaintenance(maintenance);
-                    MessageBox.Show("Maintenance record updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    _maintenanceRepository.AddMaintenance(maintenance);
-                    MessageBox.Show("Maintenance record added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-
-                CancelEdit();
-                LoadMaintenances();
+                _dataGrid.DataSource = maintenanceData;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving maintenance record: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage($"Error populating maintenance grid: {ex.Message}");
             }
         }
 
-        private void CancelEdit()
+        private string GetVehicleName(int? vehicleId)
         {
-            _editPanel.Visible = false;
-            _currentMaintenance = null;
-            _isEditing = false;
-        }
+            if (!vehicleId.HasValue) return "Unknown";
+
+            var vehicle = _vehicles.FirstOrDefault(v => v.Id == vehicleId.Value);
+            return vehicle?.VehicleNumber ?? "Unknown";        }
+        #endregion
     }
 }

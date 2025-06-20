@@ -107,7 +107,7 @@ namespace BusBuddy.UI.Testing
                 var schedules = GenerateLargeActivityScheduleDataset(3000);
 
                 var formLoadTime = Stopwatch.StartNew();
-                var form = new ActivityScheduleManagementFormSyncfusion();
+                var form = new ActivityScheduleManagementFormSyncfusion(new BusBuddy.Data.ActivityRepository());
                 formLoadTime.Stop();
 
                 var result = new FormTestResult

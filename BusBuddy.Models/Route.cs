@@ -59,12 +59,14 @@ namespace BusBuddy.Models
         public Vehicle? AMVehicle { get; set; }
         public Driver? AMDriver { get; set; }
         public Vehicle? PMVehicle { get; set; }
-        public Driver? PMDriver { get; set; }
-
-        // Computed properties for form compatibility
+        public Driver? PMDriver { get; set; }        // Computed properties for form compatibility
         public string? AMVehicleNumber => AMVehicle?.VehicleNumber;
         public string? AMDriverName => AMDriver?.Name;
         public string? PMVehicleNumber => PMVehicle?.VehicleNumber;
         public string? PMDriverName => PMDriver?.Name;
+
+        // Computed mileage properties for backward compatibility
+        public decimal? AMMiles => AMEndMiles.HasValue && AMBeginMiles.HasValue ? AMEndMiles - AMBeginMiles : null;
+        public decimal? PMMiles => PMEndMiles.HasValue && PMBeginMiles.HasValue ? PMEndMiles - PMBeginMiles : null;
     }
 }

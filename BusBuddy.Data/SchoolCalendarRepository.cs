@@ -117,9 +117,17 @@ namespace BusBuddy.Data
                 var sql = "DELETE FROM SchoolCalendar WHERE CalendarID = @CalendarID";
                 var rowsAffected = connection.Execute(sql, new { CalendarID = id });                return rowsAffected > 0;
             }
+        }        // Additional methods for form compatibility
+        public List<SchoolCalendar> GetAllCalendarEvents()
+        {
+            return GetAllCalendarEntries();
         }
 
-        // Additional methods for form compatibility
+        public bool DeleteCalendarEvent(int id)
+        {
+            return DeleteCalendarEntry(id);
+        }
+
         public int Add(SchoolCalendar calendarEntry)
         {
             return AddCalendarEntry(calendarEntry);

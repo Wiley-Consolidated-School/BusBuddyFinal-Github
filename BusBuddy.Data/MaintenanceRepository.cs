@@ -147,12 +147,15 @@ namespace BusBuddy.Data
                 var rowsAffected = connection.Execute(sql, new { MaintenanceID = id });
                 return rowsAffected > 0;
             }
-        }
-
-        // Additional methods for compatibility
+        }        // Additional methods for compatibility
         public List<Maintenance> GetAllMaintenances()
         {
             return GetAllMaintenanceRecords();
+        }
+
+        public bool DeleteMaintenanceRecord(int id)
+        {
+            return DeleteMaintenance(id);
         }
 
         public int Add(Maintenance maintenance)

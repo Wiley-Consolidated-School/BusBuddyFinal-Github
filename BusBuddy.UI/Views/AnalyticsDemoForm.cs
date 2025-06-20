@@ -85,26 +85,40 @@ namespace BusBuddy.UI.Views
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60F));
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
 
-            // Route Efficiency Grid - Enhanced SfDataGrid
+            // Route Efficiency Grid - Enhanced SfDataGrid with specific columns only
             var efficiencyGroup = new GroupBox();
             efficiencyGroup.Text = "📊 Route Efficiency Metrics";
             _routeEfficiencyGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _routeEfficiencyGrid.Dock = DockStyle.Fill;
-            _routeEfficiencyGrid.AutoGenerateColumns = true;
-            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _routeEfficiencyGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _routeEfficiencyGrid.AllowEditing = false;
+
+            // Define only relevant columns for route efficiency
+            _routeEfficiencyGrid.Columns.Add(new GridTextColumn { MappingName = "RouteName", HeaderText = "Route", Width = 120 });
+            _routeEfficiencyGrid.Columns.Add(new GridNumericColumn { MappingName = "EfficiencyScore", HeaderText = "Efficiency (%)", Width = 100 });
+            _routeEfficiencyGrid.Columns.Add(new GridNumericColumn { MappingName = "CostPerRider", HeaderText = "Cost/Rider ($)", Width = 110 });
+            _routeEfficiencyGrid.Columns.Add(new GridNumericColumn { MappingName = "MilesPerRider", HeaderText = "Miles/Rider", Width = 100 });
+            _routeEfficiencyGrid.Columns.Add(new GridNumericColumn { MappingName = "FuelEfficiency", HeaderText = "MPG", Width = 80 });
+
             SyncfusionThemeHelper.SfDataGridEnhancements(_routeEfficiencyGrid);
             efficiencyGroup.Controls.Add(_routeEfficiencyGrid);
             layout.Controls.Add(efficiencyGroup, 0, 0);
 
-            // Optimization Suggestions Grid - Enhanced SfDataGrid
+            // Optimization Suggestions Grid - Enhanced SfDataGrid with specific columns
             var optimizationGroup = new GroupBox();
             optimizationGroup.Text = "🎯 Route Optimization Suggestions";
             _optimizationSuggestionsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _optimizationSuggestionsGrid.Dock = DockStyle.Fill;
-            _optimizationSuggestionsGrid.AutoGenerateColumns = true;
-            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _optimizationSuggestionsGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _optimizationSuggestionsGrid.AllowEditing = false;
+
+            // Define only relevant columns for optimization suggestions
+            _optimizationSuggestionsGrid.Columns.Add(new GridTextColumn { MappingName = "SuggestionType", HeaderText = "Type", Width = 100 });
+            _optimizationSuggestionsGrid.Columns.Add(new GridTextColumn { MappingName = "Description", HeaderText = "Suggestion", Width = 200 });
+            _optimizationSuggestionsGrid.Columns.Add(new GridNumericColumn { MappingName = "PotentialSavings", HeaderText = "Savings ($)", Width = 100 });
+            _optimizationSuggestionsGrid.Columns.Add(new GridTextColumn { MappingName = "Priority", HeaderText = "Priority", Width = 80 });
+            _optimizationSuggestionsGrid.Columns.Add(new GridTextColumn { MappingName = "Implementation", HeaderText = "Implementation", Width = 120 });
+
             SyncfusionThemeHelper.SfDataGridEnhancements(_optimizationSuggestionsGrid);
             optimizationGroup.Controls.Add(_optimizationSuggestionsGrid);
             layout.Controls.Add(optimizationGroup, 0, 1);
@@ -151,38 +165,59 @@ namespace BusBuddy.UI.Views
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
 
-            // Maintenance Predictions - Enhanced SfDataGrid
+            // Maintenance Predictions - Enhanced SfDataGrid with specific columns
             var predictionsGroup = new GroupBox();
             predictionsGroup.Text = "🔧 Maintenance Predictions";
             _maintenancePredictionsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _maintenancePredictionsGrid.Dock = DockStyle.Fill;
-            _maintenancePredictionsGrid.AutoGenerateColumns = true;
-            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _maintenancePredictionsGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _maintenancePredictionsGrid.AllowEditing = false;
+
+            // Define only relevant columns for maintenance predictions
+            _maintenancePredictionsGrid.Columns.Add(new GridNumericColumn { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = 100 });
+            _maintenancePredictionsGrid.Columns.Add(new GridTextColumn { MappingName = "MaintenanceType", HeaderText = "Maintenance Type", Width = 140 });
+            _maintenancePredictionsGrid.Columns.Add(new GridDateTimeColumn { MappingName = "PredictedDate", HeaderText = "Predicted Date", Width = 120 });
+            _maintenancePredictionsGrid.Columns.Add(new GridNumericColumn { MappingName = "HealthScore", HeaderText = "Health Score", Width = 100 });
+            _maintenancePredictionsGrid.Columns.Add(new GridTextColumn { MappingName = "Priority", HeaderText = "Priority", Width = 80 });
+
             SyncfusionThemeHelper.SfDataGridEnhancements(_maintenancePredictionsGrid);
             predictionsGroup.Controls.Add(_maintenancePredictionsGrid);
             layout.Controls.Add(predictionsGroup, 0, 0);
 
-            // Vehicle Health Scores - Enhanced SfDataGrid
+            // Vehicle Health Scores - Enhanced SfDataGrid with specific columns
             var healthGroup = new GroupBox();
             healthGroup.Text = "🚗 Vehicle Health Scores";
             _vehicleHealthGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _vehicleHealthGrid.Dock = DockStyle.Fill;
-            _vehicleHealthGrid.AutoGenerateColumns = true;
-            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _vehicleHealthGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _vehicleHealthGrid.AllowEditing = false;
+
+            // Define only relevant columns for vehicle health
+            _vehicleHealthGrid.Columns.Add(new GridNumericColumn { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = 100 });
+            _vehicleHealthGrid.Columns.Add(new GridTextColumn { MappingName = "Model", HeaderText = "Model", Width = 120 });
+            _vehicleHealthGrid.Columns.Add(new GridNumericColumn { MappingName = "OverallHealthScore", HeaderText = "Health Score", Width = 100 });
+            _vehicleHealthGrid.Columns.Add(new GridNumericColumn { MappingName = "Mileage", HeaderText = "Mileage", Width = 100 });
+            _vehicleHealthGrid.Columns.Add(new GridTextColumn { MappingName = "Status", HeaderText = "Status", Width = 100 });
+
             SyncfusionThemeHelper.SfDataGridEnhancements(_vehicleHealthGrid);
             healthGroup.Controls.Add(_vehicleHealthGrid);
             layout.Controls.Add(healthGroup, 1, 0);
 
-            // Maintenance Alerts - Enhanced SfDataGrid
+            // Maintenance Alerts - Enhanced SfDataGrid with specific columns
             var alertsGroup = new GroupBox();
             alertsGroup.Text = "🚨 Priority Maintenance Alerts";
             _maintenanceAlertsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
             _maintenanceAlertsGrid.Dock = DockStyle.Fill;
-            _maintenanceAlertsGrid.AutoGenerateColumns = true;
-            // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
+            _maintenanceAlertsGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _maintenanceAlertsGrid.AllowEditing = false;
+
+            // Define only relevant columns for maintenance alerts
+            _maintenanceAlertsGrid.Columns.Add(new GridNumericColumn { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = 100 });
+            _maintenanceAlertsGrid.Columns.Add(new GridTextColumn { MappingName = "AlertType", HeaderText = "Alert Type", Width = 120 });
+            _maintenanceAlertsGrid.Columns.Add(new GridTextColumn { MappingName = "Description", HeaderText = "Description", Width = 200 });
+            _maintenanceAlertsGrid.Columns.Add(new GridTextColumn { MappingName = "Severity", HeaderText = "Severity", Width = 80 });
+            _maintenanceAlertsGrid.Columns.Add(new GridDateTimeColumn { MappingName = "DueDate", HeaderText = "Due Date", Width = 100 });
+
             SyncfusionThemeHelper.SfDataGridEnhancements(_maintenanceAlertsGrid);
             alertsGroup.Controls.Add(_maintenanceAlertsGrid);
             layout.Controls.Add(alertsGroup, 0, 1);

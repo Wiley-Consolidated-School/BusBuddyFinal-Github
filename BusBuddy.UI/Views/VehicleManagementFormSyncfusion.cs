@@ -16,294 +16,209 @@ using Syncfusion.Windows.Forms.Tools;
 namespace BusBuddy.UI.Views
 {
     /// <summary>
-    /// Vehicle Management Form - Migrated to Syncfusion from MaterialSkin2
+    /// Vehicle Management Form - Standardized implementation using BaseManagementForm
     /// Form for managing vehicle fleet with grid view and CRUD operations
     /// </summary>
-    public class VehicleManagementFormSyncfusion : SyncfusionBaseForm
-    {        private readonly IVehicleRepository _vehicleRepository;
-        private SfDataGrid? _vehicleGrid;
-        private SfButton? _addButton;
-        private SfButton? _editButton;
-        private SfButton? _deleteButton;
-        private SfButton? _detailsButton;
-        private TextBoxExt? _searchBox;
-        private SfButton? _searchButton;
-        private List<Vehicle> _vehicles;
+    public class VehicleManagementFormSyncfusion : BaseManagementForm<Vehicle>
+    {
+        private readonly IVehicleRepository _vehicleRepository;
 
-        // VehicleManagementForm uses VehicleForm dialog instead of edit panel
+        #region Properties Override
+        protected override string FormTitle => "🚗 Vehicle Management";
+        protected override string SearchPlaceholder => "Search vehicles...";
+        protected override string EntityName => "Vehicle";
+        #endregion
 
+        #region Constructors
         public VehicleManagementFormSyncfusion() : this(new VehicleRepository()) { }
 
         public VehicleManagementFormSyncfusion(IVehicleRepository vehicleRepository)
         {
             _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
-            InitializeComponent();
-            LoadVehicles();
+            LoadData();
         }
+        #endregion
 
-        private void InitializeComponent()
-        {
-            // Set form size to 1200x900, title to "Vehicle Management"
-            this.Text = "🚗 Vehicle Management";
-            this.ClientSize = GetDpiAwareSize(new Size(1200, 900));
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.Sizable;
-            this.MinimumSize = GetDpiAwareSize(new Size(800, 600));
-
-            CreateControls();
-            LayoutControls();
-            SetupEventHandlers();
-
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
-        }
-
-        private void CreateControls()
-        {
-            var buttonSize = GetDpiAwareSize(new Size(100, 35));
-            var buttonY = GetDpiAwareY(20);
-
-            // Create toolbar buttons
-            _addButton = ControlFactory.CreateButton("➕ Add New", buttonSize, (s, e) => AddNewVehicle());
-            _editButton = ControlFactory.CreateButton("✏️ Edit", buttonSize, (s, e) => EditSelectedVehicle());
-            _deleteButton = ControlFactory.CreateButton("🗑️ Delete", buttonSize, (s, e) => DeleteSelectedVehicle());
-            _detailsButton = ControlFactory.CreateButton("👁️ Details", buttonSize, (s, e) => ViewVehicleDetails());
-            _searchButton = ControlFactory.CreateButton("🔍 Search", GetDpiAwareSize(new Size(80, 35)), (s, e) => SearchVehicles());
-
-            // Create search textbox
-            _searchBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Search vehicles...");
-
-            // Configure button positions
-            _addButton.Location = new Point(GetDpiAwareX(20), buttonY);
-
-            _editButton.Location = new Point(GetDpiAwareX(130), buttonY);
-            _editButton.Enabled = false; // Initially disabled
-
-            _deleteButton.Location = new Point(GetDpiAwareX(240), buttonY);
-            _deleteButton.Enabled = false; // Initially disabled
-
-            _detailsButton.Location = new Point(GetDpiAwareX(350), buttonY);
-            _detailsButton.Enabled = false; // Initially disabled
-
-            // Search controls
-            var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
-            searchLabel.Location = new Point(GetDpiAwareX(500), GetDpiAwareY(25));
-            _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
-            _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
-
-            _searchButton.Location = new Point(GetDpiAwareX(710), buttonY);
-
-            // Add buttons to main panel
-            _mainPanel.Controls.Add(_addButton);
-            _mainPanel.Controls.Add(_editButton);
-            _mainPanel.Controls.Add(_deleteButton);
-            _mainPanel.Controls.Add(_detailsButton);
-            _mainPanel.Controls.Add(searchLabel);
-            _mainPanel.Controls.Add(_searchBox);
-            _mainPanel.Controls.Add(_searchButton);            // Create SfDataGrid with ALL enhanced features for 100% implementation
-            _vehicleGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
-            _vehicleGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
-            _vehicleGrid.Size = GetDpiAwareSize(new Size(1150, 800));
-            _vehicleGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-
-            // Apply ALL Syncfusion features for 100% implementation
-            SyncfusionThemeHelper.SfDataGridEnhancements(_vehicleGrid);
-
-            _mainPanel.Controls.Add(_vehicleGrid);
-
-            // Configure grid columns
-            SetupDataGridColumns();
-        }
-
-        private void LayoutControls()
-        {
-            // Layout is handled in CreateControls for this form
-        }
-
-        private void SetupEventHandlers()
-        {
-            if (_vehicleGrid != null)
-            {
-                _vehicleGrid.SelectionChanged += VehicleGrid_SelectionChanged;
-                _vehicleGrid.CellDoubleClick += (s, e) => EditSelectedVehicle();
-            }
-
-            // Handle Enter key in search box
-            if (_searchBox is TextBoxExt searchTb)
-            {
-                searchTb.KeyDown += (s, e) =>
-                {
-                    if (e.KeyCode == Keys.Enter)
-                    {
-                        SearchVehicles();
-                        e.Handled = true;
-                        e.SuppressKeyPress = true;
-                    }
-                };
-            }
-        }
-
-        private void SetupDataGridColumns()
-        {
-            if (_vehicleGrid == null) return;
-
-            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Id", HeaderText = "ID", Visible = false });
-            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = GetDpiAwareWidth(120) });
-            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Make", HeaderText = "Make", Width = GetDpiAwareWidth(130) });
-            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Model", HeaderText = "Model", Width = GetDpiAwareWidth(150) });
-            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Year", HeaderText = "Year", Width = GetDpiAwareWidth(80) });
-            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "Capacity", HeaderText = "Capacity", Width = GetDpiAwareWidth(100) });
-            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "FuelType", HeaderText = "Fuel Type", Width = GetDpiAwareWidth(120) });
-            _vehicleGrid.Columns.Add(new GridNumericColumn() { MappingName = "VIN", HeaderText = "VIN", Width = double.NaN }); // AutoSize
-        }
-
-        private void VehicleGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
-        {
-            bool hasSelection = _vehicleGrid?.SelectedItem != null;
-            if (_editButton != null) _editButton.Enabled = hasSelection;
-            if (_deleteButton != null) _deleteButton.Enabled = hasSelection;
-            if (_detailsButton != null) _detailsButton.Enabled = hasSelection;
-        }
-
-        private void LoadVehicles()
+        #region Base Implementation Override
+        protected override void LoadData()
         {
             try
             {
-                _vehicles = _vehicleRepository.GetAllVehicles();
-                if (_vehicleGrid != null)
+                _entities = _vehicleRepository.GetAllVehicles().ToList();
+                PopulateVehicleGrid();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error loading vehicles: {ex.Message}");
+            }
+        }
+
+        protected override void AddNewEntity()
+        {
+            try
+            {
+                var vehicleForm = new VehicleFormSyncfusion();
+                if (vehicleForm.ShowDialog() == DialogResult.OK)
                 {
-                    _vehicleGrid.DataSource = _vehicles;
+                    RefreshGrid();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading vehicles: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage($"Error adding new vehicle: {ex.Message}");
             }
         }
 
-        private void AddNewVehicle()
+        protected override void EditSelectedEntity()
         {
-            try
+            var selectedVehicle = GetSelectedEntity();
+            if (selectedVehicle == null)
             {
-                using (var vehicleForm = new VehicleFormSyncfusion())
-                {
-                    if (vehicleForm.ShowDialog() == DialogResult.OK)
-                    {
-                        _vehicleRepository.AddVehicle(vehicleForm.Vehicle);
-                        LoadVehicles();
-                        ShowSuccessMessage("Vehicle added successfully.");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error adding vehicle: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void EditSelectedVehicle()
-        {
-            if (_vehicleGrid?.SelectedItem is not Vehicle selectedVehicle)
+                ShowInfoMessage("Please select a vehicle to edit.");
                 return;
+            }
 
             try
             {
-                var vehicle = _vehicleRepository.GetVehicleById(selectedVehicle.Id);
-                if (vehicle == null)
+                var vehicleForm = new VehicleFormSyncfusion(selectedVehicle);
+                if (vehicleForm.ShowDialog() == DialogResult.OK)
                 {
-                    MessageBox.Show("Could not find the selected vehicle.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                using (var vehicleForm = new VehicleFormSyncfusion(vehicle))
-                {
-                    if (vehicleForm.ShowDialog() == DialogResult.OK)
-                    {
-                        _vehicleRepository.UpdateVehicle(vehicleForm.Vehicle);
-                        LoadVehicles();
-                        ShowSuccessMessage("Vehicle updated successfully.");
-                    }
+                    RefreshGrid();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error updating vehicle: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage($"Error editing vehicle: {ex.Message}");
             }
         }
 
-        private void DeleteSelectedVehicle()
+        protected override void DeleteSelectedEntity()
         {
-            if (_vehicleGrid?.SelectedItem is not Vehicle selectedVehicle)
+            var selectedVehicle = GetSelectedEntity();
+            if (selectedVehicle == null)
+            {
+                ShowInfoMessage("Please select a vehicle to delete.");
                 return;
+            }
+
+            if (!ConfirmDelete("vehicle")) return;
 
             try
             {
-                if (ConfirmDelete($"vehicle '{selectedVehicle.VehicleNumber}'"))
-                {
-                    _vehicleRepository.DeleteVehicle(selectedVehicle.Id);
-                    LoadVehicles();
-                    ShowSuccessMessage("Vehicle deleted successfully.");
-                }
+                _vehicleRepository.DeleteVehicle(selectedVehicle.Id);
+                RefreshGrid();
+                ShowInfoMessage("Vehicle deleted successfully.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error deleting vehicle: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage($"Error deleting vehicle: {ex.Message}");
             }
         }
 
-        private void ViewVehicleDetails()
+        protected override void ViewEntityDetails()
         {
-            if (_vehicleGrid?.SelectedItem is not Vehicle vehicle)
+            var selectedVehicle = GetSelectedEntity();
+            if (selectedVehicle == null)
+            {
+                ShowInfoMessage("Please select a vehicle to view details.");
                 return;
+            }
 
             try
             {
                 var details = $"Vehicle Details:\n\n" +
-                              $"Number: {vehicle.VehicleNumber}\n" +
-                              $"Make: {vehicle.Make}\n" +
-                              $"Model: {vehicle.Model}\n" +
-                              $"Year: {vehicle.Year}\n" +
-                              $"Capacity: {vehicle.Capacity}\n" +
-                              $"Fuel Type: {vehicle.FuelType}\n" +
-                              $"VIN: {vehicle.VIN}";
+                            $"ID: {selectedVehicle.Id}\n" +
+                            $"Vehicle Number: {selectedVehicle.VehicleNumber}\n" +
+                            $"Make: {selectedVehicle.Make}\n" +
+                            $"Model: {selectedVehicle.Model}\n" +
+                            $"Year: {selectedVehicle.Year}\n" +
+                            $"Capacity: {selectedVehicle.Capacity}\n" +
+                            $"Fuel Type: {selectedVehicle.FuelType}\n" +
+                            $"Status: {selectedVehicle.Status}";
 
-                MessageBox.Show(details, "Vehicle Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowInfoMessage(details, "Vehicle Details");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error viewing vehicle details: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage($"Error viewing vehicle details: {ex.Message}");
             }
         }
 
-        private void SearchVehicles()
+        protected override void SearchEntities()
         {
-            if (_searchBox is not TextBoxExt searchBox) return;
+            if (_searchBox?.Text == null) return;
 
             try
             {
-                string searchTerm = searchBox.Text?.Trim().ToLower() ?? "";
-                if (string.IsNullOrEmpty(searchTerm))
+                var searchTerm = _searchBox.Text.Trim();
+
+                if (string.IsNullOrEmpty(searchTerm) || searchTerm == SearchPlaceholder)
                 {
-                    _vehicleGrid.DataSource = _vehicles;
+                    LoadData();
                     return;
                 }
 
-                List<Vehicle> filtered = _vehicles.FindAll(v =>
-                    (v.VehicleNumber?.ToLower().Contains(searchTerm) == true) ||
-                    (v.Make?.ToLower().Contains(searchTerm) == true) ||
-                    (v.Model?.ToLower().Contains(searchTerm) == true) ||
-                    (v.FuelType?.ToLower().Contains(searchTerm) == true) ||
-                    (v.VIN?.ToLower().Contains(searchTerm) == true)
-                );
+                var filteredVehicles = _entities.Where(v =>
+                    (v.VehicleNumber?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+                    (v.Make?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+                    (v.Model?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+                    (v.Status?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
+                ).ToList();
 
-                if(_vehicleGrid != null)
-                {
-                    _vehicleGrid.DataSource = filtered;
-                }
+                _entities = filteredVehicles;
+                PopulateVehicleGrid();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error searching vehicles: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage($"Error searching vehicles: {ex.Message}");
             }
         }
+
+        protected override void SetupDataGridColumns()
+        {
+            if (_dataGrid == null) return;
+
+            _dataGrid.AutoGenerateColumns = false;
+            _dataGrid.Columns.Clear();
+
+            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "Id", HeaderText = "ID", Visible = false });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = GetDpiAwareWidth(120) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Make", HeaderText = "Make", Width = GetDpiAwareWidth(130) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Model", HeaderText = "Model", Width = GetDpiAwareWidth(150) });
+            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "Year", HeaderText = "Year", Width = GetDpiAwareWidth(80) });
+            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "Capacity", HeaderText = "Capacity", Width = GetDpiAwareWidth(100) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "FuelType", HeaderText = "Fuel Type", Width = GetDpiAwareWidth(120) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Status", HeaderText = "Status", Width = GetDpiAwareWidth(100) });
+
+            Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
+        }
+        #endregion
+
+        #region Helper Methods
+        private void PopulateVehicleGrid()
+        {
+            if (_dataGrid == null) return;
+
+            try
+            {
+                var vehicleData = _entities.Select(v => new
+                {
+                    Id = v.Id,
+                    VehicleNumber = v.VehicleNumber ?? "Unknown",
+                    Make = v.Make ?? "Unknown",
+                    Model = v.Model ?? "Unknown",
+                    Year = v.Year,
+                    Capacity = v.Capacity,
+                    FuelType = v.FuelType ?? "Unknown",
+                    Status = v.Status ?? "Unknown"
+                }).ToList();
+
+                _dataGrid.DataSource = vehicleData;
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error populating vehicle grid: {ex.Message}");
+            }        }
+        #endregion
     }
 }
