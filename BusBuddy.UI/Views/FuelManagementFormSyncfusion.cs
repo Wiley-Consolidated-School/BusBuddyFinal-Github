@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
@@ -15,6 +16,7 @@ using System.IO;
 
 namespace BusBuddy.UI.Views
 {
+    [SupportedOSPlatform("windows")]
     public partial class FuelManagementFormSyncfusion : Form
     {
         private readonly FuelRepository _fuelRepository;

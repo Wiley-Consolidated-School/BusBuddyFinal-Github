@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BusBuddy.Models;
 using BusBuddy.Data;
 
-namespace BusBuddy.TimeCard.Services
+namespace BusBuddy.TimeCard.Services.Services
 {
     /// <summary>
     /// Service for validating time card entries

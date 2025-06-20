@@ -6,7 +6,6 @@ using Moq;
 using BusBuddy.UI.Views;
 using BusBuddy.UI.Services;
 using BusBuddy.Business;
-using BusBuddy.DependencyInjection;
 
 namespace BusBuddy.Tests.UI
 {

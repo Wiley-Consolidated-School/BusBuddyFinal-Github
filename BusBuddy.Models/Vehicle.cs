@@ -4,11 +4,10 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 namespace BusBuddy.Models
-{
-    public class Vehicle
+{    public class Vehicle
     {
-        public int Id { get; set; }
-        public int VehicleID { get { return Id; } set { Id = value; } } // For backward compatibility
+        public int VehicleID { get; set; } // Primary key as it exists in database
+        public int Id { get { return VehicleID; } set { VehicleID = value; } } // For backward compatibility
         public string? VehicleNumber { get; set; }
 
         // BusNumber is mapped from database but we don't want it to override VehicleNumber

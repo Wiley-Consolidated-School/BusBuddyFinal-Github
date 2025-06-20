@@ -39,7 +39,7 @@ function Write-StatusMessage {
     Write-Host "[$([DateTime]::Now.ToString('HH:mm:ss'))] $Message" -ForegroundColor $color
 }
 
-function Set-SfDataGridSetup {
+function Update-SfDataGridSetup {
     param([string]$FilePath)
 
     if (-not (Test-Path $FilePath)) {
@@ -48,7 +48,6 @@ function Set-SfDataGridSetup {
     }
 
     $content = Get-Content $FilePath -Raw
-    $originalContent = $content
     $modified = $false
 
     # Pattern 1: Basic SfDataGrid creation
@@ -180,7 +179,7 @@ function Main {
 
         $fullPath = Join-Path $PWD $formPath
 
-        if (Set-SfDataGridSetup -FilePath $fullPath) {
+        if (Update-SfDataGridSetup -FilePath $fullPath) {
             $enhancedCount++
         }
 

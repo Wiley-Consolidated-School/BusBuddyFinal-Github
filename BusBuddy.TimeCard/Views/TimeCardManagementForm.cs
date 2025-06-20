@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.TimeCard.Services;
+using BusBuddy.TimeCard.Services.Services;
 using BusBuddy.TimeCard.Utilities;
+using BusBuddy.TimeCard.Utilities.Utilities;
 // MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
 namespace BusBuddy.TimeCard.Views
@@ -17,6 +20,7 @@ namespace BusBuddy.TimeCard.Views
     /// TimeCard Management Form providing comprehensive time tracking with complex clock scheme
     /// Supports normal work hours, route-specific hours, and weekly/monthly summaries
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public class TimeCardManagementForm : Form
     {
         private readonly ITimeCardRepository _timeCardRepository;

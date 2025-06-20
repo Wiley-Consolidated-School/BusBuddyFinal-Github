@@ -126,7 +126,7 @@ namespace BusBuddy.UI.Views
             _activityScheduleGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
             // Apply BusBuddy standards and enhanced theming
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_activityScheduleGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_activityScheduleGrid);
 
             _mainPanel.Controls.Add(_activityScheduleGrid);
 

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.TimeCard.Services;
+using BusBuddy.TimeCard.Services.Services;
 using BusBuddy.TimeCard.Utilities;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
@@ -26,6 +28,7 @@ namespace BusBuddy.TimeCard.Views
     /// FEATURES: Summaries, Search, Validation, Editing, ContextMenu, Paging,
     /// Virtualization, Grouping, RowOperations, ColumnOperations, Export
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public class TimeCardManagementFormSyncfusion : SyncfusionBaseForm
     {
         private readonly ITimeCardRepository _timeCardRepository;

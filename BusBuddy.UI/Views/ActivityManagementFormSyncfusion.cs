@@ -116,10 +116,10 @@ namespace BusBuddy.UI.Views
             _activityGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
             // Apply BusBuddy standards and enhanced theming
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_activityGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_activityGrid);
 
             // Apply ALL Syncfusion features for 100% implementation
-            SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_activityGrid, "ActivityManagement");
+            SyncfusionThemeHelper.SfDataGridEnhancements(_activityGrid);
 
             _mainPanel.Controls.Add(_activityGrid);
 
@@ -195,7 +195,7 @@ namespace BusBuddy.UI.Views
                 "Notes", "📝 Notes"));
 
             // Configure enhanced SfDataGrid behavior with advanced features
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureReadOnlyView(_activityGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_activityGrid);
         }
 
         private void LoadActivities()

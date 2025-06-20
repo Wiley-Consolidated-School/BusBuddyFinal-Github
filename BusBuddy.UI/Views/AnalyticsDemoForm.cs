@@ -93,7 +93,7 @@ namespace BusBuddy.UI.Views
             _routeEfficiencyGrid.AutoGenerateColumns = true;
             // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
             _routeEfficiencyGrid.AllowEditing = false;
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_routeEfficiencyGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_routeEfficiencyGrid);
             efficiencyGroup.Controls.Add(_routeEfficiencyGrid);
             layout.Controls.Add(efficiencyGroup, 0, 0);
 
@@ -105,7 +105,7 @@ namespace BusBuddy.UI.Views
             _optimizationSuggestionsGrid.AutoGenerateColumns = true;
             // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
             _optimizationSuggestionsGrid.AllowEditing = false;
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_optimizationSuggestionsGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_optimizationSuggestionsGrid);
             optimizationGroup.Controls.Add(_optimizationSuggestionsGrid);
             layout.Controls.Add(optimizationGroup, 0, 1);
 
@@ -159,7 +159,7 @@ namespace BusBuddy.UI.Views
             _maintenancePredictionsGrid.AutoGenerateColumns = true;
             // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
             _maintenancePredictionsGrid.AllowEditing = false;
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_maintenancePredictionsGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_maintenancePredictionsGrid);
             predictionsGroup.Controls.Add(_maintenancePredictionsGrid);
             layout.Controls.Add(predictionsGroup, 0, 0);
 
@@ -171,7 +171,7 @@ namespace BusBuddy.UI.Views
             _vehicleHealthGrid.AutoGenerateColumns = true;
             // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
             _vehicleHealthGrid.AllowEditing = false;
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_vehicleHealthGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_vehicleHealthGrid);
             healthGroup.Controls.Add(_vehicleHealthGrid);
             layout.Controls.Add(healthGroup, 1, 0);
 
@@ -183,7 +183,7 @@ namespace BusBuddy.UI.Views
             _maintenanceAlertsGrid.AutoGenerateColumns = true;
             // Enhanced by ApplyAllFeaturesToGrid - will override manual settings
             _maintenanceAlertsGrid.AllowEditing = false;
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_maintenanceAlertsGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_maintenanceAlertsGrid);
             alertsGroup.Controls.Add(_maintenanceAlertsGrid);
             layout.Controls.Add(alertsGroup, 0, 1);
             layout.SetColumnSpan(alertsGroup, 2);
@@ -435,7 +435,7 @@ Period: {summary.PeriodStart:yyyy-MM-dd} to {summary.PeriodEnd:yyyy-MM-dd}
         private void ValidateTimeCard_Click(object? sender, EventArgs e)
         {
             // Create a demo time card with issues
-            var demoTimeCard = new TimeCard
+            var demoTimeCard = new Models.TimeCard
             {
                 Date = DateTime.Now,
                 DriverId = 1,

@@ -115,7 +115,7 @@ namespace BusBuddy.UI.Views
             _driverGrid.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
 
             // Apply ALL Syncfusion features for 100% implementation
-            SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_driverGrid, "DriverManagementForm");
+            SyncfusionThemeHelper.SfDataGridEnhancements(_driverGrid);
 
             // Setup grid columns manually
             SetupGridColumns();

@@ -2,15 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows.Forms;
 using BusBuddy.Models;
 // MaterialSkin.Controls removed - using standard controls with Syncfusion theming
 
-namespace BusBuddy.TimeCard.Utilities
+namespace BusBuddy.TimeCard.Utilities.Utilities
 {
     /// <summary>
     /// Dialog for displaying time entry warnings
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public static class TimeEntryWarningDialog
     {
         /// <summary>

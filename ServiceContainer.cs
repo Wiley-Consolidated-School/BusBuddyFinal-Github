@@ -1,3 +1,4 @@
+// filepath: c:\Users\steve.mckitrick\Desktop\BusBuddy\BusBuddy.DependencyInjection\ServiceContainer.cs
 using Microsoft.Extensions.DependencyInjection;
 using BusBuddy.Data;
 using BusBuddy.UI.Services;
@@ -17,7 +18,7 @@ namespace BusBuddy.DependencyInjection
         {
             _services.AddScoped<BusBuddyContext>();
             _services.AddScoped<INavigationService, NavigationService>();
-            _services.AddScoped<IDatabaseHelperService, DatabaseHelperService>();
+            _services.AddScoped<BusBuddy.UI.Services.IDatabaseHelperService, BusBuddy.UI.Services.DatabaseHelperService>();
             _services.AddSingleton<IFormFactory>(this);
             _serviceProvider = _services.BuildServiceProvider();
         }
@@ -77,30 +78,6 @@ namespace BusBuddy.DependencyInjection
                     property.SetValue(form, service);
                 }
             }
-        }
-    }
-
-    public static class ServiceContainerInstance
-    {
-        private static ServiceContainer? _instance;
-
-        public static ServiceContainer Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new ServiceContainer();
-                    _instance.ConfigureServices();
-                }
-                return _instance;
-            }
-        }
-
-        public static void Reset()
-        {
-            _instance?.Dispose();
-            _instance = null;
         }
     }
 }

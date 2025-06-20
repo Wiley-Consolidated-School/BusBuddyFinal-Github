@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Versioning;
 using System.Windows.Forms;
 using BusBuddy.TimeCard.Views;
 using BusBuddy.Data;
@@ -9,6 +10,7 @@ namespace BusBuddy.TimeCard
     /// Entry point for the TimeCard module
     /// Provides static methods to launch TimeCard functionality
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public static class TimeCardModule
     {
         /// <summary>

@@ -36,7 +36,7 @@ namespace BusBuddy.Data
         public DbSet<Maintenance> Maintenances { get; set; } = null!;
         public DbSet<SchoolCalendar> SchoolCalendars { get; set; } = null!;
         public DbSet<PTOBalance> PTOBalances { get; set; } = null!;
-        public DbSet<TimeCard> TimeCards { get; set; } = null!;        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public DbSet<Models.TimeCard> TimeCards { get; set; } = null!;        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
@@ -88,7 +88,7 @@ namespace BusBuddy.Data
             modelBuilder.Entity<Fuel>().ToTable("Fuel"); // Use singular table name
 
             // Configure primary keys for entities that don't follow default naming conventions
-            modelBuilder.Entity<Vehicle>().HasKey(v => v.Id);
+            modelBuilder.Entity<Vehicle>().HasKey(v => v.VehicleID);
             modelBuilder.Entity<Driver>().HasKey(d => d.DriverID);
             modelBuilder.Entity<ActivitySchedule>().HasKey(a => a.ScheduleID);
             modelBuilder.Entity<Fuel>().HasKey(f => f.FuelID);
@@ -97,7 +97,7 @@ namespace BusBuddy.Data
             modelBuilder.Entity<SchoolCalendar>().HasKey(s => s.CalendarID);
             modelBuilder.Entity<Route>().HasKey(r => r.RouteID);
             modelBuilder.Entity<Activity>().HasKey(a => a.ActivityID);
-            modelBuilder.Entity<TimeCard>().HasKey(t => t.TimeCardId);            // Configure Vehicle entity mappings
+            modelBuilder.Entity<Models.TimeCard>().HasKey(t => t.TimeCardId);            // Configure Vehicle entity mappings
             modelBuilder.Entity<Vehicle>()
                 .Property(v => v.Capacity)
                 .HasColumnName("SeatingCapacity");
@@ -112,7 +112,7 @@ namespace BusBuddy.Data
                 .Ignore(v => v.SeatingCapacity);
 
             modelBuilder.Entity<Vehicle>()
-                .Ignore(v => v.VehicleID);
+                .Ignore(v => v.Id);
 
             // Map the BusNumber property - it's stored separately but can fall back to VehicleNumber
             modelBuilder.Entity<Vehicle>()
@@ -126,24 +126,24 @@ namespace BusBuddy.Data
                 .HasForeignKey(f => f.VehicleFueledID);
 
             // Configure TimeCard entity
-            modelBuilder.Entity<TimeCard>()
+            modelBuilder.Entity<Models.TimeCard>()
                 .ToTable("TimeCards");
 
-            modelBuilder.Entity<TimeCard>()
+            modelBuilder.Entity<Models.TimeCard>()
                 .HasOne(tc => tc.Driver)
                 .WithMany()
                 .HasForeignKey(tc => tc.DriverId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<TimeCard>()
+            modelBuilder.Entity<Models.TimeCard>()
                 .Property(tc => tc.TotalTime)
                 .HasPrecision(18, 2);
 
-            modelBuilder.Entity<TimeCard>()
+            modelBuilder.Entity<Models.TimeCard>()
                 .Property(tc => tc.Overtime)
                 .HasPrecision(18, 2);
 
-            modelBuilder.Entity<TimeCard>()
+            modelBuilder.Entity<Models.TimeCard>()
                 .Property(tc => tc.PTOHours)
                 .HasPrecision(18, 2);
 

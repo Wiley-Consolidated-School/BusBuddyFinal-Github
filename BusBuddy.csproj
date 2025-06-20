@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">  <PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
@@ -7,81 +8,68 @@
     <AssemblyName>BusBuddy</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604;CS0436;CS8602;CS8625;CS8601;CS8600</NoWarn>
     <StartupObject>BusBuddy.Program</StartupObject>
-
-    <!-- Copyright and Intellectual Property Information -->
-    <!-- Note: Assembly attributes are defined in Properties/AssemblyInfo.cs -->
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-
-    <!-- Assembly Information -->
-    <AssemblyTitle>BusBuddy</AssemblyTitle>
-    <AssemblyConfiguration></AssemblyConfiguration>
-    <AssemblyCompany>Steve McKitrick</AssemblyCompany>
-    <AssemblyProduct>BusBuddy School Bus Management System</AssemblyProduct>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Authors>Steve McKitrick</Authors>
+    <Description>School Bus Management System - Developed independently by Steve McKitrick using personal funds and open source technologies. NOT the property of Wiley School District.</Description>
+    <Version>1.0.0.0</Version>
     <FileVersion>1.0.0.0</FileVersion>
-    <AssemblyInformationalVersion>1.0.0</AssemblyInformationalVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <Copyright>Copyright © 2025 Steve McKitrick. All rights reserved.</Copyright>
+    <Company>Steve McKitrick</Company>
+    <Product>BusBuddy</Product>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="BusBuddy.Tests\**" />
-    <Compile Remove="BusBuddy.Data\**" />
-    <Compile Remove="BusBuddy.Models\**" />
-    <Compile Remove="BusBuddy.Business\**" />
-    <Compile Remove="BusBuddy.UI\**" />
-    <EmbeddedResource Remove="BusBuddy.Tests\**" />
-    <EmbeddedResource Remove="BusBuddy.Data\**" />
-    <EmbeddedResource Remove="BusBuddy.Models\**" />
-    <EmbeddedResource Remove="BusBuddy.Business\**" />
-    <EmbeddedResource Remove="BusBuddy.UI\**" />
-    <None Remove="BusBuddy.Tests\**" />
-    <None Remove="BusBuddy.Data\**" />
-    <None Remove="BusBuddy.Models\**" />
-    <None Remove="BusBuddy.Business\**" />
-    <None Remove="BusBuddy.UI\**" />
-  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
 
   <ItemGroup>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>  </ItemGroup>
-
-  <ItemGroup>
+    </None>
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="BusBuddyDarkTheme.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>  <ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="BusBuddy.Models\BusBuddy.Models.csproj" />
     <ProjectReference Include="BusBuddy.Data\BusBuddy.Data.csproj" />
     <ProjectReference Include="BusBuddy.Business\BusBuddy.Business.csproj" />
     <ProjectReference Include="BusBuddy.UI\BusBuddy.UI.csproj" />
-    <ProjectReference Include="BusBuddy.UI\BusBuddy.UI.csproj" />
     <ProjectReference Include="BusBuddy.TimeCard\BusBuddy.TimeCard.csproj" />
+    <!-- Note: BusBuddy.Tests is intentionally excluded from main project references -->
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.1.66" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+    <!-- Exclude ALL test files from main project compilation -->
+    <Compile Remove="BusBuddy.Tests\**\*.cs" />
+    <Compile Remove="**\*Test*.cs" />
+    <Compile Remove="**\*Tests.cs" />
+    <None Include="BusBuddy.Tests\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Core .NET packages -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
-    <PackageReference Include="Svg" Version="3.4.7" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.6" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
-    <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
+
+    <!-- Syncfusion community packages -->
+    <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Tools.Windows" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Grid.Windows" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Licensing" Version="29.2.10" />
   </ItemGroup>
 
 </Project>

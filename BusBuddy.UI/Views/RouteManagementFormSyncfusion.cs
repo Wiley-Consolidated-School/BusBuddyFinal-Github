@@ -135,10 +135,10 @@ namespace BusBuddy.UI.Views
             _routeGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
             // Apply BusBuddy standards and enhanced theming
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_routeGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_routeGrid);
 
             // Apply ALL Syncfusion features for 100% implementation
-            SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_routeGrid, "RouteManagement");
+            SyncfusionThemeHelper.SfDataGridEnhancements(_routeGrid);
 
             _mainPanel.Controls.Add(_routeGrid);
 

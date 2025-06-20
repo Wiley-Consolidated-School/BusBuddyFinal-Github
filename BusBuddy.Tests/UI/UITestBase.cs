@@ -18,7 +18,7 @@ namespace BusBuddy.Tests.UI
     {
         protected BusBuddyDashboardSyncfusion? _dashboard;
         protected Mock<INavigationService> _mockNavigationService;
-        protected Mock<IDatabaseHelperService> _mockDatabaseService;
+        protected Mock<BusBuddy.UI.Services.IDatabaseHelperService> _mockDatabaseService;
 
         protected UITestBase()
         {
@@ -27,7 +27,7 @@ namespace BusBuddy.Tests.UI
 
             // Create mocks
             _mockNavigationService = new Mock<INavigationService>();
-            _mockDatabaseService = new Mock<IDatabaseHelperService>();
+            _mockDatabaseService = new Mock<BusBuddy.UI.Services.IDatabaseHelperService>();
         }        protected BusBuddyDashboardSyncfusion CreateDashboardSafely()
         {
             try

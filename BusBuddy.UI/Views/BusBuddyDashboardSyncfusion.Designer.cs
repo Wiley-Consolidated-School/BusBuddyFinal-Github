@@ -7,9 +7,6 @@ namespace BusBuddy.UI.Views
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        // Track disposal state for test validation
-        private bool _disposed = false;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -20,61 +17,29 @@ namespace BusBuddy.UI.Views
             {
                 components.Dispose();
             }
-            _disposed = true;
             base.Dispose(disposing);
         }
 
-        /// <summary>
-        /// Helper method to check if disposed (for tests)
-        /// </summary>
-        private void ThrowIfDisposed()
-        {
-            if (_disposed)
-            {
-                throw new System.ObjectDisposedException(GetType().Name);
-            }
-        }
-          /// <summary>
-        /// Override property access to check disposal state
-        /// </summary>
-        public new string Text
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return base.Text;
-            }
-            set
-            {
-                ThrowIfDisposed();
-                base.Text = value;
-            }
-        }
+        #region Windows Form Designer generated code
 
         /// <summary>
-        /// Override Show method to check disposal state
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
-        public new void Show()
+        private void InitializeComponent()
         {
-            ThrowIfDisposed();
-            base.Show();
+            this.SuspendLayout();
+            //
+            // BusBuddyDashboardSyncfusion
+            //
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(800, 600);
+            this.Name = "BusBuddyDashboardSyncfusion";
+            this.Text = "BusBuddy Dashboard";
+            this.ResumeLayout(false);
         }
 
-        /// <summary>
-        /// Override other commonly accessed properties
-        /// </summary>
-        public new Size Size
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return base.Size;
-            }
-            set
-            {
-                ThrowIfDisposed();
-                base.Size = value;
-            }
-        }
+        #endregion
     }
 }

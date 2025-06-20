@@ -175,14 +175,14 @@ namespace BusBuddy.UI.Views
             _maintenanceGrid.Columns.Clear();
 
             // Add columns with DPI-aware widths using Syncfusion SfDataGrid columns
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("MaintenanceID", "ID", GetDpiAwareWidth(60), false));
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("MaintenanceID", "ID", GetDpiAwareWidth(60)));
             _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateDateTimeColumn("Date", "Date", GetDpiAwareWidth(100)));
             _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Vehicle", "Vehicle", GetDpiAwareWidth(120)));
             _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateNumericColumn("Odometer", "Odometer", GetDpiAwareWidth(100)));
             _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Category", "Category", GetDpiAwareWidth(120)));
             _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Vendor", "Vendor", GetDpiAwareWidth(150)));
             _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateCurrencyTextColumn("Cost", "Cost", GetDpiAwareWidth(100)));
-            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateTextColumn("Description", "Description", double.NaN)); // AutoSize
+            _maintenanceGrid.Columns.Add(SyncfusionThemeHelper.SfDataGridColumns.CreateAutoSizeColumn("Description", "Description"));
         }
 
         private void InitializeEditPanel()

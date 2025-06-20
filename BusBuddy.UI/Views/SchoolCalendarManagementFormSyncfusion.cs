@@ -140,7 +140,7 @@ namespace BusBuddy.UI.Views
             _calendarGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
             // Apply BusBuddy standards and enhanced theming
-            SyncfusionThemeHelper.SfDataGridEnhancements.ConfigureBusBuddyStandards(_calendarGrid);
+            SyncfusionThemeHelper.SfDataGridEnhancements(_calendarGrid);
 
             _mainPanel.Controls.Add(_calendarGrid);
 

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Configuration;
 using Syncfusion.Licensing;
 
 namespace BusBuddy.UI.Helpers
@@ -37,7 +38,8 @@ namespace BusBuddy.UI.Helpers
         public static void InitializeLicense()
         {
             try
-            {                Console.WriteLine("🔑 Initializing Syncfusion license...");
+            {
+                Console.WriteLine("🔑 Initializing Syncfusion license...");
 
                 // Try to load license from environment variable first, then file
                 string licenseKey = LoadLicenseKey();
@@ -70,14 +72,23 @@ namespace BusBuddy.UI.Helpers
                     Console.WriteLine($"❌ Fallback license registration failed: {fallbackEx.Message}");
                 }
             }
-        }        /// <summary>
+        }
+        /// <summary>
         /// Load license key from environment variable or configuration file
         /// </summary>
         private static string LoadLicenseKey()
         {
             try
             {
-                // First, try to load from environment variable
+                // First, try to load from App.config
+                string configLicense = System.Configuration.ConfigurationManager.AppSettings["SyncfusionLicenseKey"];
+                if (!string.IsNullOrEmpty(configLicense) && IsValidLicenseKey(configLicense))
+                {
+                    Console.WriteLine("🔧 Loading license from App.config");
+                    return configLicense;
+                }
+
+                // Second, try to load from environment variable
                 string envLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY");
                 if (!string.IsNullOrEmpty(envLicense) && IsValidLicenseKey(envLicense))
                 {
@@ -85,7 +96,7 @@ namespace BusBuddy.UI.Helpers
                     return envLicense;
                 }
 
-                // If environment variable not found, try configuration files
+                // Finally, try configuration files
                 return LoadLicenseFromFile();
             }
             catch (Exception ex)

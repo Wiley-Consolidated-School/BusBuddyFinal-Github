@@ -32,7 +32,7 @@ namespace BusBuddy.UI.Services
             RegisterSingleton<IActivityScheduleRepository>(() => new ActivityScheduleRepository());
             RegisterSingleton<ISchoolCalendarRepository>(() => new SchoolCalendarRepository());            // Register services
             RegisterSingleton<IVehicleService>(() => (IVehicleService)new VehicleService(GetService<IVehicleRepository>()));
-            RegisterSingleton<IDatabaseHelperService>(() => (IDatabaseHelperService)new DatabaseHelperService());
+            RegisterSingleton<IDatabaseHelperService>(() => (IDatabaseHelperService)new BusBuddy.Business.DatabaseHelperService());
 
             // Register form factory
             RegisterSingleton<IFormFactory>(() => this);

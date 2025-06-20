@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using BusBuddy.Models;
+using TimeCardModel = BusBuddy.Models.TimeCard;
 
 namespace BusBuddy.Data
 {
@@ -19,61 +20,61 @@ namespace BusBuddy.Data
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<IEnumerable<TimeCard>> GetAllAsync()
+        public async Task<IEnumerable<Models.TimeCard>> GetAllAsync()
         {
-            return await _context.Set<TimeCard>()
+            return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
                 .OrderByDescending(tc => tc.Date)
                 .ToListAsync();
         }
 
-        public async Task<TimeCard> GetByIdAsync(int id)
+        public async Task<Models.TimeCard> GetByIdAsync(int id)
         {
-            return await _context.Set<TimeCard>()
+            return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
                 .FirstOrDefaultAsync(tc => tc.TimeCardId == id);
         }
 
-        public async Task<IEnumerable<TimeCard>> GetByDriverIdAsync(int driverId)
+        public async Task<IEnumerable<Models.TimeCard>> GetByDriverIdAsync(int driverId)
         {
-            return await _context.Set<TimeCard>()
+            return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
                 .Where(tc => tc.DriverId == driverId)
                 .OrderByDescending(tc => tc.Date)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<TimeCard>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
+        public async Task<IEnumerable<Models.TimeCard>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
-            return await _context.Set<TimeCard>()
+            return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
                 .Where(tc => tc.Date >= startDate && tc.Date <= endDate)
                 .OrderBy(tc => tc.Date)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<TimeCard>> GetWeeklyTimeCardsAsync(DateTime weekStartDate)
+        public async Task<IEnumerable<Models.TimeCard>> GetWeeklyTimeCardsAsync(DateTime weekStartDate)
         {
             var weekEndDate = weekStartDate.AddDays(6);
             return await GetByDateRangeAsync(weekStartDate, weekEndDate);
         }
 
-        public async Task<IEnumerable<TimeCard>> GetMonthlyTimeCardsAsync(int year, int month)
+        public async Task<IEnumerable<Models.TimeCard>> GetMonthlyTimeCardsAsync(int year, int month)
         {
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
             return await GetByDateRangeAsync(startDate, endDate);
         }
 
-        public async Task<TimeCard> AddAsync(TimeCard timeCard)
+        public async Task<Models.TimeCard> AddAsync(Models.TimeCard timeCard)
         {
             timeCard.CreatedDate = DateTime.Now;
             timeCard.CalculateTotalHours();
 
-            _context.Set<TimeCard>().Add(timeCard);
+            _context.Set<BusBuddy.Models.TimeCard>().Add(timeCard);
             await _context.SaveChangesAsync();
             return timeCard;
-        }        public async Task<TimeCard> UpdateAsync(TimeCard timeCard)
+        }        public async Task<Models.TimeCard> UpdateAsync(Models.TimeCard timeCard)
         {
             timeCard.ModifiedDate = DateTime.Now;
             timeCard.CalculateTotalHours();
@@ -85,18 +86,18 @@ namespace BusBuddy.Data
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var timeCard = await _context.Set<TimeCard>().FindAsync(id);
+            var timeCard = await _context.Set<BusBuddy.Models.TimeCard>().FindAsync(id);
             if (timeCard == null)
                 return false;
 
-            _context.Set<TimeCard>().Remove(timeCard);
+            _context.Set<BusBuddy.Models.TimeCard>().Remove(timeCard);
             await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> ExistsAsync(int id)
         {
-            return await _context.Set<TimeCard>().AnyAsync(tc => tc.TimeCardId == id);
+            return await _context.Set<BusBuddy.Models.TimeCard>().AnyAsync(tc => tc.TimeCardId == id);
         }
 
         public async Task<double> GetWeeklyTotalHoursAsync(int driverId, DateTime weekStartDate)
@@ -134,13 +135,13 @@ namespace BusBuddy.Data
         /// <summary>
         /// Get time cards for a specific driver and week starting on Monday
         /// </summary>
-        public async Task<IEnumerable<TimeCard>> GetWeeklyTimeCardsForDriverAsync(int driverId, DateTime weekDate)
+        public async Task<IEnumerable<BusBuddy.Models.TimeCard>> GetWeeklyTimeCardsForDriverAsync(int driverId, DateTime weekDate)
         {
             // Ensure we start on Monday
             var monday = weekDate.AddDays(-(int)weekDate.DayOfWeek + 1);
             var sunday = monday.AddDays(6);
 
-            return await _context.Set<TimeCard>()
+            return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
                 .Where(tc => tc.DriverId == driverId &&
                            tc.Date >= monday &&
@@ -152,12 +153,12 @@ namespace BusBuddy.Data
         /// <summary>
         /// Get time cards for a specific driver and month (1st to last day)
         /// </summary>
-        public async Task<IEnumerable<TimeCard>> GetMonthlyTimeCardsForDriverAsync(int driverId, int year, int month)
+        public async Task<IEnumerable<BusBuddy.Models.TimeCard>> GetMonthlyTimeCardsForDriverAsync(int driverId, int year, int month)
         {
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
-            return await _context.Set<TimeCard>()
+            return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
                 .Where(tc => tc.DriverId == driverId &&
                            tc.Date >= startDate &&

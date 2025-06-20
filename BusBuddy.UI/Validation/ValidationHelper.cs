@@ -55,7 +55,7 @@ namespace BusBuddy.UI.Validation
                 Text = errorMessage,
                 Dock = DockStyle.Fill,
                 ForeColor = SyncfusionThemeHelper.DarkTheme.Error,
-                Font = SyncfusionThemeHelper.Typography.GetBodyMedium(errorDialog),
+                Font = SyncfusionThemeHelper.Typography.GetBodyMedium(),
                 Padding = new Padding(16)
             };            var okButton = new Button
             {
@@ -129,7 +129,7 @@ namespace BusBuddy.UI.Validation
                 Text = message,
                 Dock = DockStyle.Fill,
                 ForeColor = SyncfusionThemeHelper.DarkTheme.Success,
-                Font = SyncfusionThemeHelper.Typography.GetBodyMedium(successDialog),
+                Font = SyncfusionThemeHelper.Typography.GetBodyMedium(),
                 Padding = new Padding(16)
             };            var okButton = new Button
             {

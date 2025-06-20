@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.Versioning;
 using System.Windows.Forms;
 using BusBuddy.Business;
 using BusBuddy.UI.Helpers;
@@ -15,6 +16,7 @@ namespace BusBuddy.UI.Base
     /// Native Syncfusion base form using SfButton, SfTextBox, SfComboBox, and AutoLabel
     /// Provides standardized MaterialLight UI with proper theming and DPI support
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public class SyncfusionBaseForm : Form
     {
         protected readonly ErrorProvider _errorProvider;

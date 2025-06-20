@@ -106,7 +106,7 @@ namespace BusBuddy.UI.Views
             _vehicleGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
             // Apply ALL Syncfusion features for 100% implementation
-            SyncfusionThemeHelper.SfDataGridEnhancements.ApplyAllFeaturesToGrid(_vehicleGrid, "VehicleManagement");
+            SyncfusionThemeHelper.SfDataGridEnhancements(_vehicleGrid);
 
             _mainPanel.Controls.Add(_vehicleGrid);
 
