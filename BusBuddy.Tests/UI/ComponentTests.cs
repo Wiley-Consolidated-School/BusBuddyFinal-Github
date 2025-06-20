@@ -9,32 +9,56 @@ namespace BusBuddy.Tests.UI
 {
     [Collection("UI Tests")]
     public class ComponentTests : UITestBase
-    {
-
-        [UITestFact]
+    {        [UITestFact]
         public void Dashboard_ShouldHaveHeaderPanel()
         {
-            // Arrange & Act
-            _dashboard = CreateDashboardSafely();
+            var testStartTime = DateTime.Now;
+            Console.WriteLine("🧪 TEST START: Dashboard_ShouldHaveHeaderPanel");
 
-            // Assert
-            var headerPanel = FindControlByName(_dashboard, "HeaderPanel");
-            Assert.NotNull(headerPanel);
-            Assert.True(headerPanel.Height > 0);
-        }
+            try
+            {
+                // Arrange & Act
+                _dashboard = CreateDashboardSafely();
 
-        [UITestFact]
+                // Assert
+                var headerPanel = FindControlByName(_dashboard, "HeaderPanel");
+                Assert.NotNull(headerPanel);
+                Assert.True(headerPanel.Height > 0);
+
+                var elapsed = (DateTime.Now - testStartTime).TotalMilliseconds;
+                Console.WriteLine($"✅ TEST SUCCESS: Dashboard_ShouldHaveHeaderPanel completed in {elapsed:F0}ms");
+            }
+            catch (Exception ex)
+            {
+                var elapsed = (DateTime.Now - testStartTime).TotalMilliseconds;
+                Console.WriteLine($"❌ TEST FAILED: Dashboard_ShouldHaveHeaderPanel failed after {elapsed:F0}ms: {ex.Message}");
+                throw;
+            }
+        }        [UITestFact]
         public void Dashboard_ShouldHaveQuickActionsFlowPanel()
         {
-            // Arrange
-            _dashboard = CreateDashboardSafely();
+            var testStartTime = DateTime.Now;
+            Console.WriteLine("🧪 TEST START: Dashboard_ShouldHaveQuickActionsFlowPanel");
 
-            // Act
+            try
+            {
+                // Arrange
+                _dashboard = CreateDashboardSafely();
 
-// Assert
-            var flowPanel = FindControlByName(_dashboard, "QuickActionsFlowPanel");
-            Assert.NotNull(flowPanel);
-            Assert.True(flowPanel is FlowLayoutPanel);
+                // Act & Assert
+                var flowPanel = FindControlByName(_dashboard, "QuickActionsFlowPanel");
+                Assert.NotNull(flowPanel);
+                Assert.True(flowPanel is FlowLayoutPanel);
+
+                var elapsed = (DateTime.Now - testStartTime).TotalMilliseconds;
+                Console.WriteLine($"✅ TEST SUCCESS: Dashboard_ShouldHaveQuickActionsFlowPanel completed in {elapsed:F0}ms");
+            }
+            catch (Exception ex)
+            {
+                var elapsed = (DateTime.Now - testStartTime).TotalMilliseconds;
+                Console.WriteLine($"❌ TEST FAILED: Dashboard_ShouldHaveQuickActionsFlowPanel failed after {elapsed:F0}ms: {ex.Message}");
+                throw;
+            }
         }
 
         [UITestFact]

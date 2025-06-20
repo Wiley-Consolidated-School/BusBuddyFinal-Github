@@ -402,14 +402,31 @@ namespace BusBuddy.UI.Helpers
 
             try
             {
+                // Enhanced grid configuration for optimal user experience
                 grid.AutoSizeColumnsMode = Syncfusion.WinForms.DataGrid.Enums.AutoSizeColumnsMode.Fill;
                 grid.AllowSorting = true;
                 grid.AllowFiltering = true;
+                grid.AllowGrouping = true;
+                grid.ShowGroupDropArea = true;
 
+                // Enable tooltip support for better UX
+                grid.ShowToolTip = true;
+
+                // Enhanced selection styling
                 if (grid.Style?.SelectionStyle != null)
                 {
                     grid.Style.SelectionStyle.BackColor = MaterialTheme.IsDarkMode ? DarkTheme.Secondary : MaterialColors.Secondary;
+                    grid.Style.SelectionStyle.TextColor = Color.White;
                 }
+
+                // Enhanced header styling
+                if (grid.Style?.HeaderStyle != null)
+                {
+                    grid.Style.HeaderStyle.BackColor = MaterialTheme.IsDarkMode ? DarkTheme.Primary : MaterialColors.Primary;
+                    grid.Style.HeaderStyle.TextColor = Color.White;
+                }
+
+                Console.WriteLine("✨ Enhanced SfDataGrid configuration applied");
             }
             catch (Exception ex)
             {

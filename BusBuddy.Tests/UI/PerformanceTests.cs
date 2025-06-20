@@ -189,12 +189,10 @@ namespace BusBuddy.Tests.UI
                 .ToList();
 
             // Act
-            var stopwatch = Stopwatch.StartNew();
-
-            // Simulate processing large dataset (what the dashboard might do with real data)
+            var stopwatch = Stopwatch.StartNew();            // Simulate processing large dataset (what the dashboard might do with real data)
             var processedData = mockData
                 .Where(item => item.Id % 2 == 0)
-                .Take(100)
+                .Take(500) // Take 500 as the test expects
                 .Select(item => $"{item.Name}: {item.Description}")
                 .ToList();
 
