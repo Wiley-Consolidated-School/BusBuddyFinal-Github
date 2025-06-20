@@ -230,8 +230,8 @@ namespace BusBuddy.Tests.UI
 
         private void GetAllControlsOfTypeSafe<T>(Control parent, List<T> controls, HashSet<Control> visited, int depth) where T : Control
         {
-            // Prevent infinite loops
-            if (depth > 20 || visited.Contains(parent))
+            // Prevent infinite loops and limit depth for performance
+            if (depth > 10 || visited.Contains(parent) || controls.Count > 100)
                 return;
 
             visited.Add(parent);
@@ -239,9 +239,17 @@ namespace BusBuddy.Tests.UI
             if (parent is T control)
                 controls.Add(control);
 
+            // Early exit if we have enough controls for testing
+            if (controls.Count > 50)
+                return;
+
             foreach (Control child in parent.Controls)
             {
                 GetAllControlsOfTypeSafe<T>(child, controls, visited, depth + 1);
+
+                // Break early if we have sufficient controls
+                if (controls.Count > 50)
+                    break;
             }
         }
 

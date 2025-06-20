@@ -86,7 +86,7 @@ namespace BusBuddy.UI.Services
 
         public void ShowReportsManagement()
         {
-            Console.WriteLine("INFO: Reports Management functionality will be implemented soon.");
+            ShowFormDialog<AnalyticsDemoFormSyncfusion>(); // Use Analytics as comprehensive reports
         }        public void ShowSchoolCalendarManagement()
         {
             ShowFormDialog<SchoolCalendarManagementFormSyncfusion>();
@@ -97,13 +97,12 @@ namespace BusBuddy.UI.Services
 
         public void ShowAnalyticsDemo()
         {
-            // TODO: Implement AnalyticsDemoForm
-            Console.WriteLine("INFO: Analytics demo will be implemented soon.");
+            ShowFormDialog<AnalyticsDemoFormSyncfusion>();
         }
 
         public void ShowReports()
         {
-            Console.WriteLine("INFO: Reports functionality will be implemented soon.");
+            ShowFormDialog<AnalyticsDemoFormSyncfusion>(); // Use Analytics as reports for now
         }
 
         public DialogResult ShowDialog<T>() where T : Form

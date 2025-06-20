@@ -1130,8 +1130,8 @@ namespace BusBuddy.UI.Views
                     {
                         try
                         {
-                            // Use console output instead of MessageBox for tests
                             Console.WriteLine($"{capturedButtonText} navigation triggered");
+                            NavigateToForm(capturedButtonText);
                         }
                         catch (Exception ex)
                         {
@@ -1187,6 +1187,37 @@ namespace BusBuddy.UI.Views
                         ForeColor = Color.White,
                         FlatStyle = FlatStyle.Flat,
                         Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 9)
+                    };
+
+                    // Add click handler for action cards
+                    var capturedCardText = cardText;
+                    cardButton.Click += (s, e) =>
+                    {
+                        try
+                        {
+                            switch (capturedCardText)
+                            {
+                                case "Vehicle Management":
+                                    NavigateToForm("Vehicles");
+                                    break;
+                                case "Driver Management":
+                                    NavigateToForm("Drivers");
+                                    break;
+                                case "Route Planning":
+                                    NavigateToForm("Routes");
+                                    break;
+                                case "Maintenance":
+                                    NavigateToForm("Maintenance");
+                                    break;
+                                case "Reports":
+                                    NavigateToForm("Reports");
+                                    break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Action card navigation error: {ex.Message}");
+                        }
                     };
 
                     actionCard.Controls.Add(cardLabel);
@@ -1320,6 +1351,54 @@ namespace BusBuddy.UI.Views
             {
                 Console.WriteLine($"Error during form closing: {ex.Message}");
                 // Don't prevent closing even if there's an error
+            }
+        }
+
+        /// <summary>
+        /// Navigate to the appropriate form based on the button text
+        /// </summary>
+        private void NavigateToForm(string formName)
+        {
+            try
+            {
+                switch (formName)
+                {
+                    case "Vehicles":
+                        _navigationService.ShowVehicleManagement();
+                        break;
+                    case "Drivers":
+                        _navigationService.ShowDriverManagement();
+                        break;
+                    case "Routes":
+                        _navigationService.ShowRouteManagement();
+                        break;
+                    case "Maintenance":
+                        _navigationService.ShowMaintenanceManagement();
+                        break;
+                    case "Fuel Management":
+                        _navigationService.ShowFuelManagement();
+                        break;
+                    case "Activities":
+                        _navigationService.ShowActivityManagement();
+                        break;
+                    case "Schedules":
+                        _navigationService.ShowActivityScheduleManagement();
+                        break;
+                    case "School Calendar":
+                        _navigationService.ShowSchoolCalendarManagement();
+                        break;
+                    case "Reports":
+                        _navigationService.ShowReports();
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown form: {formName}");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error navigating to {formName}: {ex.Message}");
+                MessageBox.Show($"Unable to open {formName}. Error: {ex.Message}", "Navigation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

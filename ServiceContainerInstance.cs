@@ -36,14 +36,17 @@ namespace BusBuddy.DependencyInjection
         /// </summary>
         private void ConfigureServices(ServiceCollection services)
         {
-            // Register EF Core DbContext
+            // Register EF Core DbContext - ONLY ONCE to avoid configuration conflicts
             var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString
                 ?? "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;";
 
             services.AddDbContext<BusBuddyContext>(options =>
-                options.UseSqlServer(connectionString));
+            {
+                options.UseSqlServer(connectionString);
+            }, ServiceLifetime.Scoped);
 
             // Register services
+            services.AddSingleton<BusBuddy.UI.Services.IFormFactory, BusBuddy.UI.Services.ServiceContainer>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddScoped<BusBuddy.Business.IDatabaseHelperService, BusBuddy.Business.DatabaseHelperService>();
             services.AddScoped<BusBuddy.UI.Services.IDatabaseHelperService, BusBuddy.UI.Services.DatabaseHelperService>();
