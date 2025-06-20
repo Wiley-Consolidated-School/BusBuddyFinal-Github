@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="BusBuddy.UI\BusBuddy.UI.csproj" />
+    <ProjectReference Include="BusBuddy.Data\BusBuddy.Data.csproj" />
+    <ProjectReference Include="BusBuddy.Models\BusBuddy.Models.csproj" />
+    <ProjectReference Include="BusBuddy.Business\BusBuddy.Business.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="Syncfusion.Chart.Windows" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Gauge.Windows" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Shared.Base" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Tools.Windows" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Core.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.SfInput.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.SfListView.WinForms" Version="29.2.10" />
+  </ItemGroup>
+
+</Project>

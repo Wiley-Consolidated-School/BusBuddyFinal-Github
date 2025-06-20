@@ -48,12 +48,14 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _entities = _fuelRepository.GetAllFuelRecords().ToList();
+                var fuelRecords = _fuelRepository.GetAllFuelRecords();
+                _entities = fuelRecords?.ToList() ?? new List<Fuel>();
                 PopulateFuelGrid();
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error loading fuels: {ex.Message}");
+                _entities = new List<Fuel>(); // Ensure _entities is never null
             }
         }
 
@@ -162,6 +164,13 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
+                // Ensure _entities is not null before performing LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<Fuel>();
+                    return;
+                }
+
                 var filteredFuels = _entities.Where(f =>
                     (f.FuelLocation?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (f.FuelType?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
@@ -231,6 +240,12 @@ namespace BusBuddy.UI.Views
 
             try
             {
+                // Ensure _entities is not null before performing LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<Fuel>();
+                }
+
                 var fuelData = _entities.Select(f => new
                 {
                     FuelID = f.FuelID,

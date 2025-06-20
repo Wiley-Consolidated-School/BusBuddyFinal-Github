@@ -53,7 +53,13 @@ namespace BusBuddy.UI.Views
                 Console.WriteLine("🔍 ENHANCED SCAN: Loading forms from configuration...");
                 var configurations = LoadFormConfigurations();
 
-                foreach (var config in configurations.Where(c => c.IsEnabled))
+                if (configurations == null)
+                {
+                    Console.WriteLine("❌ LoadFormConfigurations returned null");
+                    return cachedForms;
+                }
+
+                foreach (var config in configurations.Where(c => c != null && c.IsEnabled))
                 {
                     var formInfo = new FormInfo
                     {
@@ -88,8 +94,14 @@ namespace BusBuddy.UI.Views
         {
             try
             {
+                if (forms == null)
+                {
+                    Console.WriteLine("❌ Cannot save null forms to cache");
+                    return;
+                }
+
                 // Save only essential data to reduce file size and memory usage
-                var minimalForms = forms.Select(f => new {
+                var minimalForms = forms.Where(f => f != null).Select(f => new {
                     f.Name,
                     f.DisplayName,
                     f.NavigationMethod
@@ -111,17 +123,25 @@ namespace BusBuddy.UI.Views
         /// </summary>
         private static List<FormConfiguration> LoadFormConfigurations()
         {
-            return new List<FormConfiguration>
+            try
             {
-                new FormConfiguration { Name = "VehicleManagementFormSyncfusion", DisplayName = "🚗 Vehicle Management", Description = "Manage vehicle fleet", NavigationMethod = "ShowVehicleManagement", SortOrder = 1 },
-                new FormConfiguration { Name = "DriverManagementFormSyncfusion", DisplayName = "👤 Driver Management", Description = "Manage drivers", NavigationMethod = "ShowDriverManagement", SortOrder = 2 },
-                new FormConfiguration { Name = "RouteManagementFormSyncfusion", DisplayName = "🚌 Route Management", Description = "Manage routes", NavigationMethod = "ShowRouteManagement", SortOrder = 3 },
-                new FormConfiguration { Name = "ActivityManagementFormSyncfusion", DisplayName = "🎯 Activity Management", Description = "Manage activities", NavigationMethod = "ShowActivityManagement", SortOrder = 4 },
-                new FormConfiguration { Name = "FuelManagementFormSyncfusion", DisplayName = "⛽ Fuel Management", Description = "Manage fuel records", NavigationMethod = "ShowFuelManagement", SortOrder = 5 },
-                new FormConfiguration { Name = "MaintenanceManagementFormSyncfusion", DisplayName = "🔧 Maintenance Management", Description = "Manage maintenance records", NavigationMethod = "ShowMaintenanceManagement", SortOrder = 6 },
-                new FormConfiguration { Name = "SchoolCalendarManagementFormSyncfusion", DisplayName = "📅 School Calendar", Description = "Manage school calendar", NavigationMethod = "ShowSchoolCalendarManagement", SortOrder = 7 },
-                new FormConfiguration { Name = "ActivityScheduleManagementFormSyncfusion", DisplayName = "📋 Activity Schedule", Description = "Manage activity schedules", NavigationMethod = "ShowActivityScheduleManagement", SortOrder = 8 }
-            };
+                return new List<FormConfiguration>
+                {
+                    new FormConfiguration { Name = "VehicleManagementFormSyncfusion", DisplayName = "🚗 Vehicle Management", Description = "Manage vehicle fleet", NavigationMethod = "ShowVehicleManagement", SortOrder = 1 },
+                    new FormConfiguration { Name = "DriverManagementFormSyncfusion", DisplayName = "👤 Driver Management", Description = "Manage drivers", NavigationMethod = "ShowDriverManagement", SortOrder = 2 },
+                    new FormConfiguration { Name = "RouteManagementFormSyncfusion", DisplayName = "🚌 Route Management", Description = "Manage routes", NavigationMethod = "ShowRouteManagement", SortOrder = 3 },
+                    new FormConfiguration { Name = "ActivityManagementFormSyncfusion", DisplayName = "🎯 Activity Management", Description = "Manage activities", NavigationMethod = "ShowActivityManagement", SortOrder = 4 },
+                    new FormConfiguration { Name = "FuelManagementFormSyncfusion", DisplayName = "⛽ Fuel Management", Description = "Manage fuel records", NavigationMethod = "ShowFuelManagement", SortOrder = 5 },
+                    new FormConfiguration { Name = "MaintenanceManagementFormSyncfusion", DisplayName = "🔧 Maintenance Management", Description = "Manage maintenance records", NavigationMethod = "ShowMaintenanceManagement", SortOrder = 6 },
+                    new FormConfiguration { Name = "SchoolCalendarManagementFormSyncfusion", DisplayName = "📅 School Calendar", Description = "Manage school calendar", NavigationMethod = "ShowSchoolCalendarManagement", SortOrder = 7 },
+                    new FormConfiguration { Name = "ActivityScheduleManagementFormSyncfusion", DisplayName = "📋 Activity Schedule", Description = "Manage activity schedules", NavigationMethod = "ShowActivityScheduleManagement", SortOrder = 8 }
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error creating form configurations: {ex.Message}");
+                return new List<FormConfiguration>(); // Return empty list instead of null
+            }
         }
 
         /// <summary>

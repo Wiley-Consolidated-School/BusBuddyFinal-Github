@@ -7,8 +7,11 @@ using BusBuddy.Models;
 using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Services;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
+using Syncfusion.WinForms.Input;
+using Syncfusion.WinForms.Input.Events;
 
 namespace BusBuddy.UI.Views
 {
@@ -19,6 +22,11 @@ namespace BusBuddy.UI.Views
     public class SchoolCalendarManagementFormSyncfusion : BaseManagementForm<SchoolCalendar>
     {
         private readonly ISchoolCalendarRepository _schoolCalendarRepository;
+
+        // Additional Syncfusion Calendar Control
+        private SfCalendar? _sfCalendar;
+        private Panel? _calendarPanel;
+        private Splitter? _splitter;
 
         #region Properties Override
         protected override string FormTitle => "📅 School Calendar Management";
@@ -32,6 +40,8 @@ namespace BusBuddy.UI.Views
         public SchoolCalendarManagementFormSyncfusion(ISchoolCalendarRepository schoolCalendarRepository)
         {
             _schoolCalendarRepository = schoolCalendarRepository ?? throw new ArgumentNullException(nameof(schoolCalendarRepository));
+
+            CreateEnhancedCalendarLayout();
             LoadData();
         }
         #endregion
@@ -41,14 +51,182 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _entities = _schoolCalendarRepository.GetAllCalendarEvents().ToList();
+                var calendarEvents = _schoolCalendarRepository.GetAllCalendarEvents();
+                _entities = calendarEvents?.ToList() ?? new List<SchoolCalendar>();
                 PopulateCalendarGrid();
+                UpdateCalendarSpecialDates();
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error loading school calendar events: {ex.Message}");
+                _entities = new List<SchoolCalendar>(); // Ensure _entities is never null
             }
         }
+
+        #region Enhanced Calendar Layout
+        private void CreateEnhancedCalendarLayout()
+        {
+            try
+            {
+                // Create calendar panel
+                _calendarPanel = new Panel
+                {
+                    Width = GetDpiAwareWidth(320),
+                    Dock = DockStyle.Left,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    BackColor = EnhancedThemeService.BackgroundColor
+                };
+
+                // Create SfCalendar
+                _sfCalendar = new SfCalendar
+                {
+                    Location = new Point(10, 10),
+                    Size = GetDpiAwareSize(new Size(300, 300)),
+                    FirstDayOfWeek = DayOfWeek.Monday,
+                    ShowWeekNumbers = true,
+                    AllowMultipleSelection = false
+                };
+
+                // Configure calendar appearance and behavior
+                _sfCalendar.SelectionChanged += SfCalendar_SelectionChanged;
+
+                // Create splitter for resizing
+                _splitter = new Splitter
+                {
+                    Dock = DockStyle.Left,
+                    Width = 4,
+                    BackColor = EnhancedThemeService.HeaderColor
+                };
+
+                // Add calendar to panel
+                _calendarPanel.Controls.Add(_sfCalendar);
+
+                // Add to form before existing controls
+                this.Controls.Add(_splitter);
+                this.Controls.Add(_calendarPanel);
+
+                // Adjust existing grid layout
+                if (_dataGrid != null)
+                {
+                    _dataGrid.Location = new Point(GetDpiAwareX(340), _dataGrid.Location.Y);
+                    _dataGrid.Width = this.ClientSize.Width - GetDpiAwareWidth(350);
+                }
+
+                Console.WriteLine("✅ ENHANCED CALENDAR: SfCalendar integration complete");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error creating enhanced calendar layout: {ex.Message}");
+                // Fallback to standard layout
+            }
+        }
+
+        private void SfCalendar_SelectionChanged(SfCalendar sender, Syncfusion.WinForms.Input.Events.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (e.NewValue.HasValue)
+                {
+                    var selectedDate = e.NewValue.Value.Date;
+                    FilterEventsByDate(selectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error handling calendar selection: {ex.Message}");
+            }
+        }
+
+        private void FilterEventsByDate(DateTime selectedDate)
+        {
+            try
+            {
+                // Ensure _entities is not null before performing LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<SchoolCalendar>();
+                    return;
+                }
+
+                var dateString = selectedDate.ToString("yyyy-MM-dd");
+                var filteredEvents = _entities.Where(e =>
+                    e.Date == dateString ||
+                    (e.EndDate != null &&
+                     DateTime.TryParse(e.Date, out var startDate) &&
+                     DateTime.TryParse(e.EndDate, out var endDate) &&
+                     selectedDate >= startDate.Date && selectedDate <= endDate.Date)
+                ).ToList();
+
+                var originalEntities = _entities;
+                _entities = filteredEvents;
+                PopulateCalendarGrid();
+
+                // Show message if no events found
+                if (!filteredEvents.Any())
+                {
+                    ShowInfoMessage($"No events scheduled for {selectedDate:MMMM dd, yyyy}");
+                }
+
+                // Restore for future operations
+                _entities = originalEntities;
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error filtering events by date: {ex.Message}");
+            }
+        }
+
+        private void UpdateCalendarSpecialDates()
+        {
+            try
+            {
+                if (_sfCalendar == null) return;
+
+                // Clear existing special dates
+                _sfCalendar.SpecialDates.Clear();
+
+                // Add school calendar events as special dates
+                foreach (var calendarEvent in _entities)
+                {
+                    if (DateTime.TryParse(calendarEvent.Date, out var eventDate))
+                    {
+                        var specialDate = new SpecialDate
+                        {
+                            Value = eventDate,
+                            Description = calendarEvent.Description ?? calendarEvent.Category ?? "Event",
+                            BackColor = GetEventColor(calendarEvent.Category),
+                            ForeColor = Color.White,
+                            Font = EnhancedThemeService.GetSafeFont(8, FontStyle.Bold),
+                            IsDateVisible = true,
+                            TextAlign = ContentAlignment.BottomCenter
+                        };
+
+                        _sfCalendar.SpecialDates.Add(specialDate);
+                    }
+                }
+
+                Console.WriteLine($"✅ CALENDAR EVENTS: Added {_sfCalendar.SpecialDates.Count} special dates");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error updating calendar special dates: {ex.Message}");
+            }
+        }
+
+        private Color GetEventColor(string? category)
+        {
+            return category?.ToLower() switch
+            {
+                "holiday" => Color.FromArgb(231, 76, 60),        // Red
+                "school day" => Color.FromArgb(52, 152, 219),    // Blue
+                "thanksgiving break" => Color.FromArgb(230, 126, 34), // Orange
+                "christmas break" => Color.FromArgb(192, 57, 43), // Dark Red
+                "spring break" => Color.FromArgb(46, 204, 113),  // Green
+                "key event" => Color.FromArgb(155, 89, 182),     // Purple
+                _ => Color.FromArgb(149, 165, 166)               // Gray
+            };
+        }
+        #endregion
 
         protected override void AddNewEntity()
         {
@@ -57,7 +235,7 @@ namespace BusBuddy.UI.Views
                 var calendarForm = new SchoolCalendarEditFormSyncfusion();
                 if (calendarForm.ShowDialog() == DialogResult.OK)
                 {
-                    RefreshGrid();
+                    RefreshGridAndCalendar();
                 }
             }
             catch (Exception ex)
@@ -80,7 +258,7 @@ namespace BusBuddy.UI.Views
                 var calendarForm = new SchoolCalendarEditFormSyncfusion(selectedEvent);
                 if (calendarForm.ShowDialog() == DialogResult.OK)
                 {
-                    RefreshGrid();
+                    RefreshGridAndCalendar();
                 }
             }
             catch (Exception ex)
@@ -103,7 +281,7 @@ namespace BusBuddy.UI.Views
             try
             {
                 _schoolCalendarRepository.DeleteCalendarEvent(selectedEvent.CalendarID);
-                RefreshGrid();
+                RefreshGridAndCalendar();
                 ShowInfoMessage("Calendar event deleted successfully.");
             }
             catch (Exception ex)
@@ -156,6 +334,13 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
+                // Ensure _entities is not null before performing LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<SchoolCalendar>();
+                    return;
+                }
+
                 var filteredEvents = _entities.Where(e =>
                     (e.EventName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (e.EventType?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
@@ -193,12 +378,23 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Helper Methods
+        private void RefreshGridAndCalendar()
+        {
+            LoadData(); // This will refresh both grid and calendar
+        }
+
         private void PopulateCalendarGrid()
         {
             if (_dataGrid == null) return;
 
             try
             {
+                // Ensure _entities is not null before performing LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<SchoolCalendar>();
+                }
+
                 var calendarData = _entities.Select(e => new
                 {
                     CalendarID = e.CalendarID,
@@ -212,11 +408,14 @@ namespace BusBuddy.UI.Views
                 }).ToList();
 
                 _dataGrid.DataSource = calendarData;
+
+                Console.WriteLine($"📅 CALENDAR GRID: Populated with {calendarData.Count} events");
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error populating calendar grid: {ex.Message}");
-            }        }
+            }
+        }
         #endregion
     }
 }

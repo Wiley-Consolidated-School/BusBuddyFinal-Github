@@ -1,7 +1,10 @@
 using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using BusBuddy.Business;
 using BusBuddy.Models;
+using BusBuddy.DependencyInjection;
 
 namespace BusBuddy.Tests
 {
@@ -15,10 +18,95 @@ namespace BusBuddy.Tests
         {
             Console.WriteLine("🧪 Validating BusBuddy Cost Analytics...\n");
 
+            // Enhanced debugging information
+            Console.WriteLine("🔍 Debug Information:");
+            Console.WriteLine($"   Current Directory: {Directory.GetCurrentDirectory()}");
+            Console.WriteLine($"   Assembly Location: {System.Reflection.Assembly.GetExecutingAssembly().Location}");
+            Console.WriteLine($"   App Domain: {AppDomain.CurrentDomain.FriendlyName}");
+            Console.WriteLine($"   Thread ID: {Thread.CurrentThread.ManagedThreadId}");
+            Console.WriteLine();
+
+            try
+        {
+            // Check ServiceContainerInstance availability
+            Console.WriteLine("🔧 Checking Service Container...");
+            ServiceContainerInstance? serviceContainer = null;
+
             try
             {
-                // Create service instance
-                var analyticsService = new RouteAnalyticsService();
+                serviceContainer = ServiceContainerInstance.Instance;
+                Console.WriteLine($"✅ ServiceContainerInstance.Instance: {(serviceContainer != null ? "Available" : "NULL")}");
+            }
+            catch (Exception scEx)
+            {
+                Console.WriteLine($"❌ ServiceContainerInstance.Instance failed: {scEx.Message}");
+                Console.WriteLine($"   Exception Type: {scEx.GetType().Name}");
+                Console.WriteLine($"   Stack Trace: {scEx.StackTrace}");
+            }
+
+            // Try to get RouteAnalyticsService
+            RouteAnalyticsService? analyticsService = null;
+
+            if (serviceContainer != null)
+            {
+                try
+                {
+                    Console.WriteLine("🔍 Attempting to get RouteAnalyticsService from container...");
+                    analyticsService = serviceContainer.GetService<RouteAnalyticsService>();
+                    Console.WriteLine($"   Service Retrieved: {(analyticsService != null ? "SUCCESS" : "NULL")}");
+                }
+                catch (Exception getServiceEx)
+                {
+                    Console.WriteLine($"❌ GetService<RouteAnalyticsService> failed: {getServiceEx.Message}");
+                    Console.WriteLine($"   Exception Type: {getServiceEx.GetType().Name}");
+                    Console.WriteLine($"   Stack Trace: {getServiceEx.StackTrace}");
+                }
+            }
+
+            // Fallback: try creating RouteAnalyticsService directly
+            if (analyticsService == null)
+            {
+                Console.WriteLine("⚠️  Analytics service not available from container - attempting direct creation");
+
+                try
+                {
+                    Console.WriteLine("🔍 Creating RouteAnalyticsService directly...");
+                    analyticsService = new RouteAnalyticsService();
+                    Console.WriteLine("✅ Direct creation successful");
+                }
+                catch (Exception createEx)
+                {
+                    Console.WriteLine($"❌ Direct RouteAnalyticsService creation failed: {createEx.Message}");
+                    Console.WriteLine($"   Exception Type: {createEx.GetType().Name}");
+                    Console.WriteLine($"   Inner Exception: {createEx.InnerException?.Message}");
+                    Console.WriteLine($"   Stack Trace: {createEx.StackTrace}");
+
+                    // Check connection string availability
+                    Console.WriteLine("\n🔍 Checking Connection String Configuration...");
+                    try
+                    {
+                        var connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString;
+                        Console.WriteLine($"   DefaultConnection: {(string.IsNullOrEmpty(connectionString) ? "NULL/EMPTY" : "Available")}");
+
+                        // Check App.config existence
+                        var configPath = Path.Combine(Directory.GetCurrentDirectory(), "App.config");
+                        Console.WriteLine($"   App.config exists: {File.Exists(configPath)}");
+
+                        if (File.Exists(configPath))
+                        {
+                            var configContent = File.ReadAllText(configPath);
+                            Console.WriteLine($"   App.config size: {configContent.Length} characters");
+                            Console.WriteLine($"   Contains DefaultConnection: {configContent.Contains("DefaultConnection")}");
+                        }
+                    }
+                    catch (Exception configEx)
+                    {
+                        Console.WriteLine($"   Configuration check failed: {configEx.Message}");
+                    }
+
+                    return; // Exit if we can't create the service
+                }
+            }
 
                 // Test with date range (last 30 days)
                 var endDate = DateTime.Now;

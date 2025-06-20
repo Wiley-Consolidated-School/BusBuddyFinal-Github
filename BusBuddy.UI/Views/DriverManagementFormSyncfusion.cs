@@ -41,12 +41,14 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _entities = _driverRepository.GetAllDrivers().ToList();
+                var drivers = _driverRepository.GetAllDrivers();
+                _entities = drivers?.ToList() ?? new List<Driver>();
                 PopulateDriverGrid();
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error loading drivers: {ex.Message}");
+                _entities = new List<Driver>(); // Ensure _entities is never null
             }
         }
 
@@ -155,6 +157,12 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
+                // Ensure _entities is never null before LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<Driver>();
+                }
+
                 var filteredDrivers = _entities.Where(d =>
                     (d.DriverName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (d.DriverPhone?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
@@ -198,6 +206,12 @@ namespace BusBuddy.UI.Views
 
             try
             {
+                // Ensure _entities is never null
+                if (_entities == null)
+                {
+                    _entities = new List<Driver>();
+                }
+
                 var driverData = _entities.Select(d => new
                 {
                     DriverID = d.DriverID,

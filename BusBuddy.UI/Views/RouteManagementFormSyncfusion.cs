@@ -59,12 +59,14 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _entities = _routeRepository.GetAllRoutes().ToList();
+                var routes = _routeRepository.GetAllRoutes();
+                _entities = routes?.ToList() ?? new List<Route>();
                 PopulateRouteGrid();
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error loading routes: {ex.Message}");
+                _entities = new List<Route>(); // Ensure _entities is never null
             }
         }
 
@@ -175,6 +177,12 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
+                // Ensure _entities is never null before LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<Route>();
+                }
+
                 var filteredRoutes = _entities.Where(r =>
                     (r.RouteName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (GetVehicleName(r.AMVehicleID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
@@ -234,6 +242,12 @@ namespace BusBuddy.UI.Views
 
             try
             {
+                // Ensure _entities is never null
+                if (_entities == null)
+                {
+                    _entities = new List<Route>();
+                }
+
                 var routeData = _entities.Select(r => new
                 {
                     RouteID = r.RouteID,

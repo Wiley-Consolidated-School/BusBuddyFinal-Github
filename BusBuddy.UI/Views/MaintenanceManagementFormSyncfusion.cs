@@ -45,12 +45,14 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _entities = _maintenanceRepository.GetAllMaintenanceRecords().ToList();
+                var maintenanceRecords = _maintenanceRepository.GetAllMaintenanceRecords();
+                _entities = maintenanceRecords?.ToList() ?? new List<Maintenance>();
                 PopulateMaintenanceGrid();
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error loading maintenance records: {ex.Message}");
+                _entities = new List<Maintenance>(); // Ensure _entities is never null
             }
         }
 
@@ -159,6 +161,13 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
+                // Ensure _entities is not null before performing LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<Maintenance>();
+                    return;
+                }
+
                 var filteredMaintenance = _entities.Where(m =>
                     (m.MaintenanceCompleted?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (m.Vendor?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
@@ -212,6 +221,12 @@ namespace BusBuddy.UI.Views
 
             try
             {
+                // Ensure _entities is not null before performing LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<Maintenance>();
+                }
+
                 var maintenanceData = _entities.Select(m => new
                 {
                     MaintenanceID = m.MaintenanceID,

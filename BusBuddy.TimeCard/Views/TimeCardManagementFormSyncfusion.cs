@@ -510,7 +510,8 @@ namespace BusBuddy.TimeCard.Views
         {
             try
             {
-                _drivers = _driverRepository.GetAllDrivers().ToList();
+                var drivers = _driverRepository.GetAllDrivers();
+                _drivers = drivers?.ToList() ?? new List<Driver>();
 
                 // Populate driver filter
                 if (_driverFilter != null)
@@ -528,6 +529,7 @@ namespace BusBuddy.TimeCard.Views
             }
             catch (Exception ex)
             {
+                _drivers = new List<Driver>(); // Ensure _drivers is never null
                 MessageBox.Show($"Error loading drivers: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -574,6 +576,12 @@ namespace BusBuddy.TimeCard.Views
 
         private string GetDriverName(int driverId)
         {
+            // Ensure _drivers is not null before performing LINQ operations
+            if (_drivers == null)
+            {
+                _drivers = new List<Driver>();
+            }
+
             var driver = _drivers.FirstOrDefault(d => d.DriverID == driverId);
             return driver != null ? $"{driver.FirstName} {driver.LastName}" : "Unknown";
         }

@@ -14,6 +14,45 @@
             "justMyCode": true,
             "enableStepFiltering": true,
             "suppressJITOptimizations": true,
+            "logging": {
+                "exceptions": true,
+                "moduleLoad": false,
+                "programOutput": true
+            },
+            "windows": {
+                "console": "integratedTerminal"
+            }
+        },
+        {
+            "name": "🔍 BusBuddy - Enhanced Debug (Null Ref Detection)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build BusBuddy",
+            "program": "${workspaceFolder}/bin/Debug/net8.0-windows/BusBuddy.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "enableStepFiltering": false,
+            "suppressJITOptimizations": true,
+            "requireExactSource": false,
+            "logging": {
+                "exceptions": true,
+                "moduleLoad": true,
+                "programOutput": true,
+                "diagnosticsLog": {
+                    "protocolMessages": true
+                },
+                "trace": true,
+                "traceResponse": true
+            },
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development",
+                "BUSBUDDY_DEBUG": "true",
+                "BUSBUDDY_VERBOSE_LOGGING": "true",
+                "DOTNET_EnableDiagnostics": "1"
+            },
             "windows": {
                 "console": "integratedTerminal"
             }
@@ -29,6 +68,33 @@
             "stopAtEntry": false,
             "console": "integratedTerminal",
             "justMyCode": true,
+            "windows": {
+                "console": "integratedTerminal"
+            }
+        },
+        {
+            "name": "🔬 CostAnalyticsValidator - Detailed Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build BusBuddy",
+            "program": "dotnet",
+            "args": ["run", "--project", "${workspaceFolder}", "--", "validate-analytics"],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "enableStepFiltering": false,
+            "suppressJITOptimizations": true,
+            "logging": {
+                "exceptions": true,
+                "moduleLoad": false,
+                "programOutput": true
+            },
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development",
+                "BUSBUDDY_DEBUG": "true",
+                "BUSBUDDY_VERBOSE_LOGGING": "true"
+            },
             "windows": {
                 "console": "integratedTerminal"
             }

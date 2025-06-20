@@ -44,12 +44,14 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _entities = _vehicleRepository.GetAllVehicles().ToList();
+                var vehicles = _vehicleRepository.GetAllVehicles();
+                _entities = vehicles?.ToList() ?? new List<Vehicle>();
                 PopulateVehicleGrid();
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error loading vehicles: {ex.Message}");
+                _entities = new List<Vehicle>(); // Ensure _entities is never null
             }
         }
 
@@ -158,6 +160,12 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
+                // Ensure _entities is never null before LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<Vehicle>();
+                }
+
                 var filteredVehicles = _entities.Where(v =>
                     (v.VehicleNumber?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (v.Make?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
@@ -201,6 +209,12 @@ namespace BusBuddy.UI.Views
 
             try
             {
+                // Ensure _entities is never null
+                if (_entities == null)
+                {
+                    _entities = new List<Vehicle>();
+                }
+
                 var vehicleData = _entities.Select(v => new
                 {
                     Id = v.Id,

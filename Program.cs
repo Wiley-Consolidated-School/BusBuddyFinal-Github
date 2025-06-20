@@ -14,10 +14,29 @@ namespace BusBuddy
     internal static class Program
     {
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            // Check for special command-line arguments
+            if (args.Length > 0 && args[0] == "validate-analytics")
+            {
+                RunAnalyticsValidationOnly().GetAwaiter().GetResult();
+                return;
+            }
+
             // Debug output will go to VS Code terminal when run with dotnet run
             Console.WriteLine("🚀 BusBuddy starting with debug console...");
+
+            // Enable enhanced multithreaded debugging
+            Console.WriteLine("🔧 Enabling enhanced debugging features...");
+            try
+            {
+                DebugConfig.EnableEnhancedDebugging();
+                Console.WriteLine("✅ Enhanced debugging enabled");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Debug enhancement warning: {ex.Message}");
+            }
 
             // Ensure logs directory exists
             Directory.CreateDirectory("logs");
@@ -167,6 +186,56 @@ namespace BusBuddy
                 }
 
                 Console.WriteLine("✅ Application shutdown complete.");
+            }
+        }
+
+        /// <summary>
+        /// Runs analytics validation only (for debugging purposes)
+        /// </summary>
+        private static async Task RunAnalyticsValidationOnly()
+        {
+            Console.WriteLine("🔬 Running Analytics Validation Only...\n");
+
+            // Ensure logs directory exists
+            Directory.CreateDirectory("logs");
+
+            try
+            {
+                // Initialize minimal services needed for analytics
+                Console.WriteLine("🔧 Initializing minimal service container...");
+                var serviceContainer = ServiceContainerInstance.Instance;
+                Console.WriteLine("✅ Service container initialized");
+
+                // Run analytics validation with enhanced debugging
+                Console.WriteLine("🧪 Starting analytics validation...");
+                await CostAnalyticsValidator.ValidateAnalytics();
+                Console.WriteLine("✅ Analytics validation completed successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Analytics validation failed: {ex.Message}");
+                Console.WriteLine($"📍 Exception Type: {ex.GetType().Name}");
+                Console.WriteLine($"📍 Stack Trace: {ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"📍 Inner Exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"📍 Inner Stack Trace: {ex.InnerException.StackTrace}");
+                }
+
+                LogError("Analytics validation failed in standalone mode", ex);
+            }
+            finally
+            {
+                Console.WriteLine("🧹 Cleaning up...");
+                try
+                {
+                    ServiceContainerInstance.Instance.Reset();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Cleanup error: {ex.Message}");
+                }
             }
         }
 

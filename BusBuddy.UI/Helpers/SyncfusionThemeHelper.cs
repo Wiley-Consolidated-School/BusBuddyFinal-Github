@@ -485,5 +485,14 @@ namespace BusBuddy.UI.Helpers
             // Note: Standard TextBox doesn't have placeholder, but we can simulate with events
             return textBox;
         }
+
+        /// <summary>
+        /// Toggle between light and dark themes
+        /// </summary>
+        public static void ToggleTheme()
+        {
+            CurrentTheme = CurrentTheme == ThemeMode.Light ? ThemeMode.Dark : ThemeMode.Light;
+            Console.WriteLine($"🎨 Theme toggled to: {CurrentTheme}");
+        }
     }
 }

@@ -93,9 +93,8 @@ namespace BusBuddy.Tests.UI
             // Assert - Form-level properties
             Assert.Equal("BusBuddy Dashboard", _dashboard.Text);
             Assert.True(_dashboard.Size.Width >= 800, "Dashboard should have minimum width of 800px");
-            Assert.True(_dashboard.Size.Height >= 600, "Dashboard should have minimum height of 600px");
-            // Form defaults to FormBorderStyle.None, not Sizable
-            Assert.Equal(FormBorderStyle.None, _dashboard.FormBorderStyle);
+            Assert.True(_dashboard.Size.Height >= 600, "Dashboard should have minimum height of 600px");            // Form defaults to FormBorderStyle.Sizable for user interaction
+            Assert.Equal(FormBorderStyle.Sizable, _dashboard.FormBorderStyle);
             Assert.True(_dashboard.ShowInTaskbar, "Dashboard should appear in taskbar");
             Assert.False(_dashboard.TopMost, "Dashboard should not be topmost");
         }

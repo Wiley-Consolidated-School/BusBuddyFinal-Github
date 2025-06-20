@@ -41,12 +41,14 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _entities = _activityRepository.GetAllActivities().ToList();
+                var activities = _activityRepository.GetAllActivities();
+                _entities = activities?.ToList() ?? new List<Activity>();
                 PopulateActivityGrid();
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error loading activities: {ex.Message}");
+                _entities = new List<Activity>(); // Ensure _entities is never null
             }
         }
 
@@ -154,6 +156,12 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
+                // Ensure _entities is never null before LINQ operations
+                if (_entities == null)
+                {
+                    _entities = new List<Activity>();
+                }
+
                 var filteredActivities = _entities.Where(a =>
                     (a.ActivityType?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (a.Destination?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
@@ -195,6 +203,12 @@ namespace BusBuddy.UI.Views
 
             try
             {
+                // Ensure _entities is never null
+                if (_entities == null)
+                {
+                    _entities = new List<Activity>();
+                }
+
                 var activityData = _entities.Select(a => new
                 {
                     ActivityID = a.ActivityID,

@@ -59,7 +59,7 @@ namespace BusBuddy.Tests.EndToEnd
                 _ = _dashboard.Should().NotBeNull("Dashboard should initialize successfully");
 
                 // Verify basic properties are set correctly
-                _ = _dashboard.FormBorderStyle.Should().Be(FormBorderStyle.None, "Dashboard should be borderless for embedding");
+                _ = _dashboard.FormBorderStyle.Should().Be(FormBorderStyle.Sizable, "Dashboard should be sizable for user interaction");
                 _ = _dashboard.WindowState.Should().Be(FormWindowState.Maximized, "Dashboard should maximize for full workspace");
             }
             catch (Exception ex)
