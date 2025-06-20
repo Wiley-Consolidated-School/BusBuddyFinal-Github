@@ -1461,18 +1461,20 @@ namespace BusBuddy.UI.Views
             {
                 Console.WriteLine("🚀 Creating enhanced dashboard layout with DockingManager...");
 
-                // Clear existing controls
+                // Clear existing controls to prevent duplicates
                 this.Controls.Clear();
 
                 // Initialize DockingManager using documented pattern
-                // The constructor requires IContainer, but we need to set HostControl property
-                _dockingManager = new DockingManager(this.components)
+                if (_dockingManager == null)
                 {
-                    HostControl = this,
-                    DockTabAlignment = Syncfusion.Windows.Forms.Tools.DockTabAlignmentStyle.Top,
-                    AllowTabsMoving = true,
-                    ShowDockTabScrollButton = true
-                };
+                    _dockingManager = new DockingManager(this.components)
+                    {
+                        HostControl = this,
+                        DockTabAlignment = Syncfusion.Windows.Forms.Tools.DockTabAlignmentStyle.Top,
+                        AllowTabsMoving = true,
+                        ShowDockTabScrollButton = true
+                    };
+                }
 
                 // CRITICAL FIX: Create and add panels to form BEFORE docking them
                 CreateDashboardPanels();
@@ -1492,7 +1494,7 @@ namespace BusBuddy.UI.Views
 
                 // Create dashboard panels using documented patterns
                 CreateQuickActionsPanel();
-                CreateAnalyticsPanel();
+                CreateAnalyticsDisplayPanel();
                 CreateDataGridPanel();
                 CreateSearchPanel();
                 CreateQuickStatsPanel();
@@ -1509,551 +1511,9 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        /// <summary>
-        /// Create ribbon navigation using official Syncfusion RibbonControlAdv documentation
-        /// Based on: https://help.syncfusion.com/windowsforms/ribbon/getting-started
-        /// </summary>
-        private void CreateRibbonNavigation()
-        {
-            try
-            {
-                Console.WriteLine("🎀 Creating ribbon navigation...");
 
-                // Initialize RibbonControlAdv using documented pattern
-                _ribbonControl = new RibbonControlAdv
-                {
-                    RibbonStyle = Syncfusion.Windows.Forms.Tools.RibbonStyle.Office2016,
-                    MenuButtonText = "File",
-                    Size = new Size(this.Width, 150)
-                };
 
-                // Add ribbon control to form using documented method
-                this.Controls.Add(_ribbonControl);
-
-                // Create tabs using documented AddMainItem method
-                CreateNavigationGroups();
-
-                this.Controls.Add(_ribbonControl);
-
-                Console.WriteLine("✅ Ribbon navigation created successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error creating ribbon navigation: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Create navigation groups in ribbon tabs
-        /// Based on Syncfusion ToolStripTabItem documentation
-        /// </summary>
-        private void CreateNavigationGroups()
-        {
-            try
-            {
-                // Create main navigation tabs using documented pattern
-                var dashboardTab = new ToolStripTabItem
-                {
-                    Text = "Dashboard"
-                };
-
-                var fleetTab = new ToolStripTabItem
-                {
-                    Text = "Fleet Management"
-                };
-
-                var operationsTab = new ToolStripTabItem
-                {
-                    Text = "Operations"
-                };
-
-                var reportsTab = new ToolStripTabItem
-                {
-                    Text = "Reports"
-                };
-
-                // Add tabs to ribbon using documented AddMainItem method
-                _ribbonControl.Header.AddMainItem(dashboardTab);
-                _ribbonControl.Header.AddMainItem(fleetTab);
-                _ribbonControl.Header.AddMainItem(operationsTab);
-                _ribbonControl.Header.AddMainItem(reportsTab);
-
-                // Create dashboard group
-                var dashboardGroup = new ToolStripEx
-                {
-                    Text = "Dashboard Views"
-                };
-
-                // Add dashboard buttons using documented pattern
-                AddRibbonButton(dashboardGroup, "Analytics", "📊", "ShowAnalyticsDemo");
-                AddRibbonButton(dashboardGroup, "Quick Stats", "📈", "ShowReports");
-                dashboardTab.Panel.Controls.Add(dashboardGroup);
-
-                // Create fleet management group
-                var fleetGroup = new ToolStripEx
-                {
-                    Text = "Fleet Management"
-                };
-
-                AddRibbonButton(fleetGroup, "Vehicles", "🚌", "ShowVehicleManagement");
-                AddRibbonButton(fleetGroup, "Drivers", "👨‍✈️", "ShowDriverManagement");
-                AddRibbonButton(fleetGroup, "Routes", "🗺️", "ShowRouteManagement");
-                AddRibbonButton(fleetGroup, "Maintenance", "🔧", "ShowMaintenanceManagement");
-                fleetTab.Panel.Controls.Add(fleetGroup);
-
-                // Create operations group
-                var operationsGroup = new ToolStripEx
-                {
-                    Text = "Daily Operations"
-                };
-
-                AddRibbonButton(operationsGroup, "Activities", "📋", "ShowActivityManagement");
-                AddRibbonButton(operationsGroup, "Fuel", "⛽", "ShowFuelManagement");
-                AddRibbonButton(operationsGroup, "Calendar", "📅", "ShowCalendarManagement");
-                AddRibbonButton(operationsGroup, "TimeCard", "⏰", "ShowTimeCardManagement");
-                operationsTab.Panel.Controls.Add(operationsGroup);
-
-                // Create reports group
-                var reportsGroup = new ToolStripEx
-                {
-                    Text = "Reports & Analytics"
-                };
-
-                AddRibbonButton(reportsGroup, "Reports", "📊", "ShowReportsManagement");
-                AddRibbonButton(reportsGroup, "Schedule", "📋", "ShowScheduleManagement");
-                AddRibbonButton(reportsGroup, "School Calendar", "🏫", "ShowSchoolCalendarManagement");
-                reportsTab.Panel.Controls.Add(reportsGroup);
-
-                Console.WriteLine("✅ Navigation groups created with ribbon buttons");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error creating navigation groups: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Add ribbon button using documented pattern
-        /// </summary>
-        private void AddRibbonButton(ToolStripEx group, string text, string icon, string navigationMethod)
-        {
-            try
-            {
-                var button = new ToolStripButton
-                {
-                    Text = $"{icon} {text}",
-                    DisplayStyle = ToolStripItemDisplayStyle.ImageAndText,
-                    ImageAlign = ContentAlignment.TopCenter,
-                    TextAlign = ContentAlignment.BottomCenter,
-                    Tag = navigationMethod,
-                    Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 9, FontStyle.Regular)
-                };
-
-                button.Click += (s, e) => HandleButtonClick(navigationMethod);
-                group.Items.Add(button);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error adding ribbon button {text}: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Adds a visually distinct contextual tab and custom system buttons to RibbonControlAdv.
-        /// Based on: https://help.syncfusion.com/windowsforms/ribbon/contextual-tab-group (WinForms only supports contextual tab groups via designer, not programmatically)
-        /// </summary>
-        private void ConfigureAdvancedRibbonFeatures()
-        {
-            // Disable ribbon customization window
-            _ribbonControl.EnableRibbonCustomization = false;
-
-            // Add a visually distinct contextual tab (simulate contextual tab group)
-            var contextTab = new ToolStripTabItem { Text = "Selection" };
-            contextTab.BackColor = Color.MediumPurple;
-            contextTab.ForeColor = Color.White;
-            var contextGroup = new ToolStripEx { Text = "Selection Tools" };
-            var contextButton = new ToolStripButton
-            {
-                Text = "Special Action",
-                ToolTipText = "Perform special action",
-                DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
-            };
-            contextButton.Click += (s, e) => MessageBox.Show("Special action performed!");
-            contextGroup.Items.Add(contextButton);
-            contextTab.Panel.Controls.Add(contextGroup);
-            _ribbonControl.Header.AddMainItem(contextTab);
-
-            // Add custom system buttons (minimize, maximize, close)
-            var minimizeButton = new RibbonTitleButton
-            {
-                Image = SystemIcons.Application.ToBitmap(),
-                ToolTipText = "Minimize form",
-                HoverBackColor = Color.LightGreen
-            };
-            var maximizeButton = new RibbonTitleButton
-            {
-                Image = SystemIcons.Information.ToBitmap(),
-                ToolTipText = "Maximize form",
-                HoverBackColor = Color.LightBlue
-            };
-            var closeButton = new RibbonTitleButton
-            {
-                Image = SystemIcons.Error.ToBitmap(),
-                ToolTipText = "Close form",
-                HoverBackColor = Color.LightCoral
-            };
-            _ribbonControl.MinimizeButton = minimizeButton;
-            _ribbonControl.MaximizeButton = maximizeButton;
-            _ribbonControl.CloseButton = closeButton;
-        }
-
-        /// <summary>
-        /// Create quick actions panel as the main dashboard tab
-        /// Based on DockingManager panel documentation
-        /// </summary>
-        private void CreateQuickActionsPanel()
-        {
-            try
-            {
-                Console.WriteLine("⚡ Creating quick actions panel...");
-
-                _quickStatsPanel = new Panel
-                {
-                    Name = "QuickActionsPanel",
-                    BackColor = SyncfusionThemeHelper.CurrentTheme == SyncfusionThemeHelper.ThemeMode.Dark
-                        ? Color.FromArgb(38, 42, 46) : Color.FromArgb(248, 249, 250),
-                    Padding = new Padding(15),
-                    Size = new Size(400, 600)
-                };
-
-                // Create header
-                var headerPanel = new Panel
-                {
-                    Dock = DockStyle.Top,
-                    Height = 60,
-                    BackColor = Color.Transparent
-                };
-
-                var titleLabel = new Label
-                {
-                    Text = "⚡ Quick Actions",
-                    Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 16, FontStyle.Bold),
-                    ForeColor = SyncfusionThemeHelper.CurrentTheme == SyncfusionThemeHelper.ThemeMode.Dark
-                        ? Color.White : Color.FromArgb(33, 37, 41),
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleLeft
-                };
-
-                headerPanel.Controls.Add(titleLabel);
-
-                // Create content area with buttons
-                var contentPanel = new Panel
-                {
-                    Dock = DockStyle.Fill,
-                    BackColor = Color.Transparent,
-                    Padding = new Padding(10)
-                };
-
-                // Create button layout
-                var buttonLayout = new FlowLayoutPanel
-                {
-                    Dock = DockStyle.Fill,
-                    FlowDirection = FlowDirection.TopDown,
-                    WrapContents = false,
-                    AutoScroll = true,
-                    Padding = new Padding(5),
-                    BackColor = Color.Transparent,
-                    AutoSize = true,
-                    AutoSizeMode = AutoSizeMode.GrowAndShrink
-                };
-
-                // Set this as the main form buttons panel for PopulateFormButtons compatibility
-                _formButtonsPanel = buttonLayout;
-
-                // Add quick action buttons using documented SfButton pattern
-                CreateQuickActionButtons(buttonLayout);
-
-                contentPanel.Controls.Add(buttonLayout);
-                _quickStatsPanel.Controls.Add(contentPanel);
-                _quickStatsPanel.Controls.Add(headerPanel);
-
-                // Enable docking using documented method
-                _dockingManager.SetEnableDocking(_quickStatsPanel, true);
-                _dockingManager.SetDockLabel(_quickStatsPanel, "⚡ Quick Actions");
-
-                Console.WriteLine("✅ Quick actions panel created successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error creating quick actions panel: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Create quick action buttons using documented SfButton patterns
-        /// </summary>
-        private void CreateQuickActionButtons(FlowLayoutPanel buttonLayout)
-        {
-            try
-            {
-                var buttonConfigs = new[]
-                {
-                    new { Text = "🚌 Vehicle Management", Action = "ShowVehicleManagement", Color = Color.FromArgb(33, 150, 243) },
-                    new { Text = "👨‍✈️ Driver Management", Action = "ShowDriverManagement", Color = Color.FromArgb(76, 175, 80) },
-                    new { Text = "🗺️ Route Management", Action = "ShowRouteManagement", Color = Color.FromArgb(255, 152, 0) },
-                    new { Text = "🔧 Maintenance", Action = "ShowMaintenanceManagement", Color = Color.FromArgb(244, 67, 54) },
-                    new { Text = "📋 Activities", Action = "ShowActivityManagement", Color = Color.FromArgb(156, 39, 176) },
-                    new { Text = "⛽ Fuel Management", Action = "ShowFuelManagement", Color = Color.FromArgb(96, 125, 139) },
-                    new { Text = "📅 Calendar", Action = "ShowCalendarManagement", Color = Color.FromArgb(255, 193, 7) },
-                    new { Text = "📊 Reports", Action = "ShowReportsManagement", Color = Color.FromArgb(63, 81, 181) }
-                };
-
-                foreach (var config in buttonConfigs)
-                {
-                    var button = new SfButton
-                    {
-                        Text = config.Text,
-                        Size = new Size(360, 45),  // Increased width to fit panel better
-                        Margin = new Padding(8),
-                        Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 10, FontStyle.Regular),
-                        ForeColor = Color.White,
-                        Cursor = Cursors.Hand,
-                        Tag = config.Action,
-                        AutoSize = false,
-                        TextAlign = ContentAlignment.MiddleLeft
-                    };
-
-                    // Apply documented styling
-                    button.Style.BackColor = config.Color;
-                    button.Style.HoverBackColor = ControlPaint.Light(config.Color, 0.2f);
-                    button.Style.PressedBackColor = ControlPaint.Dark(config.Color, 0.1f);
-
-                    button.Click += (s, e) => HandleButtonClick(config.Action);
-                    buttonLayout.Controls.Add(button);
-                }
-
-                Console.WriteLine($"✅ Created {buttonConfigs.Length} quick action buttons in panel with {buttonLayout.Controls.Count} total controls");
-
-                // Force refresh to ensure buttons are visible
-                buttonLayout.Refresh();
-                buttonLayout.PerformLayout();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error creating quick action buttons: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Configure tabbed dashboard layout using documented DockingManager patterns
-        /// Based on: https://help.syncfusion.com/windowsforms/docking-manager/tabbed-window
-        /// </summary>
-        private void ConfigureTabbledDashboardLayout()
-        {
-            try
-            {
-                Console.WriteLine("📋 Configuring tabbed dashboard layout...");
-
-                // Find panels to configure
-                var quickActionsPanel = FindDockingPanel("QuickActionsPanel");
-                var analyticsPanel = FindDockingPanel("AnalyticsPanel");
-                var dataGridPanel = FindDockingPanel("DataGridPanel");
-                var searchPanel = FindDockingPanel("SearchPanel");
-
-                if (quickActionsPanel != null)
-                {
-                    // Enable docking for all dashboard panels using documented Syncfusion pattern
-                    _dockingManager.SetEnableDocking(quickActionsPanel, true);
-                    _dockingManager.SetDockLabel(quickActionsPanel, "⚡ Quick Actions");
-                    _dockingManager.SetEnableDocking(analyticsPanel, true);
-                    _dockingManager.SetDockLabel(analyticsPanel, "📊 Analytics");
-                    _dockingManager.SetEnableDocking(dataGridPanel, true);
-                    _dockingManager.SetDockLabel(dataGridPanel, "🗂️ Data Grid");
-                    _dockingManager.SetEnableDocking(searchPanel, true);
-                    _dockingManager.SetDockLabel(searchPanel, "🔍 Search");
-
-                    // Set main panel as left docked (default open)
-                    _dockingManager.DockControl(quickActionsPanel, this,
-                        Syncfusion.Windows.Forms.Tools.DockingStyle.Left, 400);
-
-                    // Set Quick Actions as active default tab
-                    _dockingManager.ActivateControl(quickActionsPanel);
-
-                    // Tab other panels with quick actions using documented pattern
-                    _dockingManager.DockControl(analyticsPanel, quickActionsPanel,
-                        Syncfusion.Windows.Forms.Tools.DockingStyle.Tabbed, 200);
-                    _dockingManager.DockControl(dataGridPanel, quickActionsPanel,
-                        Syncfusion.Windows.Forms.Tools.DockingStyle.Tabbed, 200);
-                    _dockingManager.DockControl(searchPanel, this,
-                        Syncfusion.Windows.Forms.Tools.DockingStyle.Top, 60);
-                }
-
-                Console.WriteLine("✅ Tabbed dashboard layout configured successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error configuring tabbed layout: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Create search panel using documented patterns
-        /// </summary>
-        private void CreateSearchPanel()
-        {
-            try
-            {
-                Console.WriteLine("🔍 Creating search panel...");
-
-                _searchPanel = new Panel
-                {
-                    Name = "SearchPanel",
-                    BackColor = SyncfusionThemeHelper.CurrentTheme == SyncfusionThemeHelper.ThemeMode.Dark
-                        ? Color.FromArgb(38, 42, 46) : Color.FromArgb(248, 249, 250),
-                    Padding = new Padding(10),
-                    Size = new Size(this.Width, 60)
-                };
-
-                var searchLayout = new TableLayoutPanel
-                {
-                    Dock = DockStyle.Fill,
-                    ColumnCount = 3,
-                    RowCount = 1
-                };
-
-                searchLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-                searchLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-                searchLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-
-                var searchLabel = new Label
-                {
-                    Text = "🔍 Search:",
-                    Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 12, FontStyle.Bold),
-                    TextAlign = ContentAlignment.MiddleLeft,
-                    AutoSize = true
-                };
-
-                _searchBox = new TextBox
-                {
-                    Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 11, FontStyle.Regular),
-                    Dock = DockStyle.Fill,
-                    PlaceholderText = "Search vehicles, drivers, routes..."
-                };
-
-                var searchButton = new SfButton
-                {
-                    Text = "Search",
-                    Size = new Size(80, 30),
-                    Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 10, FontStyle.Regular)
-                };
-
-                searchButton.Style.BackColor = Color.FromArgb(33, 150, 243);
-                searchButton.Click += (s, e) => PerformSearch();
-
-                searchLayout.Controls.Add(searchLabel, 0, 0);
-                searchLayout.Controls.Add(_searchBox, 1, 0);
-                searchLayout.Controls.Add(searchButton, 2, 0);
-
-                _searchPanel.Controls.Add(searchLayout);
-
-                // Enable docking
-                _dockingManager.SetEnableDocking(_searchPanel, true);
-                _dockingManager.SetDockLabel(_searchPanel, "🔍 Search");
-
-                Console.WriteLine("✅ Search panel created successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error creating search panel: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Perform search functionality
-        /// </summary>
-        private void PerformSearch()
-        {
-            try
-            {
-                var searchText = _searchBox?.Text?.Trim();
-                if (!string.IsNullOrEmpty(searchText))
-                {
-                    ShowNotification("Search", $"Searching for: {searchText}");
-                    Console.WriteLine($"🔍 Performing search: {searchText}");
-                }
-                else
-                {
-                    ShowNotification("Search", "Please enter search terms");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error performing search: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Get vehicle data for display in the data grid
-        /// </summary>
-        private List<VehicleDisplayData> GetVehicleDataForDisplay()
-        {
-            try
-            {
-                // Return sample data for now - in production this would query the repository
-                return new List<VehicleDisplayData>
-                {
-                    new VehicleDisplayData { VehicleNumber = "BUS001", Status = "Active", Driver = "John Smith", Route = "Route A" },
-                    new VehicleDisplayData { VehicleNumber = "BUS002", Status = "Maintenance", Driver = "Jane Doe", Route = "Route B" },
-                    new VehicleDisplayData { VehicleNumber = "BUS003", Status = "Active", Driver = "Mike Johnson", Route = "Route C" }
-                };
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting vehicle data: {ex.Message}");
-                return new List<VehicleDisplayData>();
-            }
-        }
-
-        /// <summary>
-        /// Show notification to user
-        /// </summary>
-        private void ShowNotification(string title, string message)
-        {
-            try
-            {
-                if (_notifyIcon != null)
-                {
-                    _notifyIcon.ShowBalloonTip(3000, title, message, ToolTipIcon.Info);
-                }
-                Console.WriteLine($"[{title}] {message}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error showing notification: {ex.Message}");
-            }
-        }
-
-
-
-        #endregion
-
-        #region Helper Classes
-
-        /// <summary>
-        /// Vehicle display data for data grid
-        /// </summary>
-        public class VehicleDisplayData
-        {
-            public string VehicleNumber { get; set; }
-            public string Status { get; set; }
-            public string Driver { get; set; }
-            public string Route { get; set; }
-        }
-
-        /// <summary>
-        /// CRITICAL FIX: Create dashboard panels properly before attempting to dock them
-        /// This method ensures all panels exist and are properly initialized before docking
-        /// </summary>
+        // ...existing code...
         private void CreateDashboardPanels()
         {
             try
@@ -2144,59 +1604,79 @@ namespace BusBuddy.UI.Views
         /// </summary>
         private void CreateQuickStatsContent()
         {
-            var titleLabel = new Label
+            try
             {
-                Text = "⚡ Quick Actions",
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                ForeColor = Color.FromArgb(33, 37, 41),
-                Dock = DockStyle.Top,
-                Height = 40,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(10, 5, 10, 5)
-            };
+                if (_quickStatsPanel != null)
+                {
+                    _quickStatsPanel.Controls.Clear();
 
-            var buttonLayout = new FlowLayoutPanel
+                    var statsLabel = new Label
+                    {
+                        Text = "📊 Quick Statistics",
+                        Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                        Dock = DockStyle.Top,
+                        Height = 30,
+                        TextAlign = ContentAlignment.MiddleLeft
+                    };
+
+                    var statsContent = new Label
+                    {
+                        Text = "• Active Vehicles: 25\n• Available Drivers: 18\n• Routes Today: 12\n• Maintenance Due: 3",
+                        Font = new Font("Segoe UI", 10),
+                        Dock = DockStyle.Fill,
+                        ForeColor = Color.FromArgb(100, 100, 100)
+                    };
+
+                    _quickStatsPanel.Controls.Add(statsLabel);
+                    _quickStatsPanel.Controls.Add(statsContent);
+                }
+
+                Console.WriteLine("✅ Quick stats content created successfully");
+            }
+            catch (Exception ex)
             {
-                Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.TopDown,
-                AutoScroll = true,
-                Padding = new Padding(10)
-            };
-
-            CreateQuickActionButtons(buttonLayout);
-
-            _quickStatsPanel.Controls.Add(buttonLayout);
-            _quickStatsPanel.Controls.Add(titleLabel);
+                Console.WriteLine($"❌ Error creating quick stats content: {ex.Message}");
+            }
         }
 
         /// <summary>
-        /// Create content for the search panel
+        /// Create content for the search panel - prevents duplicate search boxes
         /// </summary>
         private void CreateSearchContent()
         {
-            // Search functionality integrated into Quick Actions panel
-            // Removed duplicate search box to avoid UI confusion
-            var infoLabel = new Label
+            try
             {
-                Text = "🔍 Search integrated with Quick Actions panel",
-                Font = new Font("Segoe UI", 9, FontStyle.Italic),
-                AutoSize = true,
-                Location = new Point(10, 20),
-                ForeColor = Color.Gray
-            };
+                // Clear any existing search content to prevent duplicates
+                if (_searchPanel != null)
+                {
+                    _searchPanel.Controls.Clear();
+                }
 
-            _searchPanel.Controls.Add(infoLabel);
-        }
+                // Create single search box with proper styling
+                _searchBox = new TextBox
+                {
+                    Name = "MainSearchBox",
+                    Dock = DockStyle.Fill,
+                    Font = new Font("Segoe UI", 12),
+                    PlaceholderText = "Search vehicles, drivers, routes...",
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Margin = new Padding(10)
+                };
 
-        /// <summary>
-        /// FIXED: Find a docking panel by name from the form's controls
-        /// </summary>
-        private Panel FindDockingPanel(string panelName)
-        {
-            if (string.IsNullOrEmpty(panelName) || this.Controls == null)
-                return null;
+                // Add search functionality
+                _searchBox.TextChanged += (s, e) => SearchBox_TextChanged(s, e);
 
-            return this.Controls.OfType<Panel>().FirstOrDefault(p => p != null && p.Name == panelName);
+                if (_searchPanel != null)
+                {
+                    _searchPanel.Controls.Add(_searchBox);
+                }
+
+                Console.WriteLine("✅ Search content created successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error creating search content: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -2388,301 +1868,174 @@ namespace BusBuddy.UI.Views
             _dataGridPanel.Controls.Add(_vehicleDataGrid);
         }
 
-        #endregion
-
-        #region Missing Methods Implementation - Based on Syncfusion Documentation
-
         /// <summary>
-        /// Initialize enhanced components for Syncfusion controls
-        /// Based on: https://help.syncfusion.com/windowsforms/overview
+        /// Create ribbon navigation using Syncfusion RibbonControlAdv
+        /// Based on: https://help.syncfusion.com/windowsforms/ribbon/getting-started
         /// </summary>
-        private void InitializeEnhancedComponents()
+        private void CreateRibbonNavigation()
         {
             try
             {
-                Console.WriteLine("🔧 Initializing enhanced Syncfusion components...");
-
-                // Initialize the components container if not already done
-                if (components == null)
+                if (_ribbonControl == null)
                 {
-                    components = new System.ComponentModel.Container();
-                }
-
-                // Apply Syncfusion theme initialization
-                SyncfusionThemeHelper.InitializeGlobalTheme();
-
-                // Pre-initialize key Syncfusion controls to avoid runtime delays
-                if (_dockingManager == null && components != null)
-                {
-                    _dockingManager = new DockingManager(components);
-                }
-
-                Console.WriteLine("✅ Enhanced Syncfusion components initialized successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Error initializing enhanced components: {ex.Message}");
-                // Continue without enhanced components - fallback to basic functionality
-            }
-        }
-
-        /// <summary>
-        /// Form closing event handler for cleanup and resource disposal
-        /// Based on standard WinForms event handling patterns
-        /// </summary>
-        private void BusBuddyDashboardSyncfusion_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            try
-            {
-                Console.WriteLine("🔄 Dashboard form closing - performing cleanup...");
-
-                // Dispose of notification icon if it exists
-                if (_notifyIcon != null)
-                {
-                    _notifyIcon.Visible = false;
-                    _notifyIcon.Dispose();
-                    _notifyIcon = null;
-                }
-
-                // Clean up docking manager
-                if (_dockingManager != null)
-                {
-                    _dockingManager.Dispose();
-                    _dockingManager = null;
-                }
-
-                // Clean up data grids
-                if (_vehicleDataGrid != null)
-                {
-                    _vehicleDataGrid.DataSource = null;
-                    _vehicleDataGrid.Dispose();
-                }
-
-                Console.WriteLine("✅ Dashboard cleanup completed successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Error during form closing cleanup: {ex.Message}");
-                // Continue with normal form closing
-            }
-        }
-
-        /// <summary>
-        /// Create advanced layout for testing and fallback scenarios
-        /// Uses TableLayoutPanel for maximum compatibility
-        /// </summary>
-        private void CreateAdvancedLayoutForTests()
-        {
-            try
-            {
-                Console.WriteLine("🔧 Creating advanced layout for tests...");
-
-                // Clear existing controls
-                this.Controls.Clear();
-
-                // Create main table layout
-                _mainTableLayout = new TableLayoutPanel
-                {
-                    Dock = DockStyle.Fill,
-                    ColumnCount = 1,
-                    RowCount = 2,
-                    BackColor = Color.White,
-                    Padding = new Padding(10)
-                };
-
-                // Header panel
-                var headerPanel = new Panel
-                {
-                    Dock = DockStyle.Top,
-                    Height = 60,
-                    BackColor = Color.FromArgb(63, 81, 181),
-                    Padding = new Padding(20, 15, 20, 15)
-                };
-
-                var titleLabel = new Label
-                {
-                    Text = "🚌 BusBuddy Management Dashboard",
-                    Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                    ForeColor = Color.White,
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleLeft,
-                    BackColor = Color.Transparent
-                };
-
-                headerPanel.Controls.Add(titleLabel);
-                _mainTableLayout.Controls.Add(headerPanel, 0, 0);
-
-                // Content area - use simple panels for each section
-                var contentPanel = new Panel
-                {
-                    Dock = DockStyle.Fill,
-                    BackColor = Color.Transparent
-                };
-
-                // Quick actions panel
-                var quickActionsPanel = new Panel
-                {
-                    Dock = DockStyle.Left,
-                    Width = 300,
-                    BackColor = Color.FromArgb(248, 249, 250),
-                    Padding = new Padding(10)
-                };
-
-                var quickActionsLabel = new Label
-                {
-                    Text = "⚡ Quick Actions",
-                    Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                    ForeColor = Color.FromArgb(33, 37, 41),
-                    Dock = DockStyle.Top,
-                    Height = 40,
-                    TextAlign = ContentAlignment.MiddleLeft,
-                    Padding = new Padding(10, 5, 10, 5)
-                };
-
-                quickActionsPanel.Controls.Add(quickActionsLabel);
-
-                // Add simple buttons for quick actions
-                var buttonConfigs = new[]
-                {
-                    new { Text = "🚌 Vehicles", Action = "ShowVehicleManagement", Color = Color.FromArgb(33, 150, 243) },
-                    new { Text = "👨‍✈️ Drivers", Action = "ShowDriverManagement", Color = Color.FromArgb(76, 175, 80) },
-                    new { Text = "🗺️ Routes", Action = "ShowRouteManagement", Color = Color.FromArgb(255, 152, 0) },
-                    new { Text = "🔧 Maintenance", Action = "ShowMaintenanceManagement", Color = Color.FromArgb(244, 67, 54) },
-                    new { Text = "📋 Activities", Action = "ShowActivityManagement", Color = Color.FromArgb(156, 39, 176) },
-                    new { Text = "⛽ Fuel", Action = "ShowFuelManagement", Color = Color.FromArgb(96, 125, 139) },
-                    new { Text = "📅 Calendar", Action = "ShowCalendarManagement", Color = Color.FromArgb(255, 193, 7) },
-                    new { Text = "📊 Reports", Action = "ShowReportsManagement", Color = Color.FromArgb(63, 81, 181) }
-                };
-
-                foreach (var config in buttonConfigs)
-                {
-                    var button = new Button
+                    _ribbonControl = new RibbonControlAdv
                     {
-                        Text = config.Text,
-                        Size = new Size(280, 50),
-                        Margin = new Padding(5),
-                        Font = new Font("Segoe UI", 10, FontStyle.Regular),
-                        BackColor = config.Color,
-                        ForeColor = Color.White,
-                        FlatStyle = FlatStyle.Flat
+                        RibbonStyle = RibbonStyle.Office2016,
+                        OfficeColorScheme = ToolStripEx.ColorScheme.Blue,
+                        Dock = (Syncfusion.Windows.Forms.Tools.DockStyleEx)DockStyle.Top,
+                        Height = 120
                     };
 
-                    button.Click += (s, e) => HandleButtonClick(config.Action);
-                    quickActionsPanel.Controls.Add(button);
+                    this.Controls.Add(_ribbonControl);
+                }
+                Console.WriteLine("✅ Ribbon navigation created");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error creating ribbon navigation: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Create quick actions panel for navigation buttons
+        /// </summary>
+        private void CreateQuickActionsPanel()
+        {
+            try
+            {
+                // Quick actions panel is created in CreateDashboardPanels as _quickStatsPanel
+                // This method ensures the navigation buttons are populated
+                PopulateFormButtons();
+                Console.WriteLine("✅ Quick actions panel configured");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error creating quick actions panel: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Create search panel functionality
+        /// </summary>
+        private void CreateSearchPanel()
+        {
+            try
+            {
+                // Search panel is created in CreateDashboardPanels as _searchPanel
+                // This method ensures search functionality is properly configured
+                if (_searchPanel != null && _searchBox != null)
+                {
+                    _searchBox.TextChanged += SearchBox_TextChanged;
+                }
+                Console.WriteLine("✅ Search panel configured");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error configuring search panel: {ex.Message}");
+            }
+        }        /// <summary>
+        /// Configure tabbed dashboard layout using DockingManager
+        /// Based on: https://help.syncfusion.com/windowsforms/docking-manager/getting-started
+        /// </summary>
+        private void ConfigureTabbledDashboardLayout()
+        {
+            try
+            {
+                if (_dockingManager != null)
+                {
+                    // Dock panels using documented DockingManager methods
+                    if (_analyticsDisplayPanel != null)
+                        _dockingManager.DockControl(_analyticsDisplayPanel, this, Syncfusion.Windows.Forms.Tools.DockingStyle.Left, 400);
+
+                    if (_dataGridPanel != null)
+                        _dockingManager.DockControl(_dataGridPanel, this, Syncfusion.Windows.Forms.Tools.DockingStyle.Fill, 600);
+
+                    if (_quickStatsPanel != null)
+                        _dockingManager.DockControl(_quickStatsPanel, this, Syncfusion.Windows.Forms.Tools.DockingStyle.Right, 300);
+
+                    if (_searchPanel != null)
+                        _dockingManager.DockControl(_searchPanel, this, Syncfusion.Windows.Forms.Tools.DockingStyle.Top, 60);
+                }
+                Console.WriteLine("✅ Tabbed dashboard layout configured");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error configuring tabbed layout: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle search box text changed event
+        /// </summary>
+        private void SearchBox_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (sender is TextBox searchBox && _vehicleDataGrid != null)
+                {
+                    // Apply simple filter to data grid
+                    string searchText = searchBox.Text;
+                    // Implementation would filter the data grid based on search text
+                    Console.WriteLine($"🔍 Searching for: {searchText}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in search: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Show notification using system tray
+        /// </summary>
+        private void ShowNotification(string title, string message)
+        {
+            try
+            {
+                if (_notifyIcon != null)
+                {
+                    _notifyIcon.ShowBalloonTip(3000, title, message, ToolTipIcon.Info);
+                }
+                Console.WriteLine($"📢 {title}: {message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error showing notification: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get vehicle data for display in data grid
+        /// </summary>
+        private List<object> GetVehicleDataForDisplay()
+        {
+            try
+            {
+                var vehicles = _vehicleRepository?.GetAllVehicles();
+                if (vehicles == null || vehicles.Count == 0)
+                {
+                    // Return sample data for demonstration
+                    return new List<object>
+                    {
+                        new { VehicleId = "BUS001", Type = "School Bus", Status = "Active", Driver = "John Smith" },
+                        new { VehicleId = "BUS002", Type = "School Bus", Status = "Maintenance", Driver = "Jane Doe" },
+                        new { VehicleId = "BUS003", Type = "Activity Bus", Status = "Active", Driver = "Bob Johnson" }
+                    };
                 }
 
-                contentPanel.Controls.Add(quickActionsPanel);
-                _mainTableLayout.Controls.Add(contentPanel, 0, 1);
-
-                this.Controls.Add(_mainTableLayout);
-
-                Console.WriteLine("✅ Advanced layout for tests created successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error creating advanced layout: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Create analytics panel and add chart/gauges
-        /// Based on: https://help.syncfusion.com/windowsforms/chart/getting-started
-        /// </summary>
-        private void CreateAnalyticsPanel()
-        {
-            try
-            {
-                Console.WriteLine("📊 Creating analytics panel...");
-
-                if (_analyticsDisplayPanel != null)
+                return vehicles.Select(v => new
                 {
-                    _analyticsDisplayPanel.Controls.Clear();
-                    CreateEnhancedAnalyticsChart();
-                    CreateStatusGauges();
-
-                    if (_analyticsChart != null)
-                        _analyticsDisplayPanel.Controls.Add(_analyticsChart);
-
-                    if (_systemStatusGauge != null)
-                        _analyticsDisplayPanel.Controls.Add(_systemStatusGauge);
-                }
-
-                Console.WriteLine("✅ Analytics panel created successfully");
+                    VehicleNumber = v.VehicleNumber,
+                    Make = v.Make,
+                    Model = v.Model,
+                    Status = v.Status ?? "Unknown",
+                    Driver = "N/A" // Would be populated from driver relationship
+                }).Cast<object>().ToList();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error creating analytics panel: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Load analytics data asynchronously
-        /// Based on async/await patterns for data loading
-        /// </summary>
-        private async Task LoadAnalyticsDataAsync()
-        {
-            try
-            {
-                Console.WriteLine("📈 Loading analytics data asynchronously...");
-
-                await Task.Run(() =>
-                {
-                    // Simulate analytics data loading
-                    System.Threading.Thread.Sleep(100);
-
-                    // Update chart with real data if available
-                    if (_analyticsChart != null && _vehicleRepository != null)
-                    {
-                        try
-                        {
-                            var vehicles = _vehicleRepository.GetAllVehicles().ToList();
-                            Console.WriteLine($"📊 Analytics: {vehicles.Count} vehicles loaded for analysis");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"⚠️ Error loading vehicle analytics: {ex.Message}");
-                        }
-                    }
-                });
-
-                Console.WriteLine("✅ Analytics data loaded successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error loading analytics data: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Load dashboard data asynchronously
-        /// Initializes all dashboard data sources
-        /// </summary>
-        private async Task LoadDashboardDataAsync()
-        {
-            try
-            {
-                Console.WriteLine("🚀 Loading dashboard data asynchronously...");
-
-                await Task.Run(() =>
-                {
-                    // Load vehicle data for grid
-                    if (_vehicleDataGrid != null)
-                    {
-                        this.Invoke((System.Windows.Forms.MethodInvoker)delegate
-                        {
-                            LoadVehicleData();
-                        });
-                    }
-
-                    // Update quick stats
-                    System.Threading.Thread.Sleep(50);
-                });
-
-                Console.WriteLine("✅ Dashboard data loaded successfully");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error loading dashboard data: {ex.Message}");
+                Console.WriteLine($"❌ Error getting vehicle data: {ex.Message}");
+                return new List<object>();
             }
         }
 
@@ -2691,22 +2044,133 @@ namespace BusBuddy.UI.Views
         #region Safe Optimization - Logging and Error Handling Helpers
 
         /// <summary>
-        /// Centralized logging helper for dashboard operations
+        /// Log dashboard operations
         /// </summary>
-        private void LogDashboard(string message, bool isError = false)
+        private void LogDashboard(string message)
         {
-            var prefix = isError ? "❌" : "✅";
-            Console.WriteLine($"{prefix} DASHBOARD: {message}");
+            Console.WriteLine($"📊 [DASHBOARD] {message}");
         }
 
         /// <summary>
-        /// Centralized error handling for dashboard operations
+        /// Handle dashboard errors consistently
         /// </summary>
         private void HandleDashboardError(string operation, Exception ex)
         {
-            LogDashboard($"Error in {operation}: {ex.Message}", true);
+            Console.WriteLine($"❌ [DASHBOARD ERROR] {operation}: {ex.Message}");
+        }
+
+        /// <summary>
+        /// Initialize enhanced components
+        /// </summary>
+        private void InitializeEnhancedComponents()
+        {
+            try
+            {
+                InitializeToastNotifier();
+                Console.WriteLine("✅ Enhanced components initialized");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error initializing enhanced components: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle form closing event
+        /// </summary>
+        private void BusBuddyDashboardSyncfusion_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                if (_notifyIcon != null)
+                {
+                    _notifyIcon.Visible = false;
+                    _notifyIcon.Dispose();
+                }
+                Console.WriteLine("📋 Dashboard cleanup completed");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error during form closing: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Create advanced layout for tests
+        /// </summary>
+        private void CreateAdvancedLayoutForTests()
+        {
+            try
+            {
+                CreateBasicLayout();
+                Console.WriteLine("✅ Advanced layout for tests created");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error creating advanced layout: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Load analytics data asynchronously
+        /// </summary>
+        private async Task LoadAnalyticsDataAsync()
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    LoadFallbackAnalyticsData();
+                    Console.WriteLine("✅ Analytics data loaded asynchronously");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Error loading analytics data: {ex.Message}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Load dashboard data asynchronously
+        /// </summary>
+        private async Task LoadDashboardDataAsync()
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    LoadVehicleData();
+                    Console.WriteLine("✅ Dashboard data loaded asynchronously");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Error loading dashboard data: {ex.Message}");
+                }
+            });
         }
 
         #endregion
+
+        /// <summary>
+        /// Create analytics display panel functionality
+        /// </summary>
+        private void CreateAnalyticsDisplayPanel()
+        {
+            try
+            {
+                // Analytics display panel is created in CreateDashboardPanels as _analyticsDisplayPanel
+                // This method ensures analytics functionality is properly configured
+                if (_analyticsDisplayPanel != null && _analyticsChart != null)
+                {
+                    CreateEnhancedAnalyticsChart();
+                    CreateStatusGauges();
+                }
+                Console.WriteLine("✅ Analytics display panel configured");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error configuring analytics display panel: {ex.Message}");
+            }
+        }
     }
 }
