@@ -10,6 +10,7 @@ namespace BusBuddy.Data
 {
     /// <summary>
     /// Repository implementation for TimeCard data operations
+    /// Modified to handle string Date field in database
     /// </summary>
     public class TimeCardRepository : BaseRepository, ITimeCardRepository
     {
@@ -46,9 +47,14 @@ namespace BusBuddy.Data
 
         public async Task<IEnumerable<Models.TimeCard>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
+            // Format dates to match string storage in database
+            string startDateStr = startDate.ToString("yyyy-MM-dd");
+            string endDateStr = endDate.ToString("yyyy-MM-dd");
+
             return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
-                .Where(tc => tc.Date >= startDate && tc.Date <= endDate)
+                .Where(tc => string.Compare(tc.Date.ToString(), startDateStr) >= 0 &&
+                             string.Compare(tc.Date.ToString(), endDateStr) <= 0)
                 .OrderBy(tc => tc.Date)
                 .ToListAsync();
         }
@@ -74,7 +80,9 @@ namespace BusBuddy.Data
             _context.Set<BusBuddy.Models.TimeCard>().Add(timeCard);
             await _context.SaveChangesAsync();
             return timeCard;
-        }        public async Task<Models.TimeCard> UpdateAsync(Models.TimeCard timeCard)
+        }
+
+        public async Task<Models.TimeCard> UpdateAsync(Models.TimeCard timeCard)
         {
             timeCard.ModifiedDate = DateTime.Now;
             timeCard.CalculateTotalHours();
@@ -141,11 +149,15 @@ namespace BusBuddy.Data
             var monday = weekDate.AddDays(-(int)weekDate.DayOfWeek + 1);
             var sunday = monday.AddDays(6);
 
+            // Format dates to match string storage in database
+            string mondayStr = monday.ToString("yyyy-MM-dd");
+            string sundayStr = sunday.ToString("yyyy-MM-dd");
+
             return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
                 .Where(tc => tc.DriverId == driverId &&
-                           tc.Date >= monday &&
-                           tc.Date <= sunday)
+                           string.Compare(tc.Date.ToString(), mondayStr) >= 0 &&
+                           string.Compare(tc.Date.ToString(), sundayStr) <= 0)
                 .OrderBy(tc => tc.Date)
                 .ToListAsync();
         }
@@ -158,11 +170,15 @@ namespace BusBuddy.Data
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
+            // Format dates to match string storage in database
+            string startDateStr = startDate.ToString("yyyy-MM-dd");
+            string endDateStr = endDate.ToString("yyyy-MM-dd");
+
             return await _context.Set<BusBuddy.Models.TimeCard>()
                 .Include(tc => tc.Driver)
                 .Where(tc => tc.DriverId == driverId &&
-                           tc.Date >= startDate &&
-                           tc.Date <= endDate)
+                           string.Compare(tc.Date.ToString(), startDateStr) >= 0 &&
+                           string.Compare(tc.Date.ToString(), endDateStr) <= 0)
                 .OrderBy(tc => tc.Date)
                 .ToListAsync();
         }

@@ -246,6 +246,7 @@ namespace BusBuddy.Tests.Performance
             const int concurrentUsers = 10;
             var tasks = new List<Task>();
             var results = new List<bool>();
+            var _resultsLock = new object();
             var stopwatch = Stopwatch.StartNew();
 
             // Act - Simulate concurrent users
@@ -271,7 +272,7 @@ namespace BusBuddy.Tests.Performance
 
                         userDashboard.Dispose();
 
-                        lock (results)
+                        lock (_resultsLock)
                         {
                             results.Add(true);
                         }
@@ -281,7 +282,7 @@ namespace BusBuddy.Tests.Performance
                     catch (Exception ex)
                     {
                         Console.WriteLine($"✗ User {userId} failed: {ex.Message}");
-                        lock (results)
+                        lock (_resultsLock)
                         {
                             results.Add(false);
                         }

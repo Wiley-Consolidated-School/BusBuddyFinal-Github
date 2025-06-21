@@ -18,6 +18,18 @@ namespace BusBuddy
         [STAThread]
         static async Task<int> Main(string[] args)
         {
+            Console.WriteLine($"[DEBUG] BusBuddy Main started at {DateTime.Now:O}");
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                var ex = e.ExceptionObject as Exception;
+                Console.WriteLine($"[FATAL] Unhandled exception: {ex?.Message}\n{ex?.StackTrace}");
+                LogError("Unhandled exception", ex ?? new Exception("Unknown exception"));
+            };
+            System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx =>
+            {
+                Console.WriteLine($"[DEBUG] Process exit/unloading at {DateTime.Now:O}");
+            };
+
             // Initialize single instance protection
             _singleInstanceManager = new SingleInstanceManager("BusBuddy-E7B4F3C1-8A2D-4E5F-9B6C-1D3A5E7F9A2B");
 

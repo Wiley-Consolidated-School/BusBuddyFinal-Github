@@ -7,16 +7,29 @@ namespace BusBuddy.Data
 {    public abstract class BaseRepository
     {
         protected readonly string _connectionString;
-        protected readonly string _providerName;
-
-        protected BaseRepository()
+        protected readonly string _providerName;        protected BaseRepository()
         {
             // Check if we're in a test environment first
             if (IsTestEnvironment())
             {
-                _connectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BusBuddyDB_Test;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30;";
-                _providerName = "Microsoft.Data.SqlClient";
-                Console.WriteLine("Using test environment connection string");
+                // Ensure test database exists before attempting to connect to it
+                TestDatabaseInitializer.EnsureTestDatabaseExists();
+
+                // Use App.config connection string if available
+                var testConn = ConfigurationManager.ConnectionStrings["TestConnection"];
+                if (testConn != null)
+                {
+                    _connectionString = testConn.ConnectionString;
+                    _providerName = testConn.ProviderName;
+                    Console.WriteLine("Using test connection string from App.config");
+                }
+                else
+                {
+                    // Fallback to hardcoded connection string
+                    _connectionString = "Data Source=.\\SQLEXPRESS01;Initial Catalog=BusBuddy_Test;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30;";
+                    _providerName = "Microsoft.Data.SqlClient";
+                    Console.WriteLine("Using fallback test connection string");
+                }
             }
             else
             {
@@ -24,7 +37,7 @@ namespace BusBuddy.Data
                 if (conn == null)
                 {
                     // Fallback - use SQL Server Express for production
-                    _connectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BusBuddyDB;Integrated Security=True;TrustServerCertificate=True;";
+                    _connectionString = "Data Source=.\\SQLEXPRESS01;Initial Catalog=BusBuddy;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30;";
                     _providerName = "Microsoft.Data.SqlClient";
                     Console.WriteLine("Using fallback production connection string");
                 }
@@ -36,20 +49,37 @@ namespace BusBuddy.Data
                 }
             }
 
-            // Initialize SQL Server database if needed
-            EnsureSqlServerDatabase();
-        }
-
-        private void EnsureSqlServerDatabase()
+            // Test the connection but don't initialize database on every repository creation
+            TestConnection();
+        }        private void TestConnection()
         {
-            try
+            int retryCount = 3;
+            int currentRetry = 0;
+            bool connected = false;
+
+            while (!connected && currentRetry < retryCount)
             {
-                var initializer = new SqlServerDatabaseInitializer(_connectionString);
-                initializer.Initialize();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to initialize SQL Server database: {ex.Message}", ex);
+                try
+                {
+                    using var connection = CreateConnection();
+                    connection.Open();
+                    Console.WriteLine("✅ Database connection successful");
+                    connected = true;
+                }
+                catch (Exception ex)
+                {
+                    currentRetry++;
+                    Console.WriteLine($"❌ Database connection failed (attempt {currentRetry}/{retryCount}): {ex.Message}");
+
+                    if (currentRetry >= retryCount)
+                    {
+                        Console.WriteLine("❌ All connection attempts failed");
+                        throw new InvalidOperationException($"Failed to connect to database after {retryCount} attempts: {ex.Message}", ex);
+                    }
+
+                    // Wait before retrying
+                    System.Threading.Thread.Sleep(500);
+                }
             }
         }
 

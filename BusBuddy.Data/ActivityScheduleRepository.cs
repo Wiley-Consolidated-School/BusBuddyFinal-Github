@@ -35,12 +35,15 @@ namespace BusBuddy.Data
 
         public List<ActivitySchedule> GetScheduledActivitiesByDate(DateTime date)
         {
+            // Format the date string to match the storage format in the database
+            string formattedDate = date.ToString("yyyy-MM-dd");
+
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var scheduledActivities = connection.Query<ActivitySchedule>(
                     "SELECT * FROM ActivitySchedule WHERE Date = @Date",
-                    new { Date = date }).AsList();
+                    new { Date = formattedDate }).AsList();
                 return scheduledActivities;
             }
         }

@@ -42,9 +42,12 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
+                // Format the date as a string in ISO format to match storage format
+                string formattedDate = date.ToString("yyyy-MM-dd");
+
                 var maintenanceRecords = connection.Query<Maintenance>(
                     "SELECT * FROM Maintenance WHERE Date = @Date",
-                    new { Date = date }).AsList();
+                    new { Date = formattedDate }).AsList();
                 return maintenanceRecords;
             }
         }

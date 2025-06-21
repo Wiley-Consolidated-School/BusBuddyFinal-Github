@@ -28,6 +28,7 @@ namespace BusBuddy.UI.Services
         private NamedPipeServerStream _pipeServer;
         private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed = false;
+        private bool _ownsMutex = false;
 
         public event EventHandler<string[]> SecondInstanceDetected;
 
@@ -55,6 +56,7 @@ namespace BusBuddy.UI.Services
 
                 // Create or open the named mutex
                 _applicationMutex = new Mutex(true, _mutexName, out bool createdNew);
+                _ownsMutex = createdNew;
 
                 if (createdNew)
                 {
@@ -73,6 +75,7 @@ namespace BusBuddy.UI.Services
                 // Previous instance crashed and left mutex abandoned - we can safely take over
                 Console.WriteLine($"⚠️ Mutex was abandoned (previous instance crashed): {ex.Message}");
                 Console.WriteLine("✅ Taking over abandoned mutex - this is now the primary instance");
+                _ownsMutex = true;
                 StartNamedPipeServer();
                 return true;
             }
@@ -284,7 +287,10 @@ namespace BusBuddy.UI.Services
 
                 _cancellationTokenSource?.Cancel();
                 _pipeServer?.Dispose();
-                _applicationMutex?.ReleaseMutex();
+                if (_ownsMutex)
+                {
+                    _applicationMutex?.ReleaseMutex();
+                }
                 _applicationMutex?.Dispose();
                 _cancellationTokenSource?.Dispose();
 

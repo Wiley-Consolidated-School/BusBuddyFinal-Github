@@ -22,23 +22,62 @@ namespace BusBuddy.UI.Services
 
         private void RegisterDefaultServices()
         {
-            // Register repositories
-            RegisterSingleton<IVehicleRepository>(() => new VehicleRepository());
-            RegisterSingleton<IDriverRepository>(() => new DriverRepository());
-            RegisterSingleton<IRouteRepository>(() => new RouteRepository());
-            RegisterSingleton<IFuelRepository>(() => new FuelRepository());
-            RegisterSingleton<IMaintenanceRepository>(() => new MaintenanceRepository());
-            RegisterSingleton<IActivityRepository>(() => new ActivityRepository());
-            RegisterSingleton<IActivityScheduleRepository>(() => new ActivityScheduleRepository());
-            RegisterSingleton<ISchoolCalendarRepository>(() => new SchoolCalendarRepository());            // Register services
-            RegisterSingleton<IVehicleService>(() => (IVehicleService)new VehicleService(GetService<IVehicleRepository>()));
-            RegisterSingleton<IDatabaseHelperService>(() => (IDatabaseHelperService)new BusBuddy.Business.DatabaseHelperService());
+            try
+            {
+                // Register repositories with error handling
+                RegisterSingleton<IVehicleRepository>(() => {
+                    try
+                    {
+                        var repo = new VehicleRepository();
+                        Console.WriteLine("✅ VehicleRepository created successfully");
+                        return repo;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Failed to create VehicleRepository: {ex.Message}");
+                        throw new InvalidOperationException($"Failed to initialize VehicleRepository: {ex.Message}", ex);
+                    }
+                });
 
-            // Register form factory
-            RegisterSingleton<IFormFactory>(() => this);
+                RegisterSingleton<IDriverRepository>(() => {
+                    try
+                    {
+                        var repo = new DriverRepository();
+                        Console.WriteLine("✅ DriverRepository created successfully");
+                        return repo;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Failed to create DriverRepository: {ex.Message}");
+                        throw new InvalidOperationException($"Failed to initialize DriverRepository: {ex.Message}", ex);
+                    }
+                });
 
-            // Register navigation service
-            RegisterSingleton<INavigationService>(() => new NavigationService(GetService<IFormFactory>()));
+                RegisterSingleton<IRouteRepository>(() => new RouteRepository());
+                RegisterSingleton<IFuelRepository>(() => new FuelRepository());
+                RegisterSingleton<IMaintenanceRepository>(() => new MaintenanceRepository());
+                RegisterSingleton<IActivityRepository>(() => new ActivityRepository());
+                RegisterSingleton<IActivityScheduleRepository>(() => new ActivityScheduleRepository());
+                RegisterSingleton<ISchoolCalendarRepository>(() => new SchoolCalendarRepository());
+
+                // Register services
+                RegisterSingleton<IVehicleService>(() => (IVehicleService)new VehicleService(GetService<IVehicleRepository>()));
+                RegisterSingleton<IDatabaseHelperService>(() => (IDatabaseHelperService)new BusBuddy.Business.DatabaseHelperService());
+
+                // Register form factory
+                RegisterSingleton<IFormFactory>(() => this);
+
+                // Register navigation service
+                RegisterSingleton<INavigationService>(() => new NavigationService(GetService<IFormFactory>()));
+
+                Console.WriteLine("✅ All services registered successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Failed to register services: {ex.Message}");
+                MessageBox.Show($"Failed to initialize services: {ex.Message}\n\nPlease check database connection.", "Service Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
+            }
         }
 
         public void RegisterSingleton<T>(Func<T> factory)
