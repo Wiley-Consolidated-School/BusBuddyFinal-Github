@@ -7,6 +7,8 @@ using System.Windows.Forms;
 using BusBuddy.Business;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Theme;
+using BusBuddy.UI.Services;
+using ThemeService = BusBuddy.UI.Theme.EnhancedThemeService;
 using Syncfusion.Windows.Forms;
 using Syncfusion.Windows.Forms.Tools;
 using Syncfusion.WinForms.Controls;
@@ -21,7 +23,7 @@ namespace BusBuddy.UI.Base
     public class SyncfusionBaseForm : Form
     {
         protected readonly ErrorProvider _errorProvider;
-        protected readonly DatabaseHelperService _databaseService;
+        protected readonly BusBuddy.Business.DatabaseHelperService _databaseService;
         protected readonly BannerTextProvider _bannerTextProvider;
 
         // Common UI elements
@@ -36,16 +38,36 @@ namespace BusBuddy.UI.Base
         private static bool _syncfusionInitialized = false;
         private static readonly object _initLock = new object();
 
+        // Test mode support - prevents dialog boxes during testing
+        private static bool _testModeEnabled = false;
+
+        /// <summary>
+        /// Enable test mode to redirect message boxes to console output
+        /// </summary>
+        public static void EnableTestMode()
+        {
+            _testModeEnabled = true;
+        }
+
+        /// <summary>
+        /// Disable test mode to restore normal message box behavior
+        /// </summary>
+        public static void DisableTestMode()
+        {
+            _testModeEnabled = false;
+        }
+
         public SyncfusionBaseForm()
         {
-            // Initialize services
-            _errorProvider = new ErrorProvider();
-            _databaseService = new DatabaseHelperService();
+            // Set consistent initialization before component initialization
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
 
-            // Safe Syncfusion component initialization
+            // Initialize common components
+            _errorProvider = new ErrorProvider();
+            _databaseService = new BusBuddy.Business.DatabaseHelperService();
             _bannerTextProvider = CreateBannerTextProviderSafely();
 
-            // Initialize DPI awareness
+            // Initialize DPI awareness for proper scaling
             InitializeDpiAwareness();
 
             // Initialize Syncfusion theming
@@ -63,6 +85,23 @@ namespace BusBuddy.UI.Base
 
             // Initialize layout
             InitializeLayout();
+
+            // Register with shutdown manager for proper cleanup
+            try
+            {
+                // Use reflection to find and call TestSafeApplicationShutdownManager.RegisterForm
+                var shutdownManagerType = Type.GetType("BusBuddy.UI.Services.TestSafeApplicationShutdownManager");
+                if (shutdownManagerType != null)
+                {
+                    var registerMethod = shutdownManagerType.GetMethod("RegisterForm",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    registerMethod?.Invoke(null, new object[] { this });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Could not register form with shutdown manager: {ex.Message}");
+            }
         }
 
         #region Initialization
@@ -92,7 +131,7 @@ namespace BusBuddy.UI.Base
             {
                 Dock = DockStyle.Fill,
                 Padding = GetDpiAwarePadding(new Padding(20)),
-                BackColor = EnhancedThemeService.SurfaceColor
+                BackColor = ThemeService.SurfaceColor
             };
             this.Controls.Add(_mainPanel);
 
@@ -101,7 +140,7 @@ namespace BusBuddy.UI.Base
             {
                 Height = GetDpiAwareHeight(60),
                 Dock = DockStyle.Bottom,
-                BackColor = EnhancedThemeService.SurfaceColor,
+                BackColor = ThemeService.SurfaceColor,
                 Padding = GetDpiAwarePadding(new Padding(20, 10, 20, 10))
             };
             this.Controls.Add(_buttonPanel);
@@ -289,12 +328,12 @@ namespace BusBuddy.UI.Base
 
         #region DPI Awareness Helpers
 
-        protected Size GetDpiAwareSize(Size originalSize) => EnhancedThemeService.GetDpiAwareSize(originalSize, _dpiScale);
-        protected Padding GetDpiAwarePadding(Padding originalPadding) => EnhancedThemeService.GetDpiAwarePadding(originalPadding, _dpiScale);
-        protected int GetDpiAwareX(int x) => EnhancedThemeService.ScaleByDpi(x, _dpiScale);
-        protected int GetDpiAwareY(int y) => EnhancedThemeService.ScaleByDpi(y, _dpiScale);
-        protected int GetDpiAwareWidth(int width) => EnhancedThemeService.ScaleByDpi(width, _dpiScale);
-        protected int GetDpiAwareHeight(int height) => EnhancedThemeService.ScaleByDpi(height, _dpiScale);
+        protected Size GetDpiAwareSize(Size originalSize) => ThemeService.GetDpiAwareSize(originalSize, _dpiScale);
+        protected Padding GetDpiAwarePadding(Padding originalPadding) => ThemeService.GetDpiAwarePadding(originalPadding, _dpiScale);
+        protected int GetDpiAwareX(int x) => ThemeService.ScaleByDpi(x, _dpiScale);
+        protected int GetDpiAwareY(int y) => ThemeService.ScaleByDpi(y, _dpiScale);
+        protected int GetDpiAwareWidth(int width) => ThemeService.ScaleByDpi(width, _dpiScale);
+        protected int GetDpiAwareHeight(int height) => ThemeService.ScaleByDpi(height, _dpiScale);
 
         #endregion
 
@@ -320,10 +359,156 @@ namespace BusBuddy.UI.Base
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            base.OnFormClosing(e);
-            _errorProvider?.Dispose();
+            try
+            {
+                Console.WriteLine($"🧽 SyncfusionBaseForm closing: {this.GetType().Name}");
+
+                // Enhanced cleanup for all Syncfusion components
+                PerformEnhancedSyncfusionCleanup();
+
+                Console.WriteLine($"✅ SyncfusionBaseForm cleanup completed: {this.GetType().Name}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error during SyncfusionBaseForm closing: {ex.Message}");
+            }
+            finally
+            {
+                base.OnFormClosing(e);
+                _errorProvider?.Dispose();
+            }
         }
 
+        /// <summary>
+        /// Perform enhanced cleanup of Syncfusion components to prevent process lingering
+        /// </summary>
+        protected virtual void PerformEnhancedSyncfusionCleanup()
+        {
+            try
+            {
+                // Dispose banner text provider safely
+                if (_bannerTextProvider != null)
+                {
+                    try
+                    {
+                        _bannerTextProvider.Dispose();
+                        Console.WriteLine("🧽 BannerTextProvider disposed");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error disposing BannerTextProvider: {ex.Message}");
+                    }
+                }
+
+                // Database service cleanup (if it implements IDisposable)
+                if (_databaseService != null)
+                {
+                    try
+                    {
+                        // Check if the service implements IDisposable
+                        if (_databaseService is IDisposable disposableService)
+                        {
+                            disposableService.Dispose();
+                            Console.WriteLine("🧽 DatabaseService disposed");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error disposing DatabaseService: {ex.Message}");
+                    }
+                }
+
+                // Clean up all Syncfusion controls recursively
+                CleanupSyncfusionControlsRecursively(this.Controls);
+
+                // Force garbage collection to help cleanup
+                GC.SuppressFinalize(this);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error in PerformEnhancedSyncfusionCleanup: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Recursively cleanup Syncfusion controls to prevent process lingering
+        /// </summary>
+        private void CleanupSyncfusionControlsRecursively(Control.ControlCollection controls)
+        {
+            try
+            {
+                var controlsToCleanup = new List<Control>();
+                foreach (Control control in controls)
+                {
+                    controlsToCleanup.Add(control);
+                }
+
+                // Process in reverse order (children first)
+                for (int i = controlsToCleanup.Count - 1; i >= 0; i--)
+                {
+                    var control = controlsToCleanup[i];
+
+                    try
+                    {
+                        // Recursively cleanup child controls first
+                        if (control.HasChildren)
+                        {
+                            CleanupSyncfusionControlsRecursively(control.Controls);
+                        }
+
+                        // Special cleanup for Syncfusion controls
+                        if (control.GetType().FullName?.Contains("Syncfusion") == true)
+                        {
+                            // Clear data sources for data controls
+                            if (control is Syncfusion.WinForms.DataGrid.SfDataGrid dataGrid)
+                            {
+                                dataGrid.DataSource = null;
+                            }
+
+                            // Suppress finalization for all Syncfusion controls
+                            GC.SuppressFinalize(control);
+                            Console.WriteLine($"🧽 Cleaned up Syncfusion control: {control.GetType().Name}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error cleaning up control {control?.GetType().Name}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error in CleanupSyncfusionControlsRecursively: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Enhanced Dispose method with comprehensive cleanup
+        /// </summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                try
+                {
+                    Console.WriteLine($"🧽 Disposing SyncfusionBaseForm: {this.GetType().Name}");
+
+                    // Perform enhanced Syncfusion cleanup
+                    PerformEnhancedSyncfusionCleanup();
+
+                    // Dispose error provider
+                    _errorProvider?.Dispose();
+
+                    Console.WriteLine($"✅ SyncfusionBaseForm disposed: {this.GetType().Name}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error during SyncfusionBaseForm disposal: {ex.Message}");
+                }
+            }
+
+            base.Dispose(disposing);
+        }
         #endregion
 
         #region Validation and Messaging
@@ -357,24 +542,62 @@ namespace BusBuddy.UI.Base
             if (errors?.Count > 0)
             {
                 string message = "Please correct the following errors:\n\n" + string.Join("\n", errors);
-                MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (_testModeEnabled)
+                {
+                    Console.WriteLine($"[VALIDATION ERROR] {message}");
+                }
+                else
+                {
+                    MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
 
         /// <summary>
         /// Show error message to the user
         /// </summary>
-        protected void ShowErrorMessage(string message) => MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        protected void ShowErrorMessage(string message)
+        {
+            if (_testModeEnabled)
+            {
+                Console.WriteLine($"[ERROR] {message}");
+            }
+            else
+            {
+                MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         /// <summary>
         /// Show success message to the user
         /// </summary>
-        protected void ShowSuccessMessage(string message) => MessageBox.Show(message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        protected void ShowSuccessMessage(string message)
+        {
+            if (_testModeEnabled)
+            {
+                Console.WriteLine($"[SUCCESS] {message}");
+            }
+            else
+            {
+                MessageBox.Show(message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
 
         /// <summary>
         /// Show confirmation dialog
         /// </summary>
-        protected bool ConfirmDelete(string itemType) => MessageBox.Show($"Are you sure you want to delete this {itemType}?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
+        protected bool ConfirmDelete(string itemType)
+        {
+            if (_testModeEnabled)
+            {
+                Console.WriteLine($"[CONFIRMATION] Are you sure you want to delete this {itemType}? (Test mode: returning true)");
+                return true; // Auto-confirm in test mode
+            }
+            else
+            {
+                return MessageBox.Show($"Are you sure you want to delete this {itemType}?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
+            }
+        }
 
         #endregion
     }

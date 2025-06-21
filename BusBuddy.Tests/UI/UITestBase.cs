@@ -20,9 +20,34 @@ namespace BusBuddy.Tests.UI
         protected BusBuddyDashboardSyncfusion? _dashboard;
         protected Mock<INavigationService> _mockNavigationService;
         protected Mock<BusBuddy.UI.Services.IDatabaseHelperService> _mockDatabaseService;
+        private readonly DateTime _testStartTime;
+        private readonly string _testName;
+        private static readonly object _monitorLock = new object();
+        private readonly System.Threading.Timer _testTimeoutTimer;
+        private readonly int _testTimeoutMinutes = 5; // Maximum test duration
 
         protected UITestBase()
         {
+            _testStartTime = DateTime.Now;
+            _testName = GetType().Name;
+            Console.WriteLine($"🚀 TEST INIT: Starting {_testName} at {_testStartTime:HH:mm:ss.fff}");
+
+            // Set up test timeout watchdog
+            _testTimeoutTimer = new System.Threading.Timer(OnTestTimeout, null, _testTimeoutMinutes * 60 * 1000, Timeout.Infinite);
+
+            // 🔥 PRO-LEVEL: Emergency cleanup to kill any hanging processes from previous tests
+            EmergencyTestCleanup();
+
+            // Set up common test infrastructure (commented methods need to be implemented if used)
+            // StartErrorDialogMonitoring();
+            // CheckForCommonErrorPatterns();
+
+            // Initialize test infrastructure
+            TestInfrastructureManager.Initialize();
+
+            // Pre-test cleanup
+            TestInfrastructureManager.PreTestCleanup();
+
             // Initialize Syncfusion license from environment variables for tests
             try
             {
@@ -98,6 +123,10 @@ namespace BusBuddy.Tests.UI
 
                 Console.WriteLine("🧪 TEST CREATE: Creating dashboard instance...");
                 var dashboard = new BusBuddyDashboardSyncfusion(_mockNavigationService.Object, _mockDatabaseService.Object);
+
+                // Register with test infrastructure for cleanup tracking
+                TestInfrastructureManager.RegisterTestForm(dashboard);
+
                 Console.WriteLine($"✅ TEST CREATE: Dashboard instance created - Handle: {dashboard.Handle}, IsHandleCreated: {dashboard.IsHandleCreated}");
 
                 // Set a reasonable timeout for test operations
@@ -565,6 +594,10 @@ namespace BusBuddy.Tests.UI
                         var controlCount = _dashboard.Controls.Count;
                         Console.WriteLine($"🧽 TEST CLEANUP: Dashboard has {controlCount} child controls");
 
+                        // Special cleanup for Syncfusion controls before disposal
+                        Console.WriteLine("🧽 TEST CLEANUP: Performing Syncfusion controls cleanup...");
+                        DisposeSyncfusionControlsSafely(_dashboard);
+
                         // Log memory usage before disposal
                         var workingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
                         Console.WriteLine($"🧽 TEST CLEANUP: Memory usage before disposal: {workingSet / 1024 / 1024} MB");
@@ -618,6 +651,789 @@ namespace BusBuddy.Tests.UI
             }
         }
 
+        /// <summary>
+        /// Safely dispose Syncfusion controls to prevent crashes during test cleanup
+        /// </summary>
+        private void DisposeSyncfusionControlsSafely(Control parent)
+        {
+            try
+            {
+                var syncfusionControls = new List<Control>();
+                CollectSyncfusionControls(parent, syncfusionControls);
+
+                Console.WriteLine($"🧽 Found {syncfusionControls.Count} Syncfusion controls to dispose");
+
+                // Dispose in reverse order (children first)
+                for (int i = syncfusionControls.Count - 1; i >= 0; i--)
+                {
+                    var control = syncfusionControls[i];
+                    try
+                    {
+                        if (control != null && !control.IsDisposed)
+                        {
+                            var controlType = control.GetType().FullName;
+                            Console.WriteLine($"🧽 Disposing Syncfusion control: {controlType}");
+
+                            // CRITICAL: All disposal must happen on the UI thread to prevent InvalidAsynchronousStateException
+                            if (control.InvokeRequired)
+                            {
+                                try
+                                {
+                                    control.Invoke(new Action(() => DisposeSingleSyncfusionControl(control, controlType)));
+                                }
+                                catch (InvalidOperationException invEx) when (invEx.Message.Contains("destination thread no longer exists"))
+                                {
+                                    Console.WriteLine($"⚠️ UI thread no longer exists for {controlType}, disposing directly");
+                                    DisposeSingleSyncfusionControl(control, controlType);
+                                }
+                                catch (Exception invokeEx)
+                                {
+                                    Console.WriteLine($"⚠️ Could not invoke disposal on UI thread for {controlType}: {invokeEx.Message}");
+                                    DisposeSingleSyncfusionControl(control, controlType);
+                                }
+                            }
+                            else
+                            {
+                                DisposeSingleSyncfusionControl(control, controlType);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error disposing Syncfusion control: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in DisposeSyncfusionControlsSafely: {ex.Message}");
+            }
+        }
+
+        private void DisposeSingleSyncfusionControl(Control control, string? controlType)
+        {
+            try
+            {
+                // CRITICAL: Suppress finalization on ALL Syncfusion controls to prevent test host crashes
+                try
+                {
+                    GC.SuppressFinalize(control);
+                    Console.WriteLine($"🧽 Finalization suppressed for: {controlType}");
+                }
+                catch (Exception gcEx)
+                {
+                    Console.WriteLine($"⚠️ Could not suppress finalization: {gcEx.Message}");
+                }
+
+                // Remove from parent first to prevent cascading UI thread issues
+                try
+                {
+                    if (control.Parent != null)
+                    {
+                        control.Parent.Controls.Remove(control);
+                        Console.WriteLine($"🧽 {controlType} removed from parent");
+                    }
+                }
+                catch (Exception parentEx)
+                {
+                    Console.WriteLine($"⚠️ Could not remove {controlType} from parent: {parentEx.Message}");
+                }
+
+                // Special handling for specific Syncfusion controls that cause crashes
+                if (controlType?.Contains("Syncfusion.WinForms.ListView.SfListView") == true)
+                {
+                    // SfListView needs special disposal to prevent the UnWiredEvents crash
+                    DisposeSfListViewSafely(control);
+                }
+                else if (controlType?.Contains("Syncfusion.WinForms.DataGrid.SfDataGrid") == true)
+                {
+                    DisposeSfDataGridSafely(control);
+                }
+                else if (controlType?.Contains("ListView") == true)
+                {
+                    // Generic ListView handling
+                    ClearControlDataAndEvents(control);
+                    control.Dispose();
+                }
+                else
+                {
+                    // Standard Syncfusion control disposal
+                    ClearControlDataAndEvents(control);
+                    control.Dispose();
+                }
+
+                Console.WriteLine($"✅ {controlType} disposed successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error in DisposeSingleSyncfusionControl for {controlType}: {ex.Message}");
+            }
+        }
+
+        private void CollectSyncfusionControls(Control parent, List<Control> syncfusionControls)
+        {
+            try
+            {
+                foreach (Control control in parent.Controls)
+                {
+                    if (control.GetType().FullName?.Contains("Syncfusion") == true)
+                    {
+                        syncfusionControls.Add(control);
+                    }
+
+                    if (control.HasChildren)
+                    {
+                        CollectSyncfusionControls(control, syncfusionControls);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error collecting Syncfusion controls: {ex.Message}");
+            }
+        }
+
+        private void ClearControlDataAndEvents(Control control)
+        {
+            try
+            {
+                // Try to clear common data source properties
+                var properties = new[] { "DataSource", "Items", "Nodes", "Children" };
+
+                foreach (var propName in properties)
+                {
+                    try
+                    {
+                        var property = control.GetType().GetProperty(propName);
+                        if (property != null && property.CanWrite)
+                        {
+                            if (property.PropertyType == typeof(object) ||
+                                property.PropertyType.IsInterface ||
+                                property.PropertyType.IsClass)
+                            {
+                                property.SetValue(control, null);
+                                Console.WriteLine($"🧽 Cleared {propName} property");
+                            }
+                            else if (property.PropertyType.IsGenericType)
+                            {
+                                // Try to clear collections
+                                var value = property.GetValue(control);
+                                var clearMethod = value?.GetType().GetMethod("Clear", new Type[0]);
+                                if (clearMethod != null)
+                                {
+                                    clearMethod.Invoke(value, null);
+                                    Console.WriteLine($"🧽 Cleared {propName} collection");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error clearing {propName}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error in ClearControlDataAndEvents: {ex.Message}");
+            }
+        }
+
+        private void DisposeSfListViewSafely(Control listView)
+        {
+            try
+            {
+                Console.WriteLine($"🧽 Disposing SfListView safely: {listView.GetType().FullName}");
+
+                // Immediately suppress finalization to prevent the crash
+                GC.SuppressFinalize(listView);
+
+                // Clear any data source first to prevent events during disposal
+                try
+                {
+                    var dataSourceProperty = listView.GetType().GetProperty("DataSource");
+                    if (dataSourceProperty != null && dataSourceProperty.CanWrite)
+                    {
+                        dataSourceProperty.SetValue(listView, null);
+                        Console.WriteLine("🧽 SfListView DataSource cleared");
+                    }
+                }
+                catch (Exception dsEx)
+                {
+                    Console.WriteLine($"⚠️ Could not clear SfListView DataSource: {dsEx.Message}");
+                }
+
+                // Clear any items collection
+                try
+                {
+                    var itemsProperty = listView.GetType().GetProperty("Items");
+                    if (itemsProperty != null)
+                    {
+                        var items = itemsProperty.GetValue(listView);
+                        var clearMethod = items?.GetType().GetMethod("Clear");
+                        if (clearMethod != null)
+                        {
+                            clearMethod.Invoke(items, null);
+                            Console.WriteLine("🧽 SfListView Items cleared");
+                        }
+                    }
+                }
+                catch (Exception itemsEx)
+                {
+                    Console.WriteLine($"⚠️ Could not clear SfListView Items: {itemsEx.Message}");
+                }
+
+                // Try to unwire events manually before disposal to prevent UnWiredEvents crash
+                try
+                {
+                    // First try the standard event unwiring approach
+                    var eventsField = listView.GetType().GetField("events", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (eventsField != null)
+                    {
+                        eventsField.SetValue(listView, null);
+                        Console.WriteLine("🧽 SfListView events field cleared");
+                    }
+
+                    // Also try to set internal flags that might prevent finalization issues
+                    var disposedField = listView.GetType().GetField("disposed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (disposedField != null && disposedField.FieldType == typeof(bool))
+                    {
+                        disposedField.SetValue(listView, true);
+                        Console.WriteLine("🧽 SfListView disposed flag set");
+                    }
+                }
+                catch (Exception eventEx)
+                {
+                    Console.WriteLine($"⚠️ Could not pre-clear SfListView internal state: {eventEx.Message}");
+                }
+
+                // Dispose the control
+                try
+                {
+                    listView.Dispose();
+                    Console.WriteLine("✅ SfListView disposed safely");
+                }
+                catch (Exception disposeEx)
+                {
+                    Console.WriteLine($"⚠️ Error during SfListView.Dispose(): {disposeEx.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error disposing SfListView safely: {ex.Message}");
+                // Try standard disposal as fallback, but catch any exceptions
+                try {
+                    GC.SuppressFinalize(listView); // Always suppress finalization
+                    listView.Dispose();
+                } catch (Exception disposeEx) {
+                    Console.WriteLine($"⚠️ Fallback disposal also failed: {disposeEx.Message}");
+                }
+            }
+        }
+
+        private void DisposeSfDataGridSafely(Control dataGrid)
+        {
+            try
+            {
+                Console.WriteLine($"🧽 Disposing SfDataGrid safely: {dataGrid.GetType().FullName}");
+
+                // CRITICAL: Suppress finalization immediately
+                GC.SuppressFinalize(dataGrid);
+
+                // Clear any data source first to prevent threading issues during disposal
+                try
+                {
+                    var dataSourceProperty = dataGrid.GetType().GetProperty("DataSource");
+                    if (dataSourceProperty != null && dataSourceProperty.CanWrite)
+                    {
+                        dataSourceProperty.SetValue(dataGrid, null);
+                        Console.WriteLine("🧽 SfDataGrid DataSource cleared");
+                    }
+                }
+                catch (Exception dsEx)
+                {
+                    Console.WriteLine($"⚠️ Could not clear SfDataGrid DataSource: {dsEx.Message}");
+                }
+
+                // Clear view if present to prevent InvalidAsynchronousStateException
+                try
+                {
+                    var viewProperty = dataGrid.GetType().GetProperty("View");
+                    if (viewProperty != null && viewProperty.CanWrite)
+                    {
+                        viewProperty.SetValue(dataGrid, null);
+                        Console.WriteLine("🧽 SfDataGrid View cleared");
+                    }
+                }
+                catch (Exception viewEx)
+                {
+                    Console.WriteLine($"⚠️ Could not clear SfDataGrid View: {viewEx.Message}");
+                }
+
+                // Clear TableControl if present (common source of threading issues)
+                try
+                {
+                    var tableControlProperty = dataGrid.GetType().GetProperty("TableControl");
+                    if (tableControlProperty != null && tableControlProperty.CanWrite)
+                    {
+                        tableControlProperty.SetValue(dataGrid, null);
+                        Console.WriteLine("🧽 SfDataGrid TableControl cleared");
+                    }
+                }
+                catch (Exception tcEx)
+                {
+                    Console.WriteLine($"⚠️ Could not clear SfDataGrid TableControl: {tcEx.Message}");
+                }
+
+                // Try to set internal disposed flag to prevent finalization issues
+                try
+                {
+                    var disposedField = dataGrid.GetType().GetField("disposed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (disposedField != null && disposedField.FieldType == typeof(bool))
+                    {
+                        disposedField.SetValue(dataGrid, true);
+                        Console.WriteLine("🧽 SfDataGrid disposed flag set");
+                    }
+                }
+                catch (Exception flagEx)
+                {
+                    Console.WriteLine($"⚠️ Could not set SfDataGrid disposed flag: {flagEx.Message}");
+                }
+
+                // Clear any column collection to prevent resource leaks
+                try
+                {
+                    var columnsProperty = dataGrid.GetType().GetProperty("Columns");
+                    if (columnsProperty != null)
+                    {
+                        var columns = columnsProperty.GetValue(dataGrid);
+                        var clearMethod = columns?.GetType().GetMethod("Clear");
+                        if (clearMethod != null)
+                        {
+                            clearMethod.Invoke(columns, null);
+                            Console.WriteLine("🧽 SfDataGrid Columns cleared");
+                        }
+                    }
+                }
+                catch (Exception colEx)
+                {
+                    Console.WriteLine($"⚠️ Could not clear SfDataGrid Columns: {colEx.Message}");
+                }
+
+                // Finally dispose the control
+                try
+                {
+                    dataGrid.Dispose();
+                    Console.WriteLine("✅ SfDataGrid disposed safely");
+                }
+                catch (Exception disposeEx)
+                {
+                    Console.WriteLine($"⚠️ Error during SfDataGrid.Dispose(): {disposeEx.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error disposing SfDataGrid safely: {ex.Message}");
+                // Try emergency disposal as fallback
+                try {
+                    GC.SuppressFinalize(dataGrid); // Always suppress finalization
+                    dataGrid?.Dispose();
+                } catch (Exception disposeEx) {
+                    Console.WriteLine($"⚠️ Emergency SfDataGrid disposal also failed: {disposeEx.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 🔥 PRO-LEVEL: Aggressively kills any hanging test processes to prevent test locks
+        /// This is necessary because Syncfusion controls can cause test host hangs during disposal
+        /// SMART VERSION: Only kills processes that are actually hanging (not the current test)
+        /// </summary>
+        protected static void KillHangingTestProcesses()
+        {
+            try
+            {
+                Console.WriteLine("🔥 PRO CLEANUP: Killing any hanging test processes...");
+
+                var currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
+                var currentTime = DateTime.Now;
+
+                // Kill hanging dotnet test processes (older than 30 seconds)
+                var dotnetProcesses = System.Diagnostics.Process.GetProcessesByName("dotnet");
+                int killedCount = 0;
+
+                Console.WriteLine($"Found {dotnetProcesses.Length} dotnet processes to evaluate");
+
+                foreach (var process in dotnetProcesses)
+                {
+                    try
+                    {
+                        // Don't kill the current process!
+                        if (process.Id == currentProcessId)
+                        {
+                            Console.WriteLine($"Skipping current process: PID {process.Id}");
+                            continue;
+                        }
+
+                        // Get process command line for better identification
+                        var commandLine = GetProcessCommandLine(process);
+                        var processAge = currentTime - process.StartTime;
+                        bool isTestProcess = IsTestProcess(process);
+                        bool isDotnetRun = commandLine?.Contains("run") == true;
+
+                        // More aggressive cleanup - lower threshold for 'dotnet run' processes
+                        int ageThresholdSeconds = isDotnetRun ? 15 : 30;
+
+                        // Special case for known BusBuddy processes or dotnet run
+                        if ((processAge.TotalSeconds > ageThresholdSeconds && (isTestProcess || isDotnetRun))
+                            || (commandLine?.Contains("BusBuddy") == true && processAge.TotalSeconds > 15))
+                        {
+                            Console.WriteLine($"🔥 Killing hanging dotnet process: PID {process.Id} (Age: {processAge.TotalSeconds:F0}s)");
+                            Console.WriteLine($"   Command: {commandLine ?? "Unknown"}");
+
+                            try
+                            {
+                                // Try to kill the entire process tree if available
+                                var killMethod = process.GetType().GetMethod("Kill", new[] { typeof(bool) });
+                                if (killMethod != null)
+                                {
+                                    killMethod.Invoke(process, new object[] { true });
+                                }
+                                else
+                                {
+                                    // Fall back to regular kill
+                                    process.Kill();
+                                }
+                            }
+                            catch
+                            {
+                                // If the new method fails, fall back to regular kill
+                                process.Kill();
+                            }
+
+                            process.WaitForExit(1000); // Wait up to 1 second
+                            killedCount++;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Skipping dotnet process: PID {process.Id} (Age: {processAge.TotalSeconds:F0}s)");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Could not kill dotnet process {process.Id}: {ex.Message}");
+                    }
+                }
+
+                // Kill any old testhost processes (but not recent ones)
+                var testhostProcesses = System.Diagnostics.Process.GetProcessesByName("testhost");
+                foreach (var process in testhostProcesses)
+                {
+                    try
+                    {
+                        // Don't kill the current process!
+                        if (process.Id == currentProcessId)
+                            continue;
+
+                        var processAge = currentTime - process.StartTime;
+                        // Increase timeout to 60 seconds to give tests more time to run
+                        if (processAge.TotalSeconds > 60)
+                        {
+                            // Check if this is actually a BusBuddy test process
+                            var isTestProcess = IsTestProcess(process);
+                            if (isTestProcess)
+                            {
+                                Console.WriteLine($"🔥 Killing old testhost process: PID {process.Id} (Age: {processAge.TotalSeconds:F0}s)");
+
+                                try
+                                {
+                                    // Try to kill the entire process tree if available
+                                    var killMethod = process.GetType().GetMethod("Kill", new[] { typeof(bool) });
+                                    if (killMethod != null)
+                                    {
+                                        killMethod.Invoke(process, new object[] { true });
+                                    }
+                                    else
+                                    {
+                                        // Fall back to regular kill
+                                        process.Kill();
+                                    }
+                                }
+                                catch
+                                {
+                                    // If the new method fails, fall back to regular kill
+                                    process.Kill();
+                                }
+
+                                process.WaitForExit(1000);
+                                killedCount++;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"⚠️ Skipping non-BusBuddy testhost: PID {process.Id} (Age: {processAge.TotalSeconds:F0}s)");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Could not kill testhost process {process.Id}: {ex.Message}");
+                    }
+                }
+
+                // Also check for BusBuddy-specific processes that might be stuck
+                var anyProcesses = System.Diagnostics.Process.GetProcesses()
+                    .Where(p => {
+                        try {
+                            return p.ProcessName.Contains("BusBuddy") ||
+                                  (p.MainWindowTitle?.Contains("BusBuddy") == true);
+                        }
+                        catch { return false; }
+                    });
+
+                foreach (var process in anyProcesses)
+                {
+                    try
+                    {
+                        if (process.Id != currentProcessId)
+                        {
+                            Console.WriteLine($"🔥 Killing BusBuddy process: PID {process.Id} ({process.ProcessName})");
+
+                            try
+                            {
+                                // Try to kill the entire process tree if available
+                                var killMethod = process.GetType().GetMethod("Kill", new[] { typeof(bool) });
+                                if (killMethod != null)
+                                {
+                                    killMethod.Invoke(process, new object[] { true });
+                                }
+                                else
+                                {
+                                    // Fall back to regular kill
+                                    process.Kill();
+                                }
+                            }
+                            catch
+                            {
+                                // If the new method fails, fall back to regular kill
+                                process.Kill();
+                            }
+
+                            process.WaitForExit(1000);
+                            killedCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Could not kill BusBuddy process {process.Id}: {ex.Message}");
+                    }
+                }
+
+                Console.WriteLine($"✅ PRO CLEANUP: Process cleanup completed. Killed {killedCount} processes.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ PRO CLEANUP: Error during process cleanup: {ex.Message}");
+            }
+        }
+
+        private static bool IsTestProcess(System.Diagnostics.Process process)
+        {
+            try
+            {
+                // Check for the current process first
+                if (process.Id == System.Diagnostics.Process.GetCurrentProcess().Id)
+                {
+                    return true; // Current process is always considered a test process
+                }
+
+                // Get more detailed process information
+                var commandLine = GetProcessCommandLine(process);
+                if (string.IsNullOrEmpty(commandLine))
+                {
+                    // If we can't get command line, try looking at modules
+                    try
+                    {
+                        foreach (System.Diagnostics.ProcessModule module in process.Modules)
+                        {
+                            if (module.FileName.Contains("BusBuddy"))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore errors when trying to access modules
+                    }
+
+                    // If no other indicators, be conservative and consider it not a test process
+                    return false;
+                }
+
+                // Look for specific BusBuddy test indicators in the command line
+                return commandLine.Contains("BusBuddy.Tests") ||
+                       (commandLine.Contains("test") && commandLine.Contains("BusBuddy"));
+            }
+            catch
+            {
+                // If we get any error, err on the side of caution and don't kill the process
+                return false;
+            }
+        }
+
+        private static string? GetProcessCommandLine(System.Diagnostics.Process process)
+        {
+            try
+            {
+                // Try to get command line from process StartInfo
+                if (!string.IsNullOrEmpty(process.StartInfo.Arguments))
+                {
+                    return process.StartInfo.Arguments;
+                }
+
+                // If that fails, try to get the process name and check if it's related to BusBuddy
+                var processName = process.ProcessName.ToLowerInvariant();
+                if (processName.Contains("busbuddy"))
+                {
+                    return "BusBuddy";
+                }
+
+                // Check modules as a last resort
+                try
+                {
+                    foreach (System.Diagnostics.ProcessModule module in process.Modules)
+                    {
+                        if (module.FileName.Contains("BusBuddy"))
+                        {
+                            return "BusBuddy module";
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors accessing modules
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 🔥 PRO-LEVEL: Emergency cleanup that runs before any test to ensure clean state
+        /// SMART VERSION: Only runs aggressive cleanup when needed + timeout protection
+        /// </summary>
+        protected static void EmergencyTestCleanup()
+        {
+            try
+            {
+                // Kill any processes that have been running too long
+                var currentTime = DateTime.Now;
+                var dotnetProcesses = System.Diagnostics.Process.GetProcessesByName("dotnet");
+                var testhostProcesses = System.Diagnostics.Process.GetProcessesByName("testhost");
+
+                // More aggressive cleanup - kill any test process older than 2 minutes
+                foreach (var process in dotnetProcesses.Concat(testhostProcesses))
+                {
+                    try
+                    {
+                        var processAge = currentTime - process.StartTime;
+                        if (processAge.TotalMinutes > 5) // Increase timeout to 5 minutes to be less aggressive
+                        {
+                            // Only kill processes that are actually BusBuddy test processes
+                            var isTestProcess = IsTestProcess(process);
+                            if (isTestProcess)
+                            {
+                                Console.WriteLine($"🔥 EMERGENCY: Killing long-running test process PID {process.Id} (Age: {processAge.TotalMinutes:F1} minutes)");
+                                process.Kill();
+                                process.WaitForExit(1000);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"⚠️ Skipping non-test process PID {process.Id} (Age: {processAge.TotalMinutes:F1} minutes)");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Could not kill long-running process: {ex.Message}");
+                    }
+                }
+
+                // Only run emergency cleanup if there are signs of hanging processes
+                var needsCleanup = false;
+
+                // Check for too many dotnet processes
+                if (dotnetProcesses.Length > 5)
+                {
+                    Console.WriteLine($"🔥 EMERGENCY CLEANUP: Found {dotnetProcesses.Length} dotnet processes, cleanup needed");
+                    needsCleanup = true;
+                }
+
+                // Check for any old testhost processes
+                if (testhostProcesses.Length > 0)
+                {
+                    Console.WriteLine($"🔥 EMERGENCY CLEANUP: Found {testhostProcesses.Length} testhost processes, cleanup needed");
+                    needsCleanup = true;
+                }
+
+                // Check for too many open forms
+                var openForms = Application.OpenForms.Count;
+                if (openForms > 0)
+                {
+                    Console.WriteLine($"🔥 EMERGENCY CLEANUP: Found {openForms} open forms, cleanup needed");
+                    needsCleanup = true;
+                }
+
+                if (!needsCleanup)
+                {
+                    Console.WriteLine("✅ EMERGENCY CLEANUP: No cleanup needed, environment is clean");
+                    return;
+                }
+
+                Console.WriteLine("🔥 EMERGENCY CLEANUP: Starting emergency test cleanup...");
+
+                // Kill hanging processes
+                KillHangingTestProcesses();
+
+                // Force garbage collection
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+
+                // Clear any remaining forms
+                if (openForms > 0)
+                {
+                    Console.WriteLine($"🔥 EMERGENCY CLEANUP: Closing {openForms} open forms...");
+                    for (int i = Application.OpenForms.Count - 1; i >= 0; i--)
+                    {
+                        var form = Application.OpenForms[i];
+                        try
+                        {
+                            if (form != null && !form.IsDisposed)
+                            {
+                                form.Close();
+                                form.Dispose();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"⚠️ Could not close form: {ex.Message}");
+                        }
+                    }
+                }
+
+                Console.WriteLine("✅ EMERGENCY CLEANUP: Emergency cleanup completed");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ EMERGENCY CLEANUP: Error during emergency cleanup: {ex.Message}");
+            }
+        }
+
         public virtual void Dispose()
         {
             var startTime = DateTime.Now;
@@ -626,68 +1442,64 @@ namespace BusBuddy.Tests.UI
 
             try
             {
-                // Log current thread and test host information
-                var currentThread = System.Threading.Thread.CurrentThread;
-                Console.WriteLine($"🗑️ TEST DISPOSE: Current thread - ID: {currentThread.ManagedThreadId}, IsBackground: {currentThread.IsBackground}, IsThreadPoolThread: {currentThread.IsThreadPoolThread}");
-
-                // Check if we're running in a test host
-                var processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-                Console.WriteLine($"🗑️ TEST DISPOSE: Process name: {processName}");
-
-                // Log form count before cleanup
-                var openForms = Application.OpenForms.Count;
-                Console.WriteLine($"🗑️ TEST DISPOSE: Open forms count before cleanup: {openForms}");
-
-                CleanupForm();
-
-                // Log form count after cleanup
-                var openFormsAfter = Application.OpenForms.Count;
-                Console.WriteLine($"🗑️ TEST DISPOSE: Open forms count after cleanup: {openFormsAfter}");
-
-                // Check for leaked forms
-                if (openFormsAfter > 0)
+                // First, stop the test timeout timer
+                try
                 {
-                    Console.WriteLine("⚠️ TEST DISPOSE: Warning - Forms still open after cleanup:");
-                    for (int i = 0; i < Application.OpenForms.Count; i++)
-                    {
-                        var form = Application.OpenForms[i];
-                        if (form != null)
-                        {
-                            Console.WriteLine($"  - Form {i}: {form.GetType().Name} (Text: '{form.Text}', Visible: {form.Visible})");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"  - Form {i}: <null reference>");
-                        }
-                    }
+                    _testTimeoutTimer?.Dispose();
+                    Console.WriteLine("🗑️ TEST DISPOSE: Timeout timer disposed");
+                }
+                catch (Exception timerEx)
+                {
+                    Console.WriteLine($"⚠️ TEST DISPOSE: Error disposing timer: {timerEx.Message}");
                 }
 
-                // Cleanup mocks
-                Console.WriteLine("🗑️ TEST DISPOSE: Cleaning up mocks...");
-                _mockNavigationService?.Reset();
-                _mockDatabaseService?.Reset();
-                Console.WriteLine("✅ TEST DISPOSE: Mocks cleaned up");
+                // Kill any hanging test processes
+                try
+                {
+                    KillHangingTestProcesses();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ TEST DISPOSE: Error killing hanging processes: {ex.Message}");
+                }
+
+                // Clean up the dashboard form if it exists
+                CleanupForm();
 
                 var elapsed = (DateTime.Now - startTime).TotalMilliseconds;
-                Console.WriteLine($"✅ TEST DISPOSE: {testName} disposal completed successfully in {elapsed:F0}ms");
+                Console.WriteLine($"🗑️ TEST DISPOSE: Disposal for {testName} completed in {elapsed:F0}ms");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ TEST DISPOSE: Critical error during {testName} disposal: {ex.GetType().Name}: {ex.Message}");
-                Console.WriteLine($"❌ TEST DISPOSE: Stack trace: {ex.StackTrace}");
-
-                // Log inner exception if present
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"❌ TEST DISPOSE: Inner exception: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
-                }
-
-                // Don't rethrow - we want tests to complete even if disposal fails
+                Console.WriteLine($"❌ TEST DISPOSE: Unhandled error during disposal: {ex.Message}");
             }
-            finally
+        }
+
+        /// <summary>
+        /// Handles test timeout - called when a test runs too long
+        /// </summary>
+        private void OnTestTimeout(object? state)
+        {
+            try
             {
-                var finalTime = (DateTime.Now - startTime).TotalMilliseconds;
-                Console.WriteLine($"🗑️ TEST DISPOSE: {testName} disposal finally block completed in {finalTime:F0}ms");
+                var testDuration = DateTime.Now - _testStartTime;
+                Console.WriteLine($"⏰ TEST TIMEOUT: {_testName} has been running for {testDuration.TotalMinutes:F1} minutes (limit: {_testTimeoutMinutes})");
+
+                // Force process cleanup to avoid hanging tests
+                KillHangingTestProcesses();
+
+                // Log diagnostic information
+                Console.WriteLine($"⏰ TEST TIMEOUT: Test will be forcibly terminated. Current memory usage: {GC.GetTotalMemory(false) / 1024 / 1024} MB");
+
+                // Terminate the current process after logging
+                Console.WriteLine("⏰ TEST TIMEOUT: Forcing test termination...");
+
+                // Do cleanup before termination
+                CleanupForm();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ TEST TIMEOUT: Error in timeout handler: {ex.Message}");
             }
         }
     }

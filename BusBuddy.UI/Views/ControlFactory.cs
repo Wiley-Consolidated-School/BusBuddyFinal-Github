@@ -100,9 +100,33 @@ namespace BusBuddy.UI.Views
                 BackColor = EnhancedThemeService.SurfaceColor,
                 ForeColor = EnhancedThemeService.TextColor,
                 BorderColor = EnhancedThemeService.BorderColor,
-                BorderStyle = BorderStyle.FixedSingle,
-                ThemeName = "MaterialLight"
+                BorderStyle = BorderStyle.FixedSingle
             };
+
+            // THREAD SAFETY: Set theme name safely to prevent collection modification errors
+            try
+            {
+                textBox.ThemeName = "MaterialLight";
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Collection was modified"))
+            {
+                Console.WriteLine($"⚠️ THEME: Collection modified during theme setting, retrying...");
+                // Retry once after a brief delay
+                System.Threading.Thread.Sleep(10);
+                try
+                {
+                    textBox.ThemeName = "MaterialLight";
+                }
+                catch (Exception retryEx)
+                {
+                    Console.WriteLine($"⚠️ THEME: Retry failed, using default theme: {retryEx.Message}");
+                    // Continue without theme - control will use default styling
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ THEME: Error setting TextBoxExt theme: {ex.Message}");
+            }
 
             var bannerTextInfo = new BannerTextInfo();
             bannerTextInfo.Text = watermark;

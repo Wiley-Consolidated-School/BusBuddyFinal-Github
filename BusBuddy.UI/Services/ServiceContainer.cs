@@ -147,5 +147,126 @@ namespace BusBuddy.UI.Services
                 throw new InvalidOperationException($"Failed to create form of type {formType.Name}: {ex.Message}", ex);
             }
         }
+
+        /// <summary>
+        /// Clean up all services and forms for application shutdown
+        /// </summary>
+        public void Cleanup()
+        {
+            try
+            {
+                Console.WriteLine("🧽 ServiceContainer cleanup started...");
+
+                // Clear all service instances
+                lock (_services)
+                {
+                    foreach (var service in _services.Values)
+                    {
+                        try
+                        {
+                            if (service is IDisposable disposableService)
+                            {
+                                disposableService.Dispose();
+                                Console.WriteLine($"🧽 Disposed service: {service.GetType().Name}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"⚠️ Error disposing service {service?.GetType().Name}: {ex.Message}");
+                        }
+                    }
+                    _services.Clear();
+                }
+
+                // Clear all factories
+                lock (_factories)
+                {
+                    _factories.Clear();
+                }
+
+                Console.WriteLine("✅ ServiceContainer cleanup completed");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error during ServiceContainer cleanup: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Enhanced form creation with disposal tracking
+        /// </summary>
+        private readonly Dictionary<string, WeakReference> _createdForms = new Dictionary<string, WeakReference>();
+        private readonly object _formTrackingLock = new object();
+
+        /// <summary>
+        /// Create form with disposal tracking for shutdown cleanup
+        /// </summary>
+        public T CreateFormWithTracking<T>(params object[] parameters) where T : Form
+        {
+            var form = CreateForm<T>(parameters);
+
+            // Track the form for cleanup during shutdown
+            lock (_formTrackingLock)
+            {
+                var formKey = $"{typeof(T).Name}_{Guid.NewGuid()}";
+                _createdForms[formKey] = new WeakReference(form);
+
+                // Set up cleanup when form is disposed
+                form.FormClosed += (sender, e) =>
+                {
+                    lock (_formTrackingLock)
+                    {
+                        _createdForms.Remove(formKey);
+                    }
+                };
+            }
+
+            return form;
+        }
+
+        /// <summary>
+        /// Dispose all tracked forms for application shutdown
+        /// </summary>
+        public void DisposeAllTrackedForms()
+        {
+            try
+            {
+                Console.WriteLine("🧽 Disposing all tracked forms...");
+
+                lock (_formTrackingLock)
+                {
+                    var formsToDispose = new List<Form>();
+
+                    foreach (var weakRef in _createdForms.Values)
+                    {
+                        if (weakRef.Target is Form form && !form.IsDisposed)
+                        {
+                            formsToDispose.Add(form);
+                        }
+                    }
+
+                    foreach (var form in formsToDispose)
+                    {
+                        try
+                        {
+                            Console.WriteLine($"🧽 Disposing tracked form: {form.GetType().Name}");
+                            form.Close();
+                            form.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"⚠️ Error disposing form {form.GetType().Name}: {ex.Message}");
+                        }
+                    }
+
+                    _createdForms.Clear();
+                    Console.WriteLine("✅ All tracked forms disposed");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error disposing tracked forms: {ex.Message}");
+            }
+        }
     }
 }

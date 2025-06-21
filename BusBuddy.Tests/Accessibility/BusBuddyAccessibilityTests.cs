@@ -411,11 +411,23 @@ namespace BusBuddy.Tests.Accessibility
                 if (control is Button || control is TextBox || control is ComboBox ||
                     control is CheckBox || control is RadioButton || control.TabStop)
                 {
-                    interactiveControls.Add(control);
+                    // Only add controls that are visible and have meaningful dimensions
+                    if (control.Visible && control.Width > 0 && control.Height > 0)
+                    {
+                        interactiveControls.Add(control);
+                    }
+                    else if (control.Visible)
+                    {
+                        // Log controls with zero dimensions for debugging
+                        Console.WriteLine($"⚠️ Interactive control {control.Name} ({control.GetType().Name}) has zero dimensions: {control.Width}x{control.Height}");
+                    }
                 }
 
                 // Recursively check child controls
-                interactiveControls.AddRange(FindInteractiveControls(control));
+                if (control.HasChildren)
+                {
+                    interactiveControls.AddRange(FindInteractiveControls(control));
+                }
             }
 
             return interactiveControls;

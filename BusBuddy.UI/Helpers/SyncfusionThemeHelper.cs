@@ -366,34 +366,127 @@ namespace BusBuddy.UI.Helpers
 
         public static SfDataGrid CreateEnhancedMaterialSfDataGrid()
         {
-            var grid = new SfDataGrid
+            // CRITICAL: Ensure SfDataGrid creation happens on the UI thread to prevent GDI+ cross-thread errors
+            if (System.Windows.Forms.Application.OpenForms.Count > 0)
             {
-                BackColor = MaterialTheme.IsDarkMode ? DarkTheme.Surface : MaterialColors.Surface,
-                ForeColor = MaterialTheme.IsDarkMode ? DarkTheme.TextPrimary : MaterialColors.TextPrimary,
-                Font = Typography.DefaultFont
-            };
+                var mainForm = System.Windows.Forms.Application.OpenForms[0];
+                if (mainForm.InvokeRequired)
+                {
+                    return (SfDataGrid)mainForm.Invoke(new Func<SfDataGrid>(() => CreateEnhancedMaterialSfDataGridInternal()));
+                }
+                else
+                {
+                    return CreateEnhancedMaterialSfDataGridInternal();
+                }
+            }
+            else
+            {
+                // No forms available, check if we're on the UI thread by trying to create a temporary control
+                try
+                {
+                    using (var tempControl = new Control())
+                    {
+                        var handle = tempControl.Handle; // Force handle creation - will fail if not on UI thread
+                        return CreateEnhancedMaterialSfDataGridInternal();
+                    }
+                }
+                catch (System.InvalidOperationException)
+                {
+                    // Not on UI thread and no forms available - this is likely a test scenario
+                    Console.WriteLine("⚠️ Creating SfDataGrid outside UI thread - this may cause GDI+ errors");
+                    return CreateEnhancedMaterialSfDataGridInternal();
+                }
+            }
+        }
 
+        private static SfDataGrid CreateEnhancedMaterialSfDataGridInternal()
+        {
             try
             {
-                if (grid.Style.HeaderStyle != null)
-                {
-                    grid.Style.HeaderStyle.BackColor = MaterialTheme.IsDarkMode ? DarkTheme.Primary : MaterialColors.Primary;
-                    grid.Style.HeaderStyle.TextColor = MaterialTheme.IsDarkMode ? DarkTheme.TextPrimary : MaterialColors.TextPrimary;
-                }
+                // Ensure Syncfusion theming is properly initialized before creating controls
+                EnsureSyncfusionThemeInitialized();
 
-                if (grid.Style.CellStyle != null)
+                // THREAD SAFETY: Lock during control creation to prevent concurrent GDI+ access
+                lock (typeof(SyncfusionThemeHelper))
                 {
-                    grid.Style.CellStyle.BackColor = MaterialTheme.IsDarkMode ? DarkTheme.Surface : MaterialColors.Surface;
-                    grid.Style.CellStyle.TextColor = MaterialTheme.IsDarkMode ? DarkTheme.TextPrimary : MaterialColors.TextPrimary;
+                    var grid = new SfDataGrid
+                    {
+                        BackColor = MaterialTheme.IsDarkMode ? DarkTheme.Surface : MaterialColors.Surface,
+                        ForeColor = MaterialTheme.IsDarkMode ? DarkTheme.TextPrimary : MaterialColors.TextPrimary,
+                        Font = Typography.DefaultFont
+                    };
+
+                    // Additional defensive initialization to prevent ScrollBar theme issues
+                    try
+                    {
+                        grid.Style.BorderStyle = BorderStyle.FixedSingle;
+                        // Use safe color fallbacks
+                        grid.Style.BorderColor = MaterialTheme.IsDarkMode ? Color.Gray : Color.LightGray;
+                    }
+                    catch (Exception styleEx)
+                    {
+                        Console.WriteLine($"⚠️ Could not apply SfDataGrid style: {styleEx.Message}");
+                    }
+
+                    // Apply additional theming safely
+                    try
+                    {
+                        if (grid.Style.HeaderStyle != null)
+                        {
+                            grid.Style.HeaderStyle.BackColor = MaterialTheme.IsDarkMode ? DarkTheme.Primary : MaterialColors.Primary;
+                            grid.Style.HeaderStyle.TextColor = MaterialTheme.IsDarkMode ? DarkTheme.TextPrimary : MaterialColors.TextPrimary;
+                        }
+
+                        if (grid.Style.CellStyle != null)
+                        {
+                            grid.Style.CellStyle.BackColor = MaterialTheme.IsDarkMode ? DarkTheme.Surface : MaterialColors.Surface;
+                            grid.Style.CellStyle.TextColor = MaterialTheme.IsDarkMode ? DarkTheme.TextPrimary : MaterialColors.TextPrimary;
+                        }
+                    }
+                    catch (Exception themeEx)
+                    {
+                        Console.WriteLine($"⚠️ Could not apply advanced SfDataGrid theming: {themeEx.Message}");
+                    }
+
+                    SfDataGridEnhancements(grid);
+                    return grid;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ Error applying SfDataGrid styles: {ex.Message}");
-            }
+                Console.WriteLine($"❌ Error creating SfDataGrid: {ex.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
 
-            SfDataGridEnhancements(grid);
-            return grid;
+                // Fallback: return a basic SfDataGrid without advanced styling
+                try
+                {
+                    lock (typeof(SyncfusionThemeHelper))
+                    {
+                        return new SfDataGrid();
+                    }
+                }
+                catch (Exception fallbackEx)
+                {
+                    Console.WriteLine($"❌ Even fallback SfDataGrid creation failed: {fallbackEx.Message}");
+                    throw new InvalidOperationException($"Cannot create SfDataGrid - Thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}, IsBackground: {System.Threading.Thread.CurrentThread.IsBackground}", ex);
+                }
+            }
+        }
+
+        private static void EnsureSyncfusionThemeInitialized()
+        {
+            try
+            {
+                // Make sure the license is registered
+                SyncfusionLicenseHelper.InitializeLicense();
+
+                // Apply a basic visual style to ensure theming is initialized
+                SfSkinManager.SetVisualStyle(Application.OpenForms.Count > 0 ? Application.OpenForms[0] : null, "MaterialLight");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Could not ensure Syncfusion theme initialization: {ex.Message}");
+            }
         }
 
         public static void SfDataGridEnhancements(SfDataGrid grid)

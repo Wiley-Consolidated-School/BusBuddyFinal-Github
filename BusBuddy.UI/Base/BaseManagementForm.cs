@@ -16,7 +16,7 @@ namespace BusBuddy.UI.Base
     /// Base class for all management forms to ensure consistency across the application
     /// Provides standard layout, controls, and behavior patterns
     /// </summary>
-    public abstract class BaseManagementForm<T> : SyncfusionBaseForm where T : class
+    public abstract class BaseManagementForm<T> : SyncfusionBaseForm, IDisposable where T : class
     {
         #region Protected Fields
         protected SfDataGrid? _dataGrid;
@@ -27,6 +27,31 @@ namespace BusBuddy.UI.Base
         protected SfButton? _searchButton;
         protected TextBoxExt? _searchBox;
         protected List<T> _entities = new List<T>();
+
+        // Disposal support
+        private bool _disposed = false;
+        private readonly object _disposalLock = new object();
+
+        // Test mode support - inherits from SyncfusionBaseForm
+        private static bool _testModeEnabled = false;
+
+        /// <summary>
+        /// Enable test mode to redirect message boxes to console output
+        /// </summary>
+        public static new void EnableTestMode()
+        {
+            _testModeEnabled = true;
+            SyncfusionBaseForm.EnableTestMode();
+        }
+
+        /// <summary>
+        /// Disable test mode to restore normal message box behavior
+        /// </summary>
+        public static new void DisableTestMode()
+        {
+            _testModeEnabled = false;
+            SyncfusionBaseForm.DisableTestMode();
+        }
         #endregion
 
         #region Abstract Properties and Methods
@@ -47,6 +72,23 @@ namespace BusBuddy.UI.Base
         protected BaseManagementForm()
         {
             InitializeComponent();
+
+            // Register this form with the shutdown manager for proper cleanup
+            try
+            {
+                // Use reflection to find and call TestSafeApplicationShutdownManager.RegisterForm
+                var shutdownManagerType = Type.GetType("BusBuddy.UI.Services.TestSafeApplicationShutdownManager");
+                if (shutdownManagerType != null)
+                {
+                    var registerMethod = shutdownManagerType.GetMethod("RegisterForm",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    registerMethod?.Invoke(null, new object[] { this });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Could not register BaseManagementForm with shutdown manager: {ex.Message}");
+            }
         }
 
         private void InitializeComponent()
@@ -65,7 +107,18 @@ namespace BusBuddy.UI.Base
             // Apply theming
             SyncfusionThemeHelper.ApplyMaterialTheme(this);
 
-            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with standardized controls");
+            // CRITICAL FIX: Load data after all controls are initialized
+            try
+            {
+                LoadData();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error loading {FormTitle} data: {ex.Message}");
+                _entities = new List<T>();
+            }
+
+            Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with standardized controls and data loaded");
         }
         #endregion
 
@@ -190,27 +243,233 @@ namespace BusBuddy.UI.Base
 
         protected virtual void RefreshGrid()
         {
-            LoadData();
+            try
+            {
+                LoadData();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error refreshing data: {ex.Message}");
+                _entities = new List<T>();
+            }
         }
 
         protected virtual void ShowErrorMessage(string message, string title = "Error")
         {
-            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (_testModeEnabled)
+            {
+                Console.WriteLine($"❌ {title}: {message}");
+            }
+            else
+            {
+                MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         protected virtual void ShowInfoMessage(string message, string title = "Information")
         {
-            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (_testModeEnabled)
+            {
+                Console.WriteLine($"ℹ️ {title}: {message}");
+            }
+            else
+            {
+                MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }        protected new virtual bool ConfirmDelete(string entityName)
         {
-            var result = MessageBox.Show(
-                $"Are you sure you want to delete this {entityName.ToLower()}?",
-                "Confirm Delete",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+            if (_testModeEnabled)
+            {
+                Console.WriteLine($"❓ CONFIRMATION: Are you sure you want to delete this {entityName.ToLower()}? (Test mode: returning true)");
+                return true; // Auto-confirm in test mode
+            }
+            else
+            {
+                var result = MessageBox.Show(
+                    $"Are you sure you want to delete this {entityName.ToLower()}?",
+                    "Confirm Delete",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
 
-            return result == DialogResult.Yes;
+                return result == DialogResult.Yes;
+            }
         }
+        #endregion
+
+        #region Enhanced Shutdown and Disposal
+
+        /// <summary>
+        /// Enhanced FormClosing handler with comprehensive cleanup
+        /// </summary>
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            try
+            {
+                Console.WriteLine($"🧽 BaseManagementForm closing: {this.GetType().Name}");
+
+                // Clear data sources to prevent memory leaks
+                ClearDataSources();
+
+                // Dispose Syncfusion controls safely
+                DisposeSyncfusionControlsSafely();
+
+                // Clear event handlers to prevent memory leaks
+                ClearEventHandlers();
+
+                Console.WriteLine($"✅ BaseManagementForm cleanup completed: {this.GetType().Name}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error during BaseManagementForm closing: {ex.Message}");
+            }
+            finally
+            {
+                base.OnFormClosing(e);
+            }
+        }
+
+        /// <summary>
+        /// Clear data sources from controls to prevent memory leaks
+        /// </summary>
+        private void ClearDataSources()
+        {
+            try
+            {
+                if (_dataGrid != null && !_dataGrid.IsDisposed)
+                {
+                    _dataGrid.DataSource = null;
+                    Console.WriteLine("🧽 DataGrid data source cleared");
+                }
+
+                // Clear entities collection
+                _entities?.Clear();
+                Console.WriteLine("🧽 Entities collection cleared");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error clearing data sources: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Safely dispose Syncfusion controls to prevent crashes
+        /// </summary>
+        private void DisposeSyncfusionControlsSafely()
+        {
+            try
+            {
+                // Dispose in reverse order to prevent dependency issues
+                var controlsToDispose = new List<Control>();
+
+                if (_dataGrid != null && !_dataGrid.IsDisposed) controlsToDispose.Add(_dataGrid);
+                if (_searchBox != null && !_searchBox.IsDisposed) controlsToDispose.Add(_searchBox);
+                if (_searchButton != null && !_searchButton.IsDisposed) controlsToDispose.Add(_searchButton);
+                if (_detailsButton != null && !_detailsButton.IsDisposed) controlsToDispose.Add(_detailsButton);
+                if (_deleteButton != null && !_deleteButton.IsDisposed) controlsToDispose.Add(_deleteButton);
+                if (_editButton != null && !_editButton.IsDisposed) controlsToDispose.Add(_editButton);
+                if (_addButton != null && !_addButton.IsDisposed) controlsToDispose.Add(_addButton);
+
+                foreach (var control in controlsToDispose)
+                {
+                    try
+                    {
+                        // Suppress finalization to prevent disposal crashes
+                        GC.SuppressFinalize(control);
+
+                        // Remove from parent first
+                        control.Parent?.Controls.Remove(control);
+
+                        // Dispose the control
+                        control.Dispose();
+                        Console.WriteLine($"🧽 Disposed control: {control.GetType().Name}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error disposing control {control.GetType().Name}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error in DisposeSyncfusionControlsSafely: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Clear event handlers to prevent memory leaks
+        /// </summary>
+        private void ClearEventHandlers()
+        {
+            try
+            {
+                if (_dataGrid != null && !_dataGrid.IsDisposed)
+                {
+                    _dataGrid.SelectionChanged -= DataGrid_SelectionChanged;
+                    Console.WriteLine("🧽 DataGrid event handlers cleared");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error clearing event handlers: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Implement IDisposable pattern for proper resource cleanup
+        /// </summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                lock (_disposalLock)
+                {
+                    if (!_disposed)
+                    {
+                        try
+                        {
+                            if (disposing)
+                            {
+                                Console.WriteLine($"🧽 Disposing BaseManagementForm: {this.GetType().Name}");
+
+                                // Clear data sources
+                                ClearDataSources();
+
+                                // Dispose Syncfusion controls
+                                DisposeSyncfusionControlsSafely();
+
+                                // Clear event handlers
+                                ClearEventHandlers();
+
+                                // Dispose managed resources
+                                _entities?.Clear();
+                                _entities = null;
+
+                                Console.WriteLine($"✅ BaseManagementForm disposed: {this.GetType().Name}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"⚠️ Error during BaseManagementForm disposal: {ex.Message}");
+                        }
+                        finally
+                        {
+                            _disposed = true;
+                        }
+                    }
+                }
+            }
+
+            base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// Finalizer to ensure resources are cleaned up
+        /// </summary>
+        ~BaseManagementForm()
+        {
+            Dispose(false);
+        }
+
         #endregion
     }
 }

@@ -1,4 +1,5 @@
 using BusBuddy.Models;
+using BusBuddy.Data;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Theme;
 using Syncfusion.WinForms.Controls;
@@ -12,6 +13,7 @@ namespace BusBuddy.UI.Views
 {
     public partial class VehicleFormSyncfusion : SyncfusionBaseForm
     {
+        private readonly IVehicleRepository _vehicleRepository;
         private TextBoxExt _vehicleNumberTextBox;
         private TextBoxExt _makeTextBox;
         private TextBoxExt _modelTextBox;
@@ -28,12 +30,17 @@ namespace BusBuddy.UI.Views
 
         public Vehicle Vehicle { get; private set; }
 
-        public VehicleFormSyncfusion() : this(new Vehicle())
+        public VehicleFormSyncfusion() : this(new Vehicle(), new VehicleRepository())
         {
         }
 
-        public VehicleFormSyncfusion(Vehicle vehicle)
+        public VehicleFormSyncfusion(Vehicle vehicle) : this(vehicle, new VehicleRepository())
         {
+        }
+
+        public VehicleFormSyncfusion(Vehicle vehicle, IVehicleRepository vehicleRepository)
+        {
+            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
             Vehicle = vehicle;
             InitializeComponent();
             if (vehicle != null)

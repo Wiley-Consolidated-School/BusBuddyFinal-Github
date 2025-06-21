@@ -32,7 +32,7 @@ namespace BusBuddy.UI.Views
         public ActivityManagementFormSyncfusion(IActivityRepository activityRepository)
         {
             _activityRepository = activityRepository ?? throw new ArgumentNullException(nameof(activityRepository));
-            LoadData();
+            // NOTE: LoadData() is called by the base class after all controls are initialized
         }
         #endregion
 

@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using BusBuddy.UI.Views;
+using BusBuddy.Data;
 
 namespace BusBuddy.UI.Services
 {
@@ -41,39 +42,47 @@ namespace BusBuddy.UI.Services
         }        public void ShowVehicleManagement()
         {
             Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowVehicleManagement() called");
+            EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
             ShowFormDialog<VehicleManagementFormSyncfusion>();
         }
 
         public void ShowDriverManagement()
         {
+            EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
             ShowFormDialog<DriverManagementFormSyncfusion>();
         }
 
         public void ShowRouteManagement()
         {
+            EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
             ShowFormDialog<RouteManagementFormSyncfusion>();
         }
 
         public void ShowActivityManagement()
         {
+            EnsureRepositoryInitialized(() => new ActivityRepository().GetAllActivities());
             ShowFormDialog<ActivityManagementFormSyncfusion>();
         }
 
         public void ShowFuelManagement()
         {
+            EnsureRepositoryInitialized(() => new FuelRepository().GetAllFuelRecords());
             ShowFormDialog<FuelManagementFormSyncfusion>();
         }
 
         public void ShowMaintenanceManagement()
         {
+            EnsureRepositoryInitialized(() => new MaintenanceRepository().GetAllMaintenanceRecords());
             ShowFormDialog<MaintenanceManagementFormSyncfusion>();
         }        public void ShowCalendarManagement()
         {
+            EnsureRepositoryInitialized(() => new SchoolCalendarRepository().GetAllCalendarEntries());
             ShowFormDialog<SchoolCalendarManagementFormSyncfusion>();
         }
 
         public void ShowScheduleManagement()
         {
+            EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
             ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
         }
 
@@ -86,22 +95,38 @@ namespace BusBuddy.UI.Services
 
         public void ShowReportsManagement()
         {
+            // Initialize all repositories for comprehensive reports
+            EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
+            EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
+            EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
             ShowFormDialog<AnalyticsDemoFormSyncfusion>(); // Use Analytics as comprehensive reports
-        }        public void ShowSchoolCalendarManagement()
+        }
+
+        public void ShowSchoolCalendarManagement()
         {
+            EnsureRepositoryInitialized(() => new SchoolCalendarRepository().GetAllCalendarEntries());
             ShowFormDialog<SchoolCalendarManagementFormSyncfusion>();
         }        public void ShowActivityScheduleManagement()
         {
+            EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
             ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
         }
 
         public void ShowAnalyticsDemo()
         {
+            // Initialize all repositories for analytics
+            EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
+            EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
+            EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
             ShowFormDialog<AnalyticsDemoFormSyncfusion>();
         }
 
         public void ShowReports()
         {
+            // Initialize all repositories for reports
+            EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
+            EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
+            EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
             ShowFormDialog<AnalyticsDemoFormSyncfusion>(); // Use Analytics as reports for now
         }
 
@@ -134,6 +159,24 @@ namespace BusBuddy.UI.Services
                 Console.WriteLine($"🔍 BREADCRUMB ERROR: Failed to open form: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return DialogResult.Cancel;
+            }
+        }
+
+        /// <summary>
+        /// Ensures repository is initialized by performing a test operation
+        /// This triggers database initialization if needed
+        /// </summary>
+        private void EnsureRepositoryInitialized(System.Action testOperation)
+        {
+            try
+            {
+                testOperation.Invoke();
+                Console.WriteLine("✅ Repository initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Repository initialization warning: {ex.Message}");
+                // Don't throw - let the form handle any subsequent issues
             }
         }
     }

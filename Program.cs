@@ -13,15 +13,113 @@ namespace BusBuddy
 {
     internal static class Program
     {
+        private static SingleInstanceManager _singleInstanceManager;
+
         [STAThread]
-        static void Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
-            // Check for special command-line arguments
-            if (args.Length > 0 && args[0] == "validate-analytics")
+            // Initialize single instance protection
+            _singleInstanceManager = new SingleInstanceManager("BusBuddy-E7B4F3C1-8A2D-4E5F-9B6C-1D3A5E7F9A2B");
+
+            try
             {
-                RunAnalyticsValidationOnly().GetAwaiter().GetResult();
-                return;
+                // Try to acquire single instance lock
+                if (!_singleInstanceManager.TryAcquireLock())
+                {
+                    Console.WriteLine("⚠️ Another instance of BusBuddy is already running");
+
+                    // Try to communicate with existing instance
+                    var success = await _singleInstanceManager.SendArgsToExistingInstance(args);
+                    if (success)
+                    {
+                        // Bring existing instance to front
+                        _singleInstanceManager.BringExistingInstanceToFront();
+                        Console.WriteLine("✅ Activated existing instance and passed arguments");
+                        return 0;
+                    }
+                    else
+                    {
+                        Console.WriteLine("❌ Could not communicate with existing instance");
+                        Console.WriteLine("🧹 Attempting to clean up orphaned processes...");
+                        SingleInstanceManager.CleanupOrphanedProcesses();
+
+                        // Try again after cleanup
+                        await Task.Delay(1000); // Wait for cleanup to complete
+                        if (!_singleInstanceManager.TryAcquireLock())
+                        {
+                            MessageBox.Show("Another instance of BusBuddy is already running.\n\nIf you believe this is an error, please restart your computer.",
+                                          "BusBuddy - Single Instance", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return 1;
+                        }
+                        Console.WriteLine("✅ Successfully acquired lock after cleanup");
+                    }
+                }
+
+                // Setup cleanup on application exit
+                Application.ApplicationExit += (s, e) => _singleInstanceManager?.Dispose();
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => _singleInstanceManager?.Dispose();
+
+                // Handle communication from secondary instances
+                _singleInstanceManager.SecondInstanceDetected += OnSecondInstanceDetected;
+
+                // Check for special command-line arguments
+                if (args.Length > 0 && args[0] == "validate-analytics")
+                {
+                    await RunAnalyticsValidationOnly();
+                    return 0;
+                }
+
+                // Run the main application
+                return await RunMainApplication(args);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Fatal error: {ex.Message}");
+                LogError("Fatal application error", ex);
+                return 1;
+            }
+            finally
+            {
+                _singleInstanceManager?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Handles communication from secondary instances
+        /// </summary>
+        private static void OnSecondInstanceDetected(object sender, string[] args)
+        {
+            try
+            {
+                Console.WriteLine($"📨 Secondary instance detected with args: [{string.Join(", ", args)}]");
+
+                // Use invoke to ensure we're on the UI thread
+                Application.OpenForms[0]?.Invoke(new Action(() =>
+                {
+                    var mainForm = Application.OpenForms[0];
+                    if (mainForm != null)
+                    {
+                        if (mainForm.WindowState == FormWindowState.Minimized)
+                        {
+                            mainForm.WindowState = FormWindowState.Normal;
+                        }
+                        mainForm.BringToFront();
+                        mainForm.Activate();
+                        Console.WriteLine("✅ Brought main window to front");
+                    }
+                }));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error handling secondary instance: {ex.Message}");
+            }
+        }        /// <summary>
+        /// Runs the main application logic
+        /// </summary>
+        private static async Task<int> RunMainApplication(string[] args)
+        {
+            // Add minimal await to satisfy async requirements
+            await Task.Delay(1);
 
             // Debug output will go to VS Code terminal when run with dotnet run
             Console.WriteLine("🚀 BusBuddy starting with debug console...");
@@ -116,11 +214,9 @@ namespace BusBuddy
                     throw new InvalidOperationException("Database helper service not registered. Check ServiceContainerInstance configuration.");
                 }
 
-                Console.WriteLine("✅ All required services validated");
-
-                // Test database connection
+                Console.WriteLine("✅ All required services validated");                // Test database connection (fire and forget)
                 Console.WriteLine("🔌 Testing database connection...");
-                Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     try
                     {
@@ -137,7 +233,7 @@ namespace BusBuddy
                 });
 
                 Console.WriteLine("🧪 Validating cost analytics...");
-                Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     try
                     {
@@ -183,10 +279,10 @@ namespace BusBuddy
                 {
                     Console.WriteLine($"❌ Cleanup error: {ex.Message}");
                     LogError("Service container cleanup failed", ex);
-                }
-
-                Console.WriteLine("✅ Application shutdown complete.");
+                }                Console.WriteLine("✅ Application shutdown complete.");
             }
+
+            return 0; // Success
         }
 
         /// <summary>

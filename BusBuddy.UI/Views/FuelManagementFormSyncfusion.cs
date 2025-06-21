@@ -38,8 +38,7 @@ namespace BusBuddy.UI.Views
         {
             _fuelRepository = fuelRepository ?? throw new ArgumentNullException(nameof(fuelRepository));
             _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
-            LoadVehicles();
-            LoadData();
+            // NOTE: LoadData() and LoadVehicles() are called by the base class after all controls are initialized
         }
         #endregion
 
@@ -48,6 +47,9 @@ namespace BusBuddy.UI.Views
         {
             try
             {
+                // Load vehicles first for dropdowns/lookups
+                LoadVehicles();
+
                 var fuelRecords = _fuelRepository.GetAllFuelRecords();
                 _entities = fuelRecords?.ToList() ?? new List<Fuel>();
                 PopulateFuelGrid();
@@ -226,10 +228,15 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                _vehicles = _vehicleRepository.GetAllVehicles().ToList();
+                // Defensive programming: Handle null repository results
+                var vehicles = _vehicleRepository.GetAllVehicles();
+                _vehicles = vehicles?.ToList() ?? new List<Vehicle>();
+                Console.WriteLine($"✅ Loaded {_vehicles.Count} vehicles for fuel management");
             }
             catch (Exception ex)
             {
+                // Ensure collection is never null even on error
+                _vehicles = new List<Vehicle>();
                 ShowErrorMessage($"Error loading vehicles: {ex.Message}");
             }
         }
