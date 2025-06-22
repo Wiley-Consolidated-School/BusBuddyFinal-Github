@@ -249,8 +249,16 @@ namespace BusBuddy.UI.Services
 
         public void ShowDriverManagement()
         {
+            Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowDriverManagement() called");
             EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
             ShowFormDialog<DriverManagementFormSyncfusion>();
+        }
+
+        public void ShowActivityScheduleManagement()
+        {
+            Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowActivityScheduleManagement() called");
+            EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
+            ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
         }
 
         public void ShowRouteManagement()
@@ -309,12 +317,6 @@ namespace BusBuddy.UI.Services
         {
             EnsureRepositoryInitialized(() => new SchoolCalendarRepository().GetAllCalendarEntries());
             ShowFormDialog<SchoolCalendarManagementFormSyncfusion>();
-        }
-
-        public void ShowActivityScheduleManagement()
-        {
-            EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
-            ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
         }
 
         public void ShowAnalyticsDemo()
