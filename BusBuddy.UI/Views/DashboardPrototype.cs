@@ -33,6 +33,8 @@ namespace BusBuddy.UI.Views
         private readonly INavigationService _navigationService;
         private readonly BusBuddy.Business.IDatabaseHelperService _databaseHelperService;
         private readonly IRouteAnalyticsService _routeAnalyticsService;
+        private readonly IReportService _reportService;
+        private readonly BusBuddy.UI.Services.IAnalyticsService _analyticsService;
 
         // UI Components
         private NavigationDrawer _navigationDrawer;
@@ -50,6 +52,8 @@ namespace BusBuddy.UI.Views
         private SfButton _applyThemeButton;
         private SfButton _generateReportButton;
         private SfButton _refreshDataButton;
+        private SfButton _generateAnalyticsButton;
+        private SfButton _driverPayReportButton;
 
         // Data containers
         private List<Route> _routes;
@@ -59,11 +63,15 @@ namespace BusBuddy.UI.Views
         public DashboardPrototype(
             INavigationService navigationService,
             BusBuddy.Business.IDatabaseHelperService databaseHelperService,
-            IRouteAnalyticsService routeAnalyticsService)
+            IRouteAnalyticsService routeAnalyticsService,
+            IReportService reportService,
+            BusBuddy.UI.Services.IAnalyticsService analyticsService)
         {
             _navigationService = navigationService;
             _databaseHelperService = databaseHelperService;
             _routeAnalyticsService = routeAnalyticsService;
+            _reportService = reportService;
+            _analyticsService = analyticsService;
 
             InitializeComponent();
 
@@ -219,9 +227,28 @@ namespace BusBuddy.UI.Views
                 Text = "Toggle Theme"
             };
 
+            // Task 6: Add Analytics Service buttons
+            _generateAnalyticsButton = new SfButton
+            {
+                Width = 160,
+                Height = 40,
+                Location = new Point(680, 120),
+                Text = "Generate Analytics"
+            };
+
+            _driverPayReportButton = new SfButton
+            {
+                Width = 160,
+                Height = 40,
+                Location = new Point(860, 120),
+                Text = "Driver Pay Report"
+            };
+
             _metricsPanel.Controls.Add(_generateReportButton);
             _metricsPanel.Controls.Add(_refreshDataButton);
             _metricsPanel.Controls.Add(_applyThemeButton);
+            _metricsPanel.Controls.Add(_generateAnalyticsButton);
+            _metricsPanel.Controls.Add(_driverPayReportButton);
 
             // Configure charts
             // Based on ChartControl documentation: https://help.syncfusion.com/windowsforms/chart/getting-started
@@ -273,6 +300,8 @@ namespace BusBuddy.UI.Views
             _applyThemeButton.Click += ApplyThemeButton_Click;
             _refreshDataButton.Click += RefreshDataButton_Click;
             _generateReportButton.Click += GenerateReportButton_Click;
+            _generateAnalyticsButton.Click += GenerateAnalyticsButton_Click;
+            _driverPayReportButton.Click += DriverPayReportButton_Click;
 
             // Task 4: Enhanced Navigation Service - wire up navigation drawer items
             // Note: NavigationDrawer in Syncfusion uses different event pattern
@@ -330,10 +359,37 @@ namespace BusBuddy.UI.Views
             LoadDashboardData();
         }
 
-        private void GenerateReportButton_Click(object sender, EventArgs e)
+        private async void GenerateReportButton_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("CDE-40 Report generation will be implemented in the full version.",
-                "Feature Coming Soon", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                // Task 5: Use ReportService to generate CDE-40 report
+                _generateReportButton.Text = "Generating...";
+                _generateReportButton.Enabled = false;
+
+                var reportData = await _reportService.GenerateCDE40ReportAsync("2024-25");
+
+                if (reportData != null)
+                {
+                    MessageBox.Show("CDE-40 Report generated successfully!\n\nReport includes:\n• Transportation mileage analysis\n• Pupil count statistics\n• Cost per student calculations\n• Financial contributions breakdown\n• AI-powered insights and recommendations",
+                        "CDE-40 Report Generated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to generate CDE-40 report. Please check the data and try again.",
+                        "Report Generation Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error generating CDE-40 report: {ex.Message}",
+                    "Report Generation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _generateReportButton.Text = "Generate CDE-40 Report";
+                _generateReportButton.Enabled = true;
+            }
         }
 
         private void ToggleNavigationDrawer()
@@ -391,6 +447,73 @@ namespace BusBuddy.UI.Views
                 Console.WriteLine($"❌ TASK 4: Navigation error for '{moduleText}': {ex.Message}");
                 MessageBox.Show($"An error occurred while navigating to {moduleText}: {ex.Message}",
                     "Navigation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void GenerateAnalyticsButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _generateAnalyticsButton.Text = "Generating...";
+                _generateAnalyticsButton.Enabled = false;
+
+                // Generate analytics using the AnalyticsService
+                var startDate = DateTime.Now.AddMonths(-1);
+                var endDate = DateTime.Now;
+
+                var mileageStats = await _analyticsService.GetMileageStatsAsync(startDate, endDate);
+                var pupilCounts = await _analyticsService.GetPupilCountsAsync(startDate, endDate);
+                var costPerStudent = await _analyticsService.GetCostPerStudentAsync(startDate, endDate);
+
+                MessageBox.Show($"Analytics Generated Successfully!\n\n" +
+                    $"Total Mileage: {mileageStats:F1} miles\n" +
+                    $"Total Pupils: {pupilCounts}\n" +
+                    $"Cost per Student: ${costPerStudent:F2}",
+                    "Analytics Report", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error generating analytics: {ex.Message}",
+                    "Analytics Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _generateAnalyticsButton.Text = "Generate Analytics";
+                _generateAnalyticsButton.Enabled = true;
+            }
+        }
+
+        private async void DriverPayReportButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _driverPayReportButton.Text = "Generating...";
+                _driverPayReportButton.Enabled = false;
+
+                // Generate driver pay report
+                var startDate = DateTime.Now.AddMonths(-1);
+                var endDate = DateTime.Now;
+
+                var payReports = await _analyticsService.GenerateDriverPayReportAsync(startDate, endDate);
+
+                var totalPay = payReports.Sum(r => r.TotalPay);
+                var driverCount = payReports.Count;
+
+                MessageBox.Show($"Driver Pay Report Generated!\n\n" +
+                    $"Total Drivers: {driverCount}\n" +
+                    $"Total Pay: ${totalPay:F2}\n" +
+                    $"Average Pay: ${(driverCount > 0 ? totalPay / driverCount : 0):F2}",
+                    "Driver Pay Report", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error generating driver pay report: {ex.Message}",
+                    "Pay Report Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _driverPayReportButton.Text = "Driver Pay Report";
+                _driverPayReportButton.Enabled = true;
             }
         }
         #endregion

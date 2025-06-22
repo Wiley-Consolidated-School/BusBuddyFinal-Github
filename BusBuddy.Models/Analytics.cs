@@ -285,4 +285,31 @@ namespace BusBuddy.Models
         public decimal TotalSportsCosts { get; set; }
         public decimal TotalFieldTripCosts { get; set; }
     }
+
+    /// <summary>
+    /// Driver pay report data structure
+    /// </summary>
+    public class DriverPayReport
+    {
+        public string DriverName { get; set; } = string.Empty;
+        public string DriverType { get; set; } = string.Empty; // CDL, Small Bus, SPED
+        public int TotalTrips { get; set; }
+        public int SPEDDays { get; set; }
+        public decimal TripRate { get; set; }
+        public decimal SPEDDayRate { get; set; }
+        public decimal TotalPay { get; set; }
+        public Dictionary<string, object> Details { get; set; } = new Dictionary<string, object>();
+    }
+
+    /// <summary>
+    /// Analytics efficiency metrics
+    /// </summary>
+    public class EfficiencyMetrics
+    {
+        public decimal CostPerMile { get; set; }
+        public decimal UtilizationRate { get; set; }
+        public List<string> Recommendations { get; set; } = new List<string>();
+        public Dictionary<string, decimal> KeyMetrics { get; set; } = new Dictionary<string, decimal>();
+        public string AIInsights { get; set; } = string.Empty;
+    }
 }

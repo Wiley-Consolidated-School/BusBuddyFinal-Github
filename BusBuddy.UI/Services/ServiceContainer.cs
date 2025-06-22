@@ -70,6 +70,9 @@ namespace BusBuddy.UI.Services
                 // Register navigation service
                 RegisterSingleton<INavigationService>(() => new NavigationService(GetService<IFormFactory>()));
 
+                // Task 5: Register report service with xAI Grok 3 API integration
+                RegisterSingleton<IReportService>(() => new ReportService(GetService<IDatabaseHelperService>()));
+
                 Console.WriteLine("✅ All services registered successfully");
             }
             catch (Exception ex)

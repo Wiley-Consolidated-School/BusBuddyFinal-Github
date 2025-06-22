@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.IO;
 using BusBuddy.Models;
 using BusBuddy.Business;
 using BusBuddy.Data;
@@ -13,104 +14,16 @@ using BusBuddy.Data;
 namespace BusBuddy.UI.Services
 {
     /// <summary>
-    /// Analytics data structure for transportation metrics
+    /// Pay scheme configuration for driver pay calculations
+    /// JSON-based configuration that can be easily updated
     /// </summary>
-    public class MileageStats
+    public class PayScheme
     {
-        public decimal TotalMiles { get; set; }
-        public decimal AverageDailyMiles { get; set; }
-        public decimal MaxDailyMiles { get; set; }
-        public decimal MinDailyMiles { get; set; }
-        public decimal MileageEfficiency { get; set; }
-        public Dictionary<string, decimal> RouteBreakdown { get; set; } = new Dictionary<string, decimal>();
-        public Dictionary<DateTime, decimal> DailyTrend { get; set; } = new Dictionary<DateTime, decimal>();
-    }
-
-    /// <summary>
-    /// Pupil count analytics data
-    /// </summary>
-    public class PupilCountStats
-    {
-        public int TotalPupils { get; set; }
-        public double AverageDailyRiders { get; set; }
-        public int MaxDailyRiders { get; set; }
-        public int MinDailyRiders { get; set; }
-        public double CapacityUtilization { get; set; }
-        public Dictionary<string, int> RouteRidership { get; set; } = new Dictionary<string, int>();
-        public Dictionary<DateTime, int> DailyTrend { get; set; } = new Dictionary<DateTime, int>();
-    }
-
-    /// <summary>
-    /// Cost per student analytics
-    /// </summary>
-    public class CostPerStudentStats
-    {
-        public decimal CostPerStudent { get; set; }
-        public decimal CostPerMile { get; set; }
-        public decimal FuelCostPerStudent { get; set; }
-        public decimal MaintenanceCostPerStudent { get; set; }
-        public decimal TotalOperatingCosts { get; set; }
-        public Dictionary<string, decimal> CostBreakdown { get; set; } = new Dictionary<string, decimal>();
-        public Dictionary<DateTime, decimal> CostTrend { get; set; } = new Dictionary<DateTime, decimal>();
-    }
-
-    /// <summary>
-    /// Comprehensive analytics insights with AI-generated analysis
-    /// </summary>
-    public class AnalyticsInsight
-    {
-        public string InsightId { get; set; } = Guid.NewGuid().ToString();
-        public DateTime GeneratedDate { get; set; } = DateTime.Now;
-        public string Category { get; set; } = string.Empty; // Mileage, Ridership, Cost, Efficiency
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string Recommendation { get; set; } = string.Empty;
-        public double ImpactScore { get; set; } // 1-10 scale
-        public string Priority { get; set; } = "Medium"; // High, Medium, Low
-        public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
-    }
-
-    /// <summary>
-    /// Interface for transportation analytics service
-    /// </summary>
-    public interface IAnalyticsService
-    {
-        /// <summary>
-        /// Get comprehensive mileage statistics and trends
-        /// </summary>
-        /// <param name="startDate">Analysis start date</param>
-        /// <param name="endDate">Analysis end date</param>
-        /// <returns>Mileage analytics with AI insights</returns>
-        Task<MileageStats> GetMileageStatsAsync(DateTime startDate, DateTime endDate);
-
-        /// <summary>
-        /// Get pupil count statistics and ridership patterns
-        /// </summary>
-        /// <param name="startDate">Analysis start date</param>
-        /// <param name="endDate">Analysis end date</param>
-        /// <returns>Pupil count analytics with trends</returns>
-        Task<PupilCountStats> GetPupilCountsAsync(DateTime startDate, DateTime endDate);
-
-        /// <summary>
-        /// Calculate cost per student metrics with breakdown analysis
-        /// </summary>
-        /// <param name="startDate">Analysis start date</param>
-        /// <param name="endDate">Analysis end date</param>
-        /// <returns>Cost analytics with efficiency metrics</returns>
-        Task<CostPerStudentStats> GetCostPerStudentAsync(DateTime startDate, DateTime endDate);
-
-        /// <summary>
-        /// Generate AI-powered insights for transportation data
-        /// </summary>
-        /// <param name="analyticsData">Combined analytics data for analysis</param>
-        /// <returns>List of actionable insights and recommendations</returns>
-        Task<List<AnalyticsInsight>> GenerateInsightsAsync(object analyticsData);
-
-        /// <summary>
-        /// Get real-time dashboard metrics for current operations
-        /// </summary>
-        /// <returns>Current operational metrics</returns>
-        Task<Dictionary<string, object>> GetDashboardMetricsAsync();
+        public decimal CDLTripRate { get; set; } = 33.00m;
+        public decimal SmallBusTripRate { get; set; } = 15.00m;
+        public decimal SPEDDayRate { get; set; } = 66.00m;
+        public DateTime LastUpdated { get; set; } = DateTime.Now;
+        public string Notes { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -123,6 +36,7 @@ namespace BusBuddy.UI.Services
         private readonly IRouteAnalyticsService _routeAnalyticsService;
         private readonly HttpClient _httpClient;
         private readonly string _xaiApiKey;
+        private readonly string _paySchemeConfigPath;
         private const string XAI_API_URL = "https://api.x.ai/v1/chat/completions";
 
         public AnalyticsService(
@@ -143,425 +57,499 @@ namespace BusBuddy.UI.Services
             }
 
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "BusBuddy-Analytics/1.0");
+
+            // Set up pay scheme config path
+            _paySchemeConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "payscheme.json");
         }
 
         /// <summary>
-        /// Get comprehensive mileage statistics and trends
+        /// Gets total mileage statistics for a given period
         /// </summary>
-        public async Task<MileageStats> GetMileageStatsAsync(DateTime startDate, DateTime endDate)
+        public async Task<decimal> GetMileageStatsAsync(DateTime startDate, DateTime endDate)
         {
-            var stats = new MileageStats();
-
             try
             {
                 Console.WriteLine($"🔍 Analyzing mileage data from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
 
-                // Get route data for the specified period
                 var routes = await GetRoutesForPeriodAsync(startDate, endDate);
+                var activities = await GetActivitySchedulesForPeriodAsync(startDate, endDate);
 
-                // Calculate total mileage
-                var dailyMileage = new Dictionary<DateTime, decimal>();
-                var routeMileage = new Dictionary<string, decimal>();
+                decimal totalMiles = 0;
 
+                // Calculate route mileage
                 foreach (var route in routes)
                 {
-                    var routeDate = route.DateAsDateTime.Date;
-                    var dailyMiles = ((route.AMEndMiles ?? 0) - (route.AMBeginMiles ?? 0)) +
-                                     ((route.PMEndMiles ?? 0) - (route.PMBeginMiles ?? 0));
-
-                    stats.TotalMiles += dailyMiles;
-
-                    // Track daily totals
-                    if (dailyMileage.ContainsKey(routeDate))
-                        dailyMileage[routeDate] += dailyMiles;
-                    else
-                        dailyMileage[routeDate] = dailyMiles;
-
-                    // Track route totals
-                    var routeName = route.RouteName ?? "Unknown Route";
-                    if (routeMileage.ContainsKey(routeName))
-                        routeMileage[routeName] += dailyMiles;
-                    else
-                        routeMileage[routeName] = dailyMiles;
+                    var amMiles = (route.AMEndMiles ?? 0) - (route.AMBeginMiles ?? 0);
+                    var pmMiles = (route.PMEndMiles ?? 0) - (route.PMBeginMiles ?? 0);
+                    totalMiles += amMiles + pmMiles;
                 }
 
-                // Calculate derived statistics
-                if (dailyMileage.Count > 0)
+                // Add activity schedule mileage (estimate based on destination)
+                foreach (var activity in activities)
                 {
-                    stats.AverageDailyMiles = dailyMileage.Values.Average();
-                    stats.MaxDailyMiles = dailyMileage.Values.Max();
-                    stats.MinDailyMiles = dailyMileage.Values.Min();
+                    // Estimate trip distance based on destination - placeholder logic
+                    totalMiles += EstimateTripDistance(activity.ScheduledDestination ?? "");
                 }
 
-                stats.RouteBreakdown = routeMileage;
-                stats.DailyTrend = dailyMileage;
-
-                // Calculate efficiency (miles per vehicle or similar metric)
-                var vehicleCount = await GetActiveVehicleCountAsync();
-                if (vehicleCount > 0)
-                {
-                    stats.MileageEfficiency = stats.TotalMiles / vehicleCount;
-                }
-
-                Console.WriteLine($"📊 Mileage analysis complete: {stats.TotalMiles:F1} total miles, {stats.AverageDailyMiles:F1} avg daily");
-                return stats;
+                Console.WriteLine($"📊 Total mileage calculated: {totalMiles:F1} miles");
+                return totalMiles;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error analyzing mileage data: {ex.Message}");
+                Console.WriteLine($"❌ Error calculating mileage: {ex.Message}");
                 throw;
             }
         }
 
         /// <summary>
-        /// Get pupil count statistics and ridership patterns
+        /// Gets total pupil counts for a given period
         /// </summary>
-        public async Task<PupilCountStats> GetPupilCountsAsync(DateTime startDate, DateTime endDate)
+        public async Task<int> GetPupilCountsAsync(DateTime startDate, DateTime endDate)
         {
-            var stats = new PupilCountStats();
-
             try
             {
-                Console.WriteLine($"🔍 Analyzing ridership data from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+                Console.WriteLine($"🔍 Analyzing pupil count data from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
 
-                // Get route data for pupil counts
                 var routes = await GetRoutesForPeriodAsync(startDate, endDate);
+                var activities = await GetActivitySchedulesForPeriodAsync(startDate, endDate);
 
-                var dailyRidership = new Dictionary<DateTime, int>();
-                var routeRidership = new Dictionary<string, int>();
+                int totalPupils = 0;
 
+                // Calculate route ridership
                 foreach (var route in routes)
                 {
-                    var routeDate = route.DateAsDateTime.Date;
-                    var dailyRiders = (route.AMRiders ?? 0) + (route.PMRiders ?? 0);
-
-                    stats.TotalPupils += dailyRiders;
-
-                    // Track daily totals
-                    if (dailyRidership.ContainsKey(routeDate))
-                        dailyRidership[routeDate] += dailyRiders;
-                    else
-                        dailyRidership[routeDate] = dailyRiders;
-
-                    // Track route totals
-                    var routeName = route.RouteName ?? "Unknown Route";
-                    if (routeRidership.ContainsKey(routeName))
-                        routeRidership[routeName] += dailyRiders;
-                    else
-                        routeRidership[routeName] = dailyRiders;
+                    totalPupils += (route.AMRiders ?? 0) + (route.PMRiders ?? 0);
                 }
 
-                // Calculate derived statistics
-                if (dailyRidership.Count > 0)
+                // Add activity schedule ridership
+                foreach (var activity in activities)
                 {
-                    stats.AverageDailyRiders = dailyRidership.Values.Average();
-                    stats.MaxDailyRiders = dailyRidership.Values.Max();
-                    stats.MinDailyRiders = dailyRidership.Values.Min();
+                    totalPupils += activity.ScheduledRiders ?? 0;
                 }
 
-                stats.RouteRidership = routeRidership;
-                stats.DailyTrend = dailyRidership;
-
-                // Calculate capacity utilization
-                var totalCapacity = await GetTotalVehicleCapacityAsync();
-                if (totalCapacity > 0 && stats.AverageDailyRiders > 0)
-                {
-                    stats.CapacityUtilization = stats.AverageDailyRiders / totalCapacity * 100;
-                }
-
-                Console.WriteLine($"📊 Ridership analysis complete: {stats.TotalPupils} total pupils, {stats.AverageDailyRiders:F1} avg daily");
-                return stats;
+                Console.WriteLine($"📊 Total pupil count: {totalPupils}");
+                return totalPupils;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error analyzing ridership data: {ex.Message}");
+                Console.WriteLine($"❌ Error calculating pupil counts: {ex.Message}");
                 throw;
             }
         }
 
         /// <summary>
-        /// Calculate cost per student metrics with breakdown analysis
+        /// Calculates cost per student for a given period
         /// </summary>
-        public async Task<CostPerStudentStats> GetCostPerStudentAsync(DateTime startDate, DateTime endDate)
+        public async Task<decimal> GetCostPerStudentAsync(DateTime startDate, DateTime endDate)
         {
-            var stats = new CostPerStudentStats();
-
             try
             {
-                Console.WriteLine($"🔍 Analyzing cost data from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+                Console.WriteLine($"🔍 Analyzing cost per student from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
 
-                // Get cost data
+                var totalPupils = await GetPupilCountsAsync(startDate, endDate);
                 var fuelRecords = await GetFuelRecordsForPeriodAsync(startDate, endDate);
                 var maintenanceRecords = await GetMaintenanceRecordsForPeriodAsync(startDate, endDate);
-                var pupilStats = await GetPupilCountsAsync(startDate, endDate);
-                var mileageStats = await GetMileageStatsAsync(startDate, endDate);
 
-                // Calculate total costs
-                var fuelCosts = fuelRecords.Sum(f => f.FuelCost ?? 0);
-                var maintenanceCosts = maintenanceRecords.Sum(m => m.RepairCost ?? 0);
-                stats.TotalOperatingCosts = fuelCosts + maintenanceCosts;
+                var totalCosts = fuelRecords.Sum(f => f.FuelCost ?? 0) +
+                                maintenanceRecords.Sum(m => m.RepairCost ?? 0);
 
-                // Calculate per-student costs
-                if (pupilStats.TotalPupils > 0)
+                var costPerStudent = totalPupils > 0 ? totalCosts / totalPupils : 0;
+
+                Console.WriteLine($"📊 Cost per student: ${costPerStudent:F2} (Total: ${totalCosts:F2}, Pupils: {totalPupils})");
+                return costPerStudent;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error calculating cost per student: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Generates comprehensive driver pay report
+        /// </summary>
+        public async Task<List<DriverPayReport>> GenerateDriverPayReportAsync(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                Console.WriteLine($"🔍 Generating driver pay report from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+
+                var payScheme = await LoadPaySchemeAsync();
+                var routes = await GetRoutesForPeriodAsync(startDate, endDate);
+                var drivers = await GetAllDriversAsync();
+                var reports = new List<DriverPayReport>();
+
+                // Group routes by driver
+                var driverRoutes = new Dictionary<int, List<Route>>();
+
+                foreach (var route in routes)
                 {
-                    stats.CostPerStudent = stats.TotalOperatingCosts / pupilStats.TotalPupils;
-                    stats.FuelCostPerStudent = fuelCosts / pupilStats.TotalPupils;
-                    stats.MaintenanceCostPerStudent = maintenanceCosts / pupilStats.TotalPupils;
-                }
-
-                // Calculate per-mile costs
-                if (mileageStats.TotalMiles > 0)
-                {
-                    stats.CostPerMile = stats.TotalOperatingCosts / mileageStats.TotalMiles;
-                }
-
-                // Build cost breakdown
-                stats.CostBreakdown = new Dictionary<string, decimal>
-                {
-                    { "Fuel", fuelCosts },
-                    { "Maintenance", maintenanceCosts },
-                    { "Total", stats.TotalOperatingCosts }
-                };
-
-                // Create cost trend (simplified daily average)
-                var days = (endDate - startDate).Days + 1;
-                if (days > 0)
-                {
-                    var dailyCost = stats.TotalOperatingCosts / days;
-                    for (var date = startDate; date <= endDate; date = date.AddDays(1))
+                    // Add AM driver routes
+                    if (route.AMDriverID.HasValue)
                     {
-                        stats.CostTrend[date] = dailyCost;
+                        if (!driverRoutes.ContainsKey(route.AMDriverID.Value))
+                            driverRoutes[route.AMDriverID.Value] = new List<Route>();
+                        driverRoutes[route.AMDriverID.Value].Add(route);
+                    }
+
+                    // Add PM driver routes
+                    if (route.PMDriverID.HasValue)
+                    {
+                        if (!driverRoutes.ContainsKey(route.PMDriverID.Value))
+                            driverRoutes[route.PMDriverID.Value] = new List<Route>();
+                        driverRoutes[route.PMDriverID.Value].Add(route);
                     }
                 }
 
-                Console.WriteLine($"📊 Cost analysis complete: ${stats.TotalOperatingCosts:F2} total, ${stats.CostPerStudent:F2} per student");
-                return stats;
+                // Calculate pay for each driver
+                foreach (var driverGroup in driverRoutes)
+                {
+                    var driver = drivers.FirstOrDefault(d => d.DriverID == driverGroup.Key);
+                    if (driver == null) continue;
+
+                    var report = new DriverPayReport
+                    {
+                        DriverName = driver.Name
+                    };
+
+                    // Determine driver type based on license and route assignments
+                    var driverType = DetermineDriverType(driver, driverGroup.Value);
+                    report.DriverType = driverType;
+
+                    // Calculate pay based on driver type
+                    if (driverType == "SPED")
+                    {
+                        // SPED drivers are paid per day
+                        report.SPEDDays = CountWorkDays(driverGroup.Value);
+                        report.SPEDDayRate = payScheme.SPEDDayRate;
+                        report.TotalPay = report.SPEDDays * report.SPEDDayRate;
+                    }
+                    else
+                    {
+                        // CDL and Small Bus drivers are paid per trip
+                        report.TotalTrips = CountTrips(driverGroup.Value);
+                        report.TripRate = driverType == "CDL" ? payScheme.CDLTripRate : payScheme.SmallBusTripRate;
+                        report.TotalPay = report.TotalTrips * report.TripRate;
+                    }
+
+                    // Add details for transparency
+                    report.Details["RouteCount"] = driverGroup.Value.Count;
+                    report.Details["PayPeriod"] = $"{startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}";
+                    report.Details["LicenseType"] = driver.DriversLicenseType ?? "Unknown";
+
+                    reports.Add(report);
+                }
+
+                // Generate AI insights for the pay report
+                var aiInsights = await GeneratePayReportInsightsAsync(reports);
+                Console.WriteLine($"📊 Driver pay report generated: {reports.Count} drivers, AI insights: {aiInsights.Length} chars");
+
+                return reports;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error analyzing cost data: {ex.Message}");
+                Console.WriteLine($"❌ Error generating driver pay report: {ex.Message}");
                 throw;
             }
         }
 
         /// <summary>
-        /// Generate AI-powered insights for transportation data
+        /// Gets transportation efficiency metrics with AI insights
         /// </summary>
-        public async Task<List<AnalyticsInsight>> GenerateInsightsAsync(object analyticsData)
+        public async Task<EfficiencyMetrics> GetEfficiencyMetricsAsync(DateTime startDate, DateTime endDate)
         {
-            var insights = new List<AnalyticsInsight>();
-
             try
             {
-                if (string.IsNullOrEmpty(_xaiApiKey))
+                Console.WriteLine($"🔍 Analyzing efficiency metrics from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+
+                var totalMiles = await GetMileageStatsAsync(startDate, endDate);
+                var totalPupils = await GetPupilCountsAsync(startDate, endDate);
+                var costPerStudent = await GetCostPerStudentAsync(startDate, endDate);
+                var vehicleCapacity = await GetTotalVehicleCapacityAsync();
+
+                var metrics = new EfficiencyMetrics();
+
+                // Calculate key metrics
+                if (totalMiles > 0)
                 {
-                    Console.WriteLine("⚠️ XAI_API_KEY not found, generating fallback insights");
-                    return GenerateFallbackInsights(analyticsData);
+                    var fuelCosts = (await GetFuelRecordsForPeriodAsync(startDate, endDate)).Sum(f => f.FuelCost ?? 0);
+                    var maintenanceCosts = (await GetMaintenanceRecordsForPeriodAsync(startDate, endDate)).Sum(m => m.RepairCost ?? 0);
+                    metrics.CostPerMile = (fuelCosts + maintenanceCosts) / totalMiles;
                 }
 
-                // Create analysis request for xAI Grok 3 API
-                var prompt = "Analyze transportation data for cost per student trends and optimization opportunities. " +
-                           "Provide specific, actionable insights for school transportation efficiency.";
-
-                var aiResponse = await CallXAIAPIAsync(prompt);
-
-                // Parse AI response into structured insights
-                var insight = new AnalyticsInsight
+                if (vehicleCapacity > 0 && totalPupils > 0)
                 {
-                    Category = "AI Analysis",
-                    Title = "Transportation Optimization Insights",
-                    Description = aiResponse,
-                    ImpactScore = 7.5,
-                    Priority = "High"
+                    metrics.UtilizationRate = (decimal)totalPupils / vehicleCapacity * 100;
+                }
+
+                metrics.KeyMetrics = new Dictionary<string, decimal>
+                {
+                    ["TotalMiles"] = totalMiles,
+                    ["TotalPupils"] = totalPupils,
+                    ["CostPerStudent"] = costPerStudent,
+                    ["CostPerMile"] = metrics.CostPerMile,
+                    ["UtilizationRate"] = metrics.UtilizationRate
                 };
 
-                insights.Add(insight);
+                // Generate AI-powered recommendations
+                metrics.AIInsights = await GenerateEfficiencyInsightsAsync(metrics.KeyMetrics);
+                metrics.Recommendations = ExtractRecommendations(metrics.AIInsights);
 
-                Console.WriteLine("✅ AI insights generated successfully");
-                return insights;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Error generating AI insights: {ex.Message}, using fallback");
-                return GenerateFallbackInsights(analyticsData);
-            }
-        }
-
-        /// <summary>
-        /// Get real-time dashboard metrics for current operations
-        /// </summary>
-        public async Task<Dictionary<string, object>> GetDashboardMetricsAsync()
-        {
-            var metrics = new Dictionary<string, object>();
-
-            try
-            {
-                var endDate = DateTime.Today;
-                var startDate = endDate.AddDays(-30); // Last 30 days
-
-                // Get current metrics
-                var mileageStats = await GetMileageStatsAsync(startDate, endDate);
-                var pupilStats = await GetPupilCountsAsync(startDate, endDate);
-                var costStats = await GetCostPerStudentAsync(startDate, endDate);
-
-                metrics["TotalMiles"] = mileageStats.TotalMiles;
-                metrics["AverageDailyMiles"] = mileageStats.AverageDailyMiles;
-                metrics["TotalPupils"] = pupilStats.TotalPupils;
-                metrics["AverageDailyRiders"] = pupilStats.AverageDailyRiders;
-                metrics["CostPerStudent"] = costStats.CostPerStudent;
-                metrics["CostPerMile"] = costStats.CostPerMile;
-                metrics["TotalOperatingCosts"] = costStats.TotalOperatingCosts;
-                metrics["CapacityUtilization"] = pupilStats.CapacityUtilization;
-
-                Console.WriteLine("📊 Dashboard metrics updated successfully");
+                Console.WriteLine($"📊 Efficiency metrics calculated: {metrics.CostPerMile:C}/mile, {metrics.UtilizationRate:F1}% utilization");
                 return metrics;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error getting dashboard metrics: {ex.Message}");
+                Console.WriteLine($"❌ Error calculating efficiency metrics: {ex.Message}");
                 throw;
             }
         }
 
-        /// <summary>
-        /// Call xAI Grok 3 API for insights generation
-        /// </summary>
-        private async Task<string> CallXAIAPIAsync(string prompt)
-        {
-            var request = new
-            {
-                model = "grok-beta",
-                messages = new[]
-                {
-                    new { role = "system", content = "You are a transportation analytics expert specializing in school district efficiency optimization. Provide data-driven insights and actionable recommendations." },
-                    new { role = "user", content = prompt }
-                },
-                max_tokens = 300,
-                temperature = 0.3
-            };
+        #region Private Helper Methods
 
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(XAI_API_URL, content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var responseJson = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<JsonElement>(responseJson);
-
-                if (result.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
-                {
-                    var choice = choices[0];
-                    if (choice.TryGetProperty("message", out var message) &&
-                        message.TryGetProperty("content", out var messageContent))
-                    {
-                        return messageContent.GetString() ?? "Analysis not available";
-                    }
-                }
-            }
-
-            return "Analysis temporarily unavailable - API response error";
-        }
-
-        /// <summary>
-        /// Generate fallback insights when AI API is unavailable
-        /// </summary>
-        private List<AnalyticsInsight> GenerateFallbackInsights(object analyticsData)
-        {
-            return new List<AnalyticsInsight>
-            {
-                new AnalyticsInsight
-                {
-                    Category = "Efficiency",
-                    Title = "Route Optimization Opportunity",
-                    Description = "Review current route patterns for potential consolidation and efficiency improvements.",
-                    Recommendation = "Analyze routes with low ridership for potential optimization.",
-                    ImpactScore = 6.0,
-                    Priority = "Medium"
-                },
-                new AnalyticsInsight
-                {
-                    Category = "Cost Management",
-                    Title = "Maintenance Cost Monitoring",
-                    Description = "Monitor maintenance costs trends to identify vehicles requiring attention.",
-                    Recommendation = "Implement preventive maintenance scheduling to reduce unexpected repairs.",
-                    ImpactScore = 7.0,
-                    Priority = "High"
-                }
-            };
-        }
-
-        // Data access helper methods - integrated with actual repositories
         private async Task<List<Route>> GetRoutesForPeriodAsync(DateTime startDate, DateTime endDate)
         {
-            return await Task.Run(() =>
-            {
-                var allRoutes = new List<Route>();
-                var currentDate = startDate.Date;
+            // Implementation depends on your data access pattern
+            // This is a placeholder - you'll need to implement based on your repository pattern
+            var context = new BusBuddyContext();
+            return await Task.FromResult(context.Routes
+                .Where(r => r.DateAsDateTime >= startDate && r.DateAsDateTime <= endDate)
+                .ToList());
+        }
 
-                while (currentDate <= endDate.Date)
-                {
-                    var routeRepository = new RouteRepository();
-                    var dailyRoutes = routeRepository.GetRoutesByDate(currentDate);
-                    allRoutes.AddRange(dailyRoutes);
-                    currentDate = currentDate.AddDays(1);
-                }
-
-                return allRoutes;
-            });
+        private async Task<List<ActivitySchedule>> GetActivitySchedulesForPeriodAsync(DateTime startDate, DateTime endDate)
+        {
+            var context = new BusBuddyContext();
+            return await Task.FromResult(context.ActivitySchedules
+                .Where(a => a.DateAsDateTime >= startDate && a.DateAsDateTime <= endDate)
+                .ToList());
         }
 
         private async Task<List<Fuel>> GetFuelRecordsForPeriodAsync(DateTime startDate, DateTime endDate)
         {
-            return await Task.Run(() =>
-            {
-                var fuelRepository = new FuelRepository();
-                var allFuelRecords = fuelRepository.GetAllFuelRecords();
-
-                // Filter by date range - handle nullable DateTime
-                return allFuelRecords.Where(f => f.FuelDateAsDateTime.HasValue &&
-                                                f.FuelDateAsDateTime.Value.Date >= startDate.Date &&
-                                                f.FuelDateAsDateTime.Value.Date <= endDate.Date).ToList();
-            });
+            var context = new BusBuddyContext();
+            return await Task.FromResult(context.Fuels
+                .Where(f => f.FuelDateAsDateTime >= startDate && f.FuelDateAsDateTime <= endDate)
+                .ToList());
         }
 
         private async Task<List<Maintenance>> GetMaintenanceRecordsForPeriodAsync(DateTime startDate, DateTime endDate)
         {
-            return await Task.Run(() =>
-            {
-                var maintenanceRepository = new MaintenanceRepository();
-                var allMaintenanceRecords = maintenanceRepository.GetAllMaintenanceRecords();
-
-                // Filter by date range - handle nullable DateTime
-                return allMaintenanceRecords.Where(m => m.DateAsDateTime.HasValue &&
-                                                       m.DateAsDateTime.Value.Date >= startDate.Date &&
-                                                       m.DateAsDateTime.Value.Date <= endDate.Date).ToList();
-            });
+            var context = new BusBuddyContext();
+            return await Task.FromResult(context.Maintenances
+                .Where(m => m.DateAsDateTime >= startDate && m.DateAsDateTime <= endDate)
+                .ToList());
         }
 
-        private async Task<int> GetActiveVehicleCountAsync()
+        private async Task<List<Driver>> GetAllDriversAsync()
         {
-            return await Task.Run(() =>
-            {
-                var vehicleRepository = new VehicleRepository();
-                var vehicles = vehicleRepository.GetAllVehicles();
-                return vehicles?.Count ?? 0;
-            });
+            var context = new BusBuddyContext();
+            return await Task.FromResult(context.Drivers.ToList());
         }
 
-        private async Task<int> GetTotalVehicleCapacityAsync()
+        private async Task<decimal> GetTotalVehicleCapacityAsync()
         {
-            return await Task.Run(() =>
-            {
-                var vehicleRepository = new VehicleRepository();
-                var vehicles = vehicleRepository.GetAllVehicles();
-
-                // Calculate total capacity
-                var totalCapacity = vehicles?.Sum(v => v.Capacity > 0 ? v.Capacity : 72) ?? 0;
-                return totalCapacity;
-            });
+            var context = new BusBuddyContext();
+            return await Task.FromResult(context.Vehicles.Sum(v => v.Capacity));
         }
+
+        private async Task<PayScheme> LoadPaySchemeAsync()
+        {
+            try
+            {
+                if (File.Exists(_paySchemeConfigPath))
+                {
+                    var json = await File.ReadAllTextAsync(_paySchemeConfigPath);
+                    return JsonSerializer.Deserialize<PayScheme>(json) ?? new PayScheme();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error loading pay scheme config: {ex.Message}");
+            }
+
+            // Return default pay scheme
+            var defaultScheme = new PayScheme();
+            await SavePaySchemeAsync(defaultScheme);
+            return defaultScheme;
+        }
+
+        private async Task SavePaySchemeAsync(PayScheme payScheme)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(payScheme, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_paySchemeConfigPath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error saving pay scheme config: {ex.Message}");
+            }
+        }
+
+        private string DetermineDriverType(Driver driver, List<Route> routes)
+        {
+            // Check if this is SPED based on route name patterns
+            var isSPED = routes.Any(r => r.RouteName?.ToUpper().Contains("SPED") == true);
+            if (isSPED) return "SPED";
+
+            // Check license type
+            if (driver.DriversLicenseType?.ToUpper().Contains("CDL") == true)
+                return "CDL";
+
+            // Default to Small Bus for Passenger license or unknown
+            return "Small Bus";
+        }
+
+        private int CountWorkDays(List<Route> routes)
+        {
+            // Count unique dates for SPED drivers (paid per day)
+            return routes.Select(r => r.DateAsDateTime.Date).Distinct().Count();
+        }
+
+        private int CountTrips(List<Route> routes)
+        {
+            // Count AM and PM trips separately
+            int trips = 0;
+            foreach (var route in routes)
+            {
+                if (route.AMDriverID.HasValue) trips++;
+                if (route.PMDriverID.HasValue) trips++;
+            }
+            return trips;
+        }
+
+        private async Task<string> GeneratePayReportInsightsAsync(List<DriverPayReport> reports)
+        {
+            if (string.IsNullOrEmpty(_xaiApiKey))
+            {
+                return "XAI API key not configured. Unable to generate AI insights.";
+            }
+
+            try
+            {
+                var totalPay = reports.Sum(r => r.TotalPay);
+                var driverCount = reports.Count;
+                var avgPay = driverCount > 0 ? totalPay / driverCount : 0;
+
+                var prompt = $@"Analyze this driver pay report data and provide insights:
+- Total drivers: {driverCount}
+- Total pay: ${totalPay:F2}
+- Average pay per driver: ${avgPay:F2}
+- Driver types: {reports.GroupBy(r => r.DriverType).Select(g => $"{g.Key}: {g.Count()}").Aggregate((a, b) => a + ", " + b)}
+
+Provide specific recommendations for pay equity, budget planning, and driver retention.";
+
+                return await CallXAIAPIAsync(prompt);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error generating pay report insights: {ex.Message}");
+                return "AI insights unavailable due to API error.";
+            }
+        }
+
+        private async Task<string> GenerateEfficiencyInsightsAsync(Dictionary<string, decimal> keyMetrics)
+        {
+            if (string.IsNullOrEmpty(_xaiApiKey))
+            {
+                return "XAI API key not configured. Unable to generate AI insights.";
+            }
+
+            try
+            {
+                var metricsText = string.Join(", ", keyMetrics.Select(kv => $"{kv.Key}: {kv.Value:F2}"));
+
+                var prompt = $@"Analyze these transportation efficiency metrics and provide optimization recommendations:
+{metricsText}
+
+Focus on CDE-40 reporting value and cost-per-student optimization for school transportation.";
+
+                return await CallXAIAPIAsync(prompt);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error generating efficiency insights: {ex.Message}");
+                return "AI insights unavailable due to API error.";
+            }
+        }
+
+        private async Task<string> CallXAIAPIAsync(string prompt)
+        {
+            try
+            {
+                var requestBody = new
+                {
+                    model = "grok-beta",
+                    messages = new[]
+                    {
+                        new { role = "system", content = "You are a transportation analytics expert specializing in school bus operations and CDE-40 reporting. Provide specific, actionable insights." },
+                        new { role = "user", content = prompt }
+                    },
+                    max_tokens = 500,
+                    temperature = 0.7
+                };
+
+                var json = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync(XAI_API_URL, content);
+                response.EnsureSuccessStatusCode();
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<JsonElement>(responseJson);
+
+                return apiResponse.GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
+                    .GetString() ?? "No response from AI API";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ XAI API call failed: {ex.Message}");
+                return "AI analysis unavailable.";
+            }
+        }
+
+        private List<string> ExtractRecommendations(string aiInsights)
+        {
+            var recommendations = new List<string>();
+
+            // Simple extraction - look for bullet points or numbered items
+            var lines = aiInsights.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (trimmedLine.StartsWith("•") || trimmedLine.StartsWith("-") ||
+                    trimmedLine.StartsWith("*") || char.IsDigit(trimmedLine.FirstOrDefault()))
+                {
+                    recommendations.Add(trimmedLine);
+                }
+            }
+
+            // If no structured recommendations found, add the full insight
+            if (recommendations.Count == 0)
+            {
+                recommendations.Add(aiInsights);
+            }
+
+            return recommendations;
+        }
+
+        private decimal EstimateTripDistance(string destination)
+        {
+            // Simple estimation based on destination - replace with actual logic if needed
+            if (string.IsNullOrEmpty(destination)) return 5.0m;
+
+            // Basic estimation: local trips = 5 miles, out-of-town = 15 miles
+            var lowerDest = destination.ToLower();
+            if (lowerDest.Contains("local") || lowerDest.Contains("school")) return 5.0m;
+            if (lowerDest.Contains("town") || lowerDest.Contains("city")) return 15.0m;
+
+            return 10.0m; // Default estimate
+        }
+
+        #endregion
 
         public void Dispose()
         {

@@ -51,6 +51,9 @@ namespace BusBuddy.DependencyInjection
             services.AddScoped<BusBuddy.UI.Services.IDatabaseHelperService, BusBuddy.UI.Services.DatabaseHelperService>();
             services.AddScoped<RouteAnalyticsService>();
             services.AddScoped<PredictiveMaintenanceService>();
+
+            // Task 6: Register Analytics Service for CDE-40 reporting and driver pay
+            services.AddScoped<BusBuddy.UI.Services.IAnalyticsService, BusBuddy.UI.Services.AnalyticsService>();
         }
 
         /// <summary>
