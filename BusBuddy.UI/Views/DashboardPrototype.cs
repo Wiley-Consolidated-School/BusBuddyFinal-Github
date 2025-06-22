@@ -143,6 +143,7 @@ namespace BusBuddy.UI.Views
             DrawerMenuItem menuVehicles = new DrawerMenuItem { Text = "Vehicles" };
             DrawerMenuItem menuDrivers = new DrawerMenuItem { Text = "Drivers" };
             DrawerMenuItem menuMaintenance = new DrawerMenuItem { Text = "Maintenance" };
+            DrawerMenuItem menuActivitySchedule = new DrawerMenuItem { Text = "Activity Schedule" };
             DrawerMenuItem menuCDE40Report = new DrawerMenuItem { Text = "CDE-40 Report" };
             DrawerMenuItem menuSettings = new DrawerMenuItem { Text = "Settings" };
 
@@ -151,8 +152,20 @@ namespace BusBuddy.UI.Views
             _navigationDrawer.Items.Add(menuVehicles);
             _navigationDrawer.Items.Add(menuDrivers);
             _navigationDrawer.Items.Add(menuMaintenance);
+            _navigationDrawer.Items.Add(menuActivitySchedule);
             _navigationDrawer.Items.Add(menuCDE40Report);
             _navigationDrawer.Items.Add(menuSettings);
+
+            // Task 8.5: Wire up navigation drawer item click events using Syncfusion documented approach
+            // Note: Individual DrawerMenuItem objects handle their own Click events
+            menuDashboard.Click += (s, e) => NavigateToModule("Dashboard");
+            menuRoutes.Click += (s, e) => NavigateToModule("Routes");
+            menuVehicles.Click += (s, e) => NavigateToModule("Vehicles");
+            menuDrivers.Click += (s, e) => NavigateToModule("Drivers");
+            menuMaintenance.Click += (s, e) => NavigateToModule("Maintenance");
+            menuActivitySchedule.Click += (s, e) => NavigateToModule("Activity Schedule");
+            menuCDE40Report.Click += (s, e) => NavigateToModule("CDE-40 Report");
+            menuSettings.Click += (s, e) => NavigateToModule("Settings");
 
             // Create panels for layout
             _metricsPanel = new Panel
@@ -435,6 +448,7 @@ namespace BusBuddy.UI.Views
                 "vehicles" => "vehicles",
                 "drivers" => "drivers",
                 "maintenance" => "maintenance",
+                "activity schedule" => "activityschedule",
                 "cde-40 report" => "cde40",
                 "settings" => "settings",
                 "financial analytics" => "financial",
