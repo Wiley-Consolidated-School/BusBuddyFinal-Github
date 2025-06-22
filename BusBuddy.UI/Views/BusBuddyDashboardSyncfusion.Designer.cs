@@ -13,10 +13,65 @@ namespace BusBuddy.UI.Views
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing && !_disposed)
             {
-                components.Dispose();
+                try
+                {
+                    LogInfo("Disposing BusBuddyDashboardSyncfusion...");
+
+                    // Log current resources for debugging
+                    LogCurrentResources();
+
+                    // Cancel any background operations
+                    if (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
+                    {
+                        _cancellationTokenSource.Cancel();
+                    }
+
+                    // 1. First dispose UI components and release event handlers
+                    // Clear event handlers first to prevent callbacks during disposal
+                    ClearEventHandlers();
+
+                    // 2. Dispose Syncfusion controls with specific disposal needs
+                    DisposeSyncfusionControls();
+                    DisposeAnalyticsComponents();
+                    DisposeDockingManager();
+
+                    // 3. Dispose remaining panels and controls
+                    DisposePanelControls();
+
+                    // 4. Finally cleanup service connections and resources
+                    CleanupRepositoryConnections();
+
+                    // Dispose standard components
+                    if (components != null)
+                    {
+                        components.Dispose();
+                        components = null;
+                    }
+
+                    // Proper disposal instead of aggressive cleanup
+                    _cancellationTokenSource?.Dispose();
+                    _cancellationTokenSource = null;
+
+                    // Clear dictionary references
+                    _navigationMethods?.Clear();
+                    _navigationMethods = null;
+                    _repositoryTypeMap?.Clear();
+                    _repositoryTypeMap = null;
+
+                    // Mark as disposed
+                    _disposed = true;
+
+                    LogInfo("BusBuddyDashboardSyncfusion disposed successfully");
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't rethrow to ensure base.Dispose() is called
+                    LogError("Error during dashboard disposal", ex);
+                }
             }
+
             base.Dispose(disposing);
         }
 

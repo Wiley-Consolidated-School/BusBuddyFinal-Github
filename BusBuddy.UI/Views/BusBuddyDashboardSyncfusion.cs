@@ -28,8 +28,8 @@ namespace BusBuddy.UI.Views
     public partial class BusBuddyDashboardSyncfusion : SyncfusionBaseForm
     {
         #region Fields and Services
-        private readonly INavigationService _navigationService;
-        private readonly BusBuddy.UI.Services.IDatabaseHelperService _databaseHelperService;
+        private INavigationService _navigationService;
+        private BusBuddy.UI.Services.IDatabaseHelperService _databaseHelperService;
         private CancellationTokenSource _cancellationTokenSource;
 
         // UI Components
@@ -48,10 +48,10 @@ namespace BusBuddy.UI.Views
         private SfButton _closeButton;
 
         // Navigation method mapping for improved reliability
-        private readonly Dictionary<string, System.Action> _navigationMethods;
+        private Dictionary<string, System.Action> _navigationMethods;
 
         // Repository type mapping for automatic initialization
-        private readonly Dictionary<string, Type> _repositoryTypeMap;
+        private Dictionary<string, Type> _repositoryTypeMap;
 
         // Configuration Constants (replacing hardcoded values)
         private static class UIConstants
@@ -130,82 +130,32 @@ namespace BusBuddy.UI.Views
                 LogInfo("Dashboard test constructor called");
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                // Initialize the ServiceContainerSingleton
-                if (!ServiceContainerSingleton.IsInitialized)
-                {
-                    LogWarning("ServiceContainerSingleton not initialized, initializing now");
-                    ServiceContainerSingleton.Initialize();
-                }
+                // Initialize services with proper error handling
+                InitializeServicesWithFallback();
 
-                // Get services from the singleton
-                _navigationService = ServiceContainerSingleton.Instance.GetService<INavigationService>();
-                _databaseHelperService = ServiceContainerSingleton.Instance.GetService<BusBuddy.UI.Services.IDatabaseHelperService>();
-
-                // Create a fallback navigation service if needed (for testing)
-                if (_navigationService == null)
-                {
-                    LogWarning("Creating fallback navigation service for testing");
-                    var container = ServiceContainerSingleton.Instance;
-                    _navigationService = new NavigationService(container);
-                }
-
-                // Create a fallback database helper service if needed (for testing)
-                if (_databaseHelperService == null)
-                {
-                    LogWarning("Skipping database helper service for testing - not needed for basic UI tests");
-                    // In test environments, we can proceed without the database helper service
-                    // as it's primarily used for diagnostics and not core navigation functionality
-                }
-
-                // Initialize readonly dictionaries
-                _repositoryTypeMap = new Dictionary<string, Type>
-                {
-                    { "ShowVehicleManagement", typeof(IVehicleRepository) },
-                    { "ShowDriverManagement", typeof(IDriverRepository) },
-                    { "ShowRouteManagement", typeof(IRouteRepository) },
-                    { "ShowFuelManagement", typeof(IFuelRepository) },
-                    { "ShowMaintenanceManagement", typeof(IMaintenanceRepository) },
-                    { "ShowTimeCardManagement", typeof(ITimeCardRepository) },
-                    { "ShowActivityManagement", typeof(IActivityRepository) }
-                };
-
-                _navigationMethods = new Dictionary<string, System.Action>
-                {
-                    { "ShowVehicleManagement", () => _navigationService.ShowVehicleManagement() },
-                    { "ShowDriverManagement", () => _navigationService.ShowDriverManagement() },
-                    { "ShowRouteManagement", () => _navigationService.ShowRouteManagement() },
-                    { "ShowActivityManagement", () => _navigationService.ShowActivityManagement() },
-                    { "ShowFuelManagement", () => _navigationService.ShowFuelManagement() },
-                    { "ShowMaintenanceManagement", () => _navigationService.ShowMaintenanceManagement() },
-                    { "ShowCalendarManagement", () => _navigationService.ShowCalendarManagement() },
-                    { "ShowScheduleManagement", () => _navigationService.ShowScheduleManagement() },
-                    { "ShowTimeCardManagement", () => _navigationService.ShowTimeCardManagement() },
-                    { "ShowReportsManagement", () => _navigationService.ShowReportsManagement() },
-                    { "ShowSchoolCalendarManagement", () => _navigationService.ShowSchoolCalendarManagement() },
-                    { "ShowActivityScheduleManagement", () => _navigationService.ShowActivityScheduleManagement() },
-                    { "ShowAnalyticsDemo", () => _navigationService.ShowAnalyticsDemo() },
-                    { "ShowReports", () => _navigationService.ShowReports() }
-                };
+                // Initialize readonly dictionaries first
+                InitializeNavigationDictionaries();
 
                 InitializeComponent();
 
-                // Validate test dashboard initialization
-                if (ValidateDashboard())
+                // Initialize dashboard for test environment with error handling
+                try
                 {
-                    LogInfo("BusBuddy Test Dashboard initialization completed successfully!");
+                    InitializeDashboard();
                 }
-                else
+                catch (Exception dashboardEx)
                 {
-                    LogWarning("Test Dashboard initialization completed with warnings");
+                    LogError("Dashboard initialization failed, creating emergency layout", dashboardEx);
+                    CreateEmergencyLayout();
                 }
 
                 LogInfo("Dashboard test instance initialized");
             }
             catch (Exception ex)
             {
-                LogError("Error in BusBuddyDashboardSyncfusion constructor", ex);
-                ShowUserFriendlyError($"Error initializing dashboard: {ex.Message}", "Initialization Error");
-                throw;
+                LogError("Critical error in BusBuddyDashboardSyncfusion constructor", ex);
+                // Don't throw here - create a minimal fallback interface
+                CreateMinimalFallbackInterface();
             }
         }
         #endregion
@@ -227,10 +177,19 @@ namespace BusBuddy.UI.Views
         {
             try
             {
+                // Check if already disposed to prevent multiple disposals
+                if (_disposed)
+                {
+                    return;
+                }
+
                 LogInfo("BusBuddyDashboardSyncfusion form closing");
 
                 // Cancel any background operations
-                _cancellationTokenSource?.Cancel();
+                if (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
+                {
+                    _cancellationTokenSource.Cancel();
+                }
 
                 LogCurrentResources();
                 CleanupRepositoryConnections();
@@ -238,6 +197,10 @@ namespace BusBuddy.UI.Views
 
                 // Proper disposal instead of aggressive cleanup
                 _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
+
+                // Mark as disposed
+                _disposed = true;
 
                 LogInfo("BusBuddyDashboardSyncfusion cleanup completed");
             }
@@ -276,46 +239,72 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogInfo("Initializing enhanced Syncfusion dashboard...");
+                Console.WriteLine("🚀 Initializing dashboard...");
 
-                // Initialize docking layout first - based on Syncfusion DockingManager documentation
-                InitializeDockingLayout();
+                // Initialize components step by step with individual error handling
+                Console.WriteLine("🔄 Initializing docking layout...");
+                if (!InitializeDockingLayoutSafely())
+                {
+                    LogError("DockingManager initialization failed, using fallback layout");
+                    Console.WriteLine("⚠️ DockingManager initialization failed, creating emergency layout");
+                    CreateEmergencyLayout();
+                    return;
+                }
 
-                // Create navigation panel with proper Syncfusion controls
-                CreateNavigationPanel();
+                // Create navigation panel with error handling
+                if (!CreateNavigationPanelSafely())
+                {
+                    LogError("Navigation panel creation failed");
+                }
 
-                // Initialize analytics dashboard
-                InitializeAnalyticsDashboard();
+                // Initialize analytics dashboard with error handling
+                if (!InitializeAnalyticsDashboardSafely())
+                {
+                    LogError("Analytics dashboard initialization failed");
+                }
 
-                // Initialize system monitoring gauges
-                InitializeSystemGauges();
+                // Initialize system monitoring gauges with error handling
+                if (!InitializeSystemGaugesSafely())
+                {
+                    LogError("System gauges initialization failed");
+                }
 
                 this.Text = "BusBuddy Dashboard - Enhanced Syncfusion v2.0";
-                this.WindowState = FormWindowState.Maximized;
-                this.Show();
-                this.Refresh();
+                // DO NOT set WindowState during initialization - causes system crashes
+                // DO NOT call Show() during initialization - causes infinite loops
+                // These will be handled by the parent form or main application
 
-                // Load real analytics data asynchronously
+                // Load real analytics data asynchronously using the background task helper
+                // Use proper async/await pattern to avoid UI thread deadlocks
                 Task.Run(async () =>
                 {
                     try
                     {
-                        await LoadRealAnalyticsDataAsync(_cancellationTokenSource.Token);
+                        await RunBackgroundTask(
+                            () => LoadRealAnalyticsDataAsync(_cancellationTokenSource.Token),
+                            "Analytics Data Loading"
+                        );
                     }
                     catch (Exception ex)
                     {
-                        LogError("Analytics loading failed", ex);
-                        // Show fallback data instead of failing completely
-                        LoadFallbackAnalyticsData();
+                        LogError("Error in analytics background task", ex);
                     }
-                });
+                }).ConfigureAwait(false);
 
                 LogInfo("Enhanced dashboard initialization completed successfully");
             }
             catch (Exception ex)
             {
                 LogError("Failed to initialize enhanced dashboard", ex);
-                ShowUserFriendlyError($"Failed to initialize dashboard: {ex.Message}", "Critical Error");
-                CreateEmergencyLayout();
+                try
+                {
+                    CreateEmergencyLayout();
+                }
+                catch (Exception emergencyEx)
+                {
+                    LogError("Emergency layout creation also failed", emergencyEx);
+                    CreateMinimalFallbackInterface();
+                }
             }
         }
 
@@ -323,14 +312,30 @@ namespace BusBuddy.UI.Views
         /// Initializes DockingManager layout based on Syncfusion documentation
         /// Reference: https://help.syncfusion.com/cr/windowsforms/Syncfusion.Windows.Forms.Tools.DockingManager.html
         /// </summary>
-        private void InitializeDockingLayout()
+        private bool InitializeDockingLayout()
         {
             try
             {
                 LogInfo("Initializing DockingManager layout...");
+                Console.WriteLine("🔄 Initializing DockingManager layout...");
 
-                // Clear any existing controls
-                this.Controls.Clear();
+                // Create a very basic layout first to ensure something is visible
+                var basicPanel = new Panel
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = SystemColors.Control
+                };
+
+                this.Controls.Add(basicPanel);
+                Console.WriteLine("✅ Basic panel added to form");
+
+                // DO NOT clear controls during initialization - causes crashes
+                // Only clear if we're reinitializing after an error
+                if (_dockingManager != null)
+                {
+                    _dockingManager.Dispose();
+                    _dockingManager = null;
+                }
 
                 // Initialize DockingManager with proper settings
                 _dockingManager = new DockingManager()
@@ -350,12 +355,16 @@ namespace BusBuddy.UI.Views
                 // Create main content area
                 CreateMainContentArea();
 
+                // DockingManager doesn't need to be added to Controls - it manages docking automatically
+                // The _dockingManager is used to dock other controls to the form
+
                 LogInfo("DockingManager layout initialized successfully");
+                return true;
             }
             catch (Exception ex)
             {
-                LogError("Failed to initialize DockingManager layout", ex);
-                throw;
+                LogError("Failed to initialize docking layout", ex);
+                return false;
             }
         }
 
@@ -385,23 +394,27 @@ namespace BusBuddy.UI.Views
                 BackColor = Color.Transparent
             };
 
-            // Theme toggle button
+            // Theme toggle button with enhanced styling
             _themeToggleButton = new SfButton
             {
                 Text = "🌙 Dark Mode",
                 Size = new Size(120, 35),
                 Dock = DockStyle.Right,
-                Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 9, FontStyle.Regular)
+                Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 9, FontStyle.Regular),
+                Style = { BackColor = Color.FromArgb(45, 45, 48), ForeColor = Color.White },
+                FocusRectangleVisible = false
             };
             _themeToggleButton.Click += ToggleTheme;
 
-            // Close button
+            // Close button with enhanced styling
             _closeButton = new SfButton
             {
                 Text = "✕ Close",
                 Size = new Size(80, 35),
                 Dock = DockStyle.Right,
-                Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 9, FontStyle.Regular)
+                Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 9, FontStyle.Regular),
+                Style = { BackColor = UIConstants.ErrorColor, ForeColor = Color.White },
+                FocusRectangleVisible = false
             };
             _closeButton.Click += (s, e) => this.Close();
 
@@ -520,6 +533,10 @@ namespace BusBuddy.UI.Views
                     BackColor = Color.White
                 };
 
+                // Configure chart title
+                _analyticsChart.Title.Text = "Fleet Performance Overview";
+                _analyticsChart.Title.Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 12, FontStyle.Bold);
+
                 // Configure chart series for route efficiency data
                 var routeEfficiencySeries = new ChartSeries("Route Efficiency")
                 {
@@ -534,10 +551,9 @@ namespace BusBuddy.UI.Views
                 _analyticsChart.Series.Add(routeEfficiencySeries);
                 _analyticsChart.Series.Add(costAnalyticsSeries);
 
-                // Configure chart appearance
+                // Configure chart axes
                 _analyticsChart.PrimaryXAxis.Title = "Time Period";
                 _analyticsChart.PrimaryYAxis.Title = "Efficiency Rating";
-                _analyticsChart.Title.Text = "Fleet Performance Overview";
 
                 _analyticsPanel.Controls.Add(_analyticsChart);
                 _analyticsPanel.Controls.Add(analyticsTitle);
@@ -597,9 +613,11 @@ namespace BusBuddy.UI.Views
                     Name = "SystemStatusGauge",
                     Dock = DockStyle.Fill,
                     Margin = new Padding(5),
-                    GaugeLabel = "System Status",
+                    GaugeLabel = "System Health",
                     Value = 85, // Default value, will be updated with real data
-                    MinimumSize = new Size(120, 120)
+                    MinimumSize = new Size(120, 120),
+                    ShowTicks = true,
+                    ForeColor = Color.FromArgb(76, 175, 80) // Green for good health
                 };
 
                 // Maintenance Alert Gauge
@@ -610,7 +628,9 @@ namespace BusBuddy.UI.Views
                     Margin = new Padding(5),
                     GaugeLabel = "Maintenance Due",
                     Value = 25, // Default value
-                    MinimumSize = new Size(120, 120)
+                    MinimumSize = new Size(120, 120),
+                    ShowTicks = true,
+                    ForeColor = Color.FromArgb(255, 152, 0) // Orange for attention needed
                 };
 
                 // Fleet Efficiency Gauge
@@ -621,7 +641,9 @@ namespace BusBuddy.UI.Views
                     Margin = new Padding(5),
                     GaugeLabel = "Fleet Efficiency",
                     Value = 78, // Default value
-                    MinimumSize = new Size(120, 120)
+                    MinimumSize = new Size(120, 120),
+                    ShowTicks = true,
+                    ForeColor = UIConstants.PrimaryColor // Primary blue for efficiency
                 };
 
                 // Add gauges to container
@@ -725,6 +747,7 @@ namespace BusBuddy.UI.Views
                 buttonPanel.MouseEnter += (s, e) => buttonPanel.BackColor = Color.FromArgb(240, 240, 240);
                 buttonPanel.MouseLeave += (s, e) => buttonPanel.BackColor = Color.White;
 
+                // CRITICAL: Add the button panel to the form buttons panel
                 _formButtonsPanel.Controls.Add(buttonPanel);
             }
         }
@@ -738,15 +761,37 @@ namespace BusBuddy.UI.Views
             {
                 LogInfo($"Navigating to: {navigationKey}");
 
+                if (_navigationService == null)
+                {
+                    LogError("Navigation service is not available");
+                    ShowUserFriendlyError("Navigation service is not available. Please restart the application.", "Navigation Error");
+                    return;
+                }
+
+                if (_navigationMethods == null)
+                {
+                    LogError("Navigation methods dictionary is not initialized");
+                    ShowUserFriendlyError("Application navigation is not properly initialized. Please restart the application.", "Navigation Error");
+                    return;
+                }
+
                 if (_navigationMethods.ContainsKey(navigationKey))
                 {
                     // Check if repository is required and available
-                    if (_repositoryTypeMap.ContainsKey(navigationKey))
+                    if (_repositoryTypeMap != null && _repositoryTypeMap.ContainsKey(navigationKey))
                     {
                         var repoType = _repositoryTypeMap[navigationKey];
                         LogInfo($"Checking repository availability: {repoType.Name}");
+
+                        if (!IsRepositoryAvailable(repoType))
+                        {
+                            LogError($"Repository not available: {repoType.Name}");
+                            ShowUserFriendlyError($"The database connection for {navigationKey.Replace("Show", "").Replace("Management", "")} is not available. Please check your database connection.", "Database Connection Error");
+                            return;
+                        }
                     }
 
+                    // Direct call to the navigation method
                     _navigationMethods[navigationKey]?.Invoke();
                     LogInfo($"Navigation successful: {navigationKey}");
                 }
@@ -764,20 +809,38 @@ namespace BusBuddy.UI.Views
         }
 
         /// <summary>
-        /// Theme toggle implementation
+        /// Theme toggle implementation based on Syncfusion documentation
+        /// Reference: https://help.syncfusion.com/windowsforms/visual-styles
         /// </summary>
         private void ToggleTheme(object sender, EventArgs e)
         {
             try
             {
-                // Toggle theme implementation would go here
-                // This would require Syncfusion theme manager integration
-                LogInfo("Theme toggle requested - feature to be implemented");
-                ShowUserFriendlyError("Theme toggle feature coming soon!", "Feature Info");
+                // Toggle between light and dark themes using documented Syncfusion VisualStyles
+                // Using the proper Syncfusion.Windows.Forms.VisualStyle enum for theming
+                if (_dockingManager != null)
+                {
+                    if (_dockingManager.VisualStyle == VisualStyle.Office2016Colorful)
+                    {
+                        // Switch to dark theme
+                        _dockingManager.VisualStyle = VisualStyle.Office2016Black;
+                        LogInfo("Switched to Office2016Black theme");
+                    }
+                    else
+                    {
+                        // Switch to light theme
+                        _dockingManager.VisualStyle = VisualStyle.Office2016Colorful;
+                        LogInfo("Switched to Office2016Colorful theme");
+                    }
+                }
+
+                // Update control appearance for all Syncfusion controls
+                this.Refresh();
             }
             catch (Exception ex)
             {
                 LogError("Theme toggle failed", ex);
+                ShowUserFriendlyError("Unable to change theme at this time.", "Theme Error");
             }
         }
         #endregion
@@ -865,7 +928,7 @@ namespace BusBuddy.UI.Views
                 // Load maintenance statistics
                 await LoadMaintenanceAnalytics(cancellationToken);
 
-                // Update gauge values based on real data
+                // Update UI with loaded data
                 UpdateSystemGauges();
 
                 LogInfo("Real analytics data loaded successfully");
@@ -873,11 +936,12 @@ namespace BusBuddy.UI.Views
             catch (OperationCanceledException)
             {
                 LogInfo("Analytics data loading was cancelled");
+                LoadFallbackAnalyticsData();
             }
             catch (Exception ex)
             {
                 LogError("Failed to load real analytics data", ex);
-                LoadSampleAnalyticsData();
+                LoadFallbackAnalyticsData();
             }
         }
 
@@ -900,19 +964,22 @@ namespace BusBuddy.UI.Views
                     new { Period = "Week 4", Efficiency = 89.1 }
                 };
 
-                // Update chart with real data
-                if (_analyticsChart?.Series?.Count > 0)
+                // Update chart with real data using SafeInvoke to ensure UI thread access
+                SafeInvoke(() =>
                 {
-                    var series = _analyticsChart.Series[0];
-                    series.Points.Clear();
-
-                    foreach (var data in routeEfficiencyData)
+                    if (_analyticsChart?.Series?.Count > 0)
                     {
-                        series.Points.Add(data.Period, data.Efficiency);
-                    }
+                        var series = _analyticsChart.Series[0];
+                        series.Points.Clear();
 
-                    _analyticsChart.Refresh();
-                }
+                        foreach (var data in routeEfficiencyData)
+                        {
+                            series.Points.Add(data.Period, data.Efficiency);
+                        }
+
+                        _analyticsChart.Refresh();
+                    }
+                });
 
                 LogInfo("Vehicle analytics loaded");
             }
@@ -940,19 +1007,22 @@ namespace BusBuddy.UI.Views
                     new { Route = "Route D", CostPerStudent = 2.55 }
                 };
 
-                // Update cost analytics series
-                if (_analyticsChart?.Series?.Count > 1)
+                // Update cost analytics series using SafeInvoke to ensure UI thread access
+                SafeInvoke(() =>
                 {
-                    var costSeries = _analyticsChart.Series[1];
-                    costSeries.Points.Clear();
-
-                    foreach (var data in costData)
+                    if (_analyticsChart?.Series?.Count > 1)
                     {
-                        costSeries.Points.Add(data.Route, data.CostPerStudent);
-                    }
+                        var costSeries = _analyticsChart.Series[1];
+                        costSeries.Points.Clear();
 
-                    _analyticsChart.Refresh();
-                }
+                        foreach (var data in costData)
+                        {
+                            costSeries.Points.Add(data.Route, data.CostPerStudent);
+                        }
+
+                        _analyticsChart.Refresh();
+                    }
+                });
 
                 LogInfo("Route analytics loaded");
             }
@@ -979,12 +1049,17 @@ namespace BusBuddy.UI.Views
                     OverdueMaintenance = 1
                 };
 
-                // Update maintenance gauge
-                if (_maintenanceGauge != null)
+                // Calculate maintenance percentage
+                var maintenancePercentage = (maintenanceStats.VehiclesNeedingMaintenance * 100) / maintenanceStats.TotalVehicles;
+
+                // Update maintenance gauge using SafeInvoke to ensure UI thread access
+                SafeInvoke(() =>
                 {
-                    var maintenancePercentage = (maintenanceStats.VehiclesNeedingMaintenance * 100) / maintenanceStats.TotalVehicles;
-                    _maintenanceGauge.Value = maintenancePercentage;
-                }
+                    if (_maintenanceGauge != null)
+                    {
+                        _maintenanceGauge.Value = maintenancePercentage;
+                    }
+                });
 
                 LogInfo("Maintenance analytics loaded");
             }
@@ -1001,17 +1076,20 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                // System status based on various health metrics
-                if (_systemStatusGauge != null)
+                SafeInvoke(() =>
                 {
-                    _systemStatusGauge.Value = 92; // High system health
-                }
+                    // System status based on various health metrics
+                    if (_systemStatusGauge != null)
+                    {
+                        _systemStatusGauge.Value = 92; // High system health
+                    }
 
-                // Fleet efficiency based on route performance
-                if (_efficiencyGauge != null)
-                {
-                    _efficiencyGauge.Value = 86; // Good efficiency rating
-                }
+                    // Fleet efficiency based on route performance
+                    if (_efficiencyGauge != null)
+                    {
+                        _efficiencyGauge.Value = 86; // Good efficiency rating
+                    }
+                });
 
                 LogInfo("System gauges updated");
             }
@@ -1147,9 +1225,24 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                // Dispose SfButtons
-                _themeToggleButton?.Dispose();
-                _closeButton?.Dispose();
+                // Check if already disposed
+                if (_disposed)
+                {
+                    return;
+                }
+
+                // Dispose SfButtons with null checks to prevent NullReferenceExceptions
+                if (_themeToggleButton != null)
+                {
+                    _themeToggleButton.Dispose();
+                    _themeToggleButton = null;
+                }
+
+                if (_closeButton != null)
+                {
+                    _closeButton.Dispose();
+                    _closeButton = null;
+                }
 
                 LogInfo("Syncfusion controls disposed");
             }
@@ -1235,16 +1328,22 @@ namespace BusBuddy.UI.Views
                     _themeToggleButton.Click -= ToggleTheme;
 
                 if (_closeButton != null)
-                    _closeButton.Click -= (s, e) => this.Close();
+                {
+                    // Use the helper method to remove all click handlers
+                    RemoveControlEventHandlers(_closeButton, "Click");
+                }
 
                 // Clear panel event handlers
                 if (_formButtonsPanel != null)
                 {
+                    // Use RemoveAll event handlers pattern for WinForms
+                    // This properly clears the event handlers in bulk
                     foreach (Control control in _formButtonsPanel.Controls)
                     {
-                        control.Click -= null; // This removes all Click event handlers
-                        control.MouseEnter -= null;
-                        control.MouseLeave -= null;
+                        // Get all delegates from click event using reflection
+                        RemoveControlEventHandlers(control, "Click");
+                        RemoveControlEventHandlers(control, "MouseEnter");
+                        RemoveControlEventHandlers(control, "MouseLeave");
                     }
                 }
 
@@ -1321,10 +1420,12 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogWarning("Creating emergency layout due to initialization failure...");
+                Console.WriteLine("⚠️ Creating emergency layout...");
 
                 // Clear everything and create minimal working interface
                 this.Controls.Clear();
 
+                // Use standard Windows Forms controls instead of Syncfusion controls
                 var emergencyPanel = new Panel
                 {
                     Dock = DockStyle.Fill,
@@ -1335,7 +1436,7 @@ namespace BusBuddy.UI.Views
                 var emergencyLabel = new Label
                 {
                     Text = "⚠️ BusBuddy Dashboard - Emergency Mode\n\nThe enhanced dashboard failed to initialize.\nBasic functionality is available.",
-                    Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 12, FontStyle.Regular),
+                    Font = new Font("Segoe UI", 12, FontStyle.Regular),
                     Dock = DockStyle.Top,
                     Height = 100,
                     TextAlign = ContentAlignment.MiddleCenter,
@@ -1351,17 +1452,37 @@ namespace BusBuddy.UI.Views
                 };
 
                 // Create basic navigation buttons
-                foreach (var navMethod in _navigationMethods.Take(5)) // Show only first 5 for emergency mode
+                // Add null check to prevent NullReferenceException
+                if (_navigationMethods != null && _navigationMethods.Count > 0)
                 {
-                    var button = new Button
+                    foreach (var navMethod in _navigationMethods.Take(5)) // Show only first 5 for emergency mode
                     {
-                        Text = navMethod.Key.Replace("Show", "").Replace("Management", ""),
+                        var button = new Button
+                        {
+                            Text = navMethod.Key.Replace("Show", "").Replace("Management", ""),
+                            Size = new Size(150, 60),
+                            Margin = new Padding(5),
+                            UseVisualStyleBackColor = true
+                        };
+                        button.Click += (s, e) => SafeNavigate(navMethod.Key);
+                        emergencyButtonPanel.Controls.Add(button);
+                    }
+                }
+                else
+                {
+                    // Add a fallback button if navigation methods dictionary is null
+                    var fallbackButton = new Button
+                    {
+                        Text = "Exit Application",
                         Size = new Size(150, 60),
                         Margin = new Padding(5),
-                        UseVisualStyleBackColor = true
+                        UseVisualStyleBackColor = true,
+                        BackColor = Color.LightCoral
                     };
-                    button.Click += (s, e) => SafeNavigate(navMethod.Key);
-                    emergencyButtonPanel.Controls.Add(button);
+                    fallbackButton.Click += (s, e) => Application.Exit();
+                    emergencyButtonPanel.Controls.Add(fallbackButton);
+
+                    LogWarning("No navigation methods available for emergency layout");
                 }
 
                 emergencyPanel.Controls.Add(emergencyButtonPanel);
@@ -1381,5 +1502,378 @@ namespace BusBuddy.UI.Views
             }
         }
         #endregion
+
+        #region Safe Initialization Methods
+        /// <summary>
+        /// Initialize services with proper error handling and fallback mechanisms
+        /// </summary>
+        private void InitializeServicesWithFallback()
+        {
+            try
+            {
+                // Try to initialize ServiceContainerSingleton safely
+                if (!ServiceContainerSingleton.IsInitialized)
+                {
+                    LogWarning("ServiceContainerSingleton not initialized, attempting safe initialization");
+                    try
+                    {
+                        ServiceContainerSingleton.Initialize();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError("Failed to initialize ServiceContainerSingleton, creating fallback services", ex);
+                        CreateFallbackServices();
+                        return;
+                    }
+                }
+
+                // Try to get services from the singleton
+                try
+                {
+                    _navigationService = ServiceContainerSingleton.Instance.GetService<INavigationService>();
+                    _databaseHelperService = ServiceContainerSingleton.Instance.GetService<BusBuddy.UI.Services.IDatabaseHelperService>();
+                }
+                catch (Exception ex)
+                {
+                    LogError("Failed to get services from container, creating fallbacks", ex);
+                    CreateFallbackServices();
+                    return;
+                }
+
+                // Create fallback navigation service if needed
+                if (_navigationService == null)
+                {
+                    LogWarning("Navigation service not available, creating fallback");
+                    CreateFallbackNavigationService();
+                }
+
+                // Database helper service is optional for UI functionality
+                if (_databaseHelperService == null)
+                {
+                    LogWarning("Database helper service not available - proceeding without it");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError("Critical error in service initialization", ex);
+                CreateFallbackServices();
+            }
+        }
+
+        /// <summary>
+        /// Create fallback services when container initialization fails
+        /// </summary>
+        private void CreateFallbackServices()
+        {
+            try
+            {
+                CreateFallbackNavigationService();
+                _databaseHelperService = null; // Database service is optional
+                LogInfo("Fallback services created successfully");
+            }
+            catch (Exception ex)
+            {
+                LogError("Failed to create fallback services", ex);
+            }
+        }
+
+        /// <summary>
+        /// Create a minimal navigation service for fallback scenarios
+        /// </summary>
+        private void CreateFallbackNavigationService()
+        {
+            _navigationService = new FallbackNavigationService();
+        }
+
+        /// <summary>
+        /// Minimal navigation service for when the main navigation service fails
+        /// </summary>
+        internal class FallbackNavigationService : INavigationService
+        {
+            public void ShowVehicleManagement() => ShowNotAvailableMessage("Vehicle Management");
+            public void ShowDriverManagement() => ShowNotAvailableMessage("Driver Management");
+            public void ShowRouteManagement() => ShowNotAvailableMessage("Route Management");
+            public void ShowActivityManagement() => ShowNotAvailableMessage("Activity Management");
+            public void ShowFuelManagement() => ShowNotAvailableMessage("Fuel Management");
+            public void ShowMaintenanceManagement() => ShowNotAvailableMessage("Maintenance Management");
+            public void ShowCalendarManagement() => ShowNotAvailableMessage("Calendar Management");
+            public void ShowScheduleManagement() => ShowNotAvailableMessage("Schedule Management");
+            public void ShowTimeCardManagement() => ShowNotAvailableMessage("Time Card Management");
+            public void ShowReportsManagement() => ShowNotAvailableMessage("Reports Management");
+            public void ShowSchoolCalendarManagement() => ShowNotAvailableMessage("School Calendar Management");
+            public void ShowActivityScheduleManagement() => ShowNotAvailableMessage("Activity Schedule Management");
+            public void ShowAnalyticsDemo() => ShowNotAvailableMessage("Analytics Demo");
+            public void ShowReports() => ShowNotAvailableMessage("Reports");
+
+            public DialogResult ShowDialog<T>() where T : Form => DialogResult.Cancel;
+            public DialogResult ShowDialog<T>(params object[] parameters) where T : Form => DialogResult.Cancel;
+
+            private void ShowNotAvailableMessage(string feature)
+            {
+                MessageBox.Show($"{feature} is currently not available due to system initialization issues.\n\nPlease restart the application or contact support.",
+                    "Feature Not Available", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Initialize navigation dictionaries separately for better error handling
+        /// </summary>
+        private void InitializeNavigationDictionaries()
+        {
+            try
+            {
+                _repositoryTypeMap = new Dictionary<string, Type>
+                {
+                    { "ShowVehicleManagement", typeof(IVehicleRepository) },
+                    { "ShowDriverManagement", typeof(IDriverRepository) },
+                    { "ShowRouteManagement", typeof(IRouteRepository) },
+                    { "ShowFuelManagement", typeof(IFuelRepository) },
+                    { "ShowMaintenanceManagement", typeof(IMaintenanceRepository) },
+                    { "ShowTimeCardManagement", typeof(ITimeCardRepository) },
+                    { "ShowActivityManagement", typeof(IActivityRepository) }
+                };
+
+                _navigationMethods = new Dictionary<string, System.Action>
+                {
+                    { "ShowVehicleManagement", () => _navigationService?.ShowVehicleManagement() },
+                    { "ShowDriverManagement", () => _navigationService?.ShowDriverManagement() },
+                    { "ShowRouteManagement", () => _navigationService?.ShowRouteManagement() },
+                    { "ShowActivityManagement", () => _navigationService?.ShowActivityManagement() },
+                    { "ShowFuelManagement", () => _navigationService?.ShowFuelManagement() },
+                    { "ShowMaintenanceManagement", () => _navigationService?.ShowMaintenanceManagement() },
+                    { "ShowCalendarManagement", () => _navigationService?.ShowCalendarManagement() },
+                    { "ShowScheduleManagement", () => _navigationService?.ShowScheduleManagement() },
+                    { "ShowTimeCardManagement", () => _navigationService?.ShowTimeCardManagement() },
+                    { "ShowReportsManagement", () => _navigationService?.ShowReportsManagement() },
+                    { "ShowSchoolCalendarManagement", () => _navigationService?.ShowSchoolCalendarManagement() },
+                    { "ShowActivityScheduleManagement", () => _navigationService?.ShowActivityScheduleManagement() },
+                    { "ShowAnalyticsDemo", () => _navigationService?.ShowAnalyticsDemo() },
+                    { "ShowReports", () => _navigationService?.ShowReports() }
+                };
+
+                LogInfo("Navigation dictionaries initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                LogError("Failed to initialize navigation dictionaries", ex);
+                // Create minimal dictionaries
+                _repositoryTypeMap = new Dictionary<string, Type>();
+                _navigationMethods = new Dictionary<string, System.Action>();
+            }
+        }
+
+        /// <summary>
+        /// Create a minimal fallback interface when everything else fails
+        /// </summary>
+        private void CreateMinimalFallbackInterface()
+        {
+            try
+            {
+                this.Text = "BusBuddy Dashboard - Safe Mode";
+                this.Size = new Size(800, 600);
+                this.StartPosition = FormStartPosition.CenterScreen;
+
+                var label = new Label
+                {
+                    Text = "BusBuddy Dashboard - Safe Mode\n\nThe dashboard encountered initialization issues.\nPlease check the configuration and try again.",
+                    Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                    ForeColor = Color.Red,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Dock = DockStyle.Fill
+                };
+
+                this.Controls.Clear();
+                this.Controls.Add(label);
+                LogInfo("Minimal fallback interface created");
+            }
+            catch (Exception ex)
+            {
+                LogError("Failed to create minimal fallback interface", ex);
+            }
+        }
+        #endregion
+
+        #region Safe Initialization Helper Methods
+        /// <summary>
+        /// Safely initializes DockingManager layout with proper error handling
+        /// </summary>
+        private bool InitializeDockingLayoutSafely()
+        {
+            try
+            {
+                return InitializeDockingLayout();
+            }
+            catch (Exception ex)
+            {
+                LogError("Failed to initialize docking layout safely", ex);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Safely creates navigation panel with proper error handling
+        /// </summary>
+        private bool CreateNavigationPanelSafely()
+        {
+            try
+            {
+                CreateNavigationPanel();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogError("Failed to create navigation panel safely", ex);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Safely initializes analytics dashboard with proper error handling
+        /// </summary>
+        private bool InitializeAnalyticsDashboardSafely()
+        {
+            try
+            {
+                InitializeAnalyticsDashboard();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogError("Failed to initialize analytics dashboard safely", ex);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Safely initializes system gauges with proper error handling
+        /// </summary>
+        private bool InitializeSystemGaugesSafely()
+        {
+            try
+            {
+                InitializeSystemGauges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogError("Failed to initialize system gauges safely", ex);
+                return false;
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// Checks if a repository is available by attempting to resolve it from the service container
+        /// </summary>
+        /// <param name="repositoryType">The repository interface type to check</param>
+        /// <returns>True if the repository is available, false otherwise</returns>
+        private bool IsRepositoryAvailable(Type repositoryType)
+        {
+            if (repositoryType == null)
+            {
+                LogError("Repository type is null in IsRepositoryAvailable");
+                return false;
+            }
+
+            try
+            {
+                LogInfo($"Checking repository availability: {repositoryType.Name}");
+
+                // Ensure ServiceContainerSingleton is initialized
+                if (!BusBuddy.UI.Services.ServiceContainerSingleton.IsInitialized)
+                {
+                    LogWarning("ServiceContainerSingleton not initialized during repository check");
+                    return false;
+                }
+
+                // Use the generic EnsureRepository method via reflection since we have a Type variable
+                try
+                {
+                    // Get the generic method
+                    var ensureRepoMethod = typeof(BusBuddy.UI.Services.ServiceContainerSingleton).GetMethod("EnsureRepository");
+
+                    // Create a generic version with our repository type
+                    var genericMethod = ensureRepoMethod.MakeGenericMethod(repositoryType);
+
+                    // Invoke the generic method (static method so null first parameter)
+                    var repository = genericMethod.Invoke(null, null);
+
+                    // If we got this far without an exception, the repository is available
+                    LogInfo($"Repository available: {repositoryType.Name}");
+                    return repository != null;
+                }
+                catch (Exception ex)
+                {
+                    LogError($"Repository not available: {repositoryType.Name}", ex);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError($"Error checking repository availability: {repositoryType.Name}", ex);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Helper method to remove all event handlers from a control for a specific event
+        /// </summary>
+        /// <param name="control">The control to remove event handlers from</param>
+        /// <param name="eventName">The name of the event to clear</param>
+        private void RemoveControlEventHandlers(Control control, string eventName)
+        {
+            if (control == null) return;
+
+            try
+            {
+                // Get the event field from the control's type
+                var eventField = control.GetType().GetField(eventName,
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.Public);
+
+                if (eventField != null)
+                {
+                    // Get the current event handler
+                    var currentHandler = eventField.GetValue(control);
+                    if (currentHandler != null)
+                    {
+                        // Set the event field to null to clear all handlers
+                        eventField.SetValue(control, null);
+                        LogInfo($"Cleared {eventName} handlers for {control.Name ?? control.GetType().Name}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError($"Failed to remove {eventName} event handlers", ex);
+            }
+        }
+
+        // Track disposed state to avoid multiple disposals
+        private bool _disposed = false;
+
+        /// <summary>
+        /// Safely performs an action on the UI thread to prevent cross-thread exceptions
+        /// </summary>
+        /// <param name="action">The action to perform on the UI thread</param>
+        private void SafeInvoke(System.Action action)
+        {
+            try
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(action);
+                }
+                else
+                {
+                    action();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError("Error in SafeInvoke", ex);
+            }
+        }
     }
 }

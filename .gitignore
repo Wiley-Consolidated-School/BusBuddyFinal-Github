@@ -1,6 +1,6 @@
 #####################################################
-# BusBuddy - School Bus Management System
-# Comprehensive .gitignore for .NET Windows Forms with Syncfusion
+# BusBuddy Dashboard Redesign - Clean Architecture
+# Updated for strict file structure enforcement
 #####################################################
 
 #####################################################
@@ -47,6 +47,31 @@ TestResults/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+#####################################################
+# 🧹 NON-PARTICIPATORY FILES (Clean Architecture)  #
+#####################################################
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+*.old
+*.backup
+*_temp*
+*_tmp*
+*_test*
+
+# Environment files
+.env
+*.local
+
+# Migration backups
+Migration_Backups/
+
+# Duplicate files
+*_new.*
+*_copy.*
 
 # Generated files
 Generated\ Files/
