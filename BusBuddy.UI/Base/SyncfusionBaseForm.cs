@@ -41,6 +41,9 @@ namespace BusBuddy.UI.Base
         // Test mode support - prevents dialog boxes during testing
         private static bool _testModeEnabled = false;
 
+        // Theme management
+        private string _currentTheme = "Office2016Black";
+
         /// <summary>
         /// Enable test mode to redirect message boxes to console output
         /// </summary>
@@ -484,32 +487,177 @@ namespace BusBuddy.UI.Base
         }
 
         /// <summary>
-        /// Enhanced Dispose method with comprehensive cleanup
+        /// Gets the current theme name
         /// </summary>
-        protected override void Dispose(bool disposing)
+        public string CurrentTheme => _currentTheme;
+
+        /// <summary>
+        /// Applies the specified Syncfusion visual theme to the form.
+        /// Uses Office2016Black (dark) and Office2016White (light) as documented themes.
+        /// </summary>
+        /// <param name="themeName">The theme to apply ("Office2016Black" or "Office2016White")</param>
+        public void ApplyTheme(string themeName)
         {
-            if (disposing)
+            try
             {
-                try
+                // Validate theme name against documented Syncfusion themes
+                if (themeName != "Office2016Black" && themeName != "Office2016White")
                 {
-                    Console.WriteLine($"🧽 Disposing SyncfusionBaseForm: {this.GetType().Name}");
-
-                    // Perform enhanced Syncfusion cleanup
-                    PerformEnhancedSyncfusionCleanup();
-
-                    // Dispose error provider
-                    _errorProvider?.Dispose();
-
-                    Console.WriteLine($"✅ SyncfusionBaseForm disposed: {this.GetType().Name}");
+                    throw new ArgumentException($"Unsupported theme: {themeName}. Use 'Office2016Black' or 'Office2016White'.");
                 }
-                catch (Exception ex)
+
+                _currentTheme = themeName;
+
+                // Apply theme using SfSkinManager as documented
+                SfSkinManager.SetVisualStyle(this, themeName);
+
+                // Load appropriate theme DLL
+                if (themeName == "Office2016Black")
                 {
-                    Console.WriteLine($"⚠️ Error during SyncfusionBaseForm disposal: {ex.Message}");
+                    SyncfusionThemeHelper.LoadDarkTheme();
+                }
+
+                // Update form background colors based on theme
+                UpdateFormColorsForTheme(themeName);
+
+                // Refresh form to reflect theme changes
+                this.Refresh();
+
+                LogInfo($"Applied theme: {themeName}");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Failed to apply theme: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Toggles between Office2016Black (dark) and Office2016White (light) themes
+        /// </summary>
+        public void ToggleTheme()
+        {
+            try
+            {
+                string newTheme = _currentTheme == "Office2016Black" ? "Office2016White" : "Office2016Black";
+                ApplyTheme(newTheme);
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Failed to toggle theme: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Updates form colors based on the selected theme
+        /// </summary>
+        private void UpdateFormColorsForTheme(string themeName)
+        {
+            try
+            {
+                if (themeName == "Office2016Black")
+                {
+                    // Dark theme colors
+                    this.BackColor = Color.FromArgb(68, 68, 68);
+                    this.ForeColor = Color.White;
+                    if (_mainPanel != null)
+                        _mainPanel.BackColor = Color.FromArgb(68, 68, 68);
+                    if (_buttonPanel != null)
+                        _buttonPanel.BackColor = Color.FromArgb(68, 68, 68);
+                }
+                else if (themeName == "Office2016White")
+                {
+                    // Light theme colors
+                    this.BackColor = Color.White;
+                    this.ForeColor = Color.Black;
+                    if (_mainPanel != null)
+                        _mainPanel.BackColor = Color.White;
+                    if (_buttonPanel != null)
+                        _buttonPanel.BackColor = Color.White;
                 }
             }
-
-            base.Dispose(disposing);
+            catch (Exception ex)
+            {
+                LogInfo($"Theme color update error: {ex.Message}");
+            }
         }
+
+        /// <summary>
+        /// Logs information messages to console
+        /// </summary>
+        private void LogInfo(string message)
+        {
+            Console.WriteLine($"[INFO] {DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}");
+        }
+
+        #endregion
+
+        #region Disposal and Cleanup
+
+        /// <summary>
+        /// Clean up any resources being used with proper Syncfusion disposal
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if (disposing)
+                {
+                    // Dispose of managed resources
+                    _errorProvider?.Dispose();
+
+                    // Clear Syncfusion theme resources for this form
+                    try
+                    {
+                        SfSkinManager.SetVisualStyle(this, "Default");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogInfo($"Syncfusion theme cleanup warning: {ex.Message}");
+                    }
+
+                    // Dispose Syncfusion controls recursively
+                    DisposeSyncfusionControlsRecursive(this.Controls);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogInfo($"Disposal error: {ex.Message}");
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
+
+        /// <summary>
+        /// Recursively dispose Syncfusion controls to prevent memory leaks
+        /// </summary>
+        private void DisposeSyncfusionControlsRecursive(Control.ControlCollection controls)
+        {
+            try
+            {
+                foreach (Control control in controls)
+                {
+                    // Dispose child controls first
+                    if (control.HasChildren)
+                    {
+                        DisposeSyncfusionControlsRecursive(control.Controls);
+                    }
+
+                    // Dispose Syncfusion-specific controls
+                    if (control.GetType().Namespace?.StartsWith("Syncfusion") == true)
+                    {
+                        control.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogInfo($"Syncfusion control disposal warning: {ex.Message}");
+            }
+        }
+
         #endregion
 
         #region Validation and Messaging

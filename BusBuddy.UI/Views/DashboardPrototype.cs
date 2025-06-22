@@ -241,7 +241,7 @@ namespace BusBuddy.UI.Views
                 Width = 160,
                 Height = 40,
                 Location = new Point(1020, 80),
-                Text = "Toggle Theme"
+                Text = "Switch to Light"
             };
 
             // Task 6: Add Analytics Service buttons
@@ -362,6 +362,61 @@ namespace BusBuddy.UI.Views
 
             // Task 4: Enhanced Navigation Service - call demonstration method on load
             InitializeNavigationDemo();
+
+            // Task 8.5: Test buttons for Phase 2 management views
+            var testDriverButton = new SfButton
+            {
+                Text = "Test Driver Mgmt",
+                Location = new Point(680, 10),
+                Size = new Size(120, 30),
+                Style = { BackColor = Color.FromArgb(63, 81, 181), ForeColor = Color.White }
+            };
+            testDriverButton.Click += (s, e) => {
+                Console.WriteLine("🔧 Testing Driver Management navigation...");
+                bool result = _navigationService.Navigate("driver");
+                Console.WriteLine($"Driver navigation result: {result}");
+            };
+
+            var testVehicleButton = new SfButton
+            {
+                Text = "Test Vehicle Mgmt",
+                Location = new Point(680, 50),
+                Size = new Size(120, 30),
+                Style = { BackColor = Color.FromArgb(63, 81, 181), ForeColor = Color.White }
+            };
+            testVehicleButton.Click += (s, e) => {
+                Console.WriteLine("🔧 Testing Vehicle Management navigation...");
+                bool result = _navigationService.Navigate("vehicle");
+                Console.WriteLine($"Vehicle navigation result: {result}");
+            };
+
+            var testActivityScheduleButton = new SfButton
+            {
+                Text = "Test Activity Sched",
+                Location = new Point(680, 90),
+                Size = new Size(120, 30),
+                Style = { BackColor = Color.FromArgb(63, 81, 181), ForeColor = Color.White }
+            };
+            testActivityScheduleButton.Click += (s, e) => {
+                Console.WriteLine("🔧 Testing Activity Schedule navigation...");
+                bool result = _navigationService.Navigate("activityschedule");
+                Console.WriteLine($"Activity Schedule navigation result: {result}");
+            };
+
+            _metricsPanel.Controls.Add(testDriverButton);
+            _metricsPanel.Controls.Add(testVehicleButton);
+            _metricsPanel.Controls.Add(testActivityScheduleButton);
+
+            // Task 8.5: Add menu button to toggle navigation drawer (temporary solution)
+            var _menuButton = new SfButton
+            {
+                Text = "☰ Menu",
+                Location = new Point(10, 5),
+                Size = new Size(80, 30),
+                Style = { BackColor = Color.FromArgb(63, 81, 181), ForeColor = Color.White }
+            };
+            _menuButton.Click += (s, e) => ToggleNavigationDrawer();
+            _headerPanel.Controls.Add(_menuButton);
         }
 
         private void InitializeNavigationDemo()
@@ -380,16 +435,29 @@ namespace BusBuddy.UI.Views
         #region Event Handlers
         private void ApplyThemeButton_Click(object sender, EventArgs e)
         {
-            // Toggle between dark and light themes
-            if (_headerPanel.BackColor == ColorTranslator.FromHtml("#212121"))
+            try
             {
-                _headerPanel.BackColor = ColorTranslator.FromHtml("#F1F1F1");
-                _titleLabel.ForeColor = Color.Black;
+                // Task 8: Use the new Syncfusion theme toggle functionality
+                ToggleTheme();
+                
+                // Update button text to reflect current theme
+                _applyThemeButton.Text = CurrentTheme == "Office2016Black" ? "Switch to Light" : "Switch to Dark";
+                
+                // Update header colors to match the new theme
+                if (CurrentTheme == "Office2016Black")
+                {
+                    _headerPanel.BackColor = Color.FromArgb(68, 68, 68);
+                    _titleLabel.ForeColor = Color.White;
+                }
+                else
+                {
+                    _headerPanel.BackColor = Color.White;
+                    _titleLabel.ForeColor = Color.Black;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _headerPanel.BackColor = ColorTranslator.FromHtml("#212121");
-                _titleLabel.ForeColor = Color.White;
+                _errorHandlerService?.HandleError($"Failed to toggle theme: {ex.Message}", "Theme Toggle Error");
             }
         }
 
