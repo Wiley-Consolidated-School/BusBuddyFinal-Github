@@ -80,6 +80,9 @@ namespace BusBuddy.UI.Services
                 // Task 7: Register error handler service for centralized error management
                 RegisterSingleton<IErrorHandlerService>(() => new ErrorHandlerService());
 
+                // Task 6.7: Register PayRateManager for payrates.json management
+                RegisterSingleton<PayRateManager>(() => new PayRateManager(GetService<IErrorHandlerService>()));
+
                 Console.WriteLine("✅ All services registered successfully");
             }
             catch (Exception ex)

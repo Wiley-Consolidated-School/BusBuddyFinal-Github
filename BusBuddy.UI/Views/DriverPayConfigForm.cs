@@ -22,20 +22,25 @@ namespace BusBuddy.UI.Views
     public partial class DriverPayConfigForm : SyncfusionBaseForm
     {
         private readonly IErrorHandlerService _errorHandler;
-        private List<PayRate> _payRates;
-        private SfDataGrid _payRatesGrid;        private SfButton _updateButton;
+        private readonly PayRateManager _payRateManager;
+        private List<PayRateDisplay> _payRates;
+        private SfDataGrid _payRatesGrid;
+        private SfButton _updateButton;
         private SfButton _closeButton;
         private TableLayoutPanel _mainLayout;
         private Panel _payButtonPanel;
         private Label _titleLabel;
 
-        public DriverPayConfigForm() : this(new ErrorHandlerService())
+        public DriverPayConfigForm() : this(
+            ServiceContainerSingleton.Instance.GetService<IErrorHandlerService>(),
+            ServiceContainerSingleton.Instance.GetService<PayRateManager>())
         {
         }
 
-        public DriverPayConfigForm(IErrorHandlerService errorHandler)
+        public DriverPayConfigForm(IErrorHandlerService errorHandler, PayRateManager payRateManager)
         {
             _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
+            _payRateManager = payRateManager ?? throw new ArgumentNullException(nameof(payRateManager));
             InitializeComponent();
             InitializeControls();
             LoadPayRates();
@@ -94,10 +99,10 @@ namespace BusBuddy.UI.Views
                 HeaderText = "Rate ($)",
                 Width = 150,
                 AllowEditing = true,
-                NumberFormatInfo = new System.Globalization.NumberFormatInfo 
-                { 
+                NumberFormatInfo = new System.Globalization.NumberFormatInfo
+                {
                     NumberDecimalDigits = 2,
-                    CurrencySymbol = "$" 
+                    CurrencySymbol = "$"
                 },
                 Format = "C"
             };
@@ -174,107 +179,64 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                var jsonPath = Path.Combine(Application.StartupPath, "Resources", "payrates.json");
+                // Task 6.7: Use PayRateManager for loading pay rates
+                var payRates = _payRateManager.LoadPayRates();
                 
-                if (File.Exists(jsonPath))
+                _payRates = payRates.Select(rate => new PayRateDisplay
                 {
-                    var json = File.ReadAllText(jsonPath);
-                    var rates = JsonSerializer.Deserialize<Dictionary<string, decimal>>(json);
-                    
-                    _payRates = new List<PayRate>
-                    {
-                        new PayRate 
-                        { 
-                            RouteType = "CDL", 
-                            Rate = rates.ContainsKey("CDLTripRate") ? rates["CDLTripRate"] : 33.00m,
-                            Description = "Per trip (AM or PM)"
-                        },
-                        new PayRate 
-                        { 
-                            RouteType = "SmallBus", 
-                            Rate = rates.ContainsKey("SmallBusTripRate") ? rates["SmallBusTripRate"] : 15.00m,
-                            Description = "Per trip (AM or PM)"
-                        },
-                        new PayRate 
-                        { 
-                            RouteType = "SPED", 
-                            Rate = rates.ContainsKey("SPEDDayRate") ? rates["SPEDDayRate"] : 66.00m,
-                            Description = "Per day (both AM/PM)"
-                        }
-                    };
-                }
-                else
-                {
-                    // Default rates if file doesn't exist
-                    _payRates = new List<PayRate>
-                    {
-                        new PayRate { RouteType = "CDL", Rate = 33.00m, Description = "Per trip (AM or PM)" },
-                        new PayRate { RouteType = "SmallBus", Rate = 15.00m, Description = "Per trip (AM or PM)" },
-                        new PayRate { RouteType = "SPED", Rate = 66.00m, Description = "Per day (both AM/PM)" }
-                    };
-                }
+                    RouteType = rate.RouteType,
+                    Rate = rate.Rate,
+                    Description = GetRateDescription(rate.RouteType)
+                }).ToList();
 
                 _payRatesGrid.DataSource = _payRates;
             }
             catch (Exception ex)
             {
                 _errorHandler.HandleError($"Failed to load pay rates: {ex.Message}", "Pay Rate Error");
-                
+
                 // Fallback to default rates
-                _payRates = new List<PayRate>
+                _payRates = new List<PayRateDisplay>
                 {
-                    new PayRate { RouteType = "CDL", Rate = 33.00m, Description = "Per trip (AM or PM)" },
-                    new PayRate { RouteType = "SmallBus", Rate = 15.00m, Description = "Per trip (AM or PM)" },
-                    new PayRate { RouteType = "SPED", Rate = 66.00m, Description = "Per day (both AM/PM)" }
+                    new PayRateDisplay { RouteType = "CDL", Rate = 33.00m, Description = "Per trip (AM or PM)" },
+                    new PayRateDisplay { RouteType = "SmallBus", Rate = 15.00m, Description = "Per trip (AM or PM)" },
+                    new PayRateDisplay { RouteType = "SPED", Rate = 66.00m, Description = "Per day (both AM/PM)" }
                 };
                 _payRatesGrid.DataSource = _payRates;
             }
+        }
+
+        private string GetRateDescription(string routeType)
+        {
+            return routeType switch
+            {
+                "CDL" => "Per trip (AM or PM)",
+                "SmallBus" => "Per trip (AM or PM)",
+                "SPED" => "Per day (both AM/PM)",
+                _ => "Per trip"
+            };
         }
 
         private void UpdateButton_Click(object sender, EventArgs e)
         {
             try
             {
-                // Validate rates
-                foreach (var rate in _payRates)
+                // Task 6.7: Use PayRateManager for saving pay rates
+                // Convert display objects to PayRate objects for saving
+                var payRatesToSave = _payRates.Select(displayRate => new PayRate
                 {
-                    if (rate.Rate <= 0)
-                    {
-                        _errorHandler.HandleError($"Rate for {rate.RouteType} must be greater than zero.", "Invalid Rate");
-                        return;
-                    }
-                }
+                    RouteType = displayRate.RouteType,
+                    Rate = displayRate.Rate
+                }).ToList();
 
-                // Create rates dictionary
-                var rates = new Dictionary<string, decimal>
-                {
-                    { "CDLTripRate", _payRates.First(r => r.RouteType == "CDL").Rate },
-                    { "SmallBusTripRate", _payRates.First(r => r.RouteType == "SmallBus").Rate },
-                    { "SPEDDayRate", _payRates.First(r => r.RouteType == "SPED").Rate }
-                };
-
-                // Serialize to JSON with formatting
-                var json = JsonSerializer.Serialize(rates, new JsonSerializerOptions 
-                { 
-                    WriteIndented = true 
-                });
-
-                // Ensure directory exists
-                var resourcesPath = Path.Combine(Application.StartupPath, "Resources");
-                if (!Directory.Exists(resourcesPath))
-                {
-                    Directory.CreateDirectory(resourcesPath);
-                }
-
-                // Write to file
-                var jsonPath = Path.Combine(resourcesPath, "payrates.json");
-                File.WriteAllText(jsonPath, json);
+                // Use PayRateManager to save rates
+                _payRateManager.SavePayRates(payRatesToSave);
 
                 MessageBox.Show(
                     "Pay rates updated successfully!\n\n" +
-                    $"CDL Trip Rate: ${rates["CDLTripRate"]:F2}\n" +
-                    $"Small Bus Trip Rate: ${rates["SmallBusTripRate"]:F2}\n" +
-                    $"SPED Day Rate: ${rates["SPEDDayRate"]:F2}",
+                    $"CDL Trip Rate: ${_payRates.First(r => r.RouteType == "CDL").Rate:F2}\n" +
+                    $"Small Bus Trip Rate: ${_payRates.First(r => r.RouteType == "SmallBus").Rate:F2}\n" +
+                    $"SPED Day Rate: ${_payRates.First(r => r.RouteType == "SPED").Rate:F2}",
                     "Success",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information
@@ -300,9 +262,9 @@ namespace BusBuddy.UI.Views
     }
 
     /// <summary>
-    /// Data model for pay rate configuration
+    /// Data model for pay rate display in the grid
     /// </summary>
-    public class PayRate
+    public class PayRateDisplay
     {
         public string RouteType { get; set; } = string.Empty;
         public decimal Rate { get; set; }
