@@ -227,7 +227,7 @@ BusBuddyFinal-Github/
 
 ## Progress Tracker
 - [x] Task 1: Back Up Project and Delete Non-Participatory Files
-- [ ] Task 2: Document CDE-40 Requirements
+- [x] Task 2: Document CDE-40 Requirements
 - [ ] Task 3: Create Dashboard Prototype
 - [ ] Task 4: Enhance Navigation Service
 - [ ] Task 5: Create Report Service
@@ -245,6 +245,7 @@ BusBuddyFinal-Github/
 ## Notes
 - **Task 1 Completed**: Created `dashboard-redesign` branch, removed Time Card module files, updated `.gitignore`, added living document to `docs/DashboardRedesign.md`.
 - **Files Removed**: Entire `BusBuddy.TimeCard/` directory, `TimeCard.cs`, `TimeCardValidation.cs`, `TimeCardRepository.cs` from respective modules.
+- **Task 2 Completed**: Created `CDE40_Requirements.md` with detailed mileage, pupil counts, costs, financial contributions, and transportation value metrics. Prioritized Routes table data (AM/PM Miles/Riders) for xAI Grok 3 API processing.
 
 ## References
 - **Syncfusion**:
