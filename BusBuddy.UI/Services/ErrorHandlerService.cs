@@ -31,7 +31,7 @@ namespace BusBuddy.UI.Services
             {
                 // Display user-friendly error message
                 MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
+
                 // Log the error for debugging
                 LogError(message, title);
             }
@@ -58,12 +58,12 @@ namespace BusBuddy.UI.Services
 
             var userMessage = GetUserFriendlyMessage(exception);
             var title = $"Error in {context ?? "Application"}";
-            
+
             try
             {
                 // Display user-friendly error message
                 MessageBox.Show(userMessage, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
+
                 // Log detailed exception information
                 LogError($"Exception: {exception.Message}\nStack Trace: {exception.StackTrace}", context ?? "Unknown");
             }
@@ -85,13 +85,13 @@ namespace BusBuddy.UI.Services
             try
             {
                 var logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{context ?? "Unknown"}] {message}";
-                
+
                 // Log to Debug output (visible in VS Output window)
                 System.Diagnostics.Debug.WriteLine($"ERROR: {logMessage}");
-                
+
                 // Log to Console (visible in console applications)
                 Console.WriteLine($"ERROR: {logMessage}");
-                
+
                 // TODO: Add file logging or database logging as needed
                 // For now, Debug and Console logging provide sufficient visibility
             }

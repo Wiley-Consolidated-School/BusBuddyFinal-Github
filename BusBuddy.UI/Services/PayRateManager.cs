@@ -33,7 +33,7 @@ namespace BusBuddy.UI.Services
                 {
                     var json = File.ReadAllText(_jsonPath);
                     var rates = JsonSerializer.Deserialize<Dictionary<string, decimal>>(json);
-                    
+
                     return new List<PayRate>
                     {
                         new PayRate { RouteType = "CDL", Rate = rates.GetValueOrDefault("CDLTripRate", 33.00m) },
@@ -41,7 +41,7 @@ namespace BusBuddy.UI.Services
                         new PayRate { RouteType = "SPED", Rate = rates.GetValueOrDefault("SPEDDayRate", 66.00m) }
                     };
                 }
-                
+
                 // Return default rates if file doesn't exist
                 return GetDefaultPayRates();
             }
@@ -74,7 +74,7 @@ namespace BusBuddy.UI.Services
                 // Validate required route types are present
                 var requiredTypes = new[] { "CDL", "SmallBus", "SPED" };
                 var providedTypes = payRates.Select(r => r.RouteType).ToArray();
-                
+
                 if (!requiredTypes.All(t => providedTypes.Contains(t)))
                 {
                     throw new ArgumentException("Missing required route types. Must include CDL, SmallBus, and SPED.");
@@ -88,10 +88,10 @@ namespace BusBuddy.UI.Services
                 };
 
                 var json = JsonSerializer.Serialize(rates, new JsonSerializerOptions { WriteIndented = true });
-                
+
                 // Ensure Resources directory exists
                 Directory.CreateDirectory(Path.GetDirectoryName(_jsonPath));
-                
+
                 File.WriteAllText(_jsonPath, json);
             }
             catch (Exception ex)

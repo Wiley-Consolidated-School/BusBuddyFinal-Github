@@ -181,7 +181,7 @@ namespace BusBuddy.UI.Views
             {
                 // Task 6.7: Use PayRateManager for loading pay rates
                 var payRates = _payRateManager.LoadPayRates();
-                
+
                 _payRates = payRates.Select(rate => new PayRateDisplay
                 {
                     RouteType = rate.RouteType,

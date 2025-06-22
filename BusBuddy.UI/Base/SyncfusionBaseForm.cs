@@ -114,13 +114,14 @@ namespace BusBuddy.UI.Base
 
         private void InitializeSyncfusionDesign()
         {
+            // Task 8: Update to Office2016Black theme for BusBuddy dashboard redesign
             // Load dark theme DLL if available
             SyncfusionThemeHelper.LoadDarkTheme();
 
-            // Apply MaterialLight theme using SfSkinManager
-            SfSkinManager.SetVisualStyle(this, "MaterialLight");
+            // Apply Office2016Black theme using SfSkinManager
+            SfSkinManager.SetVisualStyle(this, "Office2016Black");
 
-            // Enhanced Material Design title bar styling
+            // Enhanced Office2016Black title bar styling
             ApplyMaterialTitleBarStyling();
         }
 
