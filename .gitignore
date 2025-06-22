@@ -28,6 +28,21 @@ bld/
 [Bb]uild[Ll]og.*
 TestResults/
 *.trx
+
+# Temporary and backup files - Task 7: Prevent file corruption
+*.tmp
+*.bak
+*.backup
+*_backup.cs
+*.backup*
+*.old
+*_temp
+*_tmp
+*_test
+*.new
+*_new.cs
+Migration_Backups/
+*.crdownload
 *.coverage
 *.coveragexml
 
