@@ -35,6 +35,7 @@ namespace BusBuddy.UI.Views
         private readonly IRouteAnalyticsService _routeAnalyticsService;
         private readonly IReportService _reportService;
         private readonly BusBuddy.UI.Services.IAnalyticsService _analyticsService;
+        private readonly IErrorHandlerService _errorHandlerService;
 
         // UI Components
         private NavigationDrawer _navigationDrawer;
@@ -54,6 +55,7 @@ namespace BusBuddy.UI.Views
         private SfButton _refreshDataButton;
         private SfButton _generateAnalyticsButton;
         private SfButton _driverPayReportButton;
+        private SfButton _testErrorButton;
 
         // Data containers
         private List<Route> _routes;
@@ -65,13 +67,15 @@ namespace BusBuddy.UI.Views
             BusBuddy.Business.IDatabaseHelperService databaseHelperService,
             IRouteAnalyticsService routeAnalyticsService,
             IReportService reportService,
-            BusBuddy.UI.Services.IAnalyticsService analyticsService)
+            BusBuddy.UI.Services.IAnalyticsService analyticsService,
+            IErrorHandlerService errorHandlerService)
         {
             _navigationService = navigationService;
             _databaseHelperService = databaseHelperService;
             _routeAnalyticsService = routeAnalyticsService;
             _reportService = reportService;
             _analyticsService = analyticsService;
+            _errorHandlerService = errorHandlerService;
 
             InitializeComponent();
 
@@ -244,11 +248,21 @@ namespace BusBuddy.UI.Views
                 Text = "Driver Pay Report"
             };
 
+            // Task 7: Test error handler service button
+            _testErrorButton = new SfButton
+            {
+                Width = 120,
+                Height = 40,
+                Location = new Point(860, 170),
+                Text = "Test Error"
+            };
+
             _metricsPanel.Controls.Add(_generateReportButton);
             _metricsPanel.Controls.Add(_refreshDataButton);
             _metricsPanel.Controls.Add(_applyThemeButton);
             _metricsPanel.Controls.Add(_generateAnalyticsButton);
             _metricsPanel.Controls.Add(_driverPayReportButton);
+            _metricsPanel.Controls.Add(_testErrorButton);
 
             // Configure charts
             // Based on ChartControl documentation: https://help.syncfusion.com/windowsforms/chart/getting-started
@@ -302,6 +316,7 @@ namespace BusBuddy.UI.Views
             _generateReportButton.Click += GenerateReportButton_Click;
             _generateAnalyticsButton.Click += GenerateAnalyticsButton_Click;
             _driverPayReportButton.Click += DriverPayReportButton_Click;
+            _testErrorButton.Click += TestErrorButton_Click;
 
             // Task 4: Enhanced Navigation Service - wire up navigation drawer items
             // Note: NavigationDrawer in Syncfusion uses different event pattern
@@ -514,6 +529,38 @@ namespace BusBuddy.UI.Views
             {
                 _driverPayReportButton.Text = "Driver Pay Report";
                 _driverPayReportButton.Enabled = true;
+            }
+        }
+
+        // Task 7: Test error handler service
+        private void TestErrorButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Test different types of errors
+                var random = new Random();
+                var errorType = random.Next(1, 4);
+
+                switch (errorType)
+                {
+                    case 1:
+                        _errorHandlerService.HandleError("This is a test error message to demonstrate error handling.", "Test Error");
+                        break;
+                    case 2:
+                        _errorHandlerService.HandleException(new ArgumentNullException("testParameter", "Test null parameter"), "Dashboard Test");
+                        break;
+                    case 3:
+                        _errorHandlerService.HandleException(new InvalidOperationException("Test invalid operation"), "Dashboard Test");
+                        break;
+                    default:
+                        _errorHandlerService.LogError("Test log message without UI display", "Dashboard Test");
+                        MessageBox.Show("Error logged successfully (check debug output)", "Log Test", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error in error handler test: {ex.Message}", "Test Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         #endregion

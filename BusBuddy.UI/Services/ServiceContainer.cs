@@ -63,6 +63,7 @@ namespace BusBuddy.UI.Services
                 // Register services
                 RegisterSingleton<IVehicleService>(() => (IVehicleService)new VehicleService(GetService<IVehicleRepository>()));
                 RegisterSingleton<IDatabaseHelperService>(() => (IDatabaseHelperService)new BusBuddy.Business.DatabaseHelperService());
+                RegisterSingleton<IRouteAnalyticsService>(() => new BusBuddy.Business.RouteAnalyticsService(GetService<IRouteRepository>()));
 
                 // Register form factory
                 RegisterSingleton<IFormFactory>(() => this);
@@ -72,6 +73,12 @@ namespace BusBuddy.UI.Services
 
                 // Task 5: Register report service with xAI Grok 3 API integration
                 RegisterSingleton<IReportService>(() => new ReportService(GetService<IDatabaseHelperService>()));
+
+                // Task 6: Register analytics service for driver pay and CDE-40 reporting
+                RegisterSingleton<IAnalyticsService>(() => new AnalyticsService(GetService<IDatabaseHelperService>(), GetService<IRouteAnalyticsService>()));
+
+                // Task 7: Register error handler service for centralized error management
+                RegisterSingleton<IErrorHandlerService>(() => new ErrorHandlerService());
 
                 Console.WriteLine("✅ All services registered successfully");
             }
