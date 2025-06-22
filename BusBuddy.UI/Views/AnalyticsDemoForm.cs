@@ -469,38 +469,9 @@ Period: {summary.PeriodStart:yyyy-MM-dd} to {summary.PeriodEnd:yyyy-MM-dd}
 
         private void ValidateTimeCard_Click(object? sender, EventArgs e)
         {
-            // Create a demo time card with issues
-            var demoTimeCard = new Models.TimeCard
-            {
-                Date = DateTime.Now,
-                DriverId = 1,
-                ClockIn = new TimeSpan(8, 0, 0),
-                ClockOut = new TimeSpan(16, 0, 0),
-                LunchOut = new TimeSpan(12, 0, 0),
-                // Missing LunchIn - this will trigger validation
-            };
-
-            var resultsText = new RichTextBox();
-            resultsText.Dock = DockStyle.Fill;
-            resultsText.Text = @"Demo Time Card Validation Results:
-
-⚠️ Issues Detected:
-• Missing Lunch In time
-• Potential overtime calculation needed
-
-💡 Smart Suggestions:
-• Auto-set Lunch In to 12:30 PM (30-minute lunch) - Confidence: 90%
-• Verify overtime rules compliance - Confidence: 80%
-
-🔧 Auto-Fix Options:
-✓ Fix missing lunch time automatically
-✓ Apply standard lunch duration
-✓ Recalculate total hours
-
-The enhanced validation system provides intelligent suggestions and can automatically resolve common issues, saving administrators time and reducing errors.";
-
-            _validationResultsPanel.Controls.Clear();
-            _validationResultsPanel.Controls.Add(resultsText);
+            // TimeCard functionality is being phased out
+            MessageBox.Show("TimeCard validation feature is being transitioned to a separate module.",
+                "TimeCard Validation", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

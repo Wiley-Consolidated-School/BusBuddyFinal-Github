@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using BusBuddy.UI.Services;
 using BusBuddy.Business;
-using BusBuddy.TimeCard.Services.Services;
 using BusBuddy.Data;
 using System;
 using System.Configuration;
@@ -52,7 +51,6 @@ namespace BusBuddy.DependencyInjection
             services.AddScoped<BusBuddy.UI.Services.IDatabaseHelperService, BusBuddy.UI.Services.DatabaseHelperService>();
             services.AddScoped<RouteAnalyticsService>();
             services.AddScoped<PredictiveMaintenanceService>();
-            services.AddScoped<TimeEntryValidationService>();
         }
 
         /// <summary>

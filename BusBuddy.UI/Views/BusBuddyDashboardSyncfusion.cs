@@ -84,7 +84,6 @@ namespace BusBuddy.UI.Views
                 { "ShowRouteManagement", typeof(IRouteRepository) },
                 { "ShowFuelManagement", typeof(IFuelRepository) },
                 { "ShowMaintenanceManagement", typeof(IMaintenanceRepository) },
-                { "ShowTimeCardManagement", typeof(ITimeCardRepository) },
                 { "ShowActivityManagement", typeof(IActivityRepository) }
             };
 
@@ -1605,6 +1604,14 @@ namespace BusBuddy.UI.Views
             public void ShowAnalyticsDemo() => ShowNotAvailableMessage("Analytics Demo");
             public void ShowReports() => ShowNotAvailableMessage("Reports");
 
+            public bool Navigate(string moduleName, params object[] parameters)
+            {
+                ShowNotAvailableMessage($"Navigation to {moduleName}");
+                return false;
+            }
+
+            public bool IsModuleAvailable(string moduleName) => false;
+
             public DialogResult ShowDialog<T>() where T : Form => DialogResult.Cancel;
             public DialogResult ShowDialog<T>(params object[] parameters) where T : Form => DialogResult.Cancel;
 
@@ -1629,7 +1636,6 @@ namespace BusBuddy.UI.Views
                     { "ShowRouteManagement", typeof(IRouteRepository) },
                     { "ShowFuelManagement", typeof(IFuelRepository) },
                     { "ShowMaintenanceManagement", typeof(IMaintenanceRepository) },
-                    { "ShowTimeCardManagement", typeof(ITimeCardRepository) },
                     { "ShowActivityManagement", typeof(IActivityRepository) }
                 };
 

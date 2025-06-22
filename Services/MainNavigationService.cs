@@ -1,7 +1,6 @@
 using System;
 using System.Windows.Forms;
 using BusBuddy.UI.Services;
-using BusBuddy.TimeCard;
 
 namespace BusBuddy.Services
 {
@@ -32,14 +31,13 @@ namespace BusBuddy.Services
         public void ShowSchoolCalendarManagement() => _uiNavigationService.ShowSchoolCalendarManagement();
         public void ShowActivityScheduleManagement() => _uiNavigationService.ShowActivityScheduleManagement();
         public void ShowAnalyticsDemo() => _uiNavigationService.ShowAnalyticsDemo();
-        public void ShowReports() => _uiNavigationService.ShowReports();
-
-        // Handle TimeCard management directly using the TimeCard module
+        public void ShowReports() => _uiNavigationService.ShowReports();        // Handle TimeCard management directly using the TimeCard module
         public void ShowTimeCardManagement()
         {
             try
             {
-                TimeCardModule.LaunchTimeCardManagementForm();
+                MessageBox.Show("TimeCard management is being transitioned to a separate module.",
+                    "TimeCard Management", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -47,6 +45,10 @@ namespace BusBuddy.Services
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        // Implement missing interface methods
+        public bool Navigate(string moduleName, params object[] parameters) => _uiNavigationService.Navigate(moduleName, parameters);
+        public bool IsModuleAvailable(string moduleName) => _uiNavigationService.IsModuleAvailable(moduleName);
 
         // Delegate dialog methods
         public DialogResult ShowDialog<T>() where T : Form => _uiNavigationService.ShowDialog<T>();

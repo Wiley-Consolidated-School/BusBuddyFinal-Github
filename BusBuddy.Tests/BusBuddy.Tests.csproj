@@ -48,6 +48,6 @@
     <ProjectReference Include="..\BusBuddy.Data\BusBuddy.Data.csproj" />
     <ProjectReference Include="..\BusBuddy.Business\BusBuddy.Business.csproj" />
     <ProjectReference Include="..\BusBuddy.UI\BusBuddy.UI.csproj" />
-    <ProjectReference Include="..\BusBuddy.TimeCard\BusBuddy.TimeCard.csproj" />
+    <!-- TimeCard project removed in Task 1 - dashboard redesign -->
   </ItemGroup>
 </Project>

@@ -57,6 +57,42 @@ The CDE-40 report requires data from the following tables (per `BusBuddy Tables.
 - **Display**: Statistics panel with `RadialGauge` for metrics and `ChartControl` for trends ([ChartControl Docs](https://help.syncfusion.com/windowsforms/chart/getting-started)).
 - **xAI Grok 3 API**: Generate insights (e.g., "Cost per student increased due to fuel prices") ([xAI API Docs](https://docs.x.ai)).
 
+## Dashboard Visualization Components
+The CDE-40 dashboard will utilize the following Syncfusion components:
+
+### Primary Display Controls
+- **SfDataGrid**: For tabular data display of routes, vehicles, and maintenance records
+  - Implementation: [SfDataGrid Getting Started](https://help.syncfusion.com/windowsforms/datagrid/getting-started)
+  - Features: Grouping, filtering, and sorting capabilities for detailed analysis
+  - Data Source: Entity Framework bound collections from Routes, Vehicles, and Maintenance tables
+
+- **ChartControl**: For visualizing trends in mileage, pupil counts, and costs
+  - Implementation: [ChartControl Getting Started](https://help.syncfusion.com/windowsforms/chart/getting-started)
+  - Chart Types: Line charts for trend analysis, Bar charts for comparative metrics
+  - Features: Interactive legends, tooltips, and drill-down capabilities
+
+- **RadialGauge**: For key performance indicators (KPIs) and goal tracking
+  - Implementation: [RadialGauge Getting Started](https://help.syncfusion.com/windowsforms/radial-gauge/getting-started)
+  - Metrics: Cost per student, daily ridership percentages, route efficiency
+
+### Supporting Components
+- **SfNavigationDrawer**: For navigating between different report sections
+  - Implementation: [SfNavigationDrawer Getting Started](https://help.syncfusion.com/windowsforms/navigation-drawer/getting-started)
+  - Sections: Mileage Summary, Pupil Counts, Financial Analysis, Vehicle Stats
+
+- **BoldReportViewer**: For final CDE-40 report generation and export
+  - Features: PDF export capability for submission to CDE
+  - Templated design matching official CDE-40 form layout
+
+- **SfTabControl**: For organizing different analysis views
+  - Implementation: [TabControlAdv Getting Started](https://help.syncfusion.com/windowsforms/tabcontrol/getting-started)
+  - Tabs: Daily Operations, Special Events, Cost Analysis, Summary
+
+### Theming
+- **Office2016Black**: Primary theme for dashboard for professional appearance
+  - Implementation: `ApplyTheme(VisualStyle.Office2016Black)` on all forms
+  - Consistent visual styling across all dashboard components
+
 ## xAI Grok 3 API Integration Priority
 Based on CDE-40 reporting requirements, prioritize these data points for API processing:
 
@@ -74,6 +110,35 @@ Based on CDE-40 reporting requirements, prioritize these data points for API pro
 - **Fuel + Maintenance**: Combined operating costs for comprehensive financial picture
 - **API Prompt**: "Generate cost insights: fuel trends, maintenance patterns, cost optimization opportunities"
 
+## CDE-40 Submission Timeline
+The CDE-40 report follows a strict annual timeline:
+
+| Milestone | Date | Description |
+|-----------|------|-------------|
+| Data Collection Period | July 1, 2024 - June 30, 2025 | Full fiscal year data collection |
+| Internal Review | July 1 - August 15, 2025 | District transportation department review |
+| Final Approval | August 16 - September 1, 2025 | District superintendent approval |
+| Submission Deadline | September 15, 2025 | Mandatory submission to CDE |
+
+## Data Validation Requirements
+To ensure CDE-40 compliance, the dashboard must validate:
+
+1. **Data Completeness**: All required fields populated with valid values
+   - Validation: Null checks on critical fields (mileage, riders, costs)
+   - UI Indicator: Warning icons for missing data with drill-down capability
+
+2. **Data Consistency**: Logical validation of related values
+   - Validation: End miles > Begin miles, PMRiders ≈ AMRiders
+   - Alert: Highlight outliers for transportation coordinator review
+
+3. **Calculation Accuracy**: Verify formula-based metrics
+   - Validation: Cross-check calculations against raw data
+   - Audit: Maintain calculation logs for transparency
+
+4. **Historical Comparison**: Compare with previous years' submissions
+   - Validation: Flag significant deviations from historical patterns
+   - Analysis: Provide context for variances (e.g., route changes, fuel price impacts)
+
 ## Validation
 - Cross-check with `BusBuddy Tables.pdf` for field accuracy.
 - Verify alignment with CDE-40 guidelines ([CDE-40 Info](https://www.cde.state.co.us/idm/transportation)).
@@ -85,3 +150,4 @@ Based on CDE-40 reporting requirements, prioritize these data points for API pro
 - Contact: Yolanda Lucero (lucero_y@cde.state.co.us)
 - [Syncfusion Documentation](https://help.syncfusion.com/windowsforms)
 - [xAI API Docs](https://docs.x.ai)
+- [Syncfusion Windows Forms Controls](https://help.syncfusion.com/windowsforms/overview)

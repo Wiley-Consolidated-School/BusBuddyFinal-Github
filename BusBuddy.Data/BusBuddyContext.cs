@@ -36,7 +36,8 @@ namespace BusBuddy.Data
         public DbSet<Maintenance> Maintenances { get; set; } = null!;
         public DbSet<SchoolCalendar> SchoolCalendars { get; set; } = null!;
         public DbSet<PTOBalance> PTOBalances { get; set; } = null!;
-        public DbSet<Models.TimeCard> TimeCards { get; set; } = null!;        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
@@ -97,7 +98,8 @@ namespace BusBuddy.Data
             modelBuilder.Entity<SchoolCalendar>().HasKey(s => s.CalendarID);
             modelBuilder.Entity<Route>().HasKey(r => r.RouteID);
             modelBuilder.Entity<Activity>().HasKey(a => a.ActivityID);
-            modelBuilder.Entity<Models.TimeCard>().HasKey(t => t.TimeCardId);            // Configure Vehicle entity mappings
+
+            // Configure Vehicle entity mappings
             modelBuilder.Entity<Vehicle>()
                 .Property(v => v.Capacity)
                 .HasColumnName("SeatingCapacity");
@@ -124,28 +126,6 @@ namespace BusBuddy.Data
                 .HasOne(f => f.VehicleFueled)
                 .WithMany()
                 .HasForeignKey(f => f.VehicleFueledID);
-
-            // Configure TimeCard entity
-            modelBuilder.Entity<Models.TimeCard>()
-                .ToTable("TimeCards");
-
-            modelBuilder.Entity<Models.TimeCard>()
-                .HasOne(tc => tc.Driver)
-                .WithMany()
-                .HasForeignKey(tc => tc.DriverId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Models.TimeCard>()
-                .Property(tc => tc.TotalTime)
-                .HasPrecision(18, 2);
-
-            modelBuilder.Entity<Models.TimeCard>()
-                .Property(tc => tc.Overtime)
-                .HasPrecision(18, 2);
-
-            modelBuilder.Entity<Models.TimeCard>()
-                .Property(tc => tc.PTOHours)
-                .HasPrecision(18, 2);
 
             // Ignore computed DateTime helper properties that shouldn't be mapped to database columns
             modelBuilder.Entity<Activity>()
