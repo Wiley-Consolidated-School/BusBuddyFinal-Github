@@ -93,7 +93,7 @@ namespace BusBuddy.UI.Services
             try
             {
                 // Step 1: Collect data from database
-                var reportData = await CollectReportDataAsync(schoolYear);
+                var reportData = CollectReportData(schoolYear);
 
                 // Step 2: Validate data
                 if (!ValidateReportData(reportData))
@@ -211,7 +211,7 @@ namespace BusBuddy.UI.Services
         /// <summary>
         /// Collect all data required for CDE-40 reporting
         /// </summary>
-        private async Task<CDE40ReportData> CollectReportDataAsync(string schoolYear)
+        private CDE40ReportData CollectReportData(string schoolYear)
         {
             var reportData = new CDE40ReportData();
 

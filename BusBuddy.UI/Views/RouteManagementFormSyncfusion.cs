@@ -241,7 +241,18 @@ namespace BusBuddy.UI.Views
 
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "RouteID", HeaderText = "ID", Visible = false });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "RouteName", HeaderText = "Route Name", Width = GetDpiAwareWidth(150) });
-            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "RouteType", HeaderText = "Route Type", Width = GetDpiAwareWidth(100) }); // Task 6.5: Added RouteType column
+            
+            // Task 6.6: Update RouteType to use dropdown
+            var routeTypeColumn = new GridComboBoxColumn
+            {
+                MappingName = "RouteType",
+                HeaderText = "Route Type",
+                Width = GetDpiAwareWidth(100),
+                DataSource = new[] { "CDL", "SmallBus", "SPED" },
+                AllowEditing = true
+            };
+            _dataGrid.Columns.Add(routeTypeColumn);
+            
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "AMMiles", HeaderText = "AM Miles", Width = GetDpiAwareWidth(100) });
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "AMRiders", HeaderText = "AM Riders", Width = GetDpiAwareWidth(100) });
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "PMMiles", HeaderText = "PM Miles", Width = GetDpiAwareWidth(100) });

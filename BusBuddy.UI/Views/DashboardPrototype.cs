@@ -257,12 +257,23 @@ namespace BusBuddy.UI.Views
                 Text = "Test Error"
             };
 
+            // Task 6.6: Pay rates configuration button
+            var _payRatesButton = new SfButton
+            {
+                Width = 120,
+                Height = 40,
+                Location = new Point(860, 220),
+                Text = "Pay Rates"
+            };
+            _payRatesButton.Click += (s, e) => _navigationService.Navigate("payrates");
+
             _metricsPanel.Controls.Add(_generateReportButton);
             _metricsPanel.Controls.Add(_refreshDataButton);
             _metricsPanel.Controls.Add(_applyThemeButton);
             _metricsPanel.Controls.Add(_generateAnalyticsButton);
             _metricsPanel.Controls.Add(_driverPayReportButton);
             _metricsPanel.Controls.Add(_testErrorButton);
+            _metricsPanel.Controls.Add(_payRatesButton);
 
             // Configure charts
             // Based on ChartControl documentation: https://help.syncfusion.com/windowsforms/chart/getting-started

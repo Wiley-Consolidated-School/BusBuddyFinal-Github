@@ -96,6 +96,11 @@ namespace BusBuddy.UI.Services
                 { "report", () => { ShowReportsManagement(); return DialogResult.OK; } },
                 { "reports", () => { ShowReportsManagement(); return DialogResult.OK; } },
 
+                // Task 6.6: Driver pay configuration
+                { "payrates", () => { ShowDialog<DriverPayConfigForm>(); return DialogResult.OK; } },
+                { "payrateconfig", () => { ShowDialog<DriverPayConfigForm>(); return DialogResult.OK; } },
+                { "payrateconfiguration", () => { ShowDialog<DriverPayConfigForm>(); return DialogResult.OK; } },
+
                 // Financial and transportation value modules
                 { "financial", () => { ShowAnalyticsDemo(); return DialogResult.OK; } },
                 { "value", () => { ShowAnalyticsDemo(); return DialogResult.OK; } },
@@ -131,6 +136,11 @@ namespace BusBuddy.UI.Services
                 { "analytics", true },
                 { "report", true },
                 { "reports", true },
+
+                // Task 6.6: Pay rate configuration
+                { "payrates", true },
+                { "payrateconfig", true },
+                { "payrateconfiguration", true },
 
                 // Financial and transportation value modules
                 { "financial", true },
