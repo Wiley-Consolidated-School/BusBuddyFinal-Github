@@ -81,10 +81,10 @@ CREATE TABLE Routes (
     AMDriverID INT,
     PMVehicleID INT,
     PMBeginMiles FLOAT,
-    PMEndMiles FLOAT,
-    PMRiders INT,
+    PMEndMiles FLOAT,    PMRiders INT,
     PMDriverID INT,
     Notes NVARCHAR(MAX),
+    RouteType NVARCHAR(50) DEFAULT 'CDL', -- Task 6.5: Added for driver pay calculations (CDL, SmallBus, SPED)
     FOREIGN KEY (AMVehicleID) REFERENCES Vehicles(Id),
     FOREIGN KEY (AMDriverID) REFERENCES Drivers(DriverID),
     FOREIGN KEY (PMVehicleID) REFERENCES Vehicles(Id),

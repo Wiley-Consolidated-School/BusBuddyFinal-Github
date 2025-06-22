@@ -82,18 +82,18 @@ namespace BusBuddy.Data
                     try
                     {
                         // Validate foreign key constraints
-                        ValidateRouteReferences(connection, route, transaction);
-
-                        var sql = @"
+                        ValidateRouteReferences(connection, route, transaction);                        var sql = @"
                             INSERT INTO Routes (
                                 Date, RouteName,
                                 AMVehicleID, AMBeginMiles, AMEndMiles, AMRiders, AMDriverID,
-                                PMVehicleID, PMBeginMiles, PMEndMiles, PMRiders, PMDriverID
+                                PMVehicleID, PMBeginMiles, PMEndMiles, PMRiders, PMDriverID,
+                                Notes, RouteType
                             )
                             VALUES (
                                 @Date, @RouteName,
                                 @AMVehicleID, @AMBeginMiles, @AMEndMiles, @AMRiders, @AMDriverID,
-                                @PMVehicleID, @PMBeginMiles, @PMEndMiles, @PMRiders, @PMDriverID
+                                @PMVehicleID, @PMBeginMiles, @PMEndMiles, @PMRiders, @PMDriverID,
+                                @Notes, @RouteType
                             );
                             SELECT SCOPE_IDENTITY()";
 
@@ -118,9 +118,7 @@ namespace BusBuddy.Data
                     try
                     {
                         // Validate foreign key constraints
-                        ValidateRouteReferences(connection, route, transaction);
-
-                        var sql = @"
+                        ValidateRouteReferences(connection, route, transaction);                        var sql = @"
                             UPDATE Routes
                             SET Date = @Date,
                                 RouteName = @RouteName,
@@ -133,7 +131,9 @@ namespace BusBuddy.Data
                                 PMBeginMiles = @PMBeginMiles,
                                 PMEndMiles = @PMEndMiles,
                                 PMRiders = @PMRiders,
-                                PMDriverID = @PMDriverID
+                                PMDriverID = @PMDriverID,
+                                Notes = @Notes,
+                                RouteType = @RouteType
                             WHERE RouteID = @RouteID";
 
                         var rowsAffected = connection.Execute(sql, route, transaction);

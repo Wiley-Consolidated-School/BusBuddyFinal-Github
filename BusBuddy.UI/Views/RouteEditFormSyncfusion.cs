@@ -13,10 +13,10 @@ namespace BusBuddy.UI.Views
     /// Form for creating and editing route information
     /// </summary>
     public partial class RouteEditFormSyncfusion : SyncfusionBaseForm
-    {
-        // Controls matching Route model properties
+    {        // Controls matching Route model properties
         private DateTimePicker? _datePicker;
         private Control? _routeNameTextBox;
+        private ComboBox? _routeTypeComboBox; // Task 6.5: Added for driver pay calculations
         private ComboBox? _amVehicleComboBox;
         private ComboBox? _amDriverComboBox;
         private Control? _amBeginMilesTextBox;
@@ -29,11 +29,10 @@ namespace BusBuddy.UI.Views
         private Control? _pmRidersTextBox;
         private Control? _notesTextBox;
         private Control? _saveButton;
-        private Control? _cancelButton;
-
-        // Labels
+        private Control? _cancelButton;        // Labels
         private Label? _dateLabel;
         private Label? _routeNameLabel;
+        private Label? _routeTypeLabel; // Task 6.5: Added for RouteType dropdown
         private Label? _amSectionLabel;
         private Label? _amVehicleLabel;
         private Label? _amDriverLabel;
@@ -108,11 +107,10 @@ namespace BusBuddy.UI.Views
             for (int i = 0; i < 10; i++)
             {
                 _formLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
-            }
-
-            // Labels
+            }            // Labels
             _dateLabel = SyncfusionThemeHelper.CreateStyledLabel("Date:");
             _routeNameLabel = SyncfusionThemeHelper.CreateStyledLabel("Route Name:");
+            _routeTypeLabel = SyncfusionThemeHelper.CreateStyledLabel("Route Type:"); // Task 6.5: Added RouteType label
             _amSectionLabel = SyncfusionThemeHelper.CreateStyledLabel("AM SECTION");
             _amVehicleLabel = SyncfusionThemeHelper.CreateStyledLabel("Vehicle:");
             _amDriverLabel = SyncfusionThemeHelper.CreateStyledLabel("Driver:");
@@ -136,9 +134,16 @@ namespace BusBuddy.UI.Views
             {
                 Format = DateTimePickerFormat.Short,
                 Dock = DockStyle.Fill
-            };
+            };            _routeNameTextBox = SyncfusionThemeHelper.CreateStyledTextBox("Enter route name");
 
-            _routeNameTextBox = SyncfusionThemeHelper.CreateStyledTextBox("Enter route name");
+            // Task 6.5: RouteType ComboBox for driver pay calculations
+            _routeTypeComboBox = new ComboBox
+            {
+                Dock = DockStyle.Fill,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            _routeTypeComboBox.Items.AddRange(new[] { "CDL", "SmallBus", "SPED" });
+            _routeTypeComboBox.SelectedIndex = 0; // Default to CDL
 
             // ComboBoxes for vehicles and drivers
             _amVehicleComboBox = new ComboBox
@@ -219,11 +224,14 @@ namespace BusBuddy.UI.Views
             // Date row
             _formLayout.Controls.Add(_dateLabel, 0, row);
             _formLayout.Controls.Add(_datePicker, 1, row);
-            row++;
-
-            // Route name row
+            row++;            // Route name row
             _formLayout.Controls.Add(_routeNameLabel, 0, row);
             _formLayout.Controls.Add(_routeNameTextBox, 1, row);
+            row++;
+
+            // Task 6.5: Route type row for driver pay calculations
+            _formLayout.Controls.Add(_routeTypeLabel, 0, row);
+            _formLayout.Controls.Add(_routeTypeComboBox, 1, row);
             row++;
 
             // AM Section header
@@ -299,11 +307,17 @@ namespace BusBuddy.UI.Views
             try
             {
                 // Set date
-                _datePicker.Value = Route.DateAsDateTime;
-
-                // Set route name
+                _datePicker.Value = Route.DateAsDateTime;                // Set route name
                 if (_routeNameTextBox is TextBox routeNameTb)
                     routeNameTb.Text = Route.RouteName ?? string.Empty;
+
+                // Task 6.5: Set route type for driver pay calculations
+                if (_routeTypeComboBox != null)
+                {
+                    var routeType = Route.RouteType ?? "CDL";
+                    var index = _routeTypeComboBox.Items.IndexOf(routeType);
+                    _routeTypeComboBox.SelectedIndex = index >= 0 ? index : 0;
+                }
 
                 // AM fields
                 if (_amBeginMilesTextBox is TextBox amBeginMilesTb)
@@ -442,13 +456,13 @@ namespace BusBuddy.UI.Views
         }
 
         private Route GetRouteFromForm()
-        {
-            var route = new Route
+        {            var route = new Route
             {
                 RouteID = Route?.RouteID ?? 0,
                 DateAsDateTime = _datePicker.Value,
                 RouteName = (_routeNameTextBox as TextBox)?.Text?.Trim(),
-                Notes = (_notesTextBox as TextBox)?.Text?.Trim()
+                Notes = (_notesTextBox as TextBox)?.Text?.Trim(),
+                RouteType = _routeTypeComboBox?.SelectedItem?.ToString() ?? "CDL" // Task 6.5: Added RouteType from dropdown
             };
 
             // Parse AM values

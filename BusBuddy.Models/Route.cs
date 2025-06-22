@@ -54,6 +54,9 @@ namespace BusBuddy.Models
         public int? PMRiders { get; set; }
         public int? PMDriverID { get; set; }
         public string? Notes { get; set; }
+        
+        // Task 6.5: Added for driver pay calculations
+        public string? RouteType { get; set; } = "CDL"; // CDL, SmallBus, SPED
 
         // Navigation properties
         public Vehicle? AMVehicle { get; set; }
