@@ -16,11 +16,11 @@ using Syncfusion.WinForms.Controls;
 namespace BusBuddy.UI.Base
 {
     /// <summary>
-    /// Native Syncfusion base form using SfButton, SfTextBox, SfComboBox, and AutoLabel
-    /// Provides standardized MaterialLight UI with proper theming and DPI support
+    /// Native Syncfusion base form using SfForm for official theme support
+    /// Provides standardized theming with proper Office2016Black/White support
     /// </summary>
     [SupportedOSPlatform("windows")]
-    public class SyncfusionBaseForm : Form
+    public class SyncfusionBaseForm : SfForm
     {
         protected readonly ErrorProvider _errorProvider;
         protected readonly BusBuddy.Business.DatabaseHelperService _databaseService;
@@ -62,6 +62,9 @@ namespace BusBuddy.UI.Base
 
         public SyncfusionBaseForm()
         {
+            // Syncfusion license is already registered in Program.cs Main() method
+            Console.WriteLine("✅ SyncfusionBaseForm: License already registered at application startup");
+
             // Set consistent initialization before component initialization
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
 
@@ -76,15 +79,15 @@ namespace BusBuddy.UI.Base
             // Initialize Syncfusion theming
             InitializeSyncfusionDesign();
 
-            // Set common form properties
+            // Set common form properties with dark theme graphics-friendly defaults
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MaximizeBox = true;
             this.MinimizeBox = true;
-            this.FormBorderStyle = FormBorderStyle.None;
+            this.FormBorderStyle = FormBorderStyle.Sizable;
             this.KeyPreview = true;
             this.Size = GetDpiAwareSize(new Size(800, 600));
             this.MinimumSize = new Size(1024, 600);
-            this.BackColor = Color.FromArgb(255, 248, 248);
+            this.BackColor = Color.FromArgb(68, 68, 68); // Dark graphics-friendly background
 
             // Initialize layout
             InitializeLayout();
@@ -111,106 +114,131 @@ namespace BusBuddy.UI.Base
 
         private void InitializeDpiAwareness()
         {
-            _dpiScale = SyncfusionThemeHelper.HighDpiSupport.GetDpiScale(this);
-            _isHighDpi = SyncfusionThemeHelper.HighDpiSupport.IsHighDpiMode(this);
+            _dpiScale = BusBuddyThemeManager.GetDpiScale(this);
+            _isHighDpi = BusBuddyThemeManager.IsHighDpiMode(this);
         }
 
         private void InitializeSyncfusionDesign()
         {
-            // Task 8: Update to Office2016Black theme for BusBuddy dashboard redesign
-            // Load dark theme DLL if available
-            SyncfusionThemeHelper.LoadDarkTheme();
+            // Syncfusion license is already registered in Program.cs Main() method
+            Console.WriteLine("✅ SyncfusionBaseForm: Using pre-registered license for theme initialization");
 
-            // Apply Office2016Black theme using SfSkinManager
-            SfSkinManager.SetVisualStyle(this, "Office2016Black");
-
-            // Enhanced Office2016Black title bar styling
-            ApplyMaterialTitleBarStyling();
+            // Apply proper Syncfusion theming following official documentation
+            // Reference: https://help.syncfusion.com/windowsforms/form/themes
+            try
+            {
+                // Apply Office2016Black theme using ThemeName property as documented
+                this.ThemeName = "Office2016Black";
+                _currentTheme = "Office2016Black";
+                Console.WriteLine("✅ Applied Office2016Black theme using official ThemeName property");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Theme application error: {ex.Message}");
+                // Apply minimal styling as fallback
+                ApplyMinimalStyling();
+            }
         }
+
+        /// <summary>
+        /// Controls whether the base form should automatically create standard panels.
+        /// Override this property to return false in forms that manage their own layout (like Dashboard).
+        /// </summary>
+        protected virtual bool ShouldCreateStandardPanels => true;
 
         protected virtual void InitializeLayout()
         {
-            // Create main panel with DPI-aware sizing and solid background
+            // Only create standard panels if the derived form wants them
+            if (ShouldCreateStandardPanels)
+            {
+                CreateStandardPanels();
+            }
+        }
+
+        /// <summary>
+        /// Creates the standard main panel and button panel.
+        /// Call this method from derived forms if they want the standard layout.
+        /// </summary>
+        protected void CreateStandardPanels()
+        {
+            // Create main panel with NO custom styling - standard Windows appearance
             _mainPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = GetDpiAwarePadding(new Padding(20)),
-                BackColor = ThemeService.SurfaceColor
+                Padding = GetDpiAwarePadding(new Padding(10)),
+                BackColor = SystemColors.Control, // Standard Windows background
+                BorderStyle = BorderStyle.None
             };
             this.Controls.Add(_mainPanel);
 
-            // Create button panel with DPI-aware sizing and solid background
+            // Create button panel with standard Windows styling
             _buttonPanel = new Panel
             {
                 Height = GetDpiAwareHeight(60),
                 Dock = DockStyle.Bottom,
-                BackColor = ThemeService.SurfaceColor,
-                Padding = GetDpiAwarePadding(new Padding(20, 10, 20, 10))
+                BackColor = SystemColors.Control,
+                Padding = GetDpiAwarePadding(new Padding(20, 10, 20, 10)),
+                BorderStyle = BorderStyle.None
             };
             this.Controls.Add(_buttonPanel);
         }
 
         /// <summary>
-        /// Apply Material Design title bar styling for consistent branding
+        /// Apply absolutely minimal styling for graphics troubleshooting
+        /// Completely disable any theming that could interfere with graphics rendering
         /// </summary>
-        private void ApplyMaterialTitleBarStyling()
+        private void ApplyMinimalStyling()
         {
             try
             {
-                // Set form background for Syncfusion MaterialLight consistency
-                this.BackColor = SyncfusionThemeHelper.MaterialColors.Background;
+                // Use standard Windows colors - no custom theming at all
+                this.BackColor = SystemColors.Control;
+                this.ForeColor = SystemColors.ControlText;
 
-                // Apply consistent form styling with Syncfusion Material Design colors
-                this.ForeColor = SyncfusionThemeHelper.MaterialColors.TextPrimary;
+                // Enable double buffering explicitly for graphics compatibility
+                this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+                this.SetStyle(ControlStyles.UserPaint, true);
+                this.SetStyle(ControlStyles.DoubleBuffer, true);
+                this.SetStyle(ControlStyles.ResizeRedraw, true);
 
-                // Enhanced title bar styling for professional appearance
+                // Basic form properties only
                 this.FormBorderStyle = FormBorderStyle.Sizable;
                 this.MaximizeBox = true;
                 this.MinimizeBox = true;
 
-                // Apply Syncfusion Material Design accent as visual enhancement
-                this.Padding = new Padding(1);
-
-                Console.WriteLine("✨ Syncfusion MaterialLight title bar styling applied");
+                Console.WriteLine("✨ Minimal styling applied - all theming disabled for graphics troubleshooting");
+                Console.WriteLine("✨ Double buffering enabled for graphics compatibility");
             }
             catch (Exception ex)
             {
-                // Fallback to basic styling if Syncfusion features fail
-                Console.WriteLine($"Syncfusion title bar styling fallback: {ex.Message}");
-                this.BackColor = Color.FromArgb(245, 245, 245); // Safe fallback
+                Console.WriteLine($"Minimal styling error: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Apply enhanced button styling using Syncfusion Material theme
+        /// Apply simple button styling that won't interfere with graphics
         /// </summary>
         protected virtual void ApplyEnhancedButtonStyling(Control buttonContainer)
         {
             try
             {
+                if (buttonContainer == null) return;
+
                 foreach (Control control in buttonContainer.Controls)
                 {
-                    if (control is SfButton sfButton)
+                    if (control is Button button)
                     {
-                        // Apply Syncfusion Material button styling
-                        sfButton.Style.BackColor = SyncfusionThemeHelper.MaterialColors.Primary;
-                        sfButton.Style.ForeColor = Color.White;
-                        sfButton.Style.HoverBackColor = ControlPaint.Light(SyncfusionThemeHelper.MaterialColors.Primary, 0.2f);
-                        sfButton.Style.PressedBackColor = ControlPaint.Dark(SyncfusionThemeHelper.MaterialColors.Primary, 0.1f);
-                        sfButton.Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 10f, FontStyle.Regular);
-                    }
-                    else if (control is Button stdButton)
-                    {
-                        // Apply Material styling to standard buttons as fallback
-                        stdButton.BackColor = SyncfusionThemeHelper.MaterialColors.Primary;
-                        stdButton.ForeColor = Color.White;
-                        stdButton.FlatStyle = FlatStyle.Flat;
-                        stdButton.FlatAppearance.BorderSize = 0;
-                        stdButton.Font = SyncfusionThemeHelper.GetSafeFont("Segoe UI", 10f, FontStyle.Regular);
+                        // Apply dark theme button styling
+                        button.BackColor = Color.FromArgb(0, 122, 204); // Darker blue for dark theme
+                        button.ForeColor = Color.White;
+                        button.FlatStyle = FlatStyle.Flat;
+                        button.FlatAppearance.BorderSize = 1;
+                        button.FlatAppearance.BorderColor = Color.FromArgb(100, 100, 100);
+                        button.Font = new Font("Segoe UI", 9f, FontStyle.Regular);
                     }
                 }
 
-                Console.WriteLine("✨ Enhanced Syncfusion button styling applied");
+                Console.WriteLine("✨ Dark theme button styling applied");
             }
             catch (Exception ex)
             {
@@ -219,7 +247,7 @@ namespace BusBuddy.UI.Base
         }
 
         /// <summary>
-        /// Apply enhanced grid theming for SfDataGrid controls
+        /// Apply simple grid theming that won't interfere with graphics
         /// </summary>
         protected virtual void ApplyEnhancedGridTheming()
         {
@@ -227,7 +255,7 @@ namespace BusBuddy.UI.Base
             {
                 // Find and enhance any SfDataGrid controls in the form
                 EnhanceGridControlsRecursive(this.Controls);
-                Console.WriteLine("✨ Enhanced Syncfusion grid theming applied");
+                Console.WriteLine("✨ Simple grid theming applied");
             }
             catch (Exception ex)
             {
@@ -241,15 +269,15 @@ namespace BusBuddy.UI.Base
             {
                 if (control is Syncfusion.WinForms.DataGrid.SfDataGrid sfGrid)
                 {
-                    SyncfusionThemeHelper.SfDataGridEnhancements(sfGrid);
-
-                    // Add tooltip support for better UX
+                    // Apply simple grid enhancements for dark theme
+                    sfGrid.AllowEditing = false;
+                    sfGrid.AllowSorting = true;
                     sfGrid.ShowToolTip = true;
 
-                    // Apply Material colors
+                    // Use dark theme colors that won't interfere with graphics
                     if (sfGrid.Style?.HeaderStyle != null)
                     {
-                        sfGrid.Style.HeaderStyle.BackColor = SyncfusionThemeHelper.MaterialColors.Primary;
+                        sfGrid.Style.HeaderStyle.BackColor = Color.FromArgb(0, 122, 204);
                         sfGrid.Style.HeaderStyle.TextColor = Color.White;
                     }
                 }
@@ -301,31 +329,12 @@ namespace BusBuddy.UI.Base
 
         /// <summary>
         /// Apply consistent Syncfusion theme across all forms to prevent theme inconsistencies
+        /// Removed to prevent graphics display issues
         /// </summary>
         private void ApplyConsistentSyncfusionTheme()
         {
-            try
-            {
-                // Force MaterialLight theme application
-                SfSkinManager.SetVisualStyle(this, "MaterialLight");
-
-                // Reset current theme to Light to ensure consistency
-                SyncfusionThemeHelper.CurrentTheme = SyncfusionThemeHelper.ThemeMode.Light;
-                SyncfusionThemeHelper.MaterialTheme.IsDarkMode = false;
-
-                // Apply consistent colors to form
-                this.BackColor = SyncfusionThemeHelper.MaterialColors.Background;
-                this.ForeColor = SyncfusionThemeHelper.MaterialColors.TextPrimary;
-
-                Console.WriteLine("✨ Consistent Syncfusion MaterialLight theme applied");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Theme consistency error: {ex.Message}");
-                // Fallback to basic light theme
-                this.BackColor = Color.White;
-                this.ForeColor = Color.Black;
-            }
+            // Method disabled to prevent graphics interference
+            Console.WriteLine("✨ Consistent theme application skipped for graphics compatibility");
         }
 
         #endregion
@@ -347,18 +356,12 @@ namespace BusBuddy.UI.Base
         {
             base.OnLoad(e);
 
-            // Apply consistent MaterialLight theme to all forms
-            SfSkinManager.SetVisualStyle(this, "MaterialLight");
+            // Keep consistent theme - don't override what was set in constructor
+            Console.WriteLine($"✅ SyncfusionBaseForm loaded with theme: {_currentTheme}");
 
-            // Apply high DPI theming if necessary
-            if (_isHighDpi) SyncfusionThemeHelper.ApplyHighDpiMaterialTheme(this);
-
-            // Apply enhanced theming features
+            // Apply enhanced features without changing the base theme
             ApplyEnhancedButtonStyling(_buttonPanel);
             ApplyEnhancedGridTheming();
-
-            // Force consistent theme colors
-            ApplyConsistentSyncfusionTheme();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -514,7 +517,7 @@ namespace BusBuddy.UI.Base
                 // Load appropriate theme DLL
                 if (themeName == "Office2016Black")
                 {
-                    SyncfusionThemeHelper.LoadDarkTheme();
+                    BusBuddyThemeManager.LoadDarkTheme();
                 }
 
                 // Update form background colors based on theme

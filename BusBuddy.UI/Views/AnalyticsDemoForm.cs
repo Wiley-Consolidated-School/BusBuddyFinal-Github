@@ -88,7 +88,7 @@ namespace BusBuddy.UI.Views
             // Route Efficiency Grid - Enhanced SfDataGrid with specific columns only
             var efficiencyGroup = new GroupBox();
             efficiencyGroup.Text = "📊 Route Efficiency Metrics";
-            _routeEfficiencyGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
+            _routeEfficiencyGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
             _routeEfficiencyGrid.Dock = DockStyle.Fill;
             _routeEfficiencyGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _routeEfficiencyGrid.AllowEditing = false;
@@ -100,14 +100,14 @@ namespace BusBuddy.UI.Views
             _routeEfficiencyGrid.Columns.Add(new GridNumericColumn { MappingName = "MilesPerRider", HeaderText = "Miles/Rider", Width = 100 });
             _routeEfficiencyGrid.Columns.Add(new GridNumericColumn { MappingName = "FuelEfficiency", HeaderText = "MPG", Width = 80 });
 
-            SyncfusionThemeHelper.SfDataGridEnhancements(_routeEfficiencyGrid);
+            BusBuddyThemeManager.SfDataGridEnhancements(_routeEfficiencyGrid);
             efficiencyGroup.Controls.Add(_routeEfficiencyGrid);
             layout.Controls.Add(efficiencyGroup, 0, 0);
 
             // Optimization Suggestions Grid - Enhanced SfDataGrid with specific columns
             var optimizationGroup = new GroupBox();
             optimizationGroup.Text = "🎯 Route Optimization Suggestions";
-            _optimizationSuggestionsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
+            _optimizationSuggestionsGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
             _optimizationSuggestionsGrid.Dock = DockStyle.Fill;
             _optimizationSuggestionsGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _optimizationSuggestionsGrid.AllowEditing = false;
@@ -119,7 +119,7 @@ namespace BusBuddy.UI.Views
             _optimizationSuggestionsGrid.Columns.Add(new GridTextColumn { MappingName = "Priority", HeaderText = "Priority", Width = 80 });
             _optimizationSuggestionsGrid.Columns.Add(new GridTextColumn { MappingName = "Implementation", HeaderText = "Implementation", Width = 120 });
 
-            SyncfusionThemeHelper.SfDataGridEnhancements(_optimizationSuggestionsGrid);
+            BusBuddyThemeManager.SfDataGridEnhancements(_optimizationSuggestionsGrid);
             optimizationGroup.Controls.Add(_optimizationSuggestionsGrid);
             layout.Controls.Add(optimizationGroup, 0, 1);
 
@@ -168,7 +168,7 @@ namespace BusBuddy.UI.Views
             // Maintenance Predictions - Enhanced SfDataGrid with specific columns
             var predictionsGroup = new GroupBox();
             predictionsGroup.Text = "🔧 Maintenance Predictions";
-            _maintenancePredictionsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
+            _maintenancePredictionsGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
             _maintenancePredictionsGrid.Dock = DockStyle.Fill;
             _maintenancePredictionsGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _maintenancePredictionsGrid.AllowEditing = false;
@@ -180,14 +180,14 @@ namespace BusBuddy.UI.Views
             _maintenancePredictionsGrid.Columns.Add(new GridNumericColumn { MappingName = "HealthScore", HeaderText = "Health Score", Width = 100 });
             _maintenancePredictionsGrid.Columns.Add(new GridTextColumn { MappingName = "Priority", HeaderText = "Priority", Width = 80 });
 
-            SyncfusionThemeHelper.SfDataGridEnhancements(_maintenancePredictionsGrid);
+            BusBuddyThemeManager.SfDataGridEnhancements(_maintenancePredictionsGrid);
             predictionsGroup.Controls.Add(_maintenancePredictionsGrid);
             layout.Controls.Add(predictionsGroup, 0, 0);
 
             // Vehicle Health Scores - Enhanced SfDataGrid with specific columns
             var healthGroup = new GroupBox();
             healthGroup.Text = "🚗 Vehicle Health Scores";
-            _vehicleHealthGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
+            _vehicleHealthGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
             _vehicleHealthGrid.Dock = DockStyle.Fill;
             _vehicleHealthGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _vehicleHealthGrid.AllowEditing = false;
@@ -199,14 +199,14 @@ namespace BusBuddy.UI.Views
             _vehicleHealthGrid.Columns.Add(new GridNumericColumn { MappingName = "Mileage", HeaderText = "Mileage", Width = 100 });
             _vehicleHealthGrid.Columns.Add(new GridTextColumn { MappingName = "Status", HeaderText = "Status", Width = 100 });
 
-            SyncfusionThemeHelper.SfDataGridEnhancements(_vehicleHealthGrid);
+            BusBuddyThemeManager.SfDataGridEnhancements(_vehicleHealthGrid);
             healthGroup.Controls.Add(_vehicleHealthGrid);
             layout.Controls.Add(healthGroup, 1, 0);
 
             // Maintenance Alerts - Enhanced SfDataGrid with specific columns
             var alertsGroup = new GroupBox();
             alertsGroup.Text = "🚨 Priority Maintenance Alerts";
-            _maintenanceAlertsGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
+            _maintenanceAlertsGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
             _maintenanceAlertsGrid.Dock = DockStyle.Fill;
             _maintenanceAlertsGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _maintenanceAlertsGrid.AllowEditing = false;
@@ -218,7 +218,7 @@ namespace BusBuddy.UI.Views
             _maintenanceAlertsGrid.Columns.Add(new GridTextColumn { MappingName = "Severity", HeaderText = "Severity", Width = 80 });
             _maintenanceAlertsGrid.Columns.Add(new GridDateTimeColumn { MappingName = "DueDate", HeaderText = "Due Date", Width = 100 });
 
-            SyncfusionThemeHelper.SfDataGridEnhancements(_maintenanceAlertsGrid);
+            BusBuddyThemeManager.SfDataGridEnhancements(_maintenanceAlertsGrid);
             alertsGroup.Controls.Add(_maintenanceAlertsGrid);
             layout.Controls.Add(alertsGroup, 0, 1);
             layout.SetColumnSpan(alertsGroup, 2);

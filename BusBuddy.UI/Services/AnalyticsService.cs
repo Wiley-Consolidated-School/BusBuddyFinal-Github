@@ -32,16 +32,16 @@ namespace BusBuddy.UI.Services
     /// </summary>
     public class AnalyticsService : IAnalyticsService
     {
-        private readonly IDatabaseHelperService _databaseHelperService;
-        private readonly IRouteAnalyticsService _routeAnalyticsService;
+        private readonly BusBuddy.Business.IDatabaseHelperService _databaseHelperService;
+        private readonly BusBuddy.Business.IRouteAnalyticsService _routeAnalyticsService;
         private readonly HttpClient _httpClient;
         private readonly string _xaiApiKey;
         private readonly string _paySchemeConfigPath;
         private const string XAI_API_URL = "https://api.x.ai/v1/chat/completions";
 
         public AnalyticsService(
-            IDatabaseHelperService databaseHelperService,
-            IRouteAnalyticsService routeAnalyticsService)
+            BusBuddy.Business.IDatabaseHelperService databaseHelperService,
+            BusBuddy.Business.IRouteAnalyticsService routeAnalyticsService)
         {
             _databaseHelperService = databaseHelperService ?? throw new ArgumentNullException(nameof(databaseHelperService));
             _routeAnalyticsService = routeAnalyticsService ?? throw new ArgumentNullException(nameof(routeAnalyticsService));

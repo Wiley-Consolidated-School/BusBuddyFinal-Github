@@ -301,7 +301,7 @@ namespace BusBuddy.Tests.Security
             await auditLogger.LogSecurityEventAsync("SUSPICIOUS_ACTIVITY", "Multiple failed login attempts");
 
             // Assert - Verify audit logs contain required information
-            var auditLogs = await auditLogger.GetAuditLogsAsync(DateTime.Today);
+            var auditLogs = await auditLogger.GetAuditLogsAsync(DateTime.UtcNow.Date);
 
             auditLogs.Should().HaveCount(4, "All security events should be logged");
 

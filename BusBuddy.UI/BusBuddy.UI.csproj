@@ -23,12 +23,9 @@
     <ProjectReference Include="..\BusBuddy.Business\BusBuddy.Business.csproj" />
   </ItemGroup>
 
-  <!-- Keep BusBuddyDarkTheme.dll temporarily during transition -->
+  <!-- BusBuddyDarkTheme.dll removed - using Syncfusion theming instead -->
+
   <ItemGroup>
-    <Reference Include="BusBuddyDarkTheme">
-      <HintPath>..\BusBuddyDarkTheme.dll</HintPath>
-    </Reference>
-  </ItemGroup>  <ItemGroup>
     <!-- Keep MaterialSkin.2 during gradual transition to Syncfusion -->
     <PackageReference Include="Svg" Version="3.4.7" />
     <PackageReference Include="Syncfusion.Chart.Windows" Version="29.2.10" />

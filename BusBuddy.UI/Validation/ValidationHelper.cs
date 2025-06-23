@@ -47,20 +47,20 @@ namespace BusBuddy.UI.Validation
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
                 MinimizeBox = false,
-                BackColor = SyncfusionThemeHelper.DarkTheme.Surface
+                BackColor = BusBuddyThemeManager.DarkTheme.Surface
             };
 
             var errorLabel = new Label
             {
                 Text = errorMessage,
                 Dock = DockStyle.Fill,
-                ForeColor = SyncfusionThemeHelper.DarkTheme.Error,
-                Font = SyncfusionThemeHelper.Typography.GetBodyMedium(),
+                ForeColor = BusBuddyThemeManager.DarkTheme.Error,
+                Font = BusBuddyThemeManager.Typography.GetBodyMedium(),
                 Padding = new Padding(16)
             };            var okButton = new Button
             {
                 Text = "OK",
-                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
+                BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Size = new Size(100, 36),
@@ -90,8 +90,8 @@ namespace BusBuddy.UI.Validation
                 if (!isValid)
                 {
                     // Add error styling to TextBox
-                    textBox.BackColor = SyncfusionThemeHelper.DarkTheme.ErrorContainer;
-                    textBox.ForeColor = SyncfusionThemeHelper.DarkTheme.OnErrorContainer;
+                    textBox.BackColor = BusBuddyThemeManager.DarkTheme.ErrorContainer;
+                    textBox.ForeColor = BusBuddyThemeManager.DarkTheme.OnErrorContainer;
 
                     // Show tooltip with error
                     var toolTip = new ToolTip();
@@ -100,8 +100,8 @@ namespace BusBuddy.UI.Validation
                 else
                 {
                     // Reset to normal styling
-                    textBox.BackColor = SyncfusionThemeHelper.DarkTheme.Surface;
-                    textBox.ForeColor = SyncfusionThemeHelper.DarkTheme.OnSurface;
+                    textBox.BackColor = BusBuddyThemeManager.DarkTheme.Surface;
+                    textBox.ForeColor = BusBuddyThemeManager.DarkTheme.OnSurface;
                 }
             }
 
@@ -121,20 +121,20 @@ namespace BusBuddy.UI.Validation
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
                 MinimizeBox = false,
-                BackColor = SyncfusionThemeHelper.DarkTheme.Surface
+                BackColor = BusBuddyThemeManager.DarkTheme.Surface
             };
 
             var successLabel = new Label
             {
                 Text = message,
                 Dock = DockStyle.Fill,
-                ForeColor = SyncfusionThemeHelper.DarkTheme.Success,
-                Font = SyncfusionThemeHelper.Typography.GetBodyMedium(),
+                ForeColor = BusBuddyThemeManager.DarkTheme.Success,
+                Font = BusBuddyThemeManager.Typography.GetBodyMedium(),
                 Padding = new Padding(16)
             };            var okButton = new Button
             {
                 Text = "OK",
-                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
+                BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Size = new Size(100, 36),

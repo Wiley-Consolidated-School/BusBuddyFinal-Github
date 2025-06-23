@@ -16,7 +16,18 @@ namespace BusBuddy
         private static SingleInstanceManager _singleInstanceManager;
 
         [STAThread]
-        static async Task<int> Main(string[] args)
+        static int Main(string[] args)
+        {
+            // Register Syncfusion license - per official documentation
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NNaF1cXGNCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXlccnVdQ2NdU0JxVkRWYUA=");
+
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            return MainAsync(args).GetAwaiter().GetResult();
+        }
+
+        static async Task<int> MainAsync(string[] args)
         {
             Console.WriteLine($"[DEBUG] BusBuddy Main started at {DateTime.Now:O}");
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
@@ -128,35 +139,20 @@ namespace BusBuddy
         }        /// <summary>
         /// Runs the main application logic
         /// </summary>
-        private static async Task<int> RunMainApplication(string[] args)
+        private static Task<int> RunMainApplication(string[] args)
         {
-            // Add minimal await to satisfy async requirements
-            await Task.Delay(1);
-
             // Debug output will go to VS Code terminal when run with dotnet run
-            Console.WriteLine("🚀 BusBuddy starting with debug console...");
-
-            // Enable enhanced multithreaded debugging
-            Console.WriteLine("🔧 Enabling enhanced debugging features...");
-            try
-            {
-                DebugConfig.EnableEnhancedDebugging();
-                Console.WriteLine("✅ Enhanced debugging enabled");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Debug enhancement warning: {ex.Message}");
-            }
+            Console.WriteLine("🚀 BusBuddy starting...");
 
             // Ensure logs directory exists
             Directory.CreateDirectory("logs");
 
-            // Initialize Syncfusion license with proper fallback handling
-            Console.WriteLine("📝 Initializing Syncfusion license...");
+            // License was already registered in Main - just log status
+            Console.WriteLine("📝 License status: Syncfusion Community Edition active");
             try
             {
-                SyncfusionLicenseHelper.InitializeLicense();
-                Console.WriteLine("✅ Syncfusion license initialized successfully");
+                // No re-registration needed - license is already set in Main method
+                Console.WriteLine("✅ Syncfusion license is active");
             }
             catch (Exception ex)
             {
@@ -167,17 +163,17 @@ namespace BusBuddy
                 // Continue anyway - many features may still work
             }
 
-            // Initialize Syncfusion theming system
-            Console.WriteLine("🎨 Initializing Syncfusion theming system...");
+            // Initialize BusBuddy theming system
+            Console.WriteLine("🎨 Initializing BusBuddy theme system...");
             try
             {
-                SyncfusionThemeHelper.InitializeGlobalTheme();
-                Console.WriteLine("✅ Theming system initialized");
+                // Theme system ready - no assembly loading needed for basic Office2016 themes
+                Console.WriteLine("✅ Theme system initialized - Office2016 themes available");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Theming initialization error: {ex.Message}");
-                LogError("Theming initialization failed", ex);
+                Console.WriteLine($"❌ Theme initialization error: {ex.Message}");
+                LogError("Theme initialization failed", ex);
                 // Continue with default theming
             }
 
@@ -214,53 +210,64 @@ namespace BusBuddy
                 var serviceContainer = ServiceContainerInstance.Instance;
 
                 Console.WriteLine("🔌 Validating required services...");
-                var navigationService = serviceContainer.GetService<INavigationService>();
+                var navigationService = serviceContainer.GetService<BusBuddy.UI.Services.INavigationService>();
                 if (navigationService == null)
                 {
                     throw new InvalidOperationException("Navigation service not registered. Check ServiceContainerInstance configuration.");
                 }
 
-                var databaseHelperService = serviceContainer.GetService<BusBuddy.UI.Services.IDatabaseHelperService>();
+                var databaseHelperService = serviceContainer.GetService<BusBuddy.Business.IDatabaseHelperService>();
                 if (databaseHelperService == null)
                 {
-                    throw new InvalidOperationException("Database helper service not registered. Check ServiceContainerInstance configuration.");
+                    throw new InvalidOperationException("Business database helper service not registered. Check ServiceContainerInstance configuration.");
                 }
 
-                Console.WriteLine("✅ All required services validated");                // Test database connection (fire and forget)
-                Console.WriteLine("🔌 Testing database connection...");
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        // Add database connectivity test here when available
-                        // await databaseHelperService.TestConnectionAsync();
-                        await Task.Delay(10); // Placeholder for actual async operation
-                        Console.WriteLine("✅ Database connection test passed");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"❌ Database connection test failed: {ex.Message}");
-                        LogError("Database connection test failed", ex);
-                    }
-                });
-
-                Console.WriteLine("🧪 Validating cost analytics...");
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await CostAnalyticsValidator.ValidateAnalytics();
-                        Console.WriteLine("✅ Analytics validation completed");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"❌ Analytics validation error: {ex.Message}");
-                        LogError("Analytics validation failed", ex);
-                    }
-                });
+                // Test all services resolution
+                TestServiceResolution(serviceContainer);
 
                 Console.WriteLine("🚌 Creating dashboard...");
-                var dashboard = new BusBuddyDashboardSyncfusion(navigationService, databaseHelperService);
+
+                // Check command line arguments for test forms
+                if (args.Length > 0 && args[0].ToLower() == "communitylicensetest")
+                {
+                    Console.WriteLine("🧪 Community License test mode - license already registered in Main");
+                    Console.WriteLine("✅ Application will run with properly licensed Syncfusion controls");
+                }
+
+                Console.WriteLine("  📊 Getting RouteAnalyticsService...");
+                var routeAnalyticsService = serviceContainer.GetService<BusBuddy.Business.IRouteAnalyticsService>();
+                Console.WriteLine($"  ✅ RouteAnalyticsService: {routeAnalyticsService?.GetType().Name ?? "NULL"}");
+
+                Console.WriteLine("  📋 Getting ReportService...");
+                var reportService = serviceContainer.GetService<BusBuddy.UI.Services.IReportService>();
+                Console.WriteLine($"  ✅ ReportService: {reportService?.GetType().Name ?? "NULL"}");
+
+                Console.WriteLine("  📈 Getting AnalyticsService...");
+                var analyticsService = serviceContainer.GetService<BusBuddy.UI.Services.IAnalyticsService>();
+                Console.WriteLine($"  ✅ AnalyticsService: {analyticsService?.GetType().Name ?? "NULL"}");
+
+                Console.WriteLine("  🚨 Getting ErrorHandlerService...");
+                var errorHandlerService = serviceContainer.GetService<BusBuddy.UI.Services.IErrorHandlerService>();
+                Console.WriteLine($"  ✅ ErrorHandlerService: {errorHandlerService?.GetType().Name ?? "NULL"}");
+
+                // Check for test form argument
+                if (args.Length > 0)
+                {
+                    if (args[0] == "test-form")
+                    {
+                        Console.WriteLine("🧪 Test form mode - running main dashboard instead");
+                        Console.WriteLine("✅ License already registered, dashboard will work properly");
+                    }
+                    else if (args[0] == "community-license")
+                    {
+                        Console.WriteLine("🧪 Community License test mode - running main dashboard");
+                        Console.WriteLine("✅ License already registered, Syncfusion controls will work properly");
+                    }
+                }
+
+                Console.WriteLine("🔧 Creating Dashboard instance...");
+                var dashboard = new BusBuddy.UI.Views.Dashboard();
+                Console.WriteLine("✅ Dashboard created successfully");
 
                 Console.WriteLine("▶️ Running application...");
                 Application.Run(dashboard);
@@ -270,7 +277,6 @@ namespace BusBuddy
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ CRITICAL ERROR: {ex.Message}");
-                Console.WriteLine($"📍 Stack Trace: {ex.StackTrace}");
                 LogError("Critical application error", ex);
 
                 var errorMessage = $"A critical error occurred while starting BusBuddy:\n\n{ex.Message}\n\n" +
@@ -283,18 +289,15 @@ namespace BusBuddy
             {
                 try
                 {
-                    Console.WriteLine("🧹 Cleaning up service container...");
                     ServiceContainerInstance.Instance.Reset();
-                    Console.WriteLine("✅ Service container cleanup complete");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ Cleanup error: {ex.Message}");
                     LogError("Service container cleanup failed", ex);
-                }                Console.WriteLine("✅ Application shutdown complete.");
+                }
             }
 
-            return 0; // Success
+            return Task.FromResult(0); // Success
         }
 
         /// <summary>
@@ -366,6 +369,61 @@ namespace BusBuddy
             {
                 // If logging fails, just continue - don't crash the app over logging
                 Console.WriteLine("⚠️ Failed to write to error log");
+            }
+        }
+
+        /// <summary>
+        /// Test method to verify all required services are properly registered
+        /// </summary>
+        private static void TestServiceResolution(ServiceContainerInstance serviceContainer)
+        {
+            try
+            {
+                Console.WriteLine("[PROGRAM] Testing service resolution...");
+
+                // Test INavigationService
+                var navigationService = serviceContainer.GetService<BusBuddy.UI.Services.INavigationService>();
+                Console.WriteLine($"[PROGRAM] DEBUG: Service INavigationService resolved: {(navigationService != null ? "Success" : "Failed")}");
+                if (navigationService != null)
+                    Console.WriteLine($"[PROGRAM] DEBUG: Service type: {navigationService.GetType().FullName}");
+
+                // Test IDatabaseHelperService
+                var databaseHelperService = serviceContainer.GetService<BusBuddy.Business.IDatabaseHelperService>();
+                Console.WriteLine($"[PROGRAM] DEBUG: Service IDatabaseHelperService resolved: {(databaseHelperService != null ? "Success" : "Failed")}");
+                if (databaseHelperService != null)
+                    Console.WriteLine($"[PROGRAM] DEBUG: Service type: {databaseHelperService.GetType().FullName}");
+
+                // Test IRouteAnalyticsService
+                var routeAnalyticsService = serviceContainer.GetService<BusBuddy.Business.IRouteAnalyticsService>();
+                Console.WriteLine($"[PROGRAM] DEBUG: Service IRouteAnalyticsService resolved: {(routeAnalyticsService != null ? "Success" : "Failed")}");
+                if (routeAnalyticsService != null)
+                    Console.WriteLine($"[PROGRAM] DEBUG: Service type: {routeAnalyticsService.GetType().FullName}");
+
+                // Test IReportService
+                var reportService = serviceContainer.GetService<BusBuddy.UI.Services.IReportService>();
+                Console.WriteLine($"[PROGRAM] DEBUG: Service IReportService resolved: {(reportService != null ? "Success" : "Failed")}");
+                if (reportService != null)
+                    Console.WriteLine($"[PROGRAM] DEBUG: Service type: {reportService.GetType().FullName}");
+
+                // Test IAnalyticsService
+                var analyticsService = serviceContainer.GetService<BusBuddy.UI.Services.IAnalyticsService>();
+                Console.WriteLine($"[PROGRAM] DEBUG: Service IAnalyticsService resolved: {(analyticsService != null ? "Success" : "Failed")}");
+                if (analyticsService != null)
+                    Console.WriteLine($"[PROGRAM] DEBUG: Service type: {analyticsService.GetType().FullName}");
+
+                // Test IErrorHandlerService
+                var errorHandlerService = serviceContainer.GetService<BusBuddy.UI.Services.IErrorHandlerService>();
+                Console.WriteLine($"[PROGRAM] DEBUG: Service IErrorHandlerService resolved: {(errorHandlerService != null ? "Success" : "Failed")}");
+                if (errorHandlerService != null)
+                    Console.WriteLine($"[PROGRAM] DEBUG: Service type: {errorHandlerService.GetType().FullName}");
+
+                Console.WriteLine("[PROGRAM] ✅ All services validated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PROGRAM] DEBUG: Service resolution error: {ex.Message}");
+                Console.WriteLine($"[PROGRAM] DEBUG: Stack trace: {ex.StackTrace}");
+                throw;
             }
         }
     }

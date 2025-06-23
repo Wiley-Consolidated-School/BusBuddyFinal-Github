@@ -63,7 +63,7 @@ namespace BusBuddy.UI.Views
             _mainPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Background,
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
                 Padding = new Padding(20)
             };
 
@@ -73,7 +73,7 @@ namespace BusBuddy.UI.Views
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 3,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Background
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme)
             };
 
             // Configure form layout
@@ -86,22 +86,22 @@ namespace BusBuddy.UI.Views
             }
 
             // Labels
-            _dateLabel = SyncfusionThemeHelper.CreateStyledLabel("Date:");
-            _routeNameLabel = SyncfusionThemeHelper.CreateStyledLabel("Route Name:");
-            _notesLabel = SyncfusionThemeHelper.CreateStyledLabel("Notes:");
+            _dateLabel = BusBuddyThemeManager.CreateStyledLabel("Date:");
+            _routeNameLabel = BusBuddyThemeManager.CreateStyledLabel("Route Name:");
+            _notesLabel = BusBuddyThemeManager.CreateStyledLabel("Notes:");
 
             // Controls
             _datePicker = new DateTimePicker
             {
-                Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont,
-                Height = SyncfusionThemeHelper.MaterialTheme.DefaultControlHeight,
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                Height = BusBuddyThemeManager.MaterialTheme.DefaultControlHeight,
                 Anchor = AnchorStyles.Left | AnchorStyles.Right
             };
 
-            _routeNameTextBox = SyncfusionThemeHelper.CreateStyledTextBox("Enter route name");
+            _routeNameTextBox = BusBuddyThemeManager.CreateStyledTextBox("Enter route name");
 
             // Notes text box (multiline)
-            _notesTextBox = SyncfusionThemeHelper.CreateStyledTextBox("Enter any notes about this route");
+            _notesTextBox = BusBuddyThemeManager.CreateStyledTextBox("Enter any notes about this route");
             if (_notesTextBox is TextBox notesTextBox)
             {
                 notesTextBox.Multiline = true;
@@ -114,13 +114,13 @@ namespace BusBuddy.UI.Views
             {
                 Dock = DockStyle.Bottom,
                 Height = 60,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Background,
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
                 Padding = new Padding(20, 10, 20, 10)
             };
 
             // Buttons
-            _saveButton = SyncfusionThemeHelper.CreateStyledButton("Save");
-            _cancelButton = SyncfusionThemeHelper.CreateStyledButton("Cancel");
+            _saveButton = new Button { Text = "Save" } /* CreateStyledButton method removed */;
+            _cancelButton = new Button { Text = "Cancel" } /* CreateStyledButton method removed */;
 
             // Configure buttons
             _saveButton.Size = new Size(100, 35);
@@ -136,8 +136,8 @@ namespace BusBuddy.UI.Views
             // Style cancel button differently
             if (_cancelButton is Button cancelBtn)
             {
-                cancelBtn.BackColor = SyncfusionThemeHelper.MaterialColors.Border;
-                cancelBtn.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                cancelBtn.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
+                cancelBtn.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
             }
         }
 
@@ -165,13 +165,13 @@ namespace BusBuddy.UI.Views
             this.Controls.Add(_mainPanel);
 
             // Apply theming
-            SyncfusionThemeHelper.ApplyThemeToControl(_mainPanel);
+            BusBuddyThemeManager.ApplyThemeToControl(_mainPanel, BusBuddyThemeManager.CurrentTheme);
         }
 
         private void SetupForm()
         {
             // Apply Syncfusion theming
-            SyncfusionThemeHelper.ApplyThemeToControl(this);
+            BusBuddyThemeManager.ApplyThemeToControl(this, BusBuddyThemeManager.CurrentTheme);
         }
 
         private void PopulateFields()

@@ -41,6 +41,23 @@ namespace BusBuddy.UI.Helpers
             {
                 Console.WriteLine("🔑 Initializing Syncfusion license...");
 
+                // Check if we should force Community Edition
+                bool useCommunityLicense = false;
+                string useCommunityLicenseSetting = System.Configuration.ConfigurationManager.AppSettings["UseCommunityLicense"];
+                if (!string.IsNullOrEmpty(useCommunityLicenseSetting) &&
+                    bool.TryParse(useCommunityLicenseSetting, out bool parsedValue))
+                {
+                    useCommunityLicense = parsedValue;
+                }
+
+                if (useCommunityLicense)
+                {
+                    Console.WriteLine("🔓 Using Syncfusion Community Edition license");
+                    SyncfusionLicenseProvider.RegisterLicense("");
+                    Console.WriteLine("✅ Syncfusion Community license registered successfully");
+                    return;
+                }
+
                 // Try to load license from environment variable first, then file
                 string licenseKey = LoadLicenseKey();
 

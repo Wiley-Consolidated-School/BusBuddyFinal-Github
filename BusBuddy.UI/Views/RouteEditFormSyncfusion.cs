@@ -85,7 +85,7 @@ namespace BusBuddy.UI.Views
             _mainPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Background,
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
                 Padding = new Padding(20)
             };
 
@@ -95,7 +95,7 @@ namespace BusBuddy.UI.Views
                 Dock = DockStyle.Fill,
                 ColumnCount = 4,
                 RowCount = 10,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Background
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme)
             };
 
             // Configure form layout - 4 columns for AM/PM sections
@@ -108,22 +108,22 @@ namespace BusBuddy.UI.Views
             {
                 _formLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
             }            // Labels
-            _dateLabel = SyncfusionThemeHelper.CreateStyledLabel("Date:");
-            _routeNameLabel = SyncfusionThemeHelper.CreateStyledLabel("Route Name:");
-            _routeTypeLabel = SyncfusionThemeHelper.CreateStyledLabel("Route Type:"); // Task 6.5: Added RouteType label
-            _amSectionLabel = SyncfusionThemeHelper.CreateStyledLabel("AM SECTION");
-            _amVehicleLabel = SyncfusionThemeHelper.CreateStyledLabel("Vehicle:");
-            _amDriverLabel = SyncfusionThemeHelper.CreateStyledLabel("Driver:");
-            _amBeginMilesLabel = SyncfusionThemeHelper.CreateStyledLabel("Begin Miles:");
-            _amEndMilesLabel = SyncfusionThemeHelper.CreateStyledLabel("End Miles:");
-            _amRidersLabel = SyncfusionThemeHelper.CreateStyledLabel("Riders:");
-            _pmSectionLabel = SyncfusionThemeHelper.CreateStyledLabel("PM SECTION");
-            _pmVehicleLabel = SyncfusionThemeHelper.CreateStyledLabel("Vehicle:");
-            _pmDriverLabel = SyncfusionThemeHelper.CreateStyledLabel("Driver:");
-            _pmBeginMilesLabel = SyncfusionThemeHelper.CreateStyledLabel("Begin Miles:");
-            _pmEndMilesLabel = SyncfusionThemeHelper.CreateStyledLabel("End Miles:");
-            _pmRidersLabel = SyncfusionThemeHelper.CreateStyledLabel("Riders:");
-            _notesLabel = SyncfusionThemeHelper.CreateStyledLabel("Notes:");
+            _dateLabel = BusBuddyThemeManager.CreateStyledLabel("Date:");
+            _routeNameLabel = BusBuddyThemeManager.CreateStyledLabel("Route Name:");
+            _routeTypeLabel = BusBuddyThemeManager.CreateStyledLabel("Route Type:"); // Task 6.5: Added RouteType label
+            _amSectionLabel = BusBuddyThemeManager.CreateStyledLabel("AM SECTION");
+            _amVehicleLabel = BusBuddyThemeManager.CreateStyledLabel("Vehicle:");
+            _amDriverLabel = BusBuddyThemeManager.CreateStyledLabel("Driver:");
+            _amBeginMilesLabel = BusBuddyThemeManager.CreateStyledLabel("Begin Miles:");
+            _amEndMilesLabel = BusBuddyThemeManager.CreateStyledLabel("End Miles:");
+            _amRidersLabel = BusBuddyThemeManager.CreateStyledLabel("Riders:");
+            _pmSectionLabel = BusBuddyThemeManager.CreateStyledLabel("PM SECTION");
+            _pmVehicleLabel = BusBuddyThemeManager.CreateStyledLabel("Vehicle:");
+            _pmDriverLabel = BusBuddyThemeManager.CreateStyledLabel("Driver:");
+            _pmBeginMilesLabel = BusBuddyThemeManager.CreateStyledLabel("Begin Miles:");
+            _pmEndMilesLabel = BusBuddyThemeManager.CreateStyledLabel("End Miles:");
+            _pmRidersLabel = BusBuddyThemeManager.CreateStyledLabel("Riders:");
+            _notesLabel = BusBuddyThemeManager.CreateStyledLabel("Notes:");
 
             // Style section labels
             _amSectionLabel.Font = new Font(_amSectionLabel.Font, FontStyle.Bold);
@@ -134,7 +134,7 @@ namespace BusBuddy.UI.Views
             {
                 Format = DateTimePickerFormat.Short,
                 Dock = DockStyle.Fill
-            };            _routeNameTextBox = SyncfusionThemeHelper.CreateStyledTextBox("Enter route name");
+            };            _routeNameTextBox = BusBuddyThemeManager.CreateStyledTextBox("Enter route name");
 
             // Task 6.5: RouteType ComboBox for driver pay calculations
             _routeTypeComboBox = new ComboBox
@@ -168,15 +168,15 @@ namespace BusBuddy.UI.Views
             };
 
             // Text boxes for numeric values
-            _amBeginMilesTextBox = SyncfusionThemeHelper.CreateStyledTextBox("0");
-            _amEndMilesTextBox = SyncfusionThemeHelper.CreateStyledTextBox("0");
-            _amRidersTextBox = SyncfusionThemeHelper.CreateStyledTextBox("0");
-            _pmBeginMilesTextBox = SyncfusionThemeHelper.CreateStyledTextBox("0");
-            _pmEndMilesTextBox = SyncfusionThemeHelper.CreateStyledTextBox("0");
-            _pmRidersTextBox = SyncfusionThemeHelper.CreateStyledTextBox("0");
+            _amBeginMilesTextBox = BusBuddyThemeManager.CreateStyledTextBox("0");
+            _amEndMilesTextBox = BusBuddyThemeManager.CreateStyledTextBox("0");
+            _amRidersTextBox = BusBuddyThemeManager.CreateStyledTextBox("0");
+            _pmBeginMilesTextBox = BusBuddyThemeManager.CreateStyledTextBox("0");
+            _pmEndMilesTextBox = BusBuddyThemeManager.CreateStyledTextBox("0");
+            _pmRidersTextBox = BusBuddyThemeManager.CreateStyledTextBox("0");
 
             // Notes text box (multiline)
-            _notesTextBox = SyncfusionThemeHelper.CreateStyledTextBox("Enter any notes about this route");
+            _notesTextBox = BusBuddyThemeManager.CreateStyledTextBox("Enter any notes about this route");
             if (_notesTextBox is TextBox notesTextBox)
             {
                 notesTextBox.Multiline = true;
@@ -189,13 +189,13 @@ namespace BusBuddy.UI.Views
             {
                 Dock = DockStyle.Bottom,
                 Height = 60,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Background,
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
                 Padding = new Padding(20, 10, 20, 10)
             };
 
             // Buttons
-            _saveButton = SyncfusionThemeHelper.CreateStyledButton("Save");
-            _cancelButton = SyncfusionThemeHelper.CreateStyledButton("Cancel");
+            _saveButton = new Button { Text = "Save" } /* CreateStyledButton method removed */;
+            _cancelButton = new Button { Text = "Cancel" } /* CreateStyledButton method removed */;
 
             // Configure buttons
             _saveButton.Size = new Size(100, 35);
@@ -211,8 +211,8 @@ namespace BusBuddy.UI.Views
             // Style cancel button differently
             if (_cancelButton is Button cancelBtn)
             {
-                cancelBtn.BackColor = SyncfusionThemeHelper.MaterialColors.Border;
-                cancelBtn.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                cancelBtn.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
+                cancelBtn.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
             }
         }
 
@@ -291,13 +291,13 @@ namespace BusBuddy.UI.Views
             this.Controls.Add(_mainPanel);
 
             // Apply theming
-            SyncfusionThemeHelper.ApplyThemeToControl(_mainPanel);
+            BusBuddyThemeManager.ApplyThemeToControl(_mainPanel, BusBuddyThemeManager.CurrentTheme);
         }
 
         private void SetupForm()
         {
             // Apply Syncfusion theming
-            SyncfusionThemeHelper.ApplyThemeToControl(this);
+            BusBuddyThemeManager.ApplyThemeToControl(this, BusBuddyThemeManager.CurrentTheme);
         }
 
         private void PopulateFields()

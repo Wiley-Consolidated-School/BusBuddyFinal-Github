@@ -75,7 +75,9 @@ namespace BusBuddy.UI.Services
                 RegisterSingleton<IReportService>(() => new ReportService(GetService<IDatabaseHelperService>()));
 
                 // Task 6: Register analytics service for driver pay and CDE-40 reporting
-                RegisterSingleton<IAnalyticsService>(() => new AnalyticsService(GetService<IDatabaseHelperService>(), GetService<IRouteAnalyticsService>()));
+                RegisterSingleton<IAnalyticsService>(() => new AnalyticsService(
+                    GetService<BusBuddy.Business.IDatabaseHelperService>(),
+                    GetService<BusBuddy.Business.IRouteAnalyticsService>()));
 
                 // Task 7: Register error handler service for centralized error management
                 RegisterSingleton<IErrorHandlerService>(() => new ErrorHandlerService());

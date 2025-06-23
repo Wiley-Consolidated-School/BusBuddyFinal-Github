@@ -85,14 +85,13 @@ namespace BusBuddy.Data
 
         private bool IsTestEnvironment()
         {
-            // Check multiple indicators for test environment
+            // Check multiple indicators for test environment - exclude debugger check for main app
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().FullName;
 
             return baseDirectory.Contains("test", StringComparison.OrdinalIgnoreCase) ||
                    baseDirectory.Contains("Test") ||
                    (assemblyName?.Contains("Test") ?? false) ||
-                   System.Diagnostics.Debugger.IsAttached ||
                    Environment.CommandLine.Contains("testhost") ||
                    Environment.CommandLine.Contains("vstest") ||
                    AppDomain.CurrentDomain.FriendlyName.Contains("test", StringComparison.OrdinalIgnoreCase);

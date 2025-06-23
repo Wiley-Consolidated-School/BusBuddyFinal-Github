@@ -8,7 +8,8 @@
     <AssemblyName>BusBuddy</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604;CS0436;CS8602;CS8625;CS8601;CS8600</NoWarn>
     <StartupObject>BusBuddy.Program</StartupObject>
     <Authors>Steve McKitrick</Authors>
@@ -43,9 +44,7 @@
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="BusBuddyDarkTheme.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <!-- BusBuddyDarkTheme.dll removed - using Syncfusion theming instead -->
   </ItemGroup>
 
   <ItemGroup>
@@ -60,9 +59,14 @@
   <ItemGroup>
     <!-- Exclude ALL test files from main project compilation -->
     <Compile Remove="BusBuddy.Tests\**\*.cs" />
-    <Compile Remove="**\*Test*.cs" />
+    <Compile Remove="**\*Test.cs" />
     <Compile Remove="**\*Tests.cs" />
     <None Include="BusBuddy.Tests\**\*.cs" />
+    <!-- Exclude temporary test forms that were removed -->
+    <Compile Remove="SimpleButtonTestForm.cs" />
+    <Compile Remove="MinimalTestForm.cs" />
+    <Compile Remove="CommunityLicenseTestForm.cs" />
+    <Compile Remove="SimpleTest\CommunitySyncfusionTest.cs" />
   </ItemGroup>
 
   <ItemGroup>

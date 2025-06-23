@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using BusBuddy.UI.Services;
+using BusBuddy.UI.Helpers;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.ListView;
 using Syncfusion.Windows.Forms.Tools;
@@ -16,9 +17,7 @@ namespace BusBuddy.UI.Views
     /// </summary>
     public static class ControlFactory
     {
-        #region Label Creation
-
-        /// <summary>
+        #region Label Creation        /// <summary>
         /// Creates an AutoLabel with consistent styling and theming
         /// </summary>
         public static AutoLabel CreateLabel(string text, Font font = null, Color? foreColor = null, bool autoSize = true)
@@ -26,12 +25,12 @@ namespace BusBuddy.UI.Views
             var autoLabel = new AutoLabel
             {
                 Text = text,
-                Font = font ?? EnhancedThemeService.DefaultFont,
-                ForeColor = foreColor ?? EnhancedThemeService.TextColor,
+                Font = font ?? BusBuddyThemeManager.Typography.GetDefaultFont(),
+                ForeColor = foreColor ?? BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme),
                 AutoSize = autoSize,
                 BackColor = Color.Transparent
             };
-            SfSkinManager.SetVisualStyle(autoLabel, "MaterialLight");
+            BusBuddyThemeManager.ApplyTheme(autoLabel, BusBuddyThemeManager.CurrentTheme);
             return autoLabel;
         }
 
@@ -40,14 +39,12 @@ namespace BusBuddy.UI.Views
         /// </summary>
         public static AutoLabel CreateHeaderLabel(string text)
         {
-            return CreateLabel(text, EnhancedThemeService.HeaderFont, EnhancedThemeService.HeaderColor);
+            return CreateLabel(text, BusBuddyThemeManager.Typography.GetHeaderFont(), BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme));
         }
 
         #endregion
 
-        #region Button Creation
-
-        /// <summary>
+        #region Button Creation        /// <summary>
         /// Creates a Syncfusion SfButton with consistent styling
         /// </summary>
         public static SfButton CreateButton(string text, Size size, EventHandler clickHandler = null)
@@ -56,12 +53,12 @@ namespace BusBuddy.UI.Views
             {
                 Text = text,
                 Size = size,
-                Font = EnhancedThemeService.ButtonFont,
-                BackColor = EnhancedThemeService.ButtonColor,
-                ForeColor = EnhancedThemeService.ButtonTextColor
+                Font = BusBuddyThemeManager.Typography.GetDefaultFont(),
+                BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
+                ForeColor = Color.White // Button text is typically white on colored backgrounds
             };
             if (clickHandler != null) sfButton.Click += clickHandler;
-            SfSkinManager.SetVisualStyle(sfButton, "MaterialLight");
+            BusBuddyThemeManager.ApplyTheme(sfButton, BusBuddyThemeManager.CurrentTheme);
             return sfButton;
         }
 
@@ -79,16 +76,14 @@ namespace BusBuddy.UI.Views
         public static SfButton CreateSecondaryButton(string text, EventHandler clickHandler = null)
         {
             var button = CreateButton(text, new Size(120, 35), clickHandler);
-            button.BackColor = EnhancedThemeService.SurfaceColor;
-            button.ForeColor = EnhancedThemeService.TextColor;
+            button.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
+            button.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
             return button;
         }
 
         #endregion
 
-        #region TextBox Creation
-
-        /// <summary>
+        #region TextBox Creation        /// <summary>
         /// Creates a TextBoxExt with watermark (banner text) support
         /// </summary>
         public static TextBoxExt CreateTextBox(BannerTextProvider bannerProvider, string watermark, bool multiline = false)
@@ -97,42 +92,20 @@ namespace BusBuddy.UI.Views
             {
                 Multiline = multiline,
                 Size = new Size(200, multiline ? 60 : 30),
-                BackColor = EnhancedThemeService.SurfaceColor,
-                ForeColor = EnhancedThemeService.TextColor,
-                BorderColor = EnhancedThemeService.BorderColor,
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
+                ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme),
+                BorderColor = Color.Gray, // Simple border color
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            // THREAD SAFETY: Set theme name safely to prevent collection modification errors
-            try
-            {
-                textBox.ThemeName = "MaterialLight";
-            }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("Collection was modified"))
-            {
-                Console.WriteLine($"⚠️ THEME: Collection modified during theme setting, retrying...");
-                // Retry once after a brief delay
-                System.Threading.Thread.Sleep(10);
-                try
-                {
-                    textBox.ThemeName = "MaterialLight";
-                }
-                catch (Exception retryEx)
-                {
-                    Console.WriteLine($"⚠️ THEME: Retry failed, using default theme: {retryEx.Message}");
-                    // Continue without theme - control will use default styling
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ THEME: Error setting TextBoxExt theme: {ex.Message}");
-            }
+            // Apply theme using the theme manager
+            BusBuddyThemeManager.ApplyTheme(textBox, BusBuddyThemeManager.CurrentTheme);
 
             var bannerTextInfo = new BannerTextInfo();
             bannerTextInfo.Text = watermark;
             bannerTextInfo.Visible = true;
-            bannerTextInfo.Font = EnhancedThemeService.DefaultFont;
-            bannerTextInfo.Color = EnhancedThemeService.SecondaryTextColor;
+            bannerTextInfo.Font = BusBuddyThemeManager.Typography.GetDefaultFont();
+            bannerTextInfo.Color = Color.Gray; // Secondary text color
             bannerTextInfo.Mode = BannerTextMode.EditMode;
             bannerProvider?.SetBannerText(textBox, bannerTextInfo);
 
@@ -145,7 +118,7 @@ namespace BusBuddy.UI.Views
         public static TextBoxExt CreateRequiredTextBox(BannerTextProvider bannerProvider, string watermark)
         {
             var textBox = CreateTextBox(bannerProvider, $"{watermark} *");
-            textBox.BorderColor = EnhancedThemeService.WarningColor;
+            textBox.BorderColor = Color.Orange; // Warning color
             return textBox;
         }
 
@@ -160,9 +133,7 @@ namespace BusBuddy.UI.Views
 
         #endregion
 
-        #region ComboBox Creation
-
-        /// <summary>
+        #region ComboBox Creation        /// <summary>
         /// Creates a Syncfusion ComboBoxAdv with consistent styling
         /// </summary>
         public static ComboBoxAdv CreateComboBox(object dataSource = null)
@@ -170,10 +141,10 @@ namespace BusBuddy.UI.Views
             var comboBox = new ComboBoxAdv
             {
                 Size = new Size(200, 30),
-                Font = EnhancedThemeService.DefaultFont,
+                Font = BusBuddyThemeManager.Typography.GetDefaultFont(),
                 DataSource = dataSource
             };
-            comboBox.ThemeName = "MaterialLight";
+            BusBuddyThemeManager.ApplyTheme(comboBox, BusBuddyThemeManager.CurrentTheme);
             return comboBox;
         }
 
@@ -187,9 +158,7 @@ namespace BusBuddy.UI.Views
 
         #endregion
 
-        #region DateTimePicker Creation
-
-        /// <summary>
+        #region DateTimePicker Creation        /// <summary>
         /// Creates a Syncfusion SfDateTimeEdit control with consistent styling
         /// </summary>
         public static SfDateTimeEdit CreateDateTimePicker()
@@ -197,19 +166,17 @@ namespace BusBuddy.UI.Views
             var dateTimePicker = new SfDateTimeEdit
             {
                 Size = new Size(200, 30),
-                Font = EnhancedThemeService.DefaultFont,
-                ThemeName = "MaterialLight",
-                BackColor = EnhancedThemeService.SurfaceColor,
-                ForeColor = EnhancedThemeService.TextColor,
+                Font = BusBuddyThemeManager.Typography.GetDefaultFont(),
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
+                ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme),
             };
+            BusBuddyThemeManager.ApplyTheme(dateTimePicker, BusBuddyThemeManager.CurrentTheme);
             return dateTimePicker;
         }
 
         #endregion
 
-        #region NumericTextBox Creation
-
-        /// <summary>
+        #region NumericTextBox Creation        /// <summary>
         /// Creates a Syncfusion SfNumericTextBox with consistent styling and value range
         /// </summary>
         public static SfNumericTextBox CreateNumericTextBox(double minValue, double maxValue)
@@ -217,31 +184,29 @@ namespace BusBuddy.UI.Views
             var numericTextBox = new SfNumericTextBox
             {
                 Size = new Size(200, 30),
-                Font = EnhancedThemeService.DefaultFont,
-                ThemeName = "MaterialLight",
-                BackColor = EnhancedThemeService.SurfaceColor,
-                ForeColor = EnhancedThemeService.TextColor,
+                Font = BusBuddyThemeManager.Typography.GetDefaultFont(),
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
+                ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme),
                 MinValue = minValue,
                 MaxValue = maxValue,
                 Value = minValue
             };
+            BusBuddyThemeManager.ApplyTheme(numericTextBox, BusBuddyThemeManager.CurrentTheme);
             return numericTextBox;
         }
 
         #endregion
 
-        #region DataGrid Creation
-
-        /// <summary>
+        #region DataGrid Creation        /// <summary>
         /// Creates a Syncfusion SfDataGrid with consistent styling and basic configuration
         /// </summary>
         public static Syncfusion.WinForms.DataGrid.SfDataGrid CreateDataGrid()
         {
             var dataGrid = new Syncfusion.WinForms.DataGrid.SfDataGrid
             {
-                Font = EnhancedThemeService.DefaultFont,
-                BackColor = EnhancedThemeService.SurfaceColor,
-                ForeColor = EnhancedThemeService.TextColor,
+                Font = BusBuddyThemeManager.Typography.GetDefaultFont(),
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
+                ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme),
                 AllowEditing = false,
                 AllowSorting = true,
                 AllowFiltering = true,
@@ -249,24 +214,22 @@ namespace BusBuddy.UI.Views
                 HeaderRowHeight = 35,
                 RowHeight = 30
             };
-            Syncfusion.WinForms.Controls.SfSkinManager.SetVisualStyle(dataGrid, "MaterialLight");
+            BusBuddyThemeManager.ApplyTheme(dataGrid, BusBuddyThemeManager.CurrentTheme);
             return dataGrid;
         }
 
         #endregion
 
-        #region Utility Methods
-
-        /// <summary>
+        #region Utility Methods        /// <summary>
         /// Creates a standard Panel with consistent theming
         /// </summary>
         public static Panel CreatePanel(Color? backgroundColor = null)
         {
             var panel = new Panel
             {
-                BackColor = backgroundColor ?? EnhancedThemeService.SurfaceColor
+                BackColor = backgroundColor ?? BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme)
             };
-            Syncfusion.WinForms.Controls.SfSkinManager.SetVisualStyle(panel, "MaterialLight");
+            BusBuddyThemeManager.ApplyTheme(panel, BusBuddyThemeManager.CurrentTheme);
             return panel;
         }
 

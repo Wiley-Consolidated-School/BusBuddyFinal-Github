@@ -97,8 +97,8 @@ namespace BusBuddy.UI.Helpers
 
             try
             {
-                // Use the existing SyncfusionThemeHelper
-                SyncfusionThemeHelper.ApplyMaterialTheme(form);
+                // Use the existing BusBuddyThemeManager
+                BusBuddyThemeManager.ApplyTheme(form, BusBuddyThemeManager.SupportedThemes.Office2016White);
 
                 // Apply theme to all child controls
                 ApplyThemeToControls(form.Controls);
@@ -118,7 +118,7 @@ namespace BusBuddy.UI.Helpers
             {
                 try
                 {
-                    SyncfusionThemeHelper.ApplyMaterialTheme(control);
+                    BusBuddyThemeManager.ApplyTheme(control, BusBuddyThemeManager.SupportedThemes.Office2016White);
 
                     // Recursively apply to child controls
                     if (control.HasChildren)
@@ -159,7 +159,7 @@ namespace BusBuddy.UI.Helpers
             SyncfusionHelper.ApplyTheme(this);
 
             // Apply material design styling
-            SyncfusionThemeHelper.ApplyMaterialTheme(this);";
+            BusBuddyThemeManager.ApplyTheme(this, BusBuddyThemeManager.SupportedThemes.Office2016White);";
         }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace BusBuddy.UI.Helpers
         {
             var notes = new Dictionary<string, string>
             {
-                {"Form", "Replace with SfForm or use standard Form with SyncfusionThemeHelper.ApplyMaterialTheme()"},
+                {"Form", "Replace with SfForm or use standard Form with BusBuddyThemeManager.ApplyMaterialTheme()"},
                 {"MaterialRaisedButton", "Replace with SfButton or standard Button with material styling"},
                 {"MaterialSingleLineTextField", "Replace with SfTextBox or standard TextBox with material styling"},
                 {"TabControl", "Replace with SfTabControl for enhanced features"},
@@ -305,10 +305,10 @@ Next Steps:
             {
                 Text = text,
                 FlatStyle = FlatStyle.Flat,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
+                BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
                 ForeColor = Color.White,
-                Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont,
-                Height = SyncfusionThemeHelper.MaterialTheme.DefaultButtonHeight
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                Height = BusBuddyThemeManager.MaterialTheme.DefaultButtonHeight
             };
 
             button.FlatAppearance.BorderSize = 0;
@@ -322,25 +322,23 @@ Next Steps:
         {
             var textBox = new TextBox
             {
-                Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont,
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
                 BorderStyle = BorderStyle.FixedSingle,
                 BackColor = Color.White,
-                ForeColor = SyncfusionThemeHelper.MaterialColors.Text,
-                Height = SyncfusionThemeHelper.MaterialTheme.DefaultControlHeight
-            };
-
-            if (!string.IsNullOrEmpty(hint))
+                ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme),
+                Height = BusBuddyThemeManager.MaterialTheme.DefaultControlHeight
+            };            if (!string.IsNullOrEmpty(hint))
             {
                 // Add placeholder text behavior
                 textBox.Text = hint;
-                textBox.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
+                textBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
 
                 textBox.GotFocus += (s, e) =>
                 {
                     if (textBox.Text == hint)
                     {
                         textBox.Text = "";
-                        textBox.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                        textBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                     }
                 };
 
@@ -349,7 +347,7 @@ Next Steps:
                     if (string.IsNullOrEmpty(textBox.Text))
                     {
                         textBox.Text = hint;
-                        textBox.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
+                        textBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                     }
                 };
             }

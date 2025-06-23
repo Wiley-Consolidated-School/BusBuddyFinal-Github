@@ -105,7 +105,7 @@ namespace BusBuddy.UI.Base
             SetupEventHandlers();
 
             // Apply theming
-            SyncfusionThemeHelper.ApplyMaterialTheme(this);
+            BusBuddyThemeManager.ApplyTheme(this, BusBuddyThemeManager.SupportedThemes.Office2016White);
 
             // CRITICAL FIX: Load data after all controls are initialized
             try
@@ -138,8 +138,8 @@ namespace BusBuddy.UI.Base
             _searchBox = ControlFactory.CreateSearchBox(SearchPlaceholder);
 
             // Standard grid creation
-            _dataGrid = SyncfusionThemeHelper.CreateEnhancedMaterialSfDataGrid();
-            SyncfusionThemeHelper.SfDataGridEnhancements(_dataGrid);
+            _dataGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
+            BusBuddyThemeManager.SfDataGridEnhancements(_dataGrid);
 
             SetupDataGridColumns();
         }

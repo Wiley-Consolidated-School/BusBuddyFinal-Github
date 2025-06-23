@@ -160,39 +160,37 @@ namespace BusBuddy.UI.Views
             txtNotes.Location = new Point(controlX, y);
             txtNotes.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtNotes);
-            y += 80;
-
-            // Buttons
+            y += 80;            // Buttons
             btnSave = ControlFactory.CreateButton("💾 Save", new Size(120, 36), btnSave_Click);
             btnSave.Location = new Point(controlX, y);
-            btnSave.BackColor = SyncfusionThemeHelper.MaterialColors.Primary;
+            btnSave.BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme);
             this.Controls.Add(btnSave);
 
             btnCancel = ControlFactory.CreateButton("❌ Cancel", new Size(120, 36), btnCancel_Click);
             btnCancel.Location = new Point(controlX + 140, y);
-            btnCancel.BackColor = SyncfusionThemeHelper.MaterialColors.Background;
+            btnCancel.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
             this.Controls.Add(btnCancel);
 
-            // Apply Syncfusion Material Design styling
-            ApplySyncfusionStyling();
+            // Apply BusBuddy Material Design styling
+            ApplyBusBuddyStyling();
         }
 
-        private void ApplySyncfusionStyling()
+        private void ApplyBusBuddyStyling()
         {
-            // Apply Syncfusion Material theme to the form
-            SyncfusionThemeHelper.ApplyMaterialTheme(this);
+            // Apply BusBuddy theme to the form - safe approach
+            BusBuddyThemeManager.ApplyTheme(this, BusBuddyThemeManager.SupportedThemes.Office2016White);
 
-            // Configure date picker for Material Design
-            dtpDate.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
+            // Configure date picker with safe defaults
+            dtpDate.Font = new Font("Segoe UI", 9, FontStyle.Regular);
             dtpDate.BackColor = Color.White;
 
-            // Style all labels
+            // Style all labels with safe approach
             foreach (Control control in this.Controls)
             {
                 if (control is Label label)
                 {
-                    label.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
-                    label.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                    label.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+                    label.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                 }
             }
         }

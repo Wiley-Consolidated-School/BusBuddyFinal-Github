@@ -52,7 +52,7 @@ namespace BusBuddy.UI.Views
             SetupEventHandlers();
 
             // Apply final theming
-            SyncfusionThemeHelper.ApplyMaterialTheme(this);
+            BusBuddyThemeManager.ApplyTheme(this, BusBuddyThemeManager.SupportedThemes.Office2016White);
 
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
@@ -87,7 +87,7 @@ namespace BusBuddy.UI.Views
                 Size = GetDpiAwareSize(new Size(200, 35)),
                 Format = DateTimePickerFormat.Short
             };
-            SyncfusionThemeHelper.ApplyMaterialTheme(_startDatePicker);
+            BusBuddyThemeManager.ApplyTheme(_startDatePicker, BusBuddyThemeManager.SupportedThemes.Office2016White);
             _mainPanel.Controls.Add(_startDatePicker);
 
             _endDatePicker = new DateTimePicker
@@ -96,12 +96,12 @@ namespace BusBuddy.UI.Views
                 Size = GetDpiAwareSize(new Size(200, 35)),
                 Format = DateTimePickerFormat.Short
             };
-            SyncfusionThemeHelper.ApplyMaterialTheme(_endDatePicker);
+            BusBuddyThemeManager.ApplyTheme(_endDatePicker, BusBuddyThemeManager.SupportedThemes.Office2016White);
             _mainPanel.Controls.Add(_endDatePicker);
 
             // Create buttons
-            _saveButton = SyncfusionThemeHelper.CreateStyledButton("Save");
-            _cancelButton = SyncfusionThemeHelper.CreateStyledButton("Cancel");
+            _saveButton = new Button { Text = "Save" } /* CreateStyledButton method removed */;
+            _cancelButton = new Button { Text = "Cancel" } /* CreateStyledButton method removed */;
 
             // Configure buttons
             _saveButton.Size = GetDpiAwareSize(new Size(100, 35));
@@ -115,8 +115,8 @@ namespace BusBuddy.UI.Views
             // Style cancel button differently
             if (_cancelButton is Button cancelBtn)
             {
-                cancelBtn.BackColor = SyncfusionThemeHelper.MaterialColors.Border;
-                cancelBtn.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                cancelBtn.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
+                cancelBtn.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
             }
 
             _buttonPanel.Controls.Add(_saveButton);
@@ -154,9 +154,9 @@ namespace BusBuddy.UI.Views
             };
 
             // Apply Material theming
-            comboBox.BackColor = SyncfusionThemeHelper.MaterialColors.Surface;
-            comboBox.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
-            comboBox.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
+            comboBox.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
+            comboBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
+            comboBox.Font = new Font("Segoe UI", 9, FontStyle.Regular);
 
             _mainPanel.Controls.Add(comboBox);
             return comboBox;
@@ -173,26 +173,25 @@ namespace BusBuddy.UI.Views
 
             // Apply Material theming
             checkBox.BackColor = Color.Transparent;
-            checkBox.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
-            checkBox.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
+            checkBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
+            checkBox.Font = new Font("Segoe UI", 9, FontStyle.Regular);
 
             _mainPanel.Controls.Add(checkBox);
             return checkBox;
         }
 
         private void SetPlaceholderText(Control? textBox, string placeholder)
-        {
-            if (textBox is TextBox tb)
+        {            if (textBox is TextBox tb)
             {
                 tb.Text = placeholder;
-                tb.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
+                tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
 
                 tb.GotFocus += (s, e) =>
                 {
                     if (tb.Text == placeholder)
                     {
                         tb.Text = "";
-                        tb.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                        tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                     }
                 };
 
@@ -201,7 +200,7 @@ namespace BusBuddy.UI.Views
                     if (string.IsNullOrEmpty(tb.Text))
                     {
                         tb.Text = placeholder;
-                        tb.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
+                        tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                     }
                 };
             }
@@ -218,13 +217,13 @@ namespace BusBuddy.UI.Views
                 if (_descriptionTextBox is TextBox descriptionTb)
                 {
                     descriptionTb.Text = schoolCalendar.Description ?? string.Empty;
-                    descriptionTb.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                    descriptionTb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                 }
 
                 if (_notesTextBox is TextBox notesTb)
                 {
                     notesTb.Text = schoolCalendar.Notes ?? string.Empty;
-                    notesTb.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                    notesTb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                 }
 
                 if (_categoryComboBox != null && !string.IsNullOrEmpty(schoolCalendar.Category))

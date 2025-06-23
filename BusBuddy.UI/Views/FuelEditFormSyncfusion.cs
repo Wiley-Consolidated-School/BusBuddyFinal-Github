@@ -120,13 +120,13 @@ namespace BusBuddy.UI.Views
             // Buttons
             btnSave = ControlFactory.CreatePrimaryButton("💾 Save", btnSave_Click);
             btnSave.Location = new Point(controlX, y);
-            btnSave.BackColor = SyncfusionThemeHelper.MaterialColors.Primary;
+            btnSave.BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme);
             btnSave.Size = new Size(120, 36);
             this.Controls.Add(btnSave);
 
             btnCancel = ControlFactory.CreateSecondaryButton("❌ Cancel", btnCancel_Click);
             btnCancel.Location = new Point(controlX + 130, y);
-            btnCancel.BackColor = SyncfusionThemeHelper.MaterialColors.Background;
+            btnCancel.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
             btnCancel.Size = new Size(120, 36);
 
             // Apply Syncfusion Material Design styling
@@ -136,10 +136,10 @@ namespace BusBuddy.UI.Views
         private void ApplySyncfusionStyling()
         {
             // Apply Syncfusion Material theme to the form
-            SyncfusionThemeHelper.ApplyMaterialTheme(this);
+            BusBuddyThemeManager.ApplyTheme(this, BusBuddyThemeManager.SupportedThemes.Office2016White);
 
             // Configure date picker for Material Design
-            dtpFuelDate.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
+            dtpFuelDate.Font = new Font("Segoe UI", 9, FontStyle.Regular);
             dtpFuelDate.BackColor = Color.White;
 
             // Style all labels
@@ -147,8 +147,8 @@ namespace BusBuddy.UI.Views
             {
                 if (control is Label label)
                 {
-                    label.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
-                    label.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                    label.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+                    label.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                 }
             }
         }
@@ -265,9 +265,9 @@ namespace BusBuddy.UI.Views
             };
 
             // Apply Material theming
-            comboBox.BackColor = SyncfusionThemeHelper.MaterialColors.Surface;
-            comboBox.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
-            comboBox.Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont;
+            comboBox.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
+            comboBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
+            comboBox.Font = new Font("Segoe UI", 9, FontStyle.Regular);
 
             this.Controls.Add(comboBox);
             return comboBox;
@@ -278,14 +278,14 @@ namespace BusBuddy.UI.Views
             if (textBox is TextBox tb)
             {
                 tb.Text = placeholder;
-                tb.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
+                tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
 
                 tb.GotFocus += (s, e) =>
                 {
                     if (tb.Text == placeholder)
                     {
                         tb.Text = "";
-                        tb.ForeColor = SyncfusionThemeHelper.MaterialColors.Text;
+                        tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                     }
                 };
 
@@ -294,7 +294,7 @@ namespace BusBuddy.UI.Views
                     if (string.IsNullOrEmpty(tb.Text))
                     {
                         tb.Text = placeholder;
-                        tb.ForeColor = SyncfusionThemeHelper.MaterialColors.TextSecondary;
+                        tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                     }
                 };
             }
@@ -317,8 +317,8 @@ namespace BusBuddy.UI.Views
                 Text = text,
                 Location = new Point(x, y),
                 Size = new Size(120, 36),
-                Font = SyncfusionThemeHelper.MaterialTheme.DefaultFont,
-                BackColor = SyncfusionThemeHelper.MaterialColors.Primary,
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat
             };

@@ -90,8 +90,8 @@ namespace BusBuddy.UI.Services
                 { "activityschedule", () => { ShowActivityScheduleManagement(); return DialogResult.OK; } },
 
                 // CDE-40 and analytics modules (Task 4 enhancements)
-                { "dashboard", () => { ShowDialog<DashboardPrototype>(); return DialogResult.OK; } },
-                { "cde40", () => { ShowDialog<DashboardPrototype>(); return DialogResult.OK; } },
+                { "dashboard", () => { ShowDialog<BusBuddy.UI.Views.Dashboard>(); return DialogResult.OK; } },
+                { "cde40", () => { ShowDialog<AnalyticsDemoFormSyncfusion>(); return DialogResult.OK; } },
                 { "analytics", () => { ShowAnalyticsDemo(); return DialogResult.OK; } },
                 { "report", () => { ShowReportsManagement(); return DialogResult.OK; } },
                 { "reports", () => { ShowReportsManagement(); return DialogResult.OK; } },
