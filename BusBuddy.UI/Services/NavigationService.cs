@@ -307,7 +307,7 @@ namespace BusBuddy.UI.Services
                     Console.WriteLine("⚠️ ActivityScheduleRepository not found in service container, using fallback");
                     EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
                 }
-                ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
+                ShowFormDialog<ActivityScheduleManagementForm>();
             }
             catch (Exception ex)
             {
@@ -353,7 +353,7 @@ namespace BusBuddy.UI.Services
                 {
                     EnsureRepositoryInitialized(() => new ActivityRepository().GetAllActivities());
                 }
-                ShowFormDialog<ActivityManagementFormSyncfusion>();
+                ShowFormDialog<ActivityManagementForm>();
             }
             catch (Exception ex)
             {
@@ -445,7 +445,7 @@ namespace BusBuddy.UI.Services
                 {
                     EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
                 }
-                ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
+                ShowFormDialog<ActivityScheduleManagementForm>();
             }
             catch (Exception ex)
             {
