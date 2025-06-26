@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "🚀 BusBuddy - Run (Fast)",
             "type": "coreclr",
@@ -11,7 +12,10 @@
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "integratedTerminal",
-            "noDebug": true
+            "env": {
+                "SYNCFUSION_LOGGING": "verbose",
+                "BUSBUDDY_TEST_MODE": "0"
+            }
         },
         {
             "name": "🚌 BusBuddy - Debug Launch",
@@ -25,7 +29,47 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "enableStepFiltering": true,
-            "suppressJITOptimizations": false
+            "suppressJITOptimizations": true,
+            "env": {
+                "SYNCFUSION_LOGGING": "verbose",
+                "BUSBUDDY_TEST_MODE": "0"
+            }
+        },
+        {
+            "name": "🔍 BusBuddy - Debug Startup",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build BusBuddy",
+            "program": "${workspaceFolder}/bin/Debug/net8.0-windows/BusBuddy.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": true,
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "enableStepFiltering": true,
+            "suppressJITOptimizations": true,
+            "env": {
+                "SYNCFUSION_LOGGING": "verbose",
+                "BUSBUDDY_TEST_MODE": "0"
+            }
+        },
+        {
+            "name": "🧪 BusBuddy - Test Mode Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build BusBuddy",
+            "program": "${workspaceFolder}/bin/Debug/net8.0-windows/BusBuddy.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "enableStepFiltering": true,
+            "suppressJITOptimizations": true,
+            "env": {
+                "SYNCFUSION_LOGGING": "verbose",
+                "BUSBUDDY_TEST_MODE": "1"
+            }
         }
     ]
 }

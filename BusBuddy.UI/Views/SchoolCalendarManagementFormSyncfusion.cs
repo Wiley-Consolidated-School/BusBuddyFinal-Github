@@ -27,13 +27,10 @@ namespace BusBuddy.UI.Views
         private SfCalendar? _sfCalendar;
         private Panel? _calendarPanel;
         private Splitter? _splitter;
-
         #region Properties Override
         protected override string FormTitle => "📅 School Calendar Management";
         protected override string SearchPlaceholder => "Search calendar events...";
         protected override string EntityName => "SchoolCalendar";
-        #endregion
-
         #region Constructors
         public SchoolCalendarManagementFormSyncfusion() : this(new SchoolCalendarRepository()) { }
 
@@ -44,13 +41,17 @@ namespace BusBuddy.UI.Views
             CreateEnhancedCalendarLayout();
             // NOTE: LoadData() is called by the base class after all controls are initialized
         }
-        #endregion
-
         #region Base Implementation Override
         protected override void LoadData()
         {
             try
             {
+                if (_schoolCalendarRepository == null)
+                {
+                    ShowErrorMessage("Error loading school calendar events: Repository not initialized.");
+                    _entities = new List<SchoolCalendar>();
+                    return;
+                }
                 var calendarEvents = _schoolCalendarRepository.GetAllCalendarEvents();
                 _entities = calendarEvents?.ToList() ?? new List<SchoolCalendar>();
                 PopulateCalendarGrid();
@@ -58,9 +59,14 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error loading school calendar events: {ex.Message}");
+                HandleError($"Error loading school calendar events: {ex.Message}", "$($EntityName) Error", ex);
                 _entities = new List<SchoolCalendar>(); // Ensure _entities is never null
             }
+        }
+
+        protected override void LoadDataFromRepository()
+        {
+            LoadData(); // Delegate to existing LoadData implementation
         }
 
         #region Enhanced Calendar Layout
@@ -116,7 +122,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error creating enhanced calendar layout: {ex.Message}");
+                HandleError($"Error creating enhanced calendar layout: {ex.Message}", "$($EntityName) Error", ex);
                 // Fallback to standard layout
             }
         }
@@ -133,7 +139,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error handling calendar selection: {ex.Message}");
+                HandleError($"Error handling calendar selection: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -164,7 +170,7 @@ namespace BusBuddy.UI.Views
                 // Show message if no events found
                 if (!filteredEvents.Any())
                 {
-                    ShowInfoMessage($"No events scheduled for {selectedDate:MMMM dd, yyyy}");
+                    ShowInfo($"No events scheduled for {selectedDate:MMMM dd, yyyy}");
                 }
 
                 // Restore for future operations
@@ -172,7 +178,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error filtering events by date: {ex.Message}");
+                HandleError($"Error filtering events by date: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -209,7 +215,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error updating calendar special dates: {ex.Message}");
+                HandleError($"Error updating calendar special dates: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -217,16 +223,15 @@ namespace BusBuddy.UI.Views
         {
             return category?.ToLower() switch
             {
-                "holiday" => Color.FromArgb(231, 76, 60),        // Red
-                "school day" => Color.FromArgb(52, 152, 219),    // Blue
-                "thanksgiving break" => Color.FromArgb(230, 126, 34), // Orange
-                "christmas break" => Color.FromArgb(192, 57, 43), // Dark Red
-                "spring break" => Color.FromArgb(46, 204, 113),  // Green
-                "key event" => Color.FromArgb(155, 89, 182),     // Purple
-                _ => Color.FromArgb(149, 165, 166)               // Gray
+                "holiday" => BusBuddyThemeManager.ThemeColors.GetErrorColor(BusBuddyThemeManager.CurrentTheme),        // Red
+                "school day" => BusBuddyThemeManager.ThemeColors.GetInfoColor(BusBuddyThemeManager.CurrentTheme),    // Blue
+                "thanksgiving break" => BusBuddyThemeManager.ThemeColors.GetWarningColor(BusBuddyThemeManager.CurrentTheme), // Orange
+                "christmas break" => BusBuddyThemeManager.ThemeColors.GetDarkColor(BusBuddyThemeManager.CurrentTheme), // Dark Red
+                "spring break" => BusBuddyThemeManager.ThemeColors.GetSuccessColor(BusBuddyThemeManager.CurrentTheme),  // Green
+                "key event" => BusBuddyThemeManager.ThemeColors.GetSecondaryColor(BusBuddyThemeManager.CurrentTheme),     // Purple
+                _ => BusBuddyThemeManager.ThemeColors.GetMutedColor(BusBuddyThemeManager.CurrentTheme)               // Gray
             };
         }
-        #endregion
 
         protected override void AddNewEntity()
         {
@@ -240,7 +245,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error adding new calendar event: {ex.Message}");
+                HandleError($"Error adding new calendar event: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -249,7 +254,7 @@ namespace BusBuddy.UI.Views
             var selectedEvent = GetSelectedEntity();
             if (selectedEvent == null)
             {
-                ShowInfoMessage("Please select a calendar event to edit.");
+                ShowInfo("Please select a calendar event to edit.");
                 return;
             }
 
@@ -263,7 +268,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error editing calendar event: {ex.Message}");
+                HandleError($"Error editing calendar event: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -272,7 +277,7 @@ namespace BusBuddy.UI.Views
             var selectedEvent = GetSelectedEntity();
             if (selectedEvent == null)
             {
-                ShowInfoMessage("Please select a calendar event to delete.");
+                ShowInfo("Please select a calendar event to delete.");
                 return;
             }
 
@@ -282,11 +287,11 @@ namespace BusBuddy.UI.Views
             {
                 _schoolCalendarRepository.DeleteCalendarEvent(selectedEvent.CalendarID);
                 RefreshGridAndCalendar();
-                ShowInfoMessage("Calendar event deleted successfully.");
+                ShowInfo("Calendar event deleted successfully.");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error deleting calendar event: {ex.Message}");
+                HandleError($"Error deleting calendar event: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -295,7 +300,7 @@ namespace BusBuddy.UI.Views
             var selectedEvent = GetSelectedEntity();
             if (selectedEvent == null)
             {
-                ShowInfoMessage("Please select a calendar event to view details.");
+                ShowInfo("Please select a calendar event to view details.");
                 return;
             }
 
@@ -312,11 +317,11 @@ namespace BusBuddy.UI.Views
                             $"Start Time: {selectedEvent.StartTime}\n" +
                             $"End Time: {selectedEvent.EndTime}";
 
-                ShowInfoMessage(details, "Calendar Event Details");
+                ShowInfo(details, "Calendar Event Details");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error viewing calendar event details: {ex.Message}");
+                HandleError($"Error viewing calendar event details: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -353,7 +358,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error searching calendar events: {ex.Message}");
+                HandleError($"Error searching calendar events: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -375,6 +380,13 @@ namespace BusBuddy.UI.Views
 
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
+
+        #endregion
+
+        #endregion
+
+        #endregion
+
         #endregion
 
         #region Helper Methods
@@ -413,9 +425,40 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error populating calendar grid: {ex.Message}");
+                HandleError($"Error populating calendar grid: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
+
+        #endregion
+
+        #region Disposal
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// Ensures proper disposal of Syncfusion controls
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                try
+                {
+                    // Dispose Syncfusion controls properly
+                    _sfCalendar?.Dispose();
+                    _calendarPanel?.Dispose();
+                    _splitter?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    // Log disposal errors but don't throw
+                    System.Diagnostics.Debug.WriteLine($"Error during SchoolCalendarManagementForm disposal: {ex.Message}");
+                }
+            }
+
+            base.Dispose(disposing);
+        }
+
         #endregion
     }
 }

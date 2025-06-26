@@ -93,6 +93,18 @@ namespace BusBuddy.Data
                 bool activitiesTableExists = TableExists(connection, "Activities");
                 bool activityScheduleTableExists = TableExists(connection, "ActivitySchedule");
 
+                // If tables exist, check if they have the correct schema
+                if (vehiclesTableExists)
+                {
+                    bool hasCorrectSchema = CheckVehiclesTableSchema(connection);
+                    if (!hasCorrectSchema)
+                    {
+                        Console.WriteLine("Existing Vehicles table has incorrect schema. Dropping and recreating...");
+                        DropAllTables(connection);
+                        vehiclesTableExists = false;
+                    }
+                }
+
                 if (!vehiclesTableExists)
                 {
                     // Create basic schema for testing
@@ -103,15 +115,19 @@ namespace BusBuddy.Data
                         // Create Vehicles table
                         command.CommandText = @"
                             CREATE TABLE Vehicles (
-                                VehicleID INT PRIMARY KEY IDENTITY(1,1),
+                                Id INT PRIMARY KEY IDENTITY(1,1),
                                 VehicleNumber NVARCHAR(50) NOT NULL,
+                                BusNumber NVARCHAR(50),
                                 Make NVARCHAR(50),
                                 Model NVARCHAR(50),
                                 Year INT,
-                                Capacity INT,
-                                Status NVARCHAR(20),
-                                LastMaintenance DATETIME,
-                                Notes NVARCHAR(MAX)
+                                SeatingCapacity INT,
+                                VINNumber NVARCHAR(50),
+                                LicenseNumber NVARCHAR(50),
+                                DateLastInspection DATETIME,
+                                Notes NVARCHAR(MAX),
+                                FuelType NVARCHAR(50),
+                                Status NVARCHAR(50)
                             )";
                         command.ExecuteNonQuery();
 
@@ -119,14 +135,20 @@ namespace BusBuddy.Data
                         command.CommandText = @"
                             CREATE TABLE Drivers (
                                 DriverID INT PRIMARY KEY IDENTITY(1,1),
-                                FirstName NVARCHAR(50) NOT NULL,
-                                LastName NVARCHAR(50) NOT NULL,
-                                LicenseType NVARCHAR(20),
-                                CDLExpiry DATETIME,
-                                PhoneNumber NVARCHAR(20),
-                                Email NVARCHAR(100),
-                                Status NVARCHAR(20),
-                                Notes NVARCHAR(MAX)
+                                DriverName NVARCHAR(100),
+                                DriverPhone NVARCHAR(20),
+                                DriverEmail NVARCHAR(100),
+                                Address NVARCHAR(200),
+                                City NVARCHAR(50),
+                                State NVARCHAR(20),
+                                Zip NVARCHAR(10),
+                                DriversLicenseType NVARCHAR(50),
+                                TrainingComplete INT NOT NULL DEFAULT 0,
+                                Notes NVARCHAR(MAX),
+                                Status NVARCHAR(50),
+                                FirstName NVARCHAR(100),
+                                LastName NVARCHAR(100),
+                                CDLExpirationDate DATETIME
                             )";
                         command.ExecuteNonQuery();
 
@@ -134,13 +156,20 @@ namespace BusBuddy.Data
                         command.CommandText = @"
                             CREATE TABLE Routes (
                                 RouteID INT PRIMARY KEY IDENTITY(1,1),
-                                RouteName NVARCHAR(50) NOT NULL,
-                                Description NVARCHAR(200),
-                                StartLocation NVARCHAR(100),
-                                EndLocation NVARCHAR(100),
-                                EstimatedDuration INT,
-                                Distance DECIMAL(10,2),
-                                Notes NVARCHAR(MAX)
+                                Date NVARCHAR(50) NOT NULL,
+                                RouteName NVARCHAR(100),
+                                AMVehicleID INT,
+                                AMBeginMiles FLOAT,
+                                AMEndMiles FLOAT,
+                                AMRiders INT,
+                                AMDriverID INT,
+                                PMVehicleID INT,
+                                PMBeginMiles FLOAT,
+                                PMEndMiles FLOAT,
+                                PMRiders INT,
+                                PMDriverID INT,
+                                Notes NVARCHAR(MAX),
+                                RouteType NVARCHAR(50) DEFAULT 'CDL'
                             )";
                         command.ExecuteNonQuery();
 
@@ -207,6 +236,54 @@ namespace BusBuddy.Data
                         Console.WriteLine("ActivitySchedule table created successfully.");
                     }
                 }
+            }
+        }
+
+        private static bool CheckVehiclesTableSchema(SqlConnection connection)
+        {
+            try
+            {
+                using (var command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    command.CommandText = @"
+                        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_NAME = 'Vehicles'
+                        AND COLUMN_NAME IN ('SeatingCapacity', 'FuelType', 'VINNumber', 'LicenseNumber', 'DateLastInspection')";
+
+                    int requiredColumns = (int)command.ExecuteScalar();
+                    return requiredColumns == 5; // All 5 required columns exist
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static void DropAllTables(SqlConnection connection)
+        {
+            using (var command = new SqlCommand())
+            {
+                command.Connection = connection;
+
+                // Drop tables in correct order to avoid foreign key issues
+                command.CommandText = "DROP TABLE IF EXISTS ActivitySchedule";
+                command.ExecuteNonQuery();
+
+                command.CommandText = "DROP TABLE IF EXISTS Activities";
+                command.ExecuteNonQuery();
+
+                command.CommandText = "DROP TABLE IF EXISTS Routes";
+                command.ExecuteNonQuery();
+
+                command.CommandText = "DROP TABLE IF EXISTS Drivers";
+                command.ExecuteNonQuery();
+
+                command.CommandText = "DROP TABLE IF EXISTS Vehicles";
+                command.ExecuteNonQuery();
+
+                Console.WriteLine("All tables dropped successfully.");
             }
         }
 

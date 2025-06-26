@@ -291,13 +291,19 @@ namespace BusBuddy.Models
     /// </summary>
     public class DriverPayReport
     {
+        public int DriverID { get; set; }
         public string DriverName { get; set; } = string.Empty;
         public string DriverType { get; set; } = string.Empty; // CDL, Small Bus, SPED
+        public string LicenseType { get; set; } = string.Empty; // CDL or Small Bus
         public int TotalTrips { get; set; }
         public int SPEDDays { get; set; }
         public decimal TripRate { get; set; }
         public decimal SPEDDayRate { get; set; }
         public decimal TotalPay { get; set; }
+        public decimal PayAmount { get; set; }
+        public DateTime PayPeriodStart { get; set; }
+        public DateTime PayPeriodEnd { get; set; }
+        public List<string> Notes { get; set; } = new List<string>();
         public Dictionary<string, object> Details { get; set; } = new Dictionary<string, object>();
     }
 

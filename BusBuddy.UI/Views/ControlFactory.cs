@@ -17,11 +17,45 @@ namespace BusBuddy.UI.Views
     /// </summary>
     public static class ControlFactory
     {
+        /// <summary>
+        /// Test mode flag to prevent UI control creation during unit tests
+        /// </summary>
+        private static bool _testMode = false;
+
+        /// <summary>
+        /// Enable test mode to prevent UI control instantiation
+        /// </summary>
+        public static void EnableTestMode()
+        {
+            _testMode = true;
+            Console.WriteLine("🧪 ControlFactory: Test mode enabled - UI controls will not be created");
+        }
+
+        /// <summary>
+        /// Disable test mode to allow normal UI control creation
+        /// </summary>
+        public static void DisableTestMode()
+        {
+            _testMode = false;
+            Console.WriteLine("🎨 ControlFactory: Test mode disabled - UI controls enabled");
+        }
+
+        /// <summary>
+        /// Check if currently in test mode
+        /// </summary>
+        public static bool IsTestMode => _testMode;
+
         #region Label Creation        /// <summary>
         /// Creates an AutoLabel with consistent styling and theming
         /// </summary>
         public static AutoLabel CreateLabel(string text, Font font = null, Color? foreColor = null, bool autoSize = true)
         {
+            if (_testMode)
+            {
+                Console.WriteLine($"🧪 ControlFactory: Skipping AutoLabel creation - test mode enabled");
+                return null;
+            }
+
             var autoLabel = new AutoLabel
             {
                 Text = text,
@@ -39,6 +73,12 @@ namespace BusBuddy.UI.Views
         /// </summary>
         public static AutoLabel CreateHeaderLabel(string text)
         {
+            if (_testMode)
+            {
+                Console.WriteLine($"🧪 ControlFactory: Skipping HeaderLabel creation - test mode enabled");
+                return null;
+            }
+
             return CreateLabel(text, BusBuddyThemeManager.Typography.GetHeaderFont(), BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme));
         }
 
@@ -49,16 +89,37 @@ namespace BusBuddy.UI.Views
         /// </summary>
         public static SfButton CreateButton(string text, Size size, EventHandler clickHandler = null)
         {
+            if (_testMode)
+            {
+                Console.WriteLine($"🧪 ControlFactory: Skipping SfButton creation - test mode enabled");
+                return null;
+            }
+
+            // Reference: https://help.syncfusion.com/windowsforms/button/getting-started
             var sfButton = new SfButton
             {
                 Text = text,
                 Size = size,
-                Font = BusBuddyThemeManager.Typography.GetDefaultFont(),
-                BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
-                ForeColor = Color.White // Button text is typically white on colored backgrounds
+                Font = BusBuddyThemeManager.Typography.GetDefaultFont()
             };
-            if (clickHandler != null) sfButton.Click += clickHandler;
+
+            // Apply theme first to ensure visual style is initialized
             BusBuddyThemeManager.ApplyTheme(sfButton, BusBuddyThemeManager.CurrentTheme);
+
+            // Now safely set colors after theme is applied
+            try
+            {
+                sfButton.BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme);
+                sfButton.ForeColor = Color.White; // Button text is typically white on colored backgrounds
+            }
+            catch (NullReferenceException)
+            {
+                // Fallback to default colors if Syncfusion visual style isn't ready
+                Console.WriteLine("⚠️ SfButton visual style not ready, using default colors");
+                // Don't set BackColor/ForeColor - let Syncfusion use defaults
+            }
+
+            if (clickHandler != null) sfButton.Click += clickHandler;
             return sfButton;
         }
 
@@ -84,30 +145,34 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region TextBox Creation        /// <summary>
-        /// Creates a TextBoxExt with watermark (banner text) support
+        /// Creates a TextBoxExt with watermark support using PlaceholderText (BannerTextProvider removed)
         /// </summary>
-        public static TextBoxExt CreateTextBox(BannerTextProvider bannerProvider, string watermark, bool multiline = false)
+        public static TextBoxExt CreateTextBox(string watermark, bool multiline = false)
         {
+            if (_testMode)
+            {
+                Console.WriteLine($"🧪 ControlFactory: Skipping TextBox creation - test mode enabled");
+                return null;
+            }
+
             var textBox = new TextBoxExt
             {
                 Multiline = multiline,
                 Size = new Size(200, multiline ? 60 : 30),
                 BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
                 ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme),
-                BorderColor = Color.Gray, // Simple border color
+                BorderColor = Color.Gray,
                 BorderStyle = BorderStyle.FixedSingle
             };
 
+            // Use PlaceholderText instead of BannerTextProvider
+            if (!string.IsNullOrEmpty(watermark))
+            {
+                textBox.PlaceholderText = watermark;
+            }
+
             // Apply theme using the theme manager
             BusBuddyThemeManager.ApplyTheme(textBox, BusBuddyThemeManager.CurrentTheme);
-
-            var bannerTextInfo = new BannerTextInfo();
-            bannerTextInfo.Text = watermark;
-            bannerTextInfo.Visible = true;
-            bannerTextInfo.Font = BusBuddyThemeManager.Typography.GetDefaultFont();
-            bannerTextInfo.Color = Color.Gray; // Secondary text color
-            bannerTextInfo.Mode = BannerTextMode.EditMode;
-            bannerProvider?.SetBannerText(textBox, bannerTextInfo);
 
             return textBox;
         }
@@ -115,9 +180,9 @@ namespace BusBuddy.UI.Views
         /// <summary>
         /// Creates a required field TextBoxExt with warning color border
         /// </summary>
-        public static TextBoxExt CreateRequiredTextBox(BannerTextProvider bannerProvider, string watermark)
+        public static TextBoxExt CreateRequiredTextBox(string watermark)
         {
-            var textBox = CreateTextBox(bannerProvider, $"{watermark} *");
+            var textBox = CreateTextBox($"{watermark} *");
             textBox.BorderColor = Color.Orange; // Warning color
             return textBox;
         }
@@ -127,8 +192,7 @@ namespace BusBuddy.UI.Views
         /// </summary>
         public static TextBoxExt CreateSearchBox(string placeholder = "Search...")
         {
-            var bannerProvider = new BannerTextProvider();
-            return CreateTextBox(bannerProvider, placeholder, false);
+            return CreateTextBox(placeholder, false);
         }
 
         #endregion
@@ -163,6 +227,7 @@ namespace BusBuddy.UI.Views
         /// </summary>
         public static SfDateTimeEdit CreateDateTimePicker()
         {
+            // Reference: https://help.syncfusion.com/windowsforms/datetime-picker/getting-started
             var dateTimePicker = new SfDateTimeEdit
             {
                 Size = new Size(200, 30),
@@ -181,6 +246,7 @@ namespace BusBuddy.UI.Views
         /// </summary>
         public static SfNumericTextBox CreateNumericTextBox(double minValue, double maxValue)
         {
+            // Reference: https://help.syncfusion.com/windowsforms/numeric-textbox/getting-started
             var numericTextBox = new SfNumericTextBox
             {
                 Size = new Size(200, 30),
@@ -216,6 +282,43 @@ namespace BusBuddy.UI.Views
             };
             BusBuddyThemeManager.ApplyTheme(dataGrid, BusBuddyThemeManager.CurrentTheme);
             return dataGrid;
+        }
+
+        #endregion
+
+        #region ListView Creation
+
+        /// <summary>
+        /// Creates a Syncfusion SfListView with consistent styling and basic configuration
+        /// </summary>
+        public static SfListView CreateListView(object dataSource = null)
+        {
+            if (_testMode)
+            {
+                Console.WriteLine($"🧪 ControlFactory: Skipping SfListView creation - test mode enabled");
+                return null;
+            }
+
+            // Reference: https://help.syncfusion.com/windowsforms/listview/getting-started
+            var listView = new SfListView
+            {
+                BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
+                DataSource = dataSource,
+                Font = BusBuddyThemeManager.Typography.GetDefaultFont()
+            };
+
+            // Set selection mode - using One which is the standard Single mode
+            try
+            {
+                listView.SelectionMode = SelectionMode.One;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting SelectionMode: {ex.Message}");
+            }
+
+            BusBuddyThemeManager.ApplyTheme(listView, BusBuddyThemeManager.CurrentTheme);
+            return listView;
         }
 
         #endregion

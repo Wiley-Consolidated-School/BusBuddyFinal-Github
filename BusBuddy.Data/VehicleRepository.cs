@@ -16,7 +16,7 @@ namespace BusBuddy.Data
         {
         }
 
-        public List<Vehicle> GetAllVehicles()
+        public virtual List<Vehicle> GetAllVehicles()
         {
             using (var connection = CreateConnection())
             {
@@ -26,7 +26,7 @@ namespace BusBuddy.Data
             }
         }
 
-        public Vehicle? GetVehicleById(int id)
+        public virtual Vehicle? GetVehicleById(int id)
         {
             if (id <= 0)
             {
@@ -58,23 +58,21 @@ namespace BusBuddy.Data
                 Console.WriteLine($"ERROR in GetVehicleById({id}): {ex.Message}");
                 return null;
             }
-        }
-
-        public int AddVehicle(Vehicle vehicle)
+        }        public virtual int AddVehicle(Vehicle vehicle)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var sql = @"
                     INSERT INTO Vehicles (VehicleNumber, Make, Model, Year, SeatingCapacity, FuelType, Status, VINNumber, LicenseNumber, DateLastInspection)
-                    VALUES (@VehicleNumber, @Make, @Model, @Year, @Capacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
+                    VALUES (@VehicleNumber, @Make, @Model, @Year, @SeatingCapacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
                     SELECT SCOPE_IDENTITY();";
 
                 return connection.QuerySingle<int>(sql, vehicle);
             }
         }
 
-        public bool UpdateVehicle(Vehicle vehicle)
+        public virtual bool UpdateVehicle(Vehicle vehicle)
         {
             using (var connection = CreateConnection())
             {
@@ -85,7 +83,7 @@ namespace BusBuddy.Data
                         Make = @Make,
                         Model = @Model,
                         Year = @Year,
-                        SeatingCapacity = @Capacity,
+                        SeatingCapacity = @SeatingCapacity,
                         FuelType = @FuelType,
                         Status = @Status,
                         VINNumber = @VINNumber,
@@ -98,7 +96,7 @@ namespace BusBuddy.Data
             }
         }
 
-        public bool DeleteVehicle(int id)
+        public virtual bool DeleteVehicle(int id)
         {
             using (var connection = CreateConnection())
             {
@@ -109,17 +107,17 @@ namespace BusBuddy.Data
         }
 
         // Additional methods for form compatibility
-        public int Add(Vehicle vehicle)
+        public virtual int Add(Vehicle vehicle)
         {
             return AddVehicle(vehicle);
         }
 
-        public bool Update(Vehicle vehicle)
+        public virtual bool Update(Vehicle vehicle)
         {
             return UpdateVehicle(vehicle);
         }
 
-        public bool Delete(int id)
+        public virtual bool Delete(int id)
         {
             return DeleteVehicle(id);
         }

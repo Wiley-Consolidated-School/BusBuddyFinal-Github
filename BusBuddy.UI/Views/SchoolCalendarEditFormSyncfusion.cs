@@ -60,8 +60,8 @@ namespace BusBuddy.UI.Views
         private void CreateControls()
         {
             // Create text boxes
-            _descriptionTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
-            _notesTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
+            _descriptionTextBox = ControlFactory.CreateTextBox("Enter description");
+            _notesTextBox = ControlFactory.CreateTextBox("Enter notes", true);
 
             // Make notes textbox multiline
             if (_notesTextBox is TextBox notesTextBox)
@@ -141,7 +141,6 @@ namespace BusBuddy.UI.Views
         {
             // Event handlers are set up in CreateControls
         }
-
         #region Control Creation Helpers
 
         private ComboBox CreateComboBox(string placeholder, int x, int y, int width)
@@ -172,7 +171,7 @@ namespace BusBuddy.UI.Views
             };
 
             // Apply Material theming
-            checkBox.BackColor = Color.Transparent;
+            checkBox.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
             checkBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
             checkBox.Font = new Font("Segoe UI", 9, FontStyle.Regular);
 
@@ -205,7 +204,6 @@ namespace BusBuddy.UI.Views
                 };
             }
         }
-
         #endregion
 
         #region Data Handling
@@ -243,7 +241,6 @@ namespace BusBuddy.UI.Views
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-
         #endregion
 
         #region Event Handlers
@@ -292,7 +289,6 @@ namespace BusBuddy.UI.Views
             DialogResult = DialogResult.Cancel;
             Close();
         }
-
         #endregion
 
         #region Validation
@@ -345,7 +341,6 @@ namespace BusBuddy.UI.Views
         {
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
-
         #endregion
 
         protected override void OnFormClosing(FormClosingEventArgs e)

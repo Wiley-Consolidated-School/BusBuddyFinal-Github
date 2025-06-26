@@ -1,0 +1,15 @@
+# Include test examples prominently in context
+!BusBuddy.UI.Tests/DynamicLayoutManagerTest.cs
+!TESTING_GUIDELINES.md
+!TEST_GENERATION_PROMPT.md
+
+# Exclude build artifacts and binary files
+bin/
+obj/
+TestResults/
+*.dll
+*.exe
+*.pdb
+*.tmp
+*.backup*
+*_backup*

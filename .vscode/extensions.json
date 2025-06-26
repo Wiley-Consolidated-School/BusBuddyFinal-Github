@@ -2,7 +2,14 @@
   "recommendations": [
     "redhat.vscode-yaml",
     "ms-vscode.vscode-json",
-    "editorconfig.editorconfig"
+    "editorconfig.editorconfig",
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.vscode-dotnet-runtime",
+    "formulahendry.dotnet-test-explorer",
+    "ryanluker.vscode-coverage-gutters",
+    "formulahendry.code-runner",
+    "ms-vscode.powershell",
+    "ms-dotnettools.csdevkit"
   ],
   "unwantedRecommendations": []
 }

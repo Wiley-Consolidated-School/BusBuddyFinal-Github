@@ -96,7 +96,30 @@
   // .NET Test Configuration
   "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj",
   "dotnet-test-explorer.useTreeView": true,
-  "dotnet-test-explorer.autoWatch": false,
+  "dotnet-test-explorer.autoWatch": true,
+  "dotnet-test-explorer.addProblems": true,
+  "dotnet-test-explorer.enableTelemetry": false,
+  "dotnet-test-explorer.autoExpandTree": true,
+  "dotnet-test-explorer.showCodeLens": true,
+  "dotnet-test-explorer.codeLensFailed": "❌",
+  "dotnet-test-explorer.codeLensPassed": "✅",
+  "dotnet-test-explorer.codeLensSkipped": "⚠️",
+  "dotnet-test-explorer.testArguments": "--settings=./BusBuddy.Tests/test.runsettings",
+  "dotnet-test-explorer.treeMode": "flat",
+
+  // VS Code Native Testing
+  "dotnet.unitTests.runSettingsPath": "./BusBuddy.Tests/test.runsettings",
+  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+  "dotnet.unitTests.discoverCommandLine": "dotnet test --list-tests",
+
+  // Test Discovery
+  "testExplorer.mergeSuites": false,
+  "testExplorer.showCollapseButton": true,
+  "testExplorer.showExpandButton": 3,
+  "testExplorer.gutterDecoration": true,
+  "testExplorer.useNativeTesting": true,
+  "testExplorer.sort": "byLocation",
+  "dotnet.test.autoDiscoverTests": true,
 
   // Auto-save for coverage updates
   "files.autoSave": "onFocusChange",
@@ -106,9 +129,20 @@
 
   // GitHub Copilot Chat prompt files
   "github.copilot.chat.promptFiles": [
-    "./CODE_REFINEMENT_PROMPT.md"
+    "./CODE_REFINEMENT_PROMPT.md",
+    "./TESTING_GUIDELINES.md",
+    "./TEST_GENERATION_PROMPT.md",
+    "./copilot-examples.md"
   ],
   "github.copilot.chat.useProjectContext": true,
+
+  // Copilot test generation configuration
+  "github.copilot.editor.enableCodeActions": true,
+  "github.copilot.chat.testGenerationStrategy": "xunit",
+  "github.copilot.advanced": {
+    "importOnReference.include": ["Xunit", "BusBuddy.UI.Tests"],
+    "importOnReference.exclude": ["MSTest", "NUnit", "SimpleTest"]
+  },
 
   // GitHub Copilot file exclusions for memory optimization
   "github.copilot.excludedFiles": [
@@ -166,7 +200,21 @@
     "Tahoma",
     "Xunit"
   ],
+
   "github.copilot.renameSuggestions.triggerAutomatically": false,
   "github.copilot.nextEditSuggestions.fixes": false,
-  "github.copilot.chat.copilotDebugCommand.enabled": false
+  "github.copilot.chat.copilotDebugCommand.enabled": false,
+
+  // Enhanced debugging settings for novice-friendly debugging
+  "omnisharp.enableDecompilationSupport": true,
+  "debug.console.acceptSuggestionOnEnter": "on",
+  "debug.console.closeOnEnd": false,
+  "debug.console.collapseIdenticalLines": false,
+  "debug.console.fontSize": 12,
+  "debug.console.historySize": 200,
+  "debug.onTaskErrors": "debugAnyway",
+  "debug.openDebug": "openOnDebugBreak",
+  "debug.showBreakpointsInOverviewRuler": true,
+  "debug.showInlineBreakpointCandidates": true,
+  "debug.toolBarLocation": "floating"
 }

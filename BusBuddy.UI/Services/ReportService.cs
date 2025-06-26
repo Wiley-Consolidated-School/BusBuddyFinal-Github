@@ -647,7 +647,15 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
 
         public void Dispose()
         {
-            _httpClient?.Dispose();
+            try
+            {
+                _httpClient?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                // Log disposal errors but don't throw
+                System.Diagnostics.Debug.WriteLine($"Error disposing ReportService HttpClient: {ex.Message}");
+            }
         }
     }
 }

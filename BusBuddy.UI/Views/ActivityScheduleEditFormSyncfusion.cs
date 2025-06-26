@@ -73,9 +73,9 @@ namespace BusBuddy.UI.Views
         private void CreateControls()
         {
             // Create text boxes
-            _destinationTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
-            _notesTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
-            _ridersTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "");
+            _destinationTextBox = ControlFactory.CreateTextBox("Enter destination");
+            _notesTextBox = ControlFactory.CreateTextBox("Enter notes", true);
+            _ridersTextBox = ControlFactory.CreateTextBox("Enter rider count");
 
             // Make notes textbox multiline
             if (_notesTextBox is TextBox notesTextBox)
@@ -186,7 +186,6 @@ namespace BusBuddy.UI.Views
                 _vehicleComboBox.SelectedIndexChanged += VehicleComboBox_SelectedIndexChanged;
             }
         }
-
         #region Control Creation Helpers
 
         private ComboBox CreateComboBox(string placeholder, int x, int y, int width)
@@ -231,7 +230,6 @@ namespace BusBuddy.UI.Views
                 };
             }
         }
-
         #endregion
 
         #region Data Population
@@ -252,8 +250,15 @@ namespace BusBuddy.UI.Views
                         DisplayText = $"{v.BusNumber ?? v.VehicleNumber} - {v.Make} {v.Model}"
                     }).ToList();
 
-                    _vehicleComboBox.DataSource = vehicleItems;
-                    _vehicleComboBox.SelectedIndex = -1;
+                    try
+                    {
+                        _vehicleComboBox.DataSource = vehicleItems;
+                        _vehicleComboBox.SelectedIndex = -1;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error loading vehicle data: {ex.Message}", "Data Loading Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
 
                 // Populate driver dropdown
@@ -328,7 +333,6 @@ namespace BusBuddy.UI.Views
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-
         #endregion
 
         #region Event Handlers
@@ -399,7 +403,6 @@ namespace BusBuddy.UI.Views
             DialogResult = DialogResult.Cancel;
             Close();
         }
-
         #endregion
 
         #region Validation
@@ -470,7 +473,6 @@ namespace BusBuddy.UI.Views
         {
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
-
         #endregion
 
         protected override void OnFormClosing(FormClosingEventArgs e)

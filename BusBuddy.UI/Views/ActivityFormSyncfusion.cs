@@ -73,6 +73,7 @@ namespace BusBuddy.UI.Views
                 Size = new Size(250, 25)
             };
 
+            // Reference: https://help.syncfusion.com/windowsforms/datetime-picker/getting-started
             _activityDatePicker = new SfDateTimeEdit
             {
                 Location = new Point(20, 120),
@@ -114,6 +115,7 @@ namespace BusBuddy.UI.Views
                 Height = 60
             };
 
+            // Reference: https://help.syncfusion.com/windowsforms/button/getting-started
             _saveButton = new SfButton
             {
                 Text = "Save",
@@ -121,6 +123,7 @@ namespace BusBuddy.UI.Views
                 Size = new Size(80, 30)
             };
 
+            // Reference: https://help.syncfusion.com/windowsforms/button/getting-started
             _cancelButton = new SfButton
             {
                 Text = "Cancel",

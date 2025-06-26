@@ -6,7 +6,6 @@ using BusBuddy.UI.Services;
 using BusBuddy.UI.Views;
 using BusBuddy.Business;
 using BusBuddy.UI.Helpers;
-using BusBuddy.Tests;
 using System.IO;
 
 namespace BusBuddy
@@ -18,11 +17,14 @@ namespace BusBuddy
         [STAThread]
         static int Main(string[] args)
         {
-            // Register Syncfusion license - per official documentation
-            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NNaF1cXGNCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXlccnVdQ2NdU0JxVkRWYUA=");
+            // Register Syncfusion license directly as per Syncfusion documentation
+            // https://help.syncfusion.com/common/essential-studio/licensing/how-to-register-in-an-application
+            // Community license key used for development and testing
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            // ⚠️ IMPORTANT: DO NOT MOVE THIS TO A HELPER OR MANAGER CLASS! ⚠️
+            // License registration must remain in Main() per Syncfusion's official documentation.
+            // See SYNCFUSION_LICENSE_GUIDELINES.md for details on why helper classes are forbidden.
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NNaF5cXmBCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXlcdHRdRGNcWENxXkZWYUA=");
 
             return MainAsync(args).GetAwaiter().GetResult();
         }
@@ -30,6 +32,10 @@ namespace BusBuddy
         static async Task<int> MainAsync(string[] args)
         {
             Console.WriteLine($"[DEBUG] BusBuddy Main started at {DateTime.Now:O}");
+
+            // Set up exception handling early to prevent dialog mode conflicts
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             {
                 var ex = e.ExceptionObject as Exception;
@@ -78,9 +84,29 @@ namespace BusBuddy
                     }
                 }
 
-                // Setup cleanup on application exit
-                Application.ApplicationExit += (s, e) => _singleInstanceManager?.Dispose();
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => _singleInstanceManager?.Dispose();
+                // Setup cleanup on application exit with error handling
+                Application.ApplicationExit += (s, e) =>
+                {
+                    try
+                    {
+                        _singleInstanceManager?.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error disposing SingleInstanceManager on ApplicationExit: {ex.Message}");
+                    }
+                };
+                AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+                {
+                    try
+                    {
+                        _singleInstanceManager?.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error disposing SingleInstanceManager on ProcessExit: {ex.Message}");
+                    }
+                };
 
                 // Handle communication from secondary instances
                 _singleInstanceManager.SecondInstanceDetected += OnSecondInstanceDetected;
@@ -136,49 +162,54 @@ namespace BusBuddy
             {
                 Console.WriteLine($"❌ Error handling secondary instance: {ex.Message}");
             }
-        }        /// <summary>
+        }
+
+        /// <summary>
         /// Runs the main application logic
         /// </summary>
         private static Task<int> RunMainApplication(string[] args)
         {
-            // Debug output will go to VS Code terminal when run with dotnet run
             Console.WriteLine("🚀 BusBuddy starting...");
-
-            // Ensure logs directory exists
             Directory.CreateDirectory("logs");
 
-            // License was already registered in Main - just log status
+            try
+            {
+                InitializeLicenseAndTheme();
+                ConfigureHighDpiSupport();
+                return StartDashboardApplication(args);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ CRITICAL ERROR: {ex.Message}");
+                LogError("Critical application error", ex);
+                ShowCriticalErrorDialog(ex);
+                return Task.FromResult(1);
+            }
+            finally
+            {
+                CleanupServiceContainer();
+            }
+        }
+
+        /// <summary>
+        /// Initialize Syncfusion license and theme system
+        /// </summary>
+        private static void InitializeLicenseAndTheme()
+        {
             Console.WriteLine("📝 License status: Syncfusion Community Edition active");
-            try
-            {
-                // No re-registration needed - license is already set in Main method
-                Console.WriteLine("✅ Syncfusion license is active");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Syncfusion license error: {ex.Message}");
-                LogError("Syncfusion license initialization failed", ex);
-                MessageBox.Show($"Failed to initialize Syncfusion license: {ex.Message}\n\nThe application may have reduced functionality.",
-                    "License Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                // Continue anyway - many features may still work
-            }
+            Console.WriteLine("✅ Syncfusion license is active");
 
-            // Initialize BusBuddy theming system
             Console.WriteLine("🎨 Initializing BusBuddy theme system...");
-            try
-            {
-                // Theme system ready - no assembly loading needed for basic Office2016 themes
-                Console.WriteLine("✅ Theme system initialized - Office2016 themes available");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Theme initialization error: {ex.Message}");
-                LogError("Theme initialization failed", ex);
-                // Continue with default theming
-            }
+            Console.WriteLine("✅ Theme system initialized - Office2016 themes available");
+        }
 
-            // Configure high DPI support for the application
+        /// <summary>
+        /// Configure high DPI support with fallback options
+        /// </summary>
+        private static void ConfigureHighDpiSupport()
+        {
             Console.WriteLine("📱 Configuring high DPI support...");
+
             try
             {
                 Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
@@ -190,7 +221,7 @@ namespace BusBuddy
             {
                 Console.WriteLine($"❌ High DPI configuration error: {ex.Message}");
                 LogError("High DPI configuration failed", ex);
-                // Try fallback DPI mode
+
                 try
                 {
                     Application.SetHighDpiMode(HighDpiMode.SystemAware);
@@ -203,101 +234,122 @@ namespace BusBuddy
                     Console.WriteLine("⚠️ Using default DPI settings");
                 }
             }
+        }
 
-            try
+        /// <summary>
+        /// Start the dashboard application with service container initialization
+        /// </summary>
+        private static Task<int> StartDashboardApplication(string[] args)
+        {
+            var serviceContainer = InitializeServiceContainer();
+            ValidateRequiredServices(serviceContainer);
+            ProcessCommandLineArguments(args);
+
+            var dashboard = CreateDashboard();
+            RunApplication(dashboard);
+
+            return Task.FromResult(0);
+        }
+
+        /// <summary>
+        /// Initialize and configure the service container
+        /// </summary>
+        private static ServiceContainerInstance InitializeServiceContainer()
+        {
+            Console.WriteLine("🔧 Creating service container...");
+            var serviceContainer = ServiceContainerInstance.Instance;
+            TestServiceResolution(serviceContainer);
+            return serviceContainer;
+        }
+
+        /// <summary>
+        /// Validate that required services are properly registered
+        /// </summary>
+        private static void ValidateRequiredServices(ServiceContainerInstance serviceContainer)
+        {
+            Console.WriteLine("🔌 Validating required services...");
+
+            var navigationService = serviceContainer.GetService<BusBuddy.UI.Services.INavigationService>();
+            if (navigationService == null)
+                throw new InvalidOperationException("Navigation service not registered. Check ServiceContainerInstance configuration.");
+
+            var databaseHelperService = serviceContainer.GetService<BusBuddy.Business.IDatabaseHelperService>();
+            if (databaseHelperService == null)
+                throw new InvalidOperationException("Business database helper service not registered. Check ServiceContainerInstance configuration.");
+        }
+
+        /// <summary>
+        /// Process command line arguments for test modes
+        /// </summary>
+        private static void ProcessCommandLineArguments(string[] args)
+        {
+            if (args.Length == 0) return;
+
+            switch (args[0].ToLower())
             {
-                Console.WriteLine("🔧 Creating service container...");
-                var serviceContainer = ServiceContainerInstance.Instance;
-
-                Console.WriteLine("🔌 Validating required services...");
-                var navigationService = serviceContainer.GetService<BusBuddy.UI.Services.INavigationService>();
-                if (navigationService == null)
-                {
-                    throw new InvalidOperationException("Navigation service not registered. Check ServiceContainerInstance configuration.");
-                }
-
-                var databaseHelperService = serviceContainer.GetService<BusBuddy.Business.IDatabaseHelperService>();
-                if (databaseHelperService == null)
-                {
-                    throw new InvalidOperationException("Business database helper service not registered. Check ServiceContainerInstance configuration.");
-                }
-
-                // Test all services resolution
-                TestServiceResolution(serviceContainer);
-
-                Console.WriteLine("🚌 Creating dashboard...");
-
-                // Check command line arguments for test forms
-                if (args.Length > 0 && args[0].ToLower() == "communitylicensetest")
-                {
+                case "communitylicensetest":
                     Console.WriteLine("🧪 Community License test mode - license already registered in Main");
                     Console.WriteLine("✅ Application will run with properly licensed Syncfusion controls");
-                }
+                    break;
+                case "test-form":
+                    Console.WriteLine("🧪 Test form mode - running main dashboard instead");
+                    Console.WriteLine("✅ License already registered, dashboard will work properly");
+                    break;
+                case "community-license":
+                    Console.WriteLine("🧪 Community License test mode - running main dashboard");
+                    Console.WriteLine("✅ License already registered, Syncfusion controls will work properly");
+                    break;
+            }
+        }
 
-                Console.WriteLine("  📊 Getting RouteAnalyticsService...");
-                var routeAnalyticsService = serviceContainer.GetService<BusBuddy.Business.IRouteAnalyticsService>();
-                Console.WriteLine($"  ✅ RouteAnalyticsService: {routeAnalyticsService?.GetType().Name ?? "NULL"}");
+        /// <summary>
+        /// Create the main dashboard instance
+        /// </summary>
+        private static BusBuddy.UI.Views.Dashboard CreateDashboard()
+        {
+            Console.WriteLine("🔧 Creating Dashboard instance...");
+            var dashboard = new BusBuddy.UI.Views.Dashboard();
+            Console.WriteLine("✅ Dashboard created successfully");
+            return dashboard;
+        }
 
-                Console.WriteLine("  📋 Getting ReportService...");
-                var reportService = serviceContainer.GetService<BusBuddy.UI.Services.IReportService>();
-                Console.WriteLine($"  ✅ ReportService: {reportService?.GetType().Name ?? "NULL"}");
+        /// <summary>
+        /// Run the Windows Forms application
+        /// </summary>
+        private static void RunApplication(Form mainForm)
+        {
+            Console.WriteLine("▶️ Running application...");
+            Application.Run(mainForm);
+            Console.WriteLine("🏁 Application exited after main form closed");
+        }
 
-                Console.WriteLine("  📈 Getting AnalyticsService...");
-                var analyticsService = serviceContainer.GetService<BusBuddy.UI.Services.IAnalyticsService>();
-                Console.WriteLine($"  ✅ AnalyticsService: {analyticsService?.GetType().Name ?? "NULL"}");
+        // Shows a critical error dialog to the user
+        private static void ShowCriticalErrorDialog(Exception ex)
+        {
+            var errorMessage = $"A critical error occurred while starting BusBuddy:\n\n{ex.Message}\n\n" +
+                              $"Stack Trace:\n{ex.StackTrace}\n\n" +
+                              "Please check the logs directory for detailed error information.\n" +
+                              "If this problem persists, please contact technical support.";
 
-                Console.WriteLine("  🚨 Getting ErrorHandlerService...");
-                var errorHandlerService = serviceContainer.GetService<BusBuddy.UI.Services.IErrorHandlerService>();
-                Console.WriteLine($"  ✅ ErrorHandlerService: {errorHandlerService?.GetType().Name ?? "NULL"}");
+            MessageBox.Show(errorMessage, "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Console.WriteLine("🏁 Application exited due to critical error");
+        }
 
-                // Check for test form argument
-                if (args.Length > 0)
-                {
-                    if (args[0] == "test-form")
-                    {
-                        Console.WriteLine("🧪 Test form mode - running main dashboard instead");
-                        Console.WriteLine("✅ License already registered, dashboard will work properly");
-                    }
-                    else if (args[0] == "community-license")
-                    {
-                        Console.WriteLine("🧪 Community License test mode - running main dashboard");
-                        Console.WriteLine("✅ License already registered, Syncfusion controls will work properly");
-                    }
-                }
-
-                Console.WriteLine("🔧 Creating Dashboard instance...");
-                var dashboard = new BusBuddy.UI.Views.Dashboard();
-                Console.WriteLine("✅ Dashboard created successfully");
-
-                Console.WriteLine("▶️ Running application...");
-                Application.Run(dashboard);
-
-                Console.WriteLine("🏁 Application exited normally");
+        /// <summary>
+        /// Clean up the service container
+        /// </summary>
+        private static void CleanupServiceContainer()
+        {
+            try
+            {
+                ServiceContainerInstance.Instance.Reset();
+                Console.WriteLine("🏁 Application cleanup complete, exiting.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ CRITICAL ERROR: {ex.Message}");
-                LogError("Critical application error", ex);
-
-                var errorMessage = $"A critical error occurred while starting BusBuddy:\n\n{ex.Message}\n\n" +
-                                  "Please check the logs directory for detailed error information.\n" +
-                                  "If this problem persists, please contact technical support.";
-
-                MessageBox.Show(errorMessage, "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogError("Service container cleanup failed", ex);
+                Console.WriteLine("🏁 Application exited with cleanup error.");
             }
-            finally
-            {
-                try
-                {
-                    ServiceContainerInstance.Instance.Reset();
-                }
-                catch (Exception ex)
-                {
-                    LogError("Service container cleanup failed", ex);
-                }
-            }
-
-            return Task.FromResult(0); // Success
         }
 
         /// <summary>

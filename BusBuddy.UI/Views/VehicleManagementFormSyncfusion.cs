@@ -23,22 +23,32 @@ namespace BusBuddy.UI.Views
     public class VehicleManagementFormSyncfusion : BaseManagementForm<Vehicle>
     {
         private readonly IVehicleRepository _vehicleRepository;
-
         #region Properties Override
         protected override string FormTitle => "🚗 Vehicle Management";
         protected override string SearchPlaceholder => "Search vehicles...";
         protected override string EntityName => "Vehicle";
         #endregion
 
-        #region Constructors
+#region Constructors
         public VehicleManagementFormSyncfusion()
+            : this(new VehicleRepository(), new MessageBoxService())
+        {
+        }
+
+        public VehicleManagementFormSyncfusion(IVehicleRepository vehicleRepository) : this(vehicleRepository, new MessageBoxService())
+        {
+        }
+
+        public VehicleManagementFormSyncfusion(IVehicleRepository vehicleRepository, IMessageService messageService) : base(messageService)
         {
             try
             {
-                Console.WriteLine("🔍 Creating VehicleManagementFormSyncfusion using singleton ServiceContainer");
+                Console.WriteLine("🔍 Creating VehicleManagementFormSyncfusion using dependency injection");
 
-                // Use the helper method to ensure repository initialization
-                _vehicleRepository = ServiceContainerSingleton.EnsureRepository<IVehicleRepository>();
+                _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
+
+                // Set the repository in the base class before any initialization
+                SetRepository(_vehicleRepository);
 
                 // Force test the repository to ensure it's working
                 var vehicles = _vehicleRepository.GetAllVehicles();
@@ -49,70 +59,33 @@ namespace BusBuddy.UI.Views
             {
                 Console.WriteLine($"❌ Error in VehicleManagementFormSyncfusion constructor: {ex.Message}");
                 Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                MessageBox.Show($"Failed to initialize vehicle repository: {ex.Message}\n\nPlease check database connection.",
-                    "Repository Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw; // Re-throw to show the error to the user
+                var errorMessage = $"Failed to initialize vehicle repository: {ex.Message}";
+                _messageService.ShowError($"{errorMessage}\n\nPlease check database connection.", "Repository Initialization Error");
+                throw new InvalidOperationException(errorMessage, ex);
             }
-            // NOTE: LoadData() is called by the base class after all controls are initialized
-        }
-
-        public VehicleManagementFormSyncfusion(IVehicleRepository vehicleRepository)
-        {
-            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
             // NOTE: LoadData() is called by the base class after all controls are initialized
         }
         #endregion
 
-        #region Base Implementation Override
-        protected override void LoadData()
+#region Base Implementation Override
+        protected override void LoadDataFromRepository()
         {
             try
             {
-                if (_vehicleRepository == null)
+                var vehicles = _vehicleRepository.GetAllVehicles() ?? new List<Vehicle>();
+                _entities = vehicles.ToList();
+
+                if (_dataGrid != null && !BusBuddyThemeManager.IsTestMode)
                 {
-                    ShowErrorMessage("Error loading vehicles: Repository not initialized. Please check database connection.");
-                    _entities = new List<Vehicle>();
-                    return;
+                    PopulateVehicleGrid();
                 }
 
-                // Check if we're in test mode - avoid database calls during testing
-                if (IsTestMode())
-                {
-                    Console.WriteLine("🧪 Test mode: Loading mock vehicle data");
-                    _entities = CreateMockVehicles();
-                    return;
-                }
-
-                Console.WriteLine("🚗 Loading vehicles from database...");
-                var vehicles = _vehicleRepository.GetAllVehicles();
-                _entities = vehicles?.ToList() ?? new List<Vehicle>();
-                Console.WriteLine($"✅ Loaded {_entities.Count} vehicles successfully");
-                PopulateVehicleGrid();
+                Console.WriteLine($"✅ Loaded {vehicles.Count()} vehicles successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error loading vehicles: {ex}");
-                ShowErrorMessage($"Error loading vehicles: {ex.Message}\n\nPlease check database connection and try again.");
-                _entities = new List<Vehicle>(); // Ensure _entities is never null
+                HandleError($"Error loading vehicles: {ex.Message}", "🚗 Vehicle Management", ex);
             }
-        }
-
-        private bool IsTestMode()
-        {
-            // Check if we're running in a test environment
-            return Environment.CommandLine.Contains("testhost") ||
-                   Environment.CommandLine.Contains("vstest") ||
-                   AppDomain.CurrentDomain.FriendlyName.Contains("test", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private List<Vehicle> CreateMockVehicles()
-        {
-            // Return mock data for testing to avoid database calls
-            return new List<Vehicle>
-            {
-                new Vehicle { VehicleID = 1, VehicleNumber = "TEST001", Make = "Mock", Model = "Test", Year = 2023 },
-                new Vehicle { VehicleID = 2, VehicleNumber = "TEST002", Make = "Mock", Model = "Test", Year = 2023 }
-            };
         }
 
         protected override void AddNewEntity()
@@ -127,7 +100,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error adding new vehicle: {ex.Message}");
+                HandleError($"Error adding new vehicle: {ex.Message}", "Add Vehicle Error", ex);
             }
         }
 
@@ -136,7 +109,7 @@ namespace BusBuddy.UI.Views
             var selectedVehicle = GetSelectedEntity();
             if (selectedVehicle == null)
             {
-                ShowInfoMessage("Please select a vehicle to edit.");
+                ShowInfo("Please select a vehicle to edit.");
                 return;
             }
 
@@ -150,7 +123,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error editing vehicle: {ex.Message}");
+                HandleError($"Error editing vehicle: {ex.Message}", "Edit Vehicle Error", ex);
             }
         }
 
@@ -159,21 +132,21 @@ namespace BusBuddy.UI.Views
             var selectedVehicle = GetSelectedEntity();
             if (selectedVehicle == null)
             {
-                ShowInfoMessage("Please select a vehicle to delete.");
+                ShowInfo("Please select a vehicle to delete.");
                 return;
             }
 
-            if (!ConfirmDelete("vehicle")) return;
+            if (!ConfirmAction($"Are you sure you want to delete vehicle {selectedVehicle.VehicleNumber}?", "Confirm Delete")) return;
 
             try
             {
                 _vehicleRepository.DeleteVehicle(selectedVehicle.Id);
                 RefreshGrid();
-                ShowInfoMessage("Vehicle deleted successfully.");
+                ShowInfo("Vehicle deleted successfully.");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error deleting vehicle: {ex.Message}");
+                HandleError($"Error deleting vehicle: {ex.Message}", "Delete Vehicle Error", ex);
             }
         }
 
@@ -182,7 +155,7 @@ namespace BusBuddy.UI.Views
             var selectedVehicle = GetSelectedEntity();
             if (selectedVehicle == null)
             {
-                ShowInfoMessage("Please select a vehicle to view details.");
+                ShowInfo("Please select a vehicle to view details.");
                 return;
             }
 
@@ -198,11 +171,11 @@ namespace BusBuddy.UI.Views
                             $"Fuel Type: {selectedVehicle.FuelType}\n" +
                             $"Status: {selectedVehicle.Status}";
 
-                ShowInfoMessage(details, "Vehicle Details");
+                ShowInfo(details, "Vehicle Details");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error viewing vehicle details: {ex.Message}");
+                HandleError($"Error viewing vehicle details: {ex.Message}", "View Vehicle Details Error", ex);
             }
         }
 
@@ -238,13 +211,18 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error searching vehicles: {ex.Message}");
+                HandleError($"Error searching vehicles: {ex.Message}", "Search Vehicles Error", ex);
             }
         }
 
         protected override void SetupDataGridColumns()
         {
-            if (_dataGrid == null) return;
+            if (_dataGrid == null)
+            {
+                if (BusBuddyThemeManager.IsTestMode)
+                    Console.WriteLine("🧪 VehicleManagementForm: Skipping column setup - test mode enabled");
+                return;
+            }
 
             _dataGrid.AutoGenerateColumns = false;
             _dataGrid.Columns.Clear();
@@ -262,7 +240,7 @@ namespace BusBuddy.UI.Views
         }
         #endregion
 
-        #region Helper Methods
+#region Helper Methods
         private void PopulateVehicleGrid()
         {
             if (_dataGrid == null) return;
@@ -291,11 +269,12 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error populating vehicle grid: {ex.Message}");
-            }        }
+                HandleError($"Error populating vehicle grid: {ex.Message}", "Grid Population Error", ex);
+            }
+        }
         #endregion
 
-        #region Disposal
+#region Disposal
         protected override void Dispose(bool disposing)
         {
             if (disposing)

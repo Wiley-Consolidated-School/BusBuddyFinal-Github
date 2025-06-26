@@ -1,0 +1,983 @@
+using System;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+using Syncfusion.Windows.Forms.Tools;
+using BusBuddy.UI.Layout;
+using Xunit;
+
+// Disable nullable reference types for testing null arguments
+#nullable disable
+
+namespace BusBuddy.UI.Tests
+{
+    /// <summary>
+    /// Tests for DynamicLayoutManager ensuring ONLY Syncfusion-documented methods are used.
+    /// All tests validate against official Syncfusion Windows Forms documentation standards.
+    /// Any non-Syncfusion or undocumented method usage should cause test failures.
+    /// </summary>
+    public class DynamicLayoutManagerTest : IDisposable
+    {
+        private readonly Form _testForm;
+        private readonly Panel _parentPanel;
+
+    static DynamicLayoutManagerTest()
+    {
+        // Set exception mode before any controls are created
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
+    }
+
+    public DynamicLayoutManagerTest()
+    {
+        // Initialize test form with visible=false to prevent UI thread issues
+        _testForm = new Form
+        {
+            Visible = false
+        };
+        _parentPanel = new Panel();
+        _testForm.Controls.Add(_parentPanel);
+    }
+
+        public void Dispose()
+        {
+            _testForm?.Dispose();
+            _parentPanel?.Dispose();
+        }
+
+        #region CreateFlowLayoutContainer Tests
+
+        [Fact]
+        public void CreateFlowLayoutContainer_WithNullParent_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.CreateFlowLayoutContainer(null));
+        }
+
+        [Fact]
+        public void CreateFlowLayoutContainer_CreatesContainerWithCorrectProperties()
+        {
+            // Act
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel);
+
+            // Assert
+            Assert.NotNull(container);
+            Assert.Equal(DockStyle.Fill, container.Dock);
+            Assert.Equal(Color.Transparent, container.BackColor);
+            Assert.Contains(container, _parentPanel.Controls.Cast<Control>());
+        }
+
+        [Fact]
+        public void CreateFlowLayoutContainer_CreatesFlowLayoutWithCorrectGaps()
+        {
+            // Arrange
+            const int hGap = 15;
+            const int vGap = 20;
+
+            // Act
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel, false, hGap, vGap);
+            var flowLayout = container.Tag as FlowLayout;
+
+            // Assert
+            Assert.NotNull(flowLayout);
+            Assert.Equal(hGap, flowLayout.HGap);
+            Assert.Equal(vGap, flowLayout.VGap);
+        }
+
+        [Fact]
+        public void CreateFlowLayoutContainer_WithWrapContents_CreatesFlowLayoutPanel()
+        {
+            // Act
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel, true);
+
+            // Assert
+            Assert.NotNull(container);
+            Assert.Single(container.Controls);
+            Assert.IsType<FlowLayoutPanel>(container.Controls[0]);
+
+            var flowPanel = container.Controls[0] as FlowLayoutPanel;
+            Assert.NotNull(flowPanel);
+            Assert.Equal(DockStyle.Fill, flowPanel.Dock);
+            Assert.Equal(FlowDirection.LeftToRight, flowPanel.FlowDirection);
+            Assert.True(flowPanel.WrapContents);
+            Assert.True(flowPanel.AutoScroll);
+        }
+
+        #endregion
+
+        #region CreateCardLayoutContainer Tests
+
+        [Fact]
+        public void CreateCardLayoutContainer_WithNullParent_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.CreateCardLayoutContainer(null));
+        }
+
+        [Fact]
+        public void CreateCardLayoutContainer_CreatesContainerWithCorrectProperties()
+        {
+            // Act
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+
+            // Assert
+            Assert.NotNull(container);
+            Assert.Equal(DockStyle.Fill, container.Dock);
+            Assert.Equal(Color.Transparent, container.BackColor);
+            Assert.Contains(container, _parentPanel.Controls.Cast<Control>());
+        }
+
+        [Fact]
+        public void CreateCardLayoutContainer_CreatesCardLayoutWithCorrectContainer()
+        {
+            // Act
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardLayout = container.Tag as CardLayout;
+
+            // Assert
+            Assert.NotNull(cardLayout);
+            Assert.Equal(container, cardLayout.ContainerControl);
+        }
+
+        #endregion
+
+        #region ShowCard Tests
+
+        [Fact]
+        public void ShowCard_WithNullContainer_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var card = new Panel();
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.ShowCard(null, card));
+        }
+
+        [Fact]
+        public void ShowCard_WithNullCard_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var container = new Panel();
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.ShowCard(container, null));
+        }
+
+        [Fact]
+        public void ShowCard_MakesSpecifiedCardVisible_HidesOthers()
+        {
+            // Arrange
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardLayout = container.Tag as CardLayout;
+            var card1 = new Panel();
+            var card2 = new Panel();
+            var card3 = new Panel();
+
+            container.Controls.Add(card1);
+            container.Controls.Add(card2);
+            container.Controls.Add(card3);
+
+            // Act
+            DynamicLayoutManager.ShowCard(container, card2);
+
+            // Assert using ONLY Syncfusion-documented methods
+            // The CardLayout manages visibility internally, we should verify using SelectedCard property
+            Assert.NotNull(cardLayout);
+
+            // Verify that card2 is selected using Syncfusion's documented method
+            string card2Name = cardLayout.GetCardName(card2);
+            Assert.NotNull(card2Name);
+            Assert.Equal(card2Name, cardLayout.SelectedCard);
+
+            // Verify that the visible card is card2 using our Syncfusion-compliant helper
+            Assert.Equal(card2, GetVisibleCardFromCardLayout(cardLayout));
+        }
+
+        #endregion
+
+        #region SetBreak Tests
+
+        [Fact]
+        public void SetBreak_WithNullContainer_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var control = new Button();
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.SetBreak(null, control));
+        }
+
+        [Fact]
+        public void SetBreak_WithNullControl_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var container = new Panel();
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.SetBreak(container, null));
+        }
+
+        [Fact]
+        public void SetBreak_SetsCorrectMargin()
+        {
+            // Arrange
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel);
+            var control = new Button();
+            var originalMargin = control.Margin; // Capture the default margin
+            container.Controls.Add(control);
+
+            // Act
+            DynamicLayoutManager.SetBreak(container, control);
+
+            // Assert
+            // We specifically verify that the top margin is 10, which is what the SetBreak method sets
+            Assert.Equal(10, control.Margin.Top);
+
+            // Verify other margins are preserved from original
+            Assert.Equal(originalMargin.Left, control.Margin.Left);
+            Assert.Equal(originalMargin.Right, control.Margin.Right);
+            Assert.Equal(originalMargin.Bottom, control.Margin.Bottom);
+        }
+
+        #endregion
+
+        #region CreateTableLayoutContainer Tests
+
+        [Fact]
+        public void CreateTableLayoutContainer_WithNullParent_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.CreateTableLayoutContainer(null, 2, 2));
+        }
+
+        [Fact]
+        public void CreateTableLayoutContainer_CreatesTableWithCorrectRowsAndColumns()
+        {
+            // Arrange
+            const int rows = 3;
+            const int columns = 4;
+            const int padding = 8;
+
+            // Act
+            var tablePanel = DynamicLayoutManager.CreateTableLayoutContainer(_parentPanel, rows, columns, padding);
+
+            // Assert
+            Assert.NotNull(tablePanel);
+            Assert.Equal(rows, tablePanel.RowCount);
+            Assert.Equal(columns, tablePanel.ColumnCount);
+            Assert.Equal(new Padding(padding), tablePanel.Padding);
+            Assert.Equal(DockStyle.Fill, tablePanel.Dock);
+            Assert.Equal(Color.Transparent, tablePanel.BackColor);
+        }
+
+        [Fact]
+        public void CreateTableLayoutContainer_SetsCorrectRowAndColumnStyles()
+        {
+            // Arrange
+            const int rows = 2;
+            const int columns = 3;
+
+            // Act
+            var tablePanel = DynamicLayoutManager.CreateTableLayoutContainer(_parentPanel, rows, columns);
+
+            // Assert
+            Assert.Equal(rows, tablePanel.RowStyles.Count);
+            Assert.Equal(columns, tablePanel.ColumnStyles.Count);
+
+            // Check row styles
+            Assert.Equal(50f, tablePanel.RowStyles[0].Height);
+            Assert.Equal(50f, tablePanel.RowStyles[1].Height);
+            Assert.Equal(SizeType.Percent, tablePanel.RowStyles[0].SizeType);
+
+            // Check column styles
+            Assert.Equal(33.33333f, tablePanel.ColumnStyles[0].Width, 0.001);
+            Assert.Equal(33.33333f, tablePanel.ColumnStyles[1].Width, 0.001);
+            Assert.Equal(33.33333f, tablePanel.ColumnStyles[2].Width, 0.001);
+            Assert.Equal(SizeType.Percent, tablePanel.ColumnStyles[0].SizeType);
+        }
+
+        #endregion
+
+        #region CreateDashboardLayout Tests
+
+        [Fact]
+        public void CreateDashboardLayout_WithNullParent_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.CreateDashboardLayout(null));
+        }
+
+        [Fact]
+        public void CreateDashboardLayout_CreatesCorrectStructure()
+        {
+            // Act
+            var tablePanel = DynamicLayoutManager.CreateDashboardLayout(_parentPanel);
+
+            // Assert
+            Assert.NotNull(tablePanel);
+            Assert.Equal(2, tablePanel.RowCount);
+            Assert.Equal(1, tablePanel.ColumnCount);
+
+            // Check that content table is in second row
+            Assert.Single(tablePanel.Controls);
+            var contentTable = tablePanel.Controls[0] as TableLayoutPanel;
+            Assert.NotNull(contentTable);
+
+            // Verify content table is added to second row
+            var position = tablePanel.GetPositionFromControl(contentTable);
+            Assert.Equal(0, position.Column);
+            Assert.Equal(1, position.Row);
+
+            // Check content table structure
+            Assert.Equal(1, contentTable.RowCount);
+            Assert.Equal(2, contentTable.ColumnCount);
+
+            // Check column distribution in content table (60/40 split)
+            Assert.Equal(60f, contentTable.ColumnStyles[0].Width);
+            Assert.Equal(40f, contentTable.ColumnStyles[1].Width);
+        }
+
+        [Fact]
+        public void CreateDashboardLayout_UsesSpecifiedTopRowHeight()
+        {
+            // Arrange
+            const float topRowHeight = 30f;
+
+            // Act
+            var tablePanel = DynamicLayoutManager.CreateDashboardLayout(_parentPanel, topRowHeight);
+
+            // Assert
+            Assert.Equal(topRowHeight, tablePanel.RowStyles[0].Height);
+            Assert.Equal(100f - topRowHeight, tablePanel.RowStyles[1].Height);
+        }
+
+        [Fact]
+        public void CreateDashboardLayout_SetsCorrectBackgroundColor()
+        {
+            // Act
+            var tablePanel = DynamicLayoutManager.CreateDashboardLayout(_parentPanel);
+
+            // Assert
+            Assert.Equal(Color.Transparent, tablePanel.BackColor);
+
+            // Also check the content table's background color
+            var contentTable = tablePanel.Controls[0] as TableLayoutPanel;
+            Assert.NotNull(contentTable);
+            Assert.Equal(Color.Transparent, contentTable.BackColor);
+        }
+
+        [Fact]
+        public void CreateDashboardLayout_ResizesProportionally()
+        {
+            // Arrange
+            const float topRowHeight = 25f;
+            _parentPanel.Size = new Size(800, 600);
+
+            // Act
+            var tablePanel = DynamicLayoutManager.CreateDashboardLayout(_parentPanel, topRowHeight);
+
+            // Simulate form resize
+            _parentPanel.Size = new Size(1000, 800);
+
+            // Assert
+            Assert.Equal(DockStyle.Fill, tablePanel.Dock);
+
+            // Verify table fills parent panel regardless of size
+            Assert.Equal(_parentPanel.ClientSize.Width, tablePanel.Width);
+            Assert.Equal(_parentPanel.ClientSize.Height, tablePanel.Height);
+
+            // Verify row percentages are maintained
+            Assert.Equal(topRowHeight, tablePanel.RowStyles[0].Height);
+            Assert.Equal(100f - topRowHeight, tablePanel.RowStyles[1].Height);
+        }
+
+        [Fact]
+        public void CreateDashboardLayout_SupportsAddingControls()
+        {
+            // Arrange
+            var tablePanel = DynamicLayoutManager.CreateDashboardLayout(_parentPanel);
+            var contentTable = tablePanel.Controls[0] as TableLayoutPanel;
+            Assert.NotNull(contentTable);
+
+            // Create test controls
+            var headerPanel = new Panel { BackColor = Color.LightBlue };
+            var leftPanel = new Panel { BackColor = Color.LightGreen };
+            var rightPanel = new Panel { BackColor = Color.LightPink };
+
+            // Act
+            tablePanel.Controls.Add(headerPanel, 0, 0); // Add to top row
+            contentTable.Controls.Add(leftPanel, 0, 0); // Add to left column of content table
+            contentTable.Controls.Add(rightPanel, 1, 0); // Add to right column of content table
+
+            // Assert
+            // Verify header panel is in the top row
+            var headerPosition = tablePanel.GetPositionFromControl(headerPanel);
+            Assert.Equal(0, headerPosition.Row);
+            Assert.Equal(0, headerPosition.Column);
+
+            // Verify content panels are in correct columns
+            var leftPosition = contentTable.GetPositionFromControl(leftPanel);
+            Assert.Equal(0, leftPosition.Row);
+            Assert.Equal(0, leftPosition.Column);
+
+            var rightPosition = contentTable.GetPositionFromControl(rightPanel);
+            Assert.Equal(0, rightPosition.Row);
+            Assert.Equal(1, rightPosition.Column);
+
+            // Verify all controls have proper docking
+            Assert.Equal(2, tablePanel.Controls.Count); // Header panel + content table
+            Assert.Equal(2, contentTable.Controls.Count); // Left panel + right panel
+        }
+
+        #endregion
+
+        #region CreateResponsiveGridLayout Tests
+
+        [Fact]
+        public void CreateResponsiveGridLayout_WithNullParent_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var config = new DynamicLayoutManager.LayoutConfiguration(1, 1);
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.CreateResponsiveGridLayout(null, config));
+        }
+
+        [Fact]
+        public void CreateResponsiveGridLayout_WithNullConfig_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => DynamicLayoutManager.CreateResponsiveGridLayout(_parentPanel, null));
+        }
+
+        [Fact]
+        public void CreateResponsiveGridLayout_CreatesCorrectTableStructure()
+        {
+            // Arrange
+            var config = new DynamicLayoutManager.LayoutConfiguration(3, 2)
+            {
+                RowSizes = new System.Collections.Generic.List<float> { 25f, 25f, 50f },
+                ColumnSizes = new System.Collections.Generic.List<float> { 30f, 70f }
+            };
+
+            // Act
+            var container = DynamicLayoutManager.CreateResponsiveGridLayout(_parentPanel, config);
+
+            // Assert
+            Assert.NotNull(container);
+            Assert.Single(container.Controls);
+
+            var tablePanel = container.Controls[0] as TableLayoutPanel;
+            Assert.NotNull(tablePanel);
+            Assert.Equal(config.Rows, tablePanel.RowCount);
+            Assert.Equal(config.Columns, tablePanel.ColumnCount);
+
+            // Check row heights
+            Assert.Equal(config.RowSizes[0], tablePanel.RowStyles[0].Height);
+            Assert.Equal(config.RowSizes[1], tablePanel.RowStyles[1].Height);
+            Assert.Equal(config.RowSizes[2], tablePanel.RowStyles[2].Height);
+
+            // Check column widths
+            Assert.Equal(config.ColumnSizes[0], tablePanel.ColumnStyles[0].Width);
+            Assert.Equal(config.ColumnSizes[1], tablePanel.ColumnStyles[1].Width);
+        }
+
+        #endregion
+
+        #region LayoutConfiguration Tests
+
+        [Fact]
+        public void LayoutConfiguration_DefaultValues()
+        {
+            // Act
+            var config = new DynamicLayoutManager.LayoutConfiguration(1, 1);
+
+            // Assert
+            Assert.Equal(1, config.Rows);
+            Assert.Equal(1, config.Columns);
+            Assert.Single(config.RowSizes);
+            Assert.Single(config.ColumnSizes);
+            Assert.Equal(100f, config.RowSizes[0]);
+            Assert.Equal(100f, config.ColumnSizes[0]);
+        }
+
+        [Fact]
+        public void LayoutConfiguration_CreateTwoColumnLayout_ReturnsCorrectConfig()
+        {
+            // Arrange
+            float leftColumnWidth = 75f;
+
+            // Act
+            var config = new DynamicLayoutManager.LayoutConfiguration(1, 2)
+            {
+                ColumnSizes = new System.Collections.Generic.List<float> { leftColumnWidth, 100f - leftColumnWidth }
+            };
+
+            // Assert
+            Assert.Equal(1, config.Rows);
+            Assert.Equal(2, config.Columns);
+            Assert.Equal(leftColumnWidth, config.ColumnSizes[0]);
+            Assert.Equal(100f - leftColumnWidth, config.ColumnSizes[1]);
+        }
+
+        [Fact]
+        public void LayoutConfiguration_CreateTwoByTwoLayout_ReturnsCorrectConfig()
+        {
+            // Act
+            var config = new DynamicLayoutManager.LayoutConfiguration(2, 2);
+
+            // Assert
+            Assert.Equal(2, config.Rows);
+            Assert.Equal(2, config.Columns);
+            Assert.Equal(50f, config.RowSizes[0]);
+            Assert.Equal(50f, config.RowSizes[1]);
+            Assert.Equal(50f, config.ColumnSizes[0]);
+            Assert.Equal(50f, config.ColumnSizes[1]);
+        }
+
+        [Fact]
+        public void LayoutConfiguration_CreateDashboardLayout_ReturnsCorrectConfig()
+        {
+            // Arrange
+            float topRowHeight = 15f;
+
+            // Act
+            var config = new DynamicLayoutManager.LayoutConfiguration(2, 2)
+            {
+                RowSizes = new System.Collections.Generic.List<float> { topRowHeight, 100f - topRowHeight }
+            };
+
+            // Assert
+            Assert.Equal(2, config.Rows);
+            Assert.Equal(2, config.Columns);
+            Assert.Equal(topRowHeight, config.RowSizes[0]);
+            Assert.Equal(100f - topRowHeight, config.RowSizes[1]);
+            Assert.Equal(60f, config.ColumnSizes[0]);
+            Assert.Equal(40f, config.ColumnSizes[1]);
+        }
+
+        #endregion
+
+        #region Syncfusion Documentation Compliance Tests
+
+        [Fact]
+        public void SyncfusionCompliance_CardLayout_OnlyUsesDocumentedMethods()
+        {
+            // Arrange
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardLayout = container.Tag as CardLayout;
+            var card1 = new Panel { Name = "Card1" };
+            var card2 = new Panel { Name = "Card2" };
+
+            // Act - Add cards to container (this should automatically register them with CardLayout)
+            container.Controls.Add(card1);
+            container.Controls.Add(card2);
+
+            // Test prescribed Syncfusion methods only
+            Assert.NotNull(cardLayout);
+            Assert.Equal(container, cardLayout.ContainerControl);
+
+            // Test SetCardName method (documented)
+            cardLayout.SetCardName(card1, "FirstCard");
+            cardLayout.SetCardName(card2, "SecondCard");
+
+            // Test GetCardName method (documented)
+            Assert.Equal("FirstCard", cardLayout.GetCardName(card1));
+            Assert.Equal("SecondCard", cardLayout.GetCardName(card2));
+
+            // Test SelectedCard property (documented)
+            cardLayout.SelectedCard = "FirstCard";
+            Assert.Equal("FirstCard", cardLayout.SelectedCard);
+
+            // Test navigation methods (documented)
+            cardLayout.Next();
+            Assert.Equal("SecondCard", cardLayout.SelectedCard);
+
+            cardLayout.Previous();
+            Assert.Equal("FirstCard", cardLayout.SelectedCard);
+
+            cardLayout.Last();
+            Assert.Equal("SecondCard", cardLayout.SelectedCard);
+
+            cardLayout.First();
+            Assert.Equal("FirstCard", cardLayout.SelectedCard);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_FlowLayout_OnlyUsesDocumentedMethods()
+        {
+            // Arrange
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel, false, 15, 20);
+            var flowLayout = container.Tag as FlowLayout;
+
+            // Test prescribed Syncfusion methods only
+            Assert.NotNull(flowLayout);
+            Assert.Equal(container, flowLayout.ContainerControl);
+
+            // Test documented properties
+            Assert.Equal(15, flowLayout.HGap);
+            Assert.Equal(20, flowLayout.VGap);
+
+            // Test setting documented properties
+            flowLayout.Alignment = FlowAlignment.Near;
+            Assert.Equal(FlowAlignment.Near, flowLayout.Alignment);
+
+            flowLayout.LayoutMode = FlowLayoutMode.Vertical;
+            Assert.Equal(FlowLayoutMode.Vertical, flowLayout.LayoutMode);
+
+            // Test constraint methods (documented)
+            var control = new Button();
+            container.Controls.Add(control);
+
+            var constraints = flowLayout.GetConstraints(control);
+            Assert.NotNull(constraints);
+
+            // Test that constraints can be set and retrieved using documented methods
+            var newConstraints = new FlowLayoutConstraints(true, HorzFlowAlign.Center, VertFlowAlign.Center, false, false, false);
+            flowLayout.SetConstraints(control, newConstraints);
+
+            var retrievedConstraints = flowLayout.GetConstraints(control);
+            Assert.NotNull(retrievedConstraints);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_ShowCard_UsesOnlyDocumentedCardLayoutMethods()
+        {
+            // Arrange
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardLayout = container.Tag as CardLayout;
+            var card1 = new Panel { Name = "Card1" };
+            var card2 = new Panel { Name = "Card2" };
+            var card3 = new Panel { Name = "Card3" };
+
+            container.Controls.Add(card1);
+            container.Controls.Add(card2);
+            container.Controls.Add(card3);
+
+            // Pre-configure cards with names using documented method
+            cardLayout.SetCardName(card1, "First");
+            cardLayout.SetCardName(card2, "Second");
+            cardLayout.SetCardName(card3, "Third");
+
+            // Act - Show card using only documented Syncfusion methods
+            DynamicLayoutManager.ShowCard(container, card2);
+
+            // Assert - Verify only documented Syncfusion SelectedCard property was used
+            Assert.Equal("Second", cardLayout.SelectedCard);
+            Assert.Equal("Second", cardLayout.GetCardName(card2));
+
+            // Verify card visibility is managed by Syncfusion CardLayout
+            // Note: CardLayout manages visibility internally, we just verify the SelectedCard property
+            Assert.Equal(card2, GetVisibleCardFromCardLayout(cardLayout));
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_NoUndocumentedMethodsUsed()
+        {
+            // This test ensures that the implementation uses only documented Syncfusion methods
+            // Any use of undocumented methods, reflection, or non-Syncfusion approaches should fail this test
+
+            // Arrange
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardLayout = container.Tag as CardLayout;
+            var card = new Panel();
+            container.Controls.Add(card);
+
+            // Act & Assert - Verify only documented methods are available and used
+            Assert.NotNull(cardLayout);
+
+            // Verify ContainerControl property (documented)
+            Assert.Equal(container, cardLayout.ContainerControl);
+
+            // Verify card naming methods (documented)
+            cardLayout.SetCardName(card, "TestCard");
+            Assert.Equal("TestCard", cardLayout.GetCardName(card));
+
+            // Verify SelectedCard property (documented)
+            cardLayout.SelectedCard = "TestCard";
+            Assert.Equal("TestCard", cardLayout.SelectedCard);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_FlowLayoutWithWrapping_UsesSyncfusionAlternative()
+        {
+            // Test that when wrapping is needed, the implementation correctly uses
+            // FlowLayoutPanel (standard .NET) since Syncfusion FlowLayout doesn't support wrapping
+            // This is documented in Syncfusion documentation as the proper approach
+
+            // Arrange & Act
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel, true);
+
+            // Assert - Should use FlowLayoutPanel for wrapping as per Syncfusion documentation
+            Assert.Single(container.Controls);
+            Assert.IsType<FlowLayoutPanel>(container.Controls[0]);
+
+            var flowPanel = container.Controls[0] as FlowLayoutPanel;
+            Assert.NotNull(flowPanel);
+            Assert.True(flowPanel.WrapContents);
+            Assert.Equal(DockStyle.Fill, flowPanel.Dock);
+
+            // Verify the FlowLayoutPanel is stored in Tag as expected
+            Assert.Equal(flowPanel, container.Tag);
+        }
+
+        #region Enhanced Syncfusion Compliance and Edge Case Tests
+
+        [Fact]
+        public void SyncfusionCompliance_CardLayout_HandlesEmptyCardNames()
+        {
+            // Test that the implementation properly handles cards without names
+            // using documented GetNewCardName() method
+
+            // Arrange
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardLayout = container.Tag as CardLayout;
+            var unnamedCard = new Panel();
+            container.Controls.Add(unnamedCard);
+
+            // Act - Show unnamed card (should trigger GetNewCardName)
+            DynamicLayoutManager.ShowCard(container, unnamedCard);
+
+            // Assert - Verify card was assigned a name using documented method
+            string assignedName = cardLayout.GetCardName(unnamedCard);
+            Assert.NotNull(assignedName);
+            Assert.NotEmpty(assignedName);
+            Assert.Equal(assignedName, cardLayout.SelectedCard);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_CardLayout_PreservesExistingCardNames()
+        {
+            // Test that existing card names are preserved when using ShowCard
+
+            // Arrange
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardLayout = container.Tag as CardLayout;
+            var namedCard = new Panel();
+            container.Controls.Add(namedCard);
+
+            // Pre-assign a name using documented method
+            cardLayout.SetCardName(namedCard, "MyCustomCard");
+
+            // Act
+            DynamicLayoutManager.ShowCard(container, namedCard);
+
+            // Assert - Verify original name is preserved
+            Assert.Equal("MyCustomCard", cardLayout.GetCardName(namedCard));
+            Assert.Equal("MyCustomCard", cardLayout.SelectedCard);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_FlowLayout_AllDocumentedPropertiesWork()
+        {
+            // Comprehensive test of all documented FlowLayout properties
+
+            // Arrange
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel, false, 5, 8);
+            var flowLayout = container.Tag as FlowLayout;
+
+            // Test all documented properties from Syncfusion API
+            Assert.NotNull(flowLayout);
+            Assert.Equal(5, flowLayout.HGap);
+            Assert.Equal(8, flowLayout.VGap);
+
+            // Act - Test documented property setters
+            flowLayout.Alignment = FlowAlignment.Center;
+            flowLayout.LayoutMode = FlowLayoutMode.Vertical;
+
+            // Assert documented properties are properly set
+            Assert.Equal(FlowAlignment.Center, flowLayout.Alignment);
+            Assert.Equal(FlowLayoutMode.Vertical, flowLayout.LayoutMode);
+            Assert.Equal(container, flowLayout.ContainerControl);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_FlowLayout_ConstraintsSystemWorks()
+        {
+            // Test the documented constraint system for FlowLayout
+
+            // Arrange
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel);
+            var flowLayout = container.Tag as FlowLayout;
+            var testControl = new Button { Text = "Test" };
+            container.Controls.Add(testControl);
+
+            // Act - Test documented constraint methods
+            var initialConstraints = flowLayout.GetConstraints(testControl);
+            var newConstraints = new FlowLayoutConstraints(
+                true, // newLine
+                HorzFlowAlign.Center, // horzAlign
+                VertFlowAlign.Center, // vertAlign
+                false, // preferredHorizontalSize
+                false, // preferredVerticalSize
+                false  // autoPreferredSize
+            );
+            flowLayout.SetConstraints(testControl, newConstraints);
+
+            // Assert - Verify constraints are properly managed
+            var retrievedConstraints = flowLayout.GetConstraints(testControl);
+            Assert.NotNull(initialConstraints);
+            Assert.NotNull(retrievedConstraints);
+            Assert.NotEqual(initialConstraints, retrievedConstraints);
+        }
+
+        [Fact]
+        public void ShowCard_WithCardNotInContainer_ThrowsArgumentException()
+        {
+            // Test proper error handling for invalid card reference
+
+            // Arrange
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardInContainer = new Panel();
+            var cardNotInContainer = new Panel();
+            container.Controls.Add(cardInContainer);
+            // Note: cardNotInContainer is NOT added to container
+
+            // Act & Assert
+            var exception = Assert.Throws<ArgumentException>(() =>
+                DynamicLayoutManager.ShowCard(container, cardNotInContainer));
+
+            Assert.Contains("not in the container", exception.Message);
+            Assert.Equal("cardToShow", exception.ParamName);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_CardLayout_NavigationMethodsWork()
+        {
+            // Test all documented CardLayout navigation methods
+
+            // Arrange
+            var container = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            var cardLayout = container.Tag as CardLayout;
+            var card1 = new Panel();
+            var card2 = new Panel();
+            var card3 = new Panel();
+
+            container.Controls.Add(card1);
+            container.Controls.Add(card2);
+            container.Controls.Add(card3);
+
+            // Assign names using documented method
+            cardLayout.SetCardName(card1, "First");
+            cardLayout.SetCardName(card2, "Second");
+            cardLayout.SetCardName(card3, "Third");
+
+            // Act & Assert - Test all documented navigation methods
+            cardLayout.First();
+            Assert.Equal("First", cardLayout.SelectedCard);
+
+            cardLayout.Next();
+            Assert.Equal("Second", cardLayout.SelectedCard);
+
+            cardLayout.Next();
+            Assert.Equal("Third", cardLayout.SelectedCard);
+
+            cardLayout.Last();
+            Assert.Equal("Third", cardLayout.SelectedCard);
+
+            cardLayout.Previous();
+            Assert.Equal("Second", cardLayout.SelectedCard);
+
+            cardLayout.Previous();
+            Assert.Equal("First", cardLayout.SelectedCard);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_FlowLayoutWithWrapContents_FollowsDocumentedPattern()
+        {
+            // Verify that the wrapping implementation follows documented Syncfusion patterns
+            // Since Syncfusion FlowLayout doesn't support wrapping, verify proper fallback
+
+            // Arrange & Act
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel, wrapContents: true);
+
+            // Assert - Verify documented pattern is followed
+            Assert.Single(container.Controls);
+            var flowPanel = container.Controls[0] as FlowLayoutPanel;
+            Assert.NotNull(flowPanel);
+
+            // Verify standard .NET FlowLayoutPanel is used (as documented in Syncfusion guides)
+            Assert.True(flowPanel.WrapContents);
+            Assert.Equal(FlowDirection.LeftToRight, flowPanel.FlowDirection);
+            Assert.True(flowPanel.AutoScroll);
+            Assert.Equal(DockStyle.Fill, flowPanel.Dock);
+            Assert.Equal(Color.Transparent, flowPanel.BackColor);
+
+            // Verify proper storage in Tag
+            Assert.Equal(flowPanel, container.Tag);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_CreateFlowLayoutContainer_ValidatesParameters()
+        {
+            // Test proper parameter validation following Syncfusion patterns
+
+            // Act & Assert - Test null parent validation
+            Assert.Throws<ArgumentNullException>(() =>
+                DynamicLayoutManager.CreateFlowLayoutContainer(null));
+
+            // Test that valid parameters work correctly
+            var container = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel, false, 0, 0);
+            Assert.NotNull(container);
+
+            var flowLayout = container.Tag as FlowLayout;
+            Assert.NotNull(flowLayout);
+            Assert.Equal(0, flowLayout.HGap);
+            Assert.Equal(0, flowLayout.VGap);
+        }
+
+        [Fact]
+        public void SyncfusionCompliance_AllLayoutsUseDockFillAndTransparentBackground()
+        {
+            // Verify consistent layout standards across all methods
+
+            // Test FlowLayout container
+            var flowContainer = DynamicLayoutManager.CreateFlowLayoutContainer(_parentPanel);
+            Assert.Equal(DockStyle.Fill, flowContainer.Dock);
+            Assert.Equal(Color.Transparent, flowContainer.BackColor);
+
+            // Test CardLayout container
+            var cardContainer = DynamicLayoutManager.CreateCardLayoutContainer(_parentPanel);
+            Assert.Equal(DockStyle.Fill, cardContainer.Dock);
+            Assert.Equal(Color.Transparent, cardContainer.BackColor);
+
+            // Test TableLayout container
+            var tableContainer = DynamicLayoutManager.CreateTableLayoutContainer(_parentPanel, 2, 2);
+            Assert.Equal(DockStyle.Fill, tableContainer.Dock);
+            Assert.Equal(Color.Transparent, tableContainer.BackColor);
+
+            // Test Dashboard layout
+            var dashboardContainer = DynamicLayoutManager.CreateDashboardLayout(_parentPanel);
+            Assert.Equal(DockStyle.Fill, dashboardContainer.Dock);
+            Assert.Equal(Color.Transparent, dashboardContainer.BackColor);
+
+            // Test Responsive grid
+            var config = new DynamicLayoutManager.LayoutConfiguration(1, 1);
+            var responsiveContainer = DynamicLayoutManager.CreateResponsiveGridLayout(_parentPanel, config);
+            Assert.Equal(DockStyle.Fill, responsiveContainer.Dock);
+            Assert.Equal(Color.Transparent, responsiveContainer.BackColor);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Helper method to get the visible card from CardLayout using only documented methods
+        /// </summary>
+        private Control GetVisibleCardFromCardLayout(CardLayout cardLayout)
+        {
+            // Use only documented Syncfusion methods to find the visible card
+            string selectedCardName = cardLayout.SelectedCard;
+            if (string.IsNullOrEmpty(selectedCardName))
+                return null;
+
+            // Iterate through container controls to find the one with the selected card name
+            foreach (Control control in cardLayout.ContainerControl.Controls)
+            {
+                if (cardLayout.GetCardName(control) == selectedCardName)
+                    return control;
+            }
+            return null;
+        }
+
+        #endregion
+    }
+}

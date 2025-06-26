@@ -75,6 +75,9 @@ namespace BusBuddy.Data
             }
         }        public int AddActivity(Activity activity)
         {
+            if (activity == null)
+                throw new ArgumentNullException(nameof(activity));
+
             using (var connection = CreateConnection())
             {
                 connection.Open();
@@ -97,6 +100,9 @@ namespace BusBuddy.Data
 
         public bool UpdateActivity(Activity activity)
         {
+            if (activity == null)
+                throw new ArgumentNullException(nameof(activity));
+
             using (var connection = CreateConnection())
             {
                 connection.Open();

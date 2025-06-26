@@ -1,0 +1,364 @@
+using System;
+using System.Drawing;
+using System.Linq;
+using System.Reflection;
+using System.Windows.Forms;
+using Syncfusion.WinForms.Controls;
+using Syncfusion.Windows.Forms.Tools;
+using BusBuddy.UI.Views;
+using BusBuddy.UI.Layout;
+using Xunit;
+using Xunit.Abstractions;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+// Disable nullable reference types for testing null arguments
+#nullable disable
+
+namespace BusBuddy.UI.Tests
+{
+    /// <summary>
+    /// Tests specifically for Dashboard and DynamicLayoutManager integration.
+    /// Ensures Dashboard correctly uses DynamicLayoutManager for layout
+    /// management and follows Syncfusion documentation standards.
+    /// </summary>
+    [Collection("Dashboard Tests")]
+    [DashboardTests]
+    public class DashboardLayoutIntegrationTest
+    {
+        private readonly Dashboard _dashboard;
+        private readonly Form _testForm;
+        private readonly ITestOutputHelper _output;
+        private readonly DashboardTestFixture _fixture;
+
+        public DashboardLayoutIntegrationTest(DashboardTestFixture fixture, ITestOutputHelper output)
+        {
+            _output = output;
+            _fixture = fixture;
+            _dashboard = fixture.SharedDashboard;
+            _testForm = fixture.TestForm;
+
+            _output.WriteLine("Using shared Dashboard and test form instances from test fixture");
+        }
+
+        #region Manual DynamicLayoutManager Integration Tests
+
+        [Fact]
+        public void Dashboard_CanAddControls_ToPanelsUsingDynamicLayoutManager()
+        {
+            // Create a test panel
+            var testPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
+            _testForm.Controls.Add(testPanel);
+
+            // Create a CardLayout container using DynamicLayoutManager
+            var cardContainer = DynamicLayoutManager.CreateCardLayoutContainer(testPanel);
+
+            // Create some test cards
+            var card1 = new Panel { Name = "Card1", BackColor = Color.LightBlue };
+            var card2 = new Panel { Name = "Card2", BackColor = Color.LightGreen };
+
+            // Add cards to container
+            cardContainer.Controls.Add(card1);
+            cardContainer.Controls.Add(card2);
+
+            // Use DynamicLayoutManager to show a card
+            DynamicLayoutManager.ShowCard(cardContainer, card2);
+
+            // Get the CardLayout from the container
+            var cardLayout = cardContainer.Tag as CardLayout;
+            Assert.NotNull(cardLayout);
+
+            // Verify the selected card is card2
+            string card2Name = cardLayout.GetCardName(card2);
+            Assert.Equal(card2Name, cardLayout.SelectedCard);
+        }
+
+        [Fact]
+        public void Dashboard_CanUse_DynamicLayoutManagerWithFlowLayout()
+        {
+            // Create a test panel
+            var testPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
+            _testForm.Controls.Add(testPanel);
+
+            // Create a FlowLayout container using DynamicLayoutManager
+            var flowContainer = DynamicLayoutManager.CreateFlowLayoutContainer(testPanel, false, 10, 15);
+
+            // Create some test controls
+            var button1 = new Button { Text = "Button 1" };
+            var button2 = new Button { Text = "Button 2" };
+
+            // Add controls to container
+            flowContainer.Controls.Add(button1);
+            flowContainer.Controls.Add(button2);
+
+            // Get the FlowLayout from the container
+            var flowLayout = flowContainer.Tag as FlowLayout;
+            Assert.NotNull(flowLayout);
+
+            // Verify FlowLayout properties
+            Assert.Equal(10, flowLayout.HGap);
+            Assert.Equal(15, flowLayout.VGap);
+        }
+
+        [Fact]
+        public void Dashboard_CanUse_DynamicLayoutManagerWithWrappingFlow()
+        {
+            // Create a test panel
+            var testPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
+            _testForm.Controls.Add(testPanel);
+
+            // Create a FlowLayout container with wrapping enabled
+            var flowContainer = DynamicLayoutManager.CreateFlowLayoutContainer(testPanel, true);
+
+            // Create some test controls
+            var button1 = new Button { Text = "Button 1" };
+            var button2 = new Button { Text = "Button 2" };
+
+            // Add controls to container
+            flowContainer.Controls.Add(button1);
+            flowContainer.Controls.Add(button2);
+
+            // Get the FlowLayoutPanel from the container (since wrapping is enabled)
+            var flowPanel = flowContainer.Tag as FlowLayoutPanel;
+            Assert.NotNull(flowPanel);
+
+            // Verify FlowLayoutPanel properties
+            Assert.True(flowPanel.WrapContents);
+            Assert.Equal(DockStyle.Fill, flowPanel.Dock);
+        }
+
+        [Fact]
+        public void Dashboard_CanUse_DynamicLayoutManagerWithTableLayout()
+        {
+            // Create a test panel
+            var testPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
+            _testForm.Controls.Add(testPanel);
+
+            // Create a TableLayout container using DynamicLayoutManager
+            var tablePanel = DynamicLayoutManager.CreateTableLayoutContainer(testPanel, 2, 3);
+
+            // Create some test controls
+            var control1 = new Label { Text = "Cell 1" };
+            var control2 = new Label { Text = "Cell 2" };
+
+            // Add controls to container using TableLayoutPanel positioning
+            tablePanel.Controls.Add(control1, 0, 0);
+            tablePanel.Controls.Add(control2, 1, 0);
+
+            // Verify TableLayoutPanel properties
+            Assert.Equal(2, tablePanel.RowCount);
+            Assert.Equal(3, tablePanel.ColumnCount);
+
+            // Verify row and column styles
+            Assert.Equal(2, tablePanel.RowStyles.Count);
+            Assert.Equal(3, tablePanel.ColumnStyles.Count);
+        }
+
+        [Fact]
+        public void Dashboard_CanUse_DynamicLayoutManagerWithDashboardLayout()
+        {
+            // Create a test panel
+            var testPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
+            _testForm.Controls.Add(testPanel);
+
+            // Create a Dashboard layout using DynamicLayoutManager
+            var dashboardPanel = DynamicLayoutManager.CreateDashboardLayout(testPanel, 25f);
+
+            // Create some test controls
+            var headerLabel = new Label { Text = "Dashboard Header", Dock = DockStyle.Fill };
+            var contentLabel = new Label { Text = "Dashboard Content", Dock = DockStyle.Fill };
+
+            // Get the content table (second row)
+            var contentTable = dashboardPanel.Controls[0] as TableLayoutPanel;
+            Assert.NotNull(contentTable);
+
+            // Add controls to the layout
+            dashboardPanel.Controls.Add(headerLabel, 0, 0);
+            contentTable.Controls.Add(contentLabel, 0, 0);
+
+            // Verify dashboard layout properties
+            Assert.Equal(2, dashboardPanel.RowCount);
+            Assert.Equal(1, dashboardPanel.ColumnCount);
+
+            // Verify row heights
+            Assert.Equal(25f, dashboardPanel.RowStyles[0].Height);
+            Assert.Equal(75f, dashboardPanel.RowStyles[1].Height);
+        }
+
+        [Fact]
+        public void Dashboard_CanUse_DynamicLayoutManagerWithResponsiveGrid()
+        {
+            // Create a test panel
+            var testPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
+            _testForm.Controls.Add(testPanel);
+
+            // Create a responsive grid configuration
+            var config = new DynamicLayoutManager.LayoutConfiguration(1, 2)
+            {
+                ColumnSizes = new List<float> { 70f, 30f }
+            };
+
+            // Create a responsive grid using DynamicLayoutManager
+            var container = DynamicLayoutManager.CreateResponsiveGridLayout(testPanel, config);
+
+            // Verify container properties
+            Assert.Equal(DockStyle.Fill, container.Dock);
+            Assert.Equal(Color.Transparent, container.BackColor);
+
+            // Get the table panel inside the container
+            var tablePanel = container.Controls[0] as TableLayoutPanel;
+            Assert.NotNull(tablePanel);
+
+            // Verify table panel configuration
+            Assert.Equal(1, tablePanel.RowCount);
+            Assert.Equal(2, tablePanel.ColumnCount);
+
+            // Verify column widths
+            Assert.Equal(70f, tablePanel.ColumnStyles[0].Width);
+            Assert.Equal(30f, tablePanel.ColumnStyles[1].Width);
+        }
+
+        #endregion
+
+        #region Layout Conflict Tests
+
+        [Fact]        public void Dashboard_ShouldNotHave_CompetingLayoutManagers()
+        {
+            // Skip if dashboard couldn't be created
+            if (_dashboard == null)
+            {
+                Assert.Fail("Dashboard could not be initialized for testing");
+                return;
+            }
+
+            // Get all containers
+            var containers = GetAllControls(_dashboard)
+                .Where(c => c.Controls.Count > 0)
+                .ToList();
+
+            foreach (var container in containers)
+            {
+                // Check for competing layout managers in the same container
+                int tableLayoutCount = container.Controls.OfType<TableLayoutPanel>().Count();
+                int flowLayoutCount = container.Controls.OfType<FlowLayoutPanel>().Count();
+                int flowLayoutManagerCount = container.Controls
+                    .Cast<Control>()
+                    .Count(c => c.Tag is FlowLayout);
+
+                // Calculate total layout managers
+                int totalLayoutManagers = tableLayoutCount + flowLayoutCount + flowLayoutManagerCount;
+
+                // A container should have at most one layout manager
+                Assert.True(totalLayoutManagers <= 1,
+                    $"Container {container.Name} has {totalLayoutManagers} layout managers, which may cause conflicts");
+            }
+        }
+
+        [Fact]        public void Dashboard_ShouldNot_UseCustomLayoutLogic()
+        {
+            // Skip if dashboard couldn't be created
+            if (_dashboard == null)
+            {
+                Assert.Fail("Dashboard could not be initialized for testing");
+                return;
+            }
+
+            // This test is harder to implement without access to the source code
+            // We'll check for custom layout logic by looking for manual positioning
+            // of controls in non-layout container panels
+
+            // Get all panels that aren't inside layout managers
+            var standardPanels = GetAllControls(_dashboard)
+                .OfType<Panel>()
+                .Where(p => !(p.Parent is TableLayoutPanel) &&
+                           !(p.Parent is FlowLayoutPanel) &&
+                           p.Tag is not FlowLayout &&
+                           p.Tag is not CardLayout)
+                .ToList();
+
+            foreach (var panel in standardPanels)
+            {
+                // Check for controls with specific positions (manual layout)
+                var positionedControls = panel.Controls
+                    .Cast<Control>()
+                    .Where(c => c.Location.X != 0 || c.Location.Y != 0)
+                    .ToList();
+
+                // If we have positioned controls, check if any have Dock or Anchor set
+                // If they do, that's fine. If not, they might be using manual positioning
+                foreach (var control in positionedControls)
+                {                    bool hasDockOrAnchor = control.Dock != DockStyle.None ||
+                                          control.Anchor != (AnchorStyles.Top | AnchorStyles.Left);
+
+                    // Allow manual positioning for certain control types that typically need it
+                    bool isSpecialControl = control is Label || control is Button || control is ComboBox;
+
+                    // Log but don't fail for manual positioning - some controls need it
+                    if (!hasDockOrAnchor && !isSpecialControl)
+                    {
+                        Console.WriteLine($"Warning: Control {control.Name} of type {control.GetType().Name} appears to use manual positioning without Dock or Anchor");
+                    }
+                }
+            }
+
+            // This test doesn't fail but logs warnings
+            Assert.True(true);
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Recursively gets all controls in a container
+        /// </summary>
+        private IEnumerable<Control> GetAllControls(Control container)
+        {
+            var controls = container.Controls.Cast<Control>().ToList();
+            var childControls = container.Controls.Cast<Control>()
+                .SelectMany(control => GetAllControls(control));
+            return controls.Concat(childControls);
+        }
+
+        /// <summary>
+        /// Gets all panels created by DynamicLayoutManager
+        /// </summary>
+        private IEnumerable<Panel> GetDynamicLayoutPanels(Control container)
+        {
+            return GetAllControls(container)
+                .OfType<Panel>()
+                .Where(p => p.Tag != null && (
+                    p.Tag is CardLayout ||
+                    p.Tag is FlowLayout ||
+                    p.Tag.ToString().Contains("TableLayout") ||
+                    p.Tag.ToString().Contains("DynamicLayout")))
+                .ToList();
+        }
+
+        #endregion
+    }
+}

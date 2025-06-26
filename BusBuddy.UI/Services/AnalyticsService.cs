@@ -174,7 +174,7 @@ namespace BusBuddy.UI.Services
             {
                 Console.WriteLine($"🔍 Generating driver pay report from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
 
-                var payScheme = await LoadPaySchemeAsync();
+                var payScheme = await GetPaySchemeAsync();
                 var routes = await GetRoutesForPeriodAsync(startDate, endDate);
                 var drivers = await GetAllDriversAsync();
                 var reports = new List<DriverPayReport>();
@@ -209,41 +209,45 @@ namespace BusBuddy.UI.Services
 
                     var report = new DriverPayReport
                     {
-                        DriverName = driver.Name
+                        DriverID = driver.DriverID,
+                        DriverName = driver.Name,
+                        LicenseType = driver.DriversLicenseType ?? "Unknown",
+                        PayPeriodStart = startDate,
+                        PayPeriodEnd = endDate,
+                        TotalTrips = CountTrips(driverGroup.Value),
+                        SPEDDays = 0,
+                        PayAmount = 0m,
+                        Notes = new List<string>()
                     };
 
-                    // Determine driver type based on license and route assignments
-                    var driverType = DetermineDriverType(driver, driverGroup.Value);
-                    report.DriverType = driverType;
+                    // Determine if this is a SPED driver
+                    bool isSPEDDriver = (driver.DriversLicenseType?.Contains("SPED") == true);
 
-                    // Calculate pay based on driver type
-                    if (driverType == "SPED")
+                    // For SPED drivers, count days worked
+                    if (isSPEDDriver)
                     {
-                        // SPED drivers are paid per day
                         report.SPEDDays = CountWorkDays(driverGroup.Value);
-                        report.SPEDDayRate = payScheme.SPEDDayRate;
-                        report.TotalPay = report.SPEDDays * report.SPEDDayRate;
+                        report.PayAmount = report.SPEDDays * payScheme.SPEDDayRate;
+                        report.Notes.Add($"SPED services provided on {report.SPEDDays} days");
+                    }
+                    else if (driver.DriversLicenseType?.Contains("CDL") == true)
+                    {
+                        // CDL drivers paid per trip
+                        report.PayAmount = report.TotalTrips * payScheme.CDLTripRate;
+                        report.Notes.Add($"CDL rate: ${payScheme.CDLTripRate} per trip");
                     }
                     else
                     {
-                        // CDL and Small Bus drivers are paid per trip
-                        report.TotalTrips = CountTrips(driverGroup.Value);
-                        report.TripRate = driverType == "CDL" ? payScheme.CDLTripRate : payScheme.SmallBusTripRate;
-                        report.TotalPay = report.TotalTrips * report.TripRate;
+                        // Small Bus drivers paid per trip
+                        report.PayAmount = report.TotalTrips * payScheme.SmallBusTripRate;
+                        report.Notes.Add($"Small Bus rate: ${payScheme.SmallBusTripRate} per trip");
                     }
 
-                    // Add details for transparency
-                    report.Details["RouteCount"] = driverGroup.Value.Count;
-                    report.Details["PayPeriod"] = $"{startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}";
-                    report.Details["LicenseType"] = driver.DriversLicenseType ?? "Unknown";
-
+                    report.Notes.Add($"Pay period: {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
                     reports.Add(report);
                 }
 
-                // Generate AI insights for the pay report
-                var aiInsights = await GeneratePayReportInsightsAsync(reports);
-                Console.WriteLine($"📊 Driver pay report generated: {reports.Count} drivers, AI insights: {aiInsights.Length} chars");
-
+                Console.WriteLine($"📊 Driver pay report generated: {reports.Count} drivers");
                 return reports;
             }
             catch (Exception ex)
@@ -305,6 +309,194 @@ namespace BusBuddy.UI.Services
             }
         }
 
+        /// <summary>
+        /// Gets comprehensive management dashboard data
+        /// Includes metrics for fleet utilization, costs, driver performance
+        /// </summary>
+        public async Task<Dictionary<string, object>> GetManagementDashboardDataAsync(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                Console.WriteLine($"🔍 Generating management dashboard data from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+
+                var result = new Dictionary<string, object>();
+
+                // Get basic metrics
+                result["TotalMileage"] = await GetMileageStatsAsync(startDate, endDate);
+                result["TotalPupils"] = await GetPupilCountsAsync(startDate, endDate);
+                result["CostPerStudent"] = await GetCostPerStudentAsync(startDate, endDate);
+
+                // Get vehicle fleet data
+                var vehicles = await GetAllVehiclesAsync();
+                var routes = await GetRoutesForPeriodAsync(startDate, endDate);
+                var maintenance = await GetMaintenanceRecordsForPeriodAsync(startDate, endDate);
+                var fuel = await GetFuelRecordsForPeriodAsync(startDate, endDate);
+
+                // Calculate vehicle utilization
+                var vehicleUtilization = new Dictionary<string, decimal>();
+                foreach (var vehicle in vehicles)
+                {
+                    var vehicleRoutes = routes.Count(r => r.AMVehicleID == vehicle.Id || r.PMVehicleID == vehicle.Id);
+                    var utilizationPercentage = vehicleRoutes > 0
+                        ? (decimal)vehicleRoutes / (decimal)routes.Count * 100
+                        : 0;
+                    vehicleUtilization[vehicle.VehicleNumber ?? $"Vehicle {vehicle.Id}"] = Math.Round(utilizationPercentage, 1);
+                }
+                result["VehicleUtilization"] = vehicleUtilization;
+
+                // Calculate maintenance costs by vehicle
+                var maintenanceCosts = maintenance
+                    .GroupBy(m => m.VehicleID)
+                    .ToDictionary(
+                        g => vehicles.FirstOrDefault(v => v.Id == g.Key)?.VehicleNumber ?? $"Vehicle {g.Key}",
+                        g => g.Sum(m => m.RepairCost ?? 0)
+                    );
+                result["MaintenanceCosts"] = maintenanceCosts;
+
+                // Calculate fuel costs by vehicle
+                var fuelCosts = fuel
+                    .GroupBy(f => f.VehicleFueledID)
+                    .ToDictionary(
+                        g => vehicles.FirstOrDefault(v => v.Id == g.Key)?.VehicleNumber ?? $"Vehicle {g.Key}",
+                        g => g.Sum(f => f.FuelCost ?? 0)
+                    );
+                result["FuelCosts"] = fuelCosts;
+
+                // Calculate total costs
+                result["TotalMaintenanceCost"] = maintenance.Sum(m => m.RepairCost ?? 0);
+                result["TotalFuelCost"] = fuel.Sum(f => f.FuelCost ?? 0);
+                result["TotalOperatingCost"] = (decimal)result["TotalMaintenanceCost"] + (decimal)result["TotalFuelCost"];
+
+                // Calculate cost per mile
+                if ((decimal)result["TotalMileage"] > 0)
+                {
+                    result["CostPerMile"] = (decimal)result["TotalOperatingCost"] / (decimal)result["TotalMileage"];
+                }
+                else
+                {
+                    result["CostPerMile"] = 0;
+                }
+
+                // Generate AI insights
+                var insights = await GenerateManagementInsightsAsync(result);
+                result["AIInsights"] = insights;
+
+                Console.WriteLine($"📊 Management dashboard data generated with {result.Count} metrics");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error generating management dashboard data: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Gets the current pay scheme configuration
+        /// </summary>
+        public async Task<PayScheme> GetPaySchemeAsync()
+        {
+            try
+            {
+                Console.WriteLine("🔍 Loading pay scheme configuration");
+                return await LoadPaySchemeAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error loading pay scheme: {ex.Message}");
+                throw;
+            }
+        }        /// <summary>
+        /// Saves the updated pay scheme configuration
+        /// </summary>
+        public async Task SavePaySchemeAsync(PayScheme payScheme)
+        {
+            try
+            {
+                Console.WriteLine("💾 Saving pay scheme configuration");
+
+                // Update last updated date
+                payScheme.LastUpdated = DateTime.Now;
+
+                // Serialize to JSON
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(payScheme, options);
+
+                // Save to file
+                await File.WriteAllTextAsync(_paySchemeConfigPath, json);
+
+                Console.WriteLine($"✅ Pay scheme saved: CDL=${payScheme.CDLTripRate}, SmallBus=${payScheme.SmallBusTripRate}, SPED=${payScheme.SPEDDayRate}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error saving pay scheme: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Generates management insights using xAI API
+        /// </summary>
+        private async Task<string> GenerateManagementInsightsAsync(Dictionary<string, object> dashboardData)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_xaiApiKey))
+                {
+                    return "AI insights not available (API key not configured)";
+                }
+
+                var prompt = BuildManagementInsightsPrompt(dashboardData);
+                var response = await CallXaiApiAsync(prompt);
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error generating management insights: {ex.Message}");
+                return "AI insights not available due to an error";
+            }
+        }
+
+        /// <summary>
+        /// Builds a prompt for management insights
+        /// </summary>
+        private string BuildManagementInsightsPrompt(Dictionary<string, object> dashboardData)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Analyze the following school transportation data and provide 3-5 key insights for management:");
+            sb.AppendLine();
+
+            foreach (var item in dashboardData)
+            {
+                if (item.Value is Dictionary<string, decimal> dictDecimal)
+                {
+                    sb.AppendLine($"{item.Key}:");
+                    foreach (var subItem in dictDecimal)
+                    {
+                        sb.AppendLine($"  {subItem.Key}: {subItem.Value}");
+                    }
+                }
+                else if (item.Value is Dictionary<string, object> dictObject)
+                {
+                    sb.AppendLine($"{item.Key}:");
+                    foreach (var subItem in dictObject)
+                    {
+                        sb.AppendLine($"  {subItem.Key}: {subItem.Value}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine($"{item.Key}: {item.Value}");
+                }
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("Focus on cost efficiency, vehicle utilization, and opportunities for improvement.");
+
+            return sb.ToString();
+        }
+
         #region Private Helper Methods
 
         private async Task<List<Route>> GetRoutesForPeriodAsync(DateTime startDate, DateTime endDate)
@@ -347,6 +539,12 @@ namespace BusBuddy.UI.Services
             return await Task.FromResult(context.Drivers.ToList());
         }
 
+        private async Task<List<Vehicle>> GetAllVehiclesAsync()
+        {
+            var context = new BusBuddyContext();
+            return await Task.FromResult(context.Vehicles.ToList());
+        }
+
         private async Task<decimal> GetTotalVehicleCapacityAsync()
         {
             var context = new BusBuddyContext();
@@ -374,16 +572,47 @@ namespace BusBuddy.UI.Services
             return defaultScheme;
         }
 
-        private async Task SavePaySchemeAsync(PayScheme payScheme)
+        private async Task<string> CallXaiApiAsync(string prompt)
         {
+            if (string.IsNullOrEmpty(_xaiApiKey))
+            {
+                return "AI insights not available (API key not configured)";
+            }
+
             try
             {
-                var json = JsonSerializer.Serialize(payScheme, new JsonSerializerOptions { WriteIndented = true });
-                await File.WriteAllTextAsync(_paySchemeConfigPath, json);
+                var content = new
+                {
+                    model = "grok-3",
+                    messages = new[]
+                    {
+                        new { role = "system", content = "You are an AI assistant for school transportation analytics." },
+                        new { role = "user", content = prompt }
+                    },
+                    temperature = 0.5,
+                    max_tokens = 500
+                };
+
+                var requestContent = new StringContent(
+                    JsonSerializer.Serialize(content),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var response = await _httpClient.PostAsync(XAI_API_URL, requestContent);
+                response.EnsureSuccessStatusCode();
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                using var jsonDoc = JsonDocument.Parse(responseBody);
+                var choices = jsonDoc.RootElement.GetProperty("choices");
+                var message = choices[0].GetProperty("message");
+                var insight = message.GetProperty("content").GetString();
+
+                return insight ?? "No insights available";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ Error saving pay scheme config: {ex.Message}");
+                Console.WriteLine($"⚠️ Error calling xAI API: {ex.Message}");
+                return "AI insights not available due to an error";
             }
         }
 

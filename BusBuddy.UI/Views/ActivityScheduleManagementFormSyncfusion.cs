@@ -7,19 +7,17 @@ using BusBuddy.UI.Base;
 using Syncfusion.WinForms.DataGrid;
 
 namespace BusBuddy.UI.Views
-{
-    public partial class ActivityScheduleManagementFormSyncfusion : BaseManagementForm<Activity>
+{    public partial class ActivityScheduleManagementFormSyncfusion : BaseManagementForm<Activity>
     {
         #region Private Fields
         private readonly IActivityRepository _activityRepository;
+
         #endregion
 
         #region Properties
         protected override string FormTitle => "Activity Schedule Management";
         protected override string SearchPlaceholder => "Search activities...";
         protected override string EntityName => "Activity";
-        #endregion
-
         #region Constructor
         public ActivityScheduleManagementFormSyncfusion(IActivityRepository activityRepository)
         {
@@ -27,22 +25,31 @@ namespace BusBuddy.UI.Views
 
             // NOTE: LoadData() is called by the base class after all controls are initialized
         }
-        #endregion
-
         #region Abstract Method Implementations
         protected override void LoadData()
         {
             try
             {
+                if (_activityRepository == null)
+                {
+                    ShowErrorMessage("Error loading activities: Repository not initialized.");
+                    _entities = new List<Activity>();
+                    return;
+                }
                 var activities = _activityRepository.GetAllActivities();
                 _entities = activities?.ToList() ?? new List<Activity>();
                 PopulateActivityGrid();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error loading activities: {ex.Message}");
+                HandleError($"Error loading activities: {ex.Message}", "$($EntityName) Error", ex);
                 _entities = new List<Activity>(); // Ensure _entities is never null
             }
+        }
+
+        protected override void LoadDataFromRepository()
+        {
+            LoadData(); // Delegate to existing LoadData implementation
         }
 
         protected override void AddNewEntity()
@@ -59,7 +66,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error adding activity: {ex.Message}");
+                HandleError($"Error adding activity: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -68,7 +75,7 @@ namespace BusBuddy.UI.Views
             var selectedActivity = GetSelectedEntity();
             if (selectedActivity == null)
             {
-                ShowInfoMessage("Please select an activity to edit.");
+                ShowInfo("Please select an activity to edit.");
                 return;
             }
 
@@ -82,7 +89,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error editing activity: {ex.Message}");
+                HandleError($"Error editing activity: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -91,7 +98,7 @@ namespace BusBuddy.UI.Views
             var selectedActivity = GetSelectedEntity();
             if (selectedActivity == null)
             {
-                ShowInfoMessage("Please select an activity to delete.");
+                ShowInfo("Please select an activity to delete.");
                 return;
             }
 
@@ -101,11 +108,11 @@ namespace BusBuddy.UI.Views
             {
                 _activityRepository.DeleteActivity(selectedActivity.ActivityID);
                 RefreshGrid();
-                ShowInfoMessage("Activity deleted successfully.");
+                ShowInfo("Activity deleted successfully.");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error deleting activity: {ex.Message}");
+                HandleError($"Error deleting activity: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -114,7 +121,7 @@ namespace BusBuddy.UI.Views
             var selectedActivity = GetSelectedEntity();
             if (selectedActivity == null)
             {
-                ShowInfoMessage("Please select an activity to view.");
+                ShowInfo("Please select an activity to view.");
                 return;
             }
 
@@ -129,11 +136,11 @@ namespace BusBuddy.UI.Views
                             $"Return Time: {selectedActivity.ReturnTime}\n" +
                             $"Destination: {selectedActivity.Destination}";
 
-                ShowInfoMessage(details, "Activity Details");
+                ShowInfo(details, "Activity Details");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error viewing activity details: {ex.Message}");
+                HandleError($"Error viewing activity details: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -167,7 +174,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error searching activities: {ex.Message}");
+                HandleError($"Error searching activities: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -184,8 +191,6 @@ namespace BusBuddy.UI.Views
             _dataGrid.Columns.Add(new GridTextColumn { MappingName = "ReturnTime", HeaderText = "Return Time", Width = 100 });
             _dataGrid.Columns.Add(new GridTextColumn { MappingName = "Destination", HeaderText = "Destination", Width = 150 });
         }
-        #endregion
-
         #region Helper Methods
         private void PopulateActivityGrid()
         {
@@ -212,11 +217,17 @@ namespace BusBuddy.UI.Views
 
                 _dataGrid.DataSource = activityData;
             }
-            catch (Exception ex)
-            {
-                ShowErrorMessage($"Error populating activity grid: {ex.Message}");
+            catch (Exception ex)            {
+                HandleError($"Error populating activity grid: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
+
+        #endregion
+
+        #endregion
+
+        #endregion
+
         #endregion
     }
 }

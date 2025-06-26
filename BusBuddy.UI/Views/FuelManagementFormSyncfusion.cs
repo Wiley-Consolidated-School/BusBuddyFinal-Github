@@ -24,13 +24,10 @@ namespace BusBuddy.UI.Views
         private readonly FuelRepository _fuelRepository;
         private readonly VehicleRepository _vehicleRepository;
         private List<Vehicle> _vehicles = new();
-
         #region Properties Override
         protected override string FormTitle => "⛽ Fuel Management";
         protected override string SearchPlaceholder => "Search fuels...";
         protected override string EntityName => "Fuel";
-        #endregion
-
         #region Constructors
         public FuelManagementFormSyncfusion() : this(new FuelRepository(), new VehicleRepository()) { }
 
@@ -40,8 +37,6 @@ namespace BusBuddy.UI.Views
             _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
             // NOTE: LoadData() and LoadVehicles() are called by the base class after all controls are initialized
         }
-        #endregion
-
         #region Base Implementation Override
         protected override void LoadData()
         {
@@ -56,9 +51,14 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error loading fuels: {ex.Message}");
+                HandleError($"Error loading fuels: {ex.Message}", "$($EntityName) Error", ex);
                 _entities = new List<Fuel>(); // Ensure _entities is never null
             }
+        }
+
+        protected override void LoadDataFromRepository()
+        {
+            LoadData(); // Delegate to existing LoadData implementation
         }
 
         protected override void AddNewEntity()
@@ -73,7 +73,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error adding fuel record: {ex.Message}");
+                HandleError($"Error adding fuel record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -82,7 +82,7 @@ namespace BusBuddy.UI.Views
             var selectedFuel = GetSelectedEntity();
             if (selectedFuel == null)
             {
-                ShowInfoMessage("Please select a fuel record to edit.");
+                ShowInfo("Please select a fuel record to edit.");
                 return;
             }
 
@@ -96,7 +96,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error editing fuel record: {ex.Message}");
+                HandleError($"Error editing fuel record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -105,7 +105,7 @@ namespace BusBuddy.UI.Views
             var selectedFuel = GetSelectedEntity();
             if (selectedFuel == null)
             {
-                ShowInfoMessage("Please select a fuel record to delete.");
+                ShowInfo("Please select a fuel record to delete.");
                 return;
             }
 
@@ -115,11 +115,11 @@ namespace BusBuddy.UI.Views
             {
                 _fuelRepository.DeleteFuelRecord(selectedFuel.FuelID);
                 RefreshGrid();
-                ShowInfoMessage("Fuel record deleted successfully.");
+                ShowInfo("Fuel record deleted successfully.");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error deleting fuel record: {ex.Message}");
+                HandleError($"Error deleting fuel record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -128,7 +128,7 @@ namespace BusBuddy.UI.Views
             var selectedFuel = GetSelectedEntity();
             if (selectedFuel == null)
             {
-                ShowInfoMessage("Please select a fuel record to view details.");
+                ShowInfo("Please select a fuel record to view details.");
                 return;
             }
 
@@ -144,11 +144,11 @@ namespace BusBuddy.UI.Views
                             $"Odometer: {selectedFuel.VehicleOdometerReading:N0}\n" +
                             $"Type: {selectedFuel.FuelType}";
 
-                ShowInfoMessage(details, "Fuel Details");
+                ShowInfo(details, "Fuel Details");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error viewing fuel details: {ex.Message}");
+                HandleError($"Error viewing fuel details: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -184,7 +184,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error searching fuels: {ex.Message}");
+                HandleError($"Error searching fuels: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -221,8 +221,6 @@ namespace BusBuddy.UI.Views
 
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
-        #endregion
-
         #region Helper Methods
         private void LoadVehicles()
         {
@@ -237,7 +235,7 @@ namespace BusBuddy.UI.Views
             {
                 // Ensure collection is never null even on error
                 _vehicles = new List<Vehicle>();
-                ShowErrorMessage($"Error loading vehicles: {ex.Message}");
+                HandleError($"Error loading vehicles: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -269,7 +267,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error populating fuel grid: {ex.Message}");
+                HandleError($"Error populating fuel grid: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -278,8 +276,15 @@ namespace BusBuddy.UI.Views
             if (!vehicleId.HasValue) return "Unknown";
 
             var vehicle = _vehicles.FirstOrDefault(v => v.Id == vehicleId.Value);
-            return vehicle?.VehicleNumber?.ToString() ?? "Unknown";
-        }
-        #endregion
+            return vehicle?.VehicleNumber?.ToString() ?? "Unknown";        }
+
     }
+
+        #endregion
+
+        #endregion
+
+        #endregion
+
+        #endregion
 }

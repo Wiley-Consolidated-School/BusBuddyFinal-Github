@@ -35,7 +35,6 @@ namespace BusBuddy.Data
         public DbSet<ActivitySchedule> ActivitySchedules { get; set; } = null!;
         public DbSet<Maintenance> Maintenances { get; set; } = null!;
         public DbSet<SchoolCalendar> SchoolCalendars { get; set; } = null!;
-        public DbSet<PTOBalance> PTOBalances { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -94,7 +93,6 @@ namespace BusBuddy.Data
             modelBuilder.Entity<ActivitySchedule>().HasKey(a => a.ScheduleID);
             modelBuilder.Entity<Fuel>().HasKey(f => f.FuelID);
             modelBuilder.Entity<Maintenance>().HasKey(m => m.MaintenanceID);
-            modelBuilder.Entity<PTOBalance>().HasKey(p => p.PTOBalanceID);
             modelBuilder.Entity<SchoolCalendar>().HasKey(s => s.CalendarID);
             modelBuilder.Entity<Route>().HasKey(r => r.RouteID);
             modelBuilder.Entity<Activity>().HasKey(a => a.ActivityID);

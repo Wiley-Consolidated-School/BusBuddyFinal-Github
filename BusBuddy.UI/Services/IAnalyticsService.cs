@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BusBuddy.Models;
+using BusBuddy.UI.Services;
 
 namespace BusBuddy.UI.Services
 {
@@ -49,12 +50,25 @@ namespace BusBuddy.UI.Services
         Task<List<DriverPayReport>> GenerateDriverPayReportAsync(DateTime startDate, DateTime endDate);
 
         /// <summary>
-        /// Gets transportation efficiency metrics with AI insights
-        /// Includes cost per mile, utilization rates, and optimization recommendations
+        /// Gets comprehensive management dashboard data
+        /// Includes metrics for fleet utilization, costs, driver performance
         /// </summary>
         /// <param name="startDate">Start date for analysis period</param>
         /// <param name="endDate">End date for analysis period</param>
-        /// <returns>Efficiency metrics object</returns>
-        Task<EfficiencyMetrics> GetEfficiencyMetricsAsync(DateTime startDate, DateTime endDate);
+        /// <returns>Dictionary with dashboard metrics</returns>
+        Task<Dictionary<string, object>> GetManagementDashboardDataAsync(DateTime startDate, DateTime endDate);
+
+        /// <summary>
+        /// Gets the current pay scheme configuration
+        /// </summary>
+        /// <returns>Current pay scheme configuration</returns>
+        Task<PayScheme> GetPaySchemeAsync();
+
+        /// <summary>
+        /// Saves the updated pay scheme configuration
+        /// </summary>
+        /// <param name="payScheme">Updated pay scheme configuration</param>
+        /// <returns>Task for async operation</returns>
+        Task SavePaySchemeAsync(PayScheme payScheme);
     }
 }

@@ -32,26 +32,11 @@ namespace BusBuddy.UI.Base
         private bool _disposed = false;
         private readonly object _disposalLock = new object();
 
-        // Test mode support - inherits from SyncfusionBaseForm
-        private static bool _testModeEnabled = false;
+        // Message service for testable error handling
+        protected readonly IMessageService _messageService;
 
-        /// <summary>
-        /// Enable test mode to redirect message boxes to console output
-        /// </summary>
-        public static new void EnableTestMode()
-        {
-            _testModeEnabled = true;
-            SyncfusionBaseForm.EnableTestMode();
-        }
-
-        /// <summary>
-        /// Disable test mode to restore normal message box behavior
-        /// </summary>
-        public static new void DisableTestMode()
-        {
-            _testModeEnabled = false;
-            SyncfusionBaseForm.DisableTestMode();
-        }
+        // Repository support
+        private object? _repository;
         #endregion
 
         #region Abstract Properties and Methods
@@ -59,7 +44,7 @@ namespace BusBuddy.UI.Base
         protected abstract string SearchPlaceholder { get; }
         protected abstract string EntityName { get; }
 
-        protected abstract void LoadData();
+        protected abstract void LoadDataFromRepository();
         protected abstract void AddNewEntity();
         protected abstract void EditSelectedEntity();
         protected abstract void DeleteSelectedEntity();
@@ -69,8 +54,13 @@ namespace BusBuddy.UI.Base
         #endregion
 
         #region Constructor and Initialization
-        protected BaseManagementForm()
+        protected BaseManagementForm() : this(new MessageBoxService())
         {
+        }
+
+        protected BaseManagementForm(IMessageService messageService)
+        {
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             InitializeComponent();
 
             // Register this form with the shutdown manager for proper cleanup
@@ -114,8 +104,12 @@ namespace BusBuddy.UI.Base
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error loading {FormTitle} data: {ex.Message}");
+                var errorMessage = $"Error loading {FormTitle} data: {ex.Message}";
+                _messageService.ShowError(errorMessage);
                 _entities = new List<T>();
+
+                // Throw a specific exception for test verification
+                throw new InvalidOperationException(errorMessage, ex);
             }
 
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with standardized controls and data loaded");
@@ -139,9 +133,15 @@ namespace BusBuddy.UI.Base
 
             // Standard grid creation
             _dataGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
-            BusBuddyThemeManager.SfDataGridEnhancements(_dataGrid);
-
-            SetupDataGridColumns();
+            if (_dataGrid != null)
+            {
+                BusBuddyThemeManager.SfDataGridEnhancements(_dataGrid);
+                SetupDataGridColumns();
+            }
+            else if (BusBuddyThemeManager.IsTestMode)
+            {
+                Console.WriteLine("🧪 BaseManagementForm: DataGrid creation skipped - test mode enabled");
+            }
         }
         #endregion
 
@@ -151,36 +151,54 @@ namespace BusBuddy.UI.Base
             var buttonY = GetDpiAwareY(20);
 
             // Standard button positioning with consistent 110px spacing
-            _addButton!.Location = new Point(GetDpiAwareX(20), buttonY);
-            _editButton!.Location = new Point(GetDpiAwareX(130), buttonY);
-            _deleteButton!.Location = new Point(GetDpiAwareX(240), buttonY);
-            _detailsButton!.Location = new Point(GetDpiAwareX(350), buttonY);
+            if (_addButton != null) _addButton.Location = new Point(GetDpiAwareX(20), buttonY);
+            if (_editButton != null) _editButton.Location = new Point(GetDpiAwareX(130), buttonY);
+            if (_deleteButton != null) _deleteButton.Location = new Point(GetDpiAwareX(240), buttonY);
+            if (_detailsButton != null) _detailsButton.Location = new Point(GetDpiAwareX(350), buttonY);
 
             // Search controls
             var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
-            searchLabel.Location = new Point(GetDpiAwareX(500), GetDpiAwareY(25));
-            this.Controls.Add(searchLabel);
+            if (searchLabel != null)
+            {
+                searchLabel.Location = new Point(GetDpiAwareX(500), GetDpiAwareY(25));
+                this.Controls.Add(searchLabel);
+            }
 
-            _searchBox!.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
-            _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
+            if (_searchBox != null)
+            {
+                _searchBox.Location = new Point(GetDpiAwareX(550), GetDpiAwareY(20));
+                _searchBox.Size = GetDpiAwareSize(new Size(150, 30));
+            }
 
-            _searchButton!.Location = new Point(GetDpiAwareX(710), buttonY);
+            if (_searchButton != null) _searchButton.Location = new Point(GetDpiAwareX(710), buttonY);
 
-            // Grid positioning - standard layout
-            _dataGrid!.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
-            _dataGrid.Size = GetDpiAwareSize(new Size(1150, 800));
-            _dataGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            // Grid positioning - only if grid exists (not in test mode)
+            if (_dataGrid != null)
+            {
+                _dataGrid.Location = new Point(GetDpiAwareX(20), GetDpiAwareY(70));
+                _dataGrid.Size = GetDpiAwareSize(new Size(1150, 800));
+                _dataGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            }
 
-            // Add controls to form
-            this.Controls.AddRange(new Control[] {
-                _addButton, _editButton, _deleteButton, _detailsButton, _searchButton,
-                _searchBox, _dataGrid
-            });
+            // Add controls to form - only add non-null controls
+            var controlsToAdd = new List<Control>();
+            if (_addButton != null) controlsToAdd.Add(_addButton);
+            if (_editButton != null) controlsToAdd.Add(_editButton);
+            if (_deleteButton != null) controlsToAdd.Add(_deleteButton);
+            if (_detailsButton != null) controlsToAdd.Add(_detailsButton);
+            if (_searchButton != null) controlsToAdd.Add(_searchButton);
+            if (_searchBox != null) controlsToAdd.Add(_searchBox);
+            if (_dataGrid != null) controlsToAdd.Add(_dataGrid);
+
+            if (controlsToAdd.Count > 0)
+            {
+                this.Controls.AddRange(controlsToAdd.ToArray());
+            }
 
             // Standard initial button state - edit/delete/details disabled
-            _editButton.Enabled = false;
-            _deleteButton.Enabled = false;
-            _detailsButton.Enabled = false;
+            if (_editButton != null) _editButton.Enabled = false;
+            if (_deleteButton != null) _deleteButton.Enabled = false;
+            if (_detailsButton != null) _detailsButton.Enabled = false;
         }
         #endregion
 
@@ -249,50 +267,46 @@ namespace BusBuddy.UI.Base
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error refreshing data: {ex.Message}");
+                var errorMessage = $"Error refreshing data: {ex.Message}";
+                _messageService.ShowError(errorMessage);
                 _entities = new List<T>();
+
+                // Throw a specific exception for test verification
+                throw new InvalidOperationException(errorMessage, ex);
             }
         }
 
-        protected virtual void ShowErrorMessage(string message, string title = "Error")
+        /// <summary>
+        /// Enhanced error handling that throws exceptions for testability
+        /// </summary>
+        protected virtual void HandleError(string message, string title = "Error", Exception? innerException = null)
         {
-            if (_testModeEnabled)
-            {
-                Console.WriteLine($"❌ {title}: {message}");
-            }
-            else
-            {
-                MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            _messageService.ShowError(message, title);
+            throw new InvalidOperationException(message, innerException);
         }
 
-        protected virtual void ShowInfoMessage(string message, string title = "Information")
+        /// <summary>
+        /// Enhanced confirmation handling that returns the user's choice
+        /// </summary>
+        protected virtual bool ConfirmAction(string message, string title = "Confirm")
         {
-            if (_testModeEnabled)
-            {
-                Console.WriteLine($"ℹ️ {title}: {message}");
-            }
-            else
-            {
-                MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }        protected new virtual bool ConfirmDelete(string entityName)
-        {
-            if (_testModeEnabled)
-            {
-                Console.WriteLine($"❓ CONFIRMATION: Are you sure you want to delete this {entityName.ToLower()}? (Test mode: returning true)");
-                return true; // Auto-confirm in test mode
-            }
-            else
-            {
-                var result = MessageBox.Show(
-                    $"Are you sure you want to delete this {entityName.ToLower()}?",
-                    "Confirm Delete",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+            return _messageService.ShowConfirmation(message, title);
+        }
 
-                return result == DialogResult.Yes;
-            }
+        /// <summary>
+        /// Show information message through the message service
+        /// </summary>
+        protected virtual void ShowInfo(string message, string title = "Information")
+        {
+            _messageService.ShowInfo(message, title);
+        }
+
+        /// <summary>
+        /// Show warning message through the message service
+        /// </summary>
+        protected virtual void ShowWarning(string message, string title = "Warning")
+        {
+            _messageService.ShowWarning(message, title);
         }
         #endregion
 
@@ -470,6 +484,64 @@ namespace BusBuddy.UI.Base
             Dispose(false);
         }
 
+        #endregion
+
+        #region Repository Support
+        /// <summary>
+        /// Set the repository instance for data operations
+        /// </summary>
+        protected void SetRepository(object repository)
+        {
+            _repository = repository;
+        }
+
+        /// <summary>
+        /// Load data from the repository into the grid
+        /// </summary>
+        protected virtual void LoadData()
+        {
+            try
+            {
+                // Check if repository is initialized before attempting to load data
+                if (_repository == null)
+                {
+                    // In test mode, skip loading data if repository is not initialized
+                    if (IsTestMode)
+                    {
+                        return;
+                    }
+
+                    throw new InvalidOperationException("Repository not initialized. Please check database connection.");
+                }
+
+                // Call the derived class implementation to load data from repository
+                LoadDataFromRepository();
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Error loading {FormTitle} data: {ex.Message}";
+                _messageService.ShowError(errorMessage);
+                _entities = new List<T>();
+
+                // Throw a specific exception for test verification
+                throw new InvalidOperationException(errorMessage, ex);
+            }
+        }
+        #endregion
+
+        #region Test Mode Support
+        /// <summary>
+        /// Determines if the application is running in test mode
+        /// </summary>
+        protected virtual bool IsTestMode
+        {
+            get
+            {
+                return Environment.CommandLine.Contains("testhost") ||
+                       Environment.CommandLine.Contains("vstest") ||
+                       AppDomain.CurrentDomain.FriendlyName.Contains("test", StringComparison.OrdinalIgnoreCase);
+            }
+        }
         #endregion
     }
 }

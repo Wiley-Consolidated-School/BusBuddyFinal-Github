@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Git pre-commit hook to enforce xUnit-only tests in BusBuddy.UI.Tests
+
+echo "Running pre-commit checks for testing standards..."
+
+# Find files with test attributes outside BusBuddy.UI.Tests
+outside_test_files=$(git diff --cached --name-only --diff-filter=ACMR | grep -v "BusBuddy.UI.Tests/" | grep "\.cs$" | xargs grep -l "\[Fact\]\|\[Theory\]\|\[Test\]\|\[TestMethod\]\|\[TestCase\]\|\[TestFixture\]" 2>/dev/null)
+
+if [ -n "$outside_test_files" ]; then
+  echo "❌ Error: Found test files outside BusBuddy.UI.Tests:"
+  echo "$outside_test_files"
+  echo "Please move all test files to the BusBuddy.UI.Tests project."
+  exit 1
+fi
+
+# Find files with MSTest/NUnit references
+mstest_files=$(git diff --cached --name-only --diff-filter=ACMR | grep "\.cs$" | xargs grep -l "using Microsoft.VisualStudio.TestTools.UnitTesting\|using NUnit.Framework" 2>/dev/null)
+
+if [ -n "$mstest_files" ]; then
+  echo "❌ Error: Found files with MSTest or NUnit references:"
+  echo "$mstest_files"
+  echo "Please use xUnit for all tests."
+  exit 1
+fi
+
+echo "✅ All testing standards are met."
+exit 0

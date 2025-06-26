@@ -108,12 +108,12 @@ namespace BusBuddy.UI.Views
             _mainPanel.Controls.Add(notesLabel);
 
             // Text boxes
-            _vehicleNumberTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter vehicle number");
-            _makeTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter make");
-            _modelTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter model");
-            _vinNumberTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter VIN");
-            _licenseNumberTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter license plate");
-            _notesTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter notes", multiline: true);
+            _vehicleNumberTextBox = ControlFactory.CreateTextBox("Enter vehicle number");
+            _makeTextBox = ControlFactory.CreateTextBox("Enter make");
+            _modelTextBox = ControlFactory.CreateTextBox("Enter model");
+            _vinNumberTextBox = ControlFactory.CreateTextBox("Enter VIN");
+            _licenseNumberTextBox = ControlFactory.CreateTextBox("Enter license plate");
+            _notesTextBox = ControlFactory.CreateTextBox("Enter notes", multiline: true);
 
             // Numeric Text boxes
             _yearNumericTextBox = ControlFactory.CreateNumericTextBox(1990, DateTime.Now.Year + 1);
@@ -159,7 +159,14 @@ namespace BusBuddy.UI.Views
             });
 
             // Setup combo box items
-            _fuelTypeComboBox.DataSource = new[] { "Diesel", "Gasoline", "Electric", "Hybrid", "Propane" };
+            try
+            {
+                _fuelTypeComboBox.DataSource = new[] { "Diesel", "Gasoline", "Electric", "Hybrid", "Propane" };
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading fuel type options: {ex.Message}", "Data Loading Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
 

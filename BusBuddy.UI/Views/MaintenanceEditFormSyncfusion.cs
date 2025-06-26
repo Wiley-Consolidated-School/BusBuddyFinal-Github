@@ -93,7 +93,7 @@ namespace BusBuddy.UI.Views
             var lblMaintenanceCompleted = ControlFactory.CreateLabel("📋 Description:");
             lblMaintenanceCompleted.Location = new Point(labelX, y);
             this.Controls.Add(lblMaintenanceCompleted);
-            txtMaintenanceCompleted = ControlFactory.CreateTextBox(_bannerTextProvider, "Describe the maintenance performed", true);
+            txtMaintenanceCompleted = ControlFactory.CreateTextBox("Describe the maintenance performed", true);
             txtMaintenanceCompleted.Location = new Point(controlX, y);
             txtMaintenanceCompleted.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtMaintenanceCompleted);
@@ -116,7 +116,7 @@ namespace BusBuddy.UI.Views
             var lblVendor = ControlFactory.CreateLabel("🏢 Vendor:");
             lblVendor.Location = new Point(labelX, y);
             this.Controls.Add(lblVendor);
-            txtVendor = ControlFactory.CreateTextBox(_bannerTextProvider, "Maintenance vendor/shop");
+            txtVendor = ControlFactory.CreateTextBox("Maintenance vendor/shop");
             txtVendor.Location = new Point(controlX, y);
             txtVendor.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtVendor);
@@ -126,7 +126,7 @@ namespace BusBuddy.UI.Views
             var lblCost = ControlFactory.CreateLabel("💰 Cost:");
             lblCost.Location = new Point(labelX, y);
             this.Controls.Add(lblCost);
-            txtCost = ControlFactory.CreateTextBox(_bannerTextProvider, "Total cost (e.g., 125.50)");
+            txtCost = ControlFactory.CreateTextBox("Total cost (e.g., 125.50)");
             txtCost.Location = new Point(controlX, y);
             txtCost.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtCost);
@@ -136,7 +136,7 @@ namespace BusBuddy.UI.Views
             var lblNotes = ControlFactory.CreateLabel("📝 Notes:");
             lblNotes.Location = new Point(labelX, y);
             this.Controls.Add(lblNotes);
-            txtNotes = ControlFactory.CreateTextBox(_bannerTextProvider, "Additional notes", true);
+            txtNotes = ControlFactory.CreateTextBox("Additional notes", true);
             txtNotes.Location = new Point(controlX, y);
             txtNotes.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtNotes);
@@ -160,7 +160,7 @@ namespace BusBuddy.UI.Views
         {
             // Configure date picker for Material Design
             dtpDate.Font = new Font("Roboto", 10F);
-            dtpDate.BackColor = Color.White;
+            dtpDate.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
 
             // Style all labels
             foreach (Control control in this.Controls)
@@ -168,7 +168,7 @@ namespace BusBuddy.UI.Views
                 if (control is Label label)
                 {
                     label.Font = new Font("Roboto", 10F, FontStyle.Bold);
-                    label.ForeColor = Color.FromArgb(33, 33, 33);
+                    label.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                 }
             }
         }

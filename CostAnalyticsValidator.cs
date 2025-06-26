@@ -6,7 +6,7 @@ using BusBuddy.Business;
 using BusBuddy.Models;
 using BusBuddy.DependencyInjection;
 
-namespace BusBuddy.Tests
+namespace BusBuddy
 {
     /// <summary>
     /// Validation test for cost analytics functionality

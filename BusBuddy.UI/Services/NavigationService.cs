@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using BusBuddy.UI.Views;
 using BusBuddy.Data;
+using BusBuddy.UI.Services;
 
 namespace BusBuddy.UI.Services
 {
@@ -89,9 +90,8 @@ namespace BusBuddy.UI.Services
                 { "schoolcalendar", () => { ShowSchoolCalendarManagement(); return DialogResult.OK; } },
                 { "activityschedule", () => { ShowActivityScheduleManagement(); return DialogResult.OK; } },
 
-                // CDE-40 and analytics modules (Task 4 enhancements)
+                // Analytics and reporting modules
                 { "dashboard", () => { ShowDialog<BusBuddy.UI.Views.Dashboard>(); return DialogResult.OK; } },
-                { "cde40", () => { ShowDialog<AnalyticsDemoFormSyncfusion>(); return DialogResult.OK; } },
                 { "analytics", () => { ShowAnalyticsDemo(); return DialogResult.OK; } },
                 { "report", () => { ShowReportsManagement(); return DialogResult.OK; } },
                 { "reports", () => { ShowReportsManagement(); return DialogResult.OK; } },
@@ -130,9 +130,8 @@ namespace BusBuddy.UI.Services
                 { "schoolcalendar", true },
                 { "activityschedule", true },
 
-                // CDE-40 and analytics modules (Task 4 enhancements)
+                // Analytics and reporting modules
                 { "dashboard", true },
-                { "cde40", true },
                 { "analytics", true },
                 { "report", true },
                 { "reports", true },
@@ -243,58 +242,217 @@ namespace BusBuddy.UI.Services
         public void ShowVehicleManagement()
         {
             Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowVehicleManagement() called");
-            EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
-            ShowFormDialog<VehicleManagementFormSyncfusion>();
+            try
+            {
+                // Try to get repository from service container instead of direct instantiation
+                var vehicleRepository = ServiceContainerSingleton.Instance.GetService<IVehicleRepository>();
+                if (vehicleRepository != null)
+                {
+                    // Test database connection with repository from DI container
+                    EnsureRepositoryInitializedWithDI(() => vehicleRepository.GetAllVehicles());
+                }
+                else
+                {
+                    Console.WriteLine("⚠️ VehicleRepository not found in service container, using fallback");
+                    // Fallback to direct instantiation for backward compatibility
+                    EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
+                }
+                ShowFormDialog<VehicleManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowVehicleManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Vehicle Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowDriverManagement()
         {
             Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowDriverManagement() called");
-            EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
-            ShowFormDialog<DriverManagementFormSyncfusion>();
+            try
+            {
+                var driverRepository = ServiceContainerSingleton.Instance.GetService<IDriverRepository>();
+                if (driverRepository != null)
+                {
+                    EnsureRepositoryInitializedWithDI(() => driverRepository.GetAllDrivers());
+                }
+                else
+                {
+                    Console.WriteLine("⚠️ DriverRepository not found in service container, using fallback");
+                    EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
+                }
+                ShowFormDialog<DriverManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowDriverManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Driver Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowActivityScheduleManagement()
         {
             Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowActivityScheduleManagement() called");
-            EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
-            ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
+            try
+            {
+                var activityScheduleRepository = ServiceContainerSingleton.Instance.GetService<IActivityScheduleRepository>();
+                if (activityScheduleRepository != null)
+                {
+                    EnsureRepositoryInitializedWithDI(() => activityScheduleRepository.GetAllScheduledActivities());
+                }
+                else
+                {
+                    Console.WriteLine("⚠️ ActivityScheduleRepository not found in service container, using fallback");
+                    EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
+                }
+                ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowActivityScheduleManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Activity Schedule Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowRouteManagement()
         {
-            EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
-            ShowFormDialog<RouteManagementFormSyncfusion>();
+            try
+            {
+                var routeRepository = ServiceContainerSingleton.Instance.GetService<IRouteRepository>();
+                if (routeRepository != null)
+                {
+                    EnsureRepositoryInitializedWithDI(() => routeRepository.GetAllRoutes());
+                }
+                else
+                {
+                    EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
+                }
+                ShowFormDialog<RouteManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowRouteManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Route Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowActivityManagement()
         {
-            EnsureRepositoryInitialized(() => new ActivityRepository().GetAllActivities());
-            ShowFormDialog<ActivityManagementFormSyncfusion>();
+            try
+            {
+                var activityRepository = ServiceContainerSingleton.Instance.GetService<IActivityRepository>();
+                if (activityRepository != null)
+                {
+                    EnsureRepositoryInitializedWithDI(() => activityRepository.GetAllActivities());
+                }
+                else
+                {
+                    EnsureRepositoryInitialized(() => new ActivityRepository().GetAllActivities());
+                }
+                ShowFormDialog<ActivityManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowActivityManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Activity Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowFuelManagement()
         {
-            EnsureRepositoryInitialized(() => new FuelRepository().GetAllFuelRecords());
-            ShowFormDialog<FuelManagementFormSyncfusion>();
+            try
+            {
+                var fuelRepository = ServiceContainerSingleton.Instance.GetService<IFuelRepository>();
+                if (fuelRepository != null)
+                {
+                    EnsureRepositoryInitializedWithDI(() => fuelRepository.GetAllFuelRecords());
+                }
+                else
+                {
+                    EnsureRepositoryInitialized(() => new FuelRepository().GetAllFuelRecords());
+                }
+                ShowFormDialog<FuelManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowFuelManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Fuel Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowMaintenanceManagement()
         {
-            EnsureRepositoryInitialized(() => new MaintenanceRepository().GetAllMaintenanceRecords());
-            ShowFormDialog<MaintenanceManagementFormSyncfusion>();
+            try
+            {
+                var maintenanceRepository = ServiceContainerSingleton.Instance.GetService<IMaintenanceRepository>();
+                if (maintenanceRepository != null)
+                {
+                    EnsureRepositoryInitializedWithDI(() => maintenanceRepository.GetAllMaintenanceRecords());
+                }
+                else
+                {
+                    EnsureRepositoryInitialized(() => new MaintenanceRepository().GetAllMaintenanceRecords());
+                }
+                ShowFormDialog<MaintenanceManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowMaintenanceManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Maintenance Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowCalendarManagement()
         {
-            EnsureRepositoryInitialized(() => new SchoolCalendarRepository().GetAllCalendarEntries());
-            ShowFormDialog<SchoolCalendarManagementFormSyncfusion>();
+            try
+            {
+                var schoolCalendarRepository = ServiceContainerSingleton.Instance.GetService<ISchoolCalendarRepository>();
+                if (schoolCalendarRepository != null)
+                {
+                    EnsureRepositoryInitializedWithDI(() => schoolCalendarRepository.GetAllCalendarEntries());
+                }
+                else
+                {
+                    EnsureRepositoryInitialized(() => new SchoolCalendarRepository().GetAllCalendarEntries());
+                }
+                ShowFormDialog<SchoolCalendarManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowCalendarManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Calendar Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowScheduleManagement()
         {
-            EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
-            ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
+            try
+            {
+                var activityScheduleRepository = ServiceContainerSingleton.Instance.GetService<IActivityScheduleRepository>();
+                if (activityScheduleRepository != null)
+                {
+                    EnsureRepositoryInitializedWithDI(() => activityScheduleRepository.GetAllScheduledActivities());
+                }
+                else
+                {
+                    EnsureRepositoryInitialized(() => new ActivityScheduleRepository().GetAllScheduledActivities());
+                }
+                ShowFormDialog<ActivityScheduleManagementFormSyncfusion>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in ShowScheduleManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Schedule Management: {ex.Message}", "Navigation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void ShowTimeCardManagement()
@@ -345,6 +503,17 @@ namespace BusBuddy.UI.Services
         public DialogResult ShowDialog<T>(params object[] parameters) where T : Form
         {
             using var form = _formFactory.CreateForm<T>(parameters);
+
+            // Check if we're in test mode to avoid showing dialog
+            bool isTestMode = Environment.GetEnvironmentVariable("BUSBUDDY_TEST_MODE") == "true" ||
+                             Environment.GetEnvironmentVariable("BUSBUDDY_SUPPRESS_DIALOGS") == "true";
+
+            if (isTestMode)
+            {
+                Console.WriteLine($"🧪 TEST MODE: Skipping ShowDialog() for {typeof(T).Name} and returning DialogResult.OK");
+                return DialogResult.OK;
+            }
+
             return form.ShowDialog();
         }
 
@@ -355,6 +524,18 @@ namespace BusBuddy.UI.Services
                 Console.WriteLine($"🔍 BREADCRUMB: ShowFormDialog<{typeof(T).Name}>() called");
                 var form = _formFactory.CreateForm<T>();
                 Console.WriteLine($"🔍 BREADCRUMB: Form created successfully: {form.GetType().Name}");
+
+                // Check if we're in test mode to avoid showing dialog
+                bool isTestMode = Environment.GetEnvironmentVariable("BUSBUDDY_TEST_MODE") == "true" ||
+                                 Environment.GetEnvironmentVariable("BUSBUDDY_SUPPRESS_DIALOGS") == "true";
+
+                if (isTestMode)
+                {
+                    Console.WriteLine("🧪 TEST MODE: Skipping ShowDialog() and returning DialogResult.OK");
+                    form.Dispose();
+                    return DialogResult.OK;
+                }
+
                 Console.WriteLine("🔍 BREADCRUMB: About to call ShowDialog()");
                 var result = form.ShowDialog();
                 Console.WriteLine($"🔍 BREADCRUMB: ShowDialog() returned: {result}");
@@ -384,6 +565,25 @@ namespace BusBuddy.UI.Services
             {
                 Console.WriteLine($"⚠️ Repository initialization warning: {ex.Message}");
                 // Don't throw - let the form handle any subsequent issues
+            }
+        }
+
+        /// <summary>
+        /// Ensures repository from DI container is initialized by performing a test operation
+        /// This triggers database initialization if needed, with better error handling
+        /// </summary>
+        private void EnsureRepositoryInitializedWithDI(System.Action testOperation)
+        {
+            try
+            {
+                testOperation.Invoke();
+                Console.WriteLine("✅ Repository from DI container initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Repository from DI container initialization warning: {ex.Message}");
+                // Don't throw - let the form handle any subsequent issues
+                // This provides better error handling for forms that use message services
             }
         }
     }

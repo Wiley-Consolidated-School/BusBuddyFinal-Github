@@ -125,7 +125,7 @@ namespace BusBuddy.UI.Views
 
             // Fleet Summary Panel
             _fleetSummaryPanel = new Panel();
-            _fleetSummaryPanel.BackColor = Color.LightBlue;
+            _fleetSummaryPanel.BackColor = BusBuddyThemeManager.ThemeColors.GetInfoColor(BusBuddyThemeManager.CurrentTheme);
             _fleetSummaryPanel.BorderStyle = BorderStyle.FixedSingle;
             layout.Controls.Add(_fleetSummaryPanel, 1, 0);
             layout.SetRowSpan(_fleetSummaryPanel, 2);
@@ -290,7 +290,14 @@ namespace BusBuddy.UI.Views
 
             // Load optimization suggestions
             var suggestions = await _routeAnalyticsService.AnalyzeRouteOptimizationsAsync(DateTime.Now);
-            _optimizationSuggestionsGrid.DataSource = suggestions;
+            try
+            {
+                _optimizationSuggestionsGrid.DataSource = suggestions;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading optimization suggestions: {ex.Message}", "Data Loading Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
 
             // Load fleet summary
             var fleetSummary = await _routeAnalyticsService.GetFleetAnalyticsSummaryAsync(startDate, endDate);

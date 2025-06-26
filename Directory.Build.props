@@ -1,0 +1,26 @@
+<Project>
+  <!-- Shared properties for all projects in the solution -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!-- Custom MSBuild target to check for test files in non-test projects -->
+  <Target Name="CheckForTestsOutsideTestProject" BeforeTargets="Build"
+          Condition="'$(ProjectName)' != 'BusBuddy.UI.Tests'">
+    <ItemGroup>
+      <TestFiles Include="**\*.cs" />
+    </ItemGroup>
+    <ReadLinesFromFile File="%(TestFiles.FullPath)">
+      <Output TaskParameter="Lines" ItemName="FileContents" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <ContainsTestAttribute Condition="'@(FileContents)' != ''">$([System.Text.RegularExpressions.Regex]::IsMatch('@(FileContents)', '\[Fact\]|\[Theory\]|\[Test\]|\[TestMethod\]'))</ContainsTestAttribute>
+    </PropertyGroup>
+    <Error Condition="'$(ContainsTestAttribute)' == 'true'"
+           Text="Test file found outside of BusBuddy.UI.Tests project. Please move all test files to the BusBuddy.UI.Tests project." />
+  </Target>
+</Project>

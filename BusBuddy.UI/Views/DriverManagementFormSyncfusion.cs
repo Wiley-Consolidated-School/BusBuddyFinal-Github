@@ -19,13 +19,10 @@ namespace BusBuddy.UI.Views
     public class DriverManagementFormSyncfusion : BaseManagementForm<Driver>
     {
         private readonly IDriverRepository _driverRepository;
-
         #region Properties Override
         protected override string FormTitle => "👨‍✈️ Driver Management";
         protected override string SearchPlaceholder => "Search drivers...";
         protected override string EntityName => "Driver";
-        #endregion
-
         #region Constructors
         public DriverManagementFormSyncfusion() : this(new DriverRepository()) { }
 
@@ -34,8 +31,6 @@ namespace BusBuddy.UI.Views
             _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
             // NOTE: LoadData() is called by the base class after all controls are initialized
         }
-        #endregion
-
         #region Base Implementation Override
         protected override void LoadData()
         {
@@ -62,12 +57,17 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error loading drivers: {ex.Message}");
+                HandleError($"Error loading drivers: {ex.Message}", "$($EntityName) Error", ex);
                 _entities = new List<Driver>(); // Ensure _entities is never null
             }
         }
 
-        private bool IsTestMode()
+        protected override void LoadDataFromRepository()
+        {
+            LoadData(); // Delegate to existing LoadData implementation
+        }
+
+        private new bool IsTestMode()
         {
             // Check if we're running in a test environment
             return Environment.CommandLine.Contains("testhost") ||
@@ -97,7 +97,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error adding new driver: {ex.Message}");
+                HandleError($"Error adding new driver: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -106,7 +106,7 @@ namespace BusBuddy.UI.Views
             var selectedDriver = GetSelectedEntity();
             if (selectedDriver == null)
             {
-                ShowInfoMessage("Please select a driver to edit.");
+                ShowInfo("Please select a driver to edit.");
                 return;
             }
 
@@ -120,7 +120,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error editing driver: {ex.Message}");
+                HandleError($"Error editing driver: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -129,7 +129,7 @@ namespace BusBuddy.UI.Views
             var selectedDriver = GetSelectedEntity();
             if (selectedDriver == null)
             {
-                ShowInfoMessage("Please select a driver to delete.");
+                ShowInfo("Please select a driver to delete.");
                 return;
             }
 
@@ -139,11 +139,11 @@ namespace BusBuddy.UI.Views
             {
                 _driverRepository.DeleteDriver(selectedDriver.DriverID);
                 RefreshGrid();
-                ShowInfoMessage("Driver deleted successfully.");
+                ShowInfo("Driver deleted successfully.");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error deleting driver: {ex.Message}");
+                HandleError($"Error deleting driver: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -152,7 +152,7 @@ namespace BusBuddy.UI.Views
             var selectedDriver = GetSelectedEntity();
             if (selectedDriver == null)
             {
-                ShowInfoMessage("Please select a driver to view details.");
+                ShowInfo("Please select a driver to view details.");
                 return;
             }
 
@@ -168,11 +168,11 @@ namespace BusBuddy.UI.Views
                             $"License Type: {selectedDriver.DriversLicenseType}\n" +
                             $"Training Complete: {(selectedDriver.IsTrainingComplete ? "Yes" : "No")}";
 
-                ShowInfoMessage(details, "Driver Details");
+                ShowInfo(details, "Driver Details");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error viewing driver details: {ex.Message}");
+                HandleError($"Error viewing driver details: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -208,7 +208,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error searching drivers: {ex.Message}");
+                HandleError($"Error searching drivers: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -230,8 +230,6 @@ namespace BusBuddy.UI.Views
 
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
-        #endregion
-
         #region Helper Methods
         private void PopulateDriverGrid()
         {
@@ -261,8 +259,14 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error populating driver grid: {ex.Message}");
-            }        }
+                HandleError($"Error populating driver grid: {ex.Message}", "$($EntityName) Error", ex);
+            }        }    }
+
         #endregion
-    }
+
+        #endregion
+
+        #endregion
+
+        #endregion
 }

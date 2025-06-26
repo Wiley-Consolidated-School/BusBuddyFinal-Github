@@ -21,13 +21,10 @@ namespace BusBuddy.UI.Views
         private readonly IMaintenanceRepository _maintenanceRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private List<Vehicle> _vehicles = new List<Vehicle>();
-
         #region Properties Override
         protected override string FormTitle => "🔧 Maintenance Management";
         protected override string SearchPlaceholder => "Search maintenance...";
         protected override string EntityName => "Maintenance";
-        #endregion
-
         #region Constructors
         public MaintenanceManagementFormSyncfusion() : this(new MaintenanceRepository(), new VehicleRepository()) { }
 
@@ -37,13 +34,17 @@ namespace BusBuddy.UI.Views
             _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
             // NOTE: LoadData() and LoadVehicles() are called by the base class after all controls are initialized
         }
-        #endregion
-
         #region Base Implementation Override
         protected override void LoadData()
         {
             try
             {
+                if (_maintenanceRepository == null || _vehicleRepository == null)
+                {
+                    ShowErrorMessage("Error loading maintenance records: Repository not initialized.");
+                    _entities = new List<Maintenance>();
+                    return;
+                }
                 // Load vehicles first for dropdowns/lookups
                 LoadVehicles();
 
@@ -53,9 +54,14 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error loading maintenance records: {ex.Message}");
+                HandleError($"Error loading maintenance records: {ex.Message}", "$($EntityName) Error", ex);
                 _entities = new List<Maintenance>(); // Ensure _entities is never null
             }
+        }
+
+        protected override void LoadDataFromRepository()
+        {
+            LoadData(); // Delegate to existing LoadData implementation
         }
 
         protected override void AddNewEntity()
@@ -70,7 +76,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error adding new maintenance record: {ex.Message}");
+                HandleError($"Error adding new maintenance record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -79,7 +85,7 @@ namespace BusBuddy.UI.Views
             var selectedMaintenance = GetSelectedEntity();
             if (selectedMaintenance == null)
             {
-                ShowInfoMessage("Please select a maintenance record to edit.");
+                ShowInfo("Please select a maintenance record to edit.");
                 return;
             }
 
@@ -93,7 +99,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error editing maintenance record: {ex.Message}");
+                HandleError($"Error editing maintenance record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -102,7 +108,7 @@ namespace BusBuddy.UI.Views
             var selectedMaintenance = GetSelectedEntity();
             if (selectedMaintenance == null)
             {
-                ShowInfoMessage("Please select a maintenance record to delete.");
+                ShowInfo("Please select a maintenance record to delete.");
                 return;
             }
 
@@ -112,11 +118,11 @@ namespace BusBuddy.UI.Views
             {
                 _maintenanceRepository.DeleteMaintenanceRecord(selectedMaintenance.MaintenanceID);
                 RefreshGrid();
-                ShowInfoMessage("Maintenance record deleted successfully.");
+                ShowInfo("Maintenance record deleted successfully.");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error deleting maintenance record: {ex.Message}");
+                HandleError($"Error deleting maintenance record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -125,7 +131,7 @@ namespace BusBuddy.UI.Views
             var selectedMaintenance = GetSelectedEntity();
             if (selectedMaintenance == null)
             {
-                ShowInfoMessage("Please select a maintenance record to view details.");
+                ShowInfo("Please select a maintenance record to view details.");
                 return;
             }
 
@@ -141,11 +147,11 @@ namespace BusBuddy.UI.Views
                             $"Cost: {selectedMaintenance.RepairCost:C}\n" +
                             $"Notes: {selectedMaintenance.Notes}";
 
-                ShowInfoMessage(details, "Maintenance Details");
+                ShowInfo(details, "Maintenance Details");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error viewing maintenance details: {ex.Message}");
+                HandleError($"Error viewing maintenance details: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -181,7 +187,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error searching maintenance records: {ex.Message}");
+                HandleError($"Error searching maintenance records: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -202,8 +208,6 @@ namespace BusBuddy.UI.Views
 
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
-        #endregion
-
         #region Helper Methods
         private void LoadVehicles()
         {
@@ -218,7 +222,7 @@ namespace BusBuddy.UI.Views
             {
                 // Ensure collection is never null even on error
                 _vehicles = new List<Vehicle>();
-                ShowErrorMessage($"Error loading vehicles: {ex.Message}");
+                HandleError($"Error loading vehicles: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -249,7 +253,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error populating maintenance grid: {ex.Message}");
+                HandleError($"Error populating maintenance grid: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -258,7 +262,13 @@ namespace BusBuddy.UI.Views
             if (!vehicleId.HasValue) return "Unknown";
 
             var vehicle = _vehicles.FirstOrDefault(v => v.Id == vehicleId.Value);
-            return vehicle?.VehicleNumber ?? "Unknown";        }
+            return vehicle?.VehicleNumber ?? "Unknown";        }    }
+
         #endregion
-    }
+
+        #endregion
+
+        #endregion
+
+        #endregion
 }

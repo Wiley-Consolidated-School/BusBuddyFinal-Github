@@ -41,9 +41,9 @@ CREATE TABLE Vehicles (
     Model NVARCHAR(50),
     Year INT,
     SeatingCapacity INT,
-    VINNumber NVARCHAR(100),
+    VINNumber NVARCHAR(50),
     LicenseNumber NVARCHAR(50),
-    DateLastInspection NVARCHAR(50),
+    DateLastInspection DATETIME,
     Notes NVARCHAR(MAX),
     FuelType NVARCHAR(50), -- Added for schema compatibility
     Status NVARCHAR(50)    -- Added for schema compatibility

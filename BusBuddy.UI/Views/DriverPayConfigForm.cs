@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Windows.Forms;
 using BusBuddy.UI.Base;
+using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.DataGrid;
@@ -64,12 +65,13 @@ namespace BusBuddy.UI.Views
             {
                 Text = "💰 Driver Pay Rate Configuration",
                 Font = new Font("Segoe UI", 12F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(63, 81, 181),
+                ForeColor = BusBuddyThemeManager.DarkTheme.PrimaryColor,
                 Dock = DockStyle.Top,
                 Height = 40,
                 TextAlign = ContentAlignment.MiddleLeft,
                 Padding = new Padding(10, 0, 0, 0)
             };            // Data grid for pay rates
+            // Reference: https://help.syncfusion.com/windowsforms/datagrid/getting-started
             _payRatesGrid = new SfDataGrid
             {
                 AllowEditing = true,
@@ -119,11 +121,12 @@ namespace BusBuddy.UI.Views
             _payRatesGrid.Columns.Add(descriptionColumn);
 
             // Update button
+            // Reference: https://help.syncfusion.com/windowsforms/button/getting-started
             _updateButton = new SfButton
             {
                 Text = "Update Route Pay Scheme",
                 Size = new Size(180, 35),
-                BackColor = Color.FromArgb(63, 81, 181),
+                BackColor = BusBuddyThemeManager.DarkTheme.PrimaryColor,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 9F, FontStyle.Bold)
@@ -131,6 +134,7 @@ namespace BusBuddy.UI.Views
             _updateButton.Click += UpdateButton_Click;
 
             // Close button
+            // Reference: https://help.syncfusion.com/windowsforms/button/getting-started
             _closeButton = new SfButton
             {
                 Text = "Close",
@@ -202,7 +206,15 @@ namespace BusBuddy.UI.Views
                     new PayRateDisplay { RouteType = "SmallBus", Rate = 15.00m, Description = "Per trip (AM or PM)" },
                     new PayRateDisplay { RouteType = "SPED", Rate = 66.00m, Description = "Per day (both AM/PM)" }
                 };
-                _payRatesGrid.DataSource = _payRates;
+
+                try
+                {
+                    _payRatesGrid.DataSource = _payRates;
+                }
+                catch (Exception dataEx)
+                {
+                    MessageBox.Show($"Error loading pay rates data: {dataEx.Message}", "Data Loading Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
 
@@ -252,9 +264,18 @@ namespace BusBuddy.UI.Views
         {
             if (disposing)
             {
-                _payRatesGrid?.Dispose();                _updateButton?.Dispose();
-                _closeButton?.Dispose();
-                _mainLayout?.Dispose();
+                try
+                {
+                    _payRatesGrid?.Dispose();
+                    _updateButton?.Dispose();
+                    _closeButton?.Dispose();
+                    _mainLayout?.Dispose();
+                }
+                catch (Exception disposeEx)
+                {
+                    // Log disposal errors but don't throw
+                    System.Diagnostics.Debug.WriteLine($"Error disposing DriverPayConfigForm controls: {disposeEx.Message}");
+                }
                 _payButtonPanel?.Dispose();
             }
             base.Dispose(disposing);

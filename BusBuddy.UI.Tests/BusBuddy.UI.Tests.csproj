@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.7.0" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Syncfusion.Maps.Windows" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Shared.Base" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Tools.Windows" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Core.WinForms" Version="29.2.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BusBuddy.UI\BusBuddy.UI.csproj" />
+    <ProjectReference Include="..\BusBuddy.Models\BusBuddy.Models.csproj" />
+    <ProjectReference Include="..\BusBuddy.Data\BusBuddy.Data.csproj" />
+    <ProjectReference Include="..\BusBuddy.Business\BusBuddy.Business.csproj" />
+  </ItemGroup>
+
+  <!-- Embedded Resources for Map Testing -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\BusBuddy.UI\tl_2024_us_state.shp" Link="Resources\tl_2024_us_state.shp" />
+    <EmbeddedResource Include="..\BusBuddy.UI\tl_2024_us_state.dbf" Link="Resources\tl_2024_us_state.dbf" />
+    <EmbeddedResource Include="..\BusBuddy.UI\tl_2024_us_state.shx" Link="Resources\tl_2024_us_state.shx" />
+  </ItemGroup>
+
+</Project>

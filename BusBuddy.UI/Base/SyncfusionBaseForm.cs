@@ -24,7 +24,7 @@ namespace BusBuddy.UI.Base
     {
         protected readonly ErrorProvider _errorProvider;
         protected readonly BusBuddy.Business.DatabaseHelperService _databaseService;
-        protected readonly BannerTextProvider _bannerTextProvider;
+        // BannerTextProvider removed - causes license popups, not needed per official Syncfusion docs
 
         // Common UI elements
         protected Panel _mainPanel;
@@ -34,8 +34,7 @@ namespace BusBuddy.UI.Base
         protected float _dpiScale;
         protected bool _isHighDpi;
 
-        // Static initialization guard for Syncfusion components
-        private static bool _syncfusionInitialized = false;
+        // Static initialization guard for Syncfusion components - removed unused field
         private static readonly object _initLock = new object();
 
         // Test mode support - prevents dialog boxes during testing
@@ -71,7 +70,7 @@ namespace BusBuddy.UI.Base
             // Initialize common components
             _errorProvider = new ErrorProvider();
             _databaseService = new BusBuddy.Business.DatabaseHelperService();
-            _bannerTextProvider = CreateBannerTextProviderSafely();
+            // BannerTextProvider removed - causes license popups, not needed per official Syncfusion docs
 
             // Initialize DPI awareness for proper scaling
             InitializeDpiAwareness();
@@ -87,7 +86,7 @@ namespace BusBuddy.UI.Base
             this.KeyPreview = true;
             this.Size = GetDpiAwareSize(new Size(800, 600));
             this.MinimumSize = new Size(1024, 600);
-            this.BackColor = Color.FromArgb(68, 68, 68); // Dark graphics-friendly background
+            this.BackColor = BusBuddyThemeManager.DarkTheme.BackgroundColor; // Dark graphics-friendly background
 
             // Initialize layout
             InitializeLayout();
@@ -229,11 +228,11 @@ namespace BusBuddy.UI.Base
                     if (control is Button button)
                     {
                         // Apply dark theme button styling
-                        button.BackColor = Color.FromArgb(0, 122, 204); // Darker blue for dark theme
+                        button.BackColor = BusBuddyThemeManager.DarkTheme.PrimaryColor; // Darker blue for dark theme
                         button.ForeColor = Color.White;
                         button.FlatStyle = FlatStyle.Flat;
                         button.FlatAppearance.BorderSize = 1;
-                        button.FlatAppearance.BorderColor = Color.FromArgb(100, 100, 100);
+                        button.FlatAppearance.BorderColor = BusBuddyThemeManager.ThemeColors.GetMutedColor(BusBuddyThemeManager.SupportedThemes.Office2016Black);
                         button.Font = new Font("Segoe UI", 9f, FontStyle.Regular);
                     }
                 }
@@ -277,7 +276,7 @@ namespace BusBuddy.UI.Base
                     // Use dark theme colors that won't interfere with graphics
                     if (sfGrid.Style?.HeaderStyle != null)
                     {
-                        sfGrid.Style.HeaderStyle.BackColor = Color.FromArgb(0, 122, 204);
+                        sfGrid.Style.HeaderStyle.BackColor = BusBuddyThemeManager.DarkTheme.PrimaryColor;
                         sfGrid.Style.HeaderStyle.TextColor = Color.White;
                     }
                 }
@@ -293,40 +292,6 @@ namespace BusBuddy.UI.Base
         /// Safely creates BannerTextProvider with protection against window handle conflicts
         /// Essential for UI testing scenarios where multiple forms may be created
         /// </summary>
-        private BannerTextProvider CreateBannerTextProviderSafely()
-        {
-            lock (_initLock)
-            {
-                try
-                {
-                    // Check if we're in a testing environment
-                    bool isTestEnvironment = AppDomain.CurrentDomain.GetAssemblies()
-                        .Any(a => a.FullName.Contains("xunit") || a.FullName.Contains("Test"));
-
-                    if (isTestEnvironment && _syncfusionInitialized)
-                    {
-                        // In test scenarios, return null to avoid window handle conflicts
-                        Console.WriteLine("⚠️ Skipping BannerTextProvider creation in test environment to prevent handle conflicts");
-                        return null;
-                    }
-
-                    var provider = new BannerTextProvider();
-                    _syncfusionInitialized = true;
-                    return provider;
-                }
-                catch (InvalidOperationException ex) when (ex.Message.Contains("Window handle already exists"))
-                {
-                    Console.WriteLine($"⚠️ Window handle conflict prevented: {ex.Message}");
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"⚠️ BannerTextProvider creation failed: {ex.Message}");
-                    return null;
-                }
-            }
-        }
-
         /// <summary>
         /// Apply consistent Syncfusion theme across all forms to prevent theme inconsistencies
         /// Removed to prevent graphics display issues
@@ -393,19 +358,7 @@ namespace BusBuddy.UI.Base
         {
             try
             {
-                // Dispose banner text provider safely
-                if (_bannerTextProvider != null)
-                {
-                    try
-                    {
-                        _bannerTextProvider.Dispose();
-                        Console.WriteLine("🧽 BannerTextProvider disposed");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"⚠️ Error disposing BannerTextProvider: {ex.Message}");
-                    }
-                }
+                // BannerTextProvider disposal removed - not needed per official Syncfusion docs
 
                 // Database service cleanup (if it implements IDisposable)
                 if (_databaseService != null)
@@ -466,9 +419,14 @@ namespace BusBuddy.UI.Base
                         // Special cleanup for Syncfusion controls
                         if (control.GetType().FullName?.Contains("Syncfusion") == true)
                         {
-                            // Clear data sources for data controls
-                            if (control is Syncfusion.WinForms.DataGrid.SfDataGrid dataGrid)
+                            // Special handling for ChartControl
+                            if (control is Syncfusion.Windows.Forms.Chart.ChartControl chartControl)
                             {
+                                CleanupChartControlSafely(chartControl);
+                            }
+                            else if (control is Syncfusion.WinForms.DataGrid.SfDataGrid dataGrid)
+                            {
+                                // Clear data sources for data controls
                                 dataGrid.DataSource = null;
                             }
 
@@ -486,6 +444,35 @@ namespace BusBuddy.UI.Base
             catch (Exception ex)
             {
                 Console.WriteLine($"⚠️ Error in CleanupSyncfusionControlsRecursively: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Safely cleanup ChartControl to prevent ChartToolBar issues during cleanup
+        /// </summary>
+        private void CleanupChartControlSafely(Syncfusion.Windows.Forms.Chart.ChartControl chartControl)
+        {
+            try
+            {
+                if (chartControl == null) return;
+
+                // Clear chart data first
+                if (chartControl.Series != null)
+                {
+                    chartControl.Series.Clear();
+                }
+
+                // Chart areas are not available in Syncfusion ChartControl
+                // The control handles chart layout internally
+
+                // Hide the chart to prevent drawing during cleanup
+                chartControl.Visible = false;
+
+                Console.WriteLine("🧽 ChartControl cleaned up safely");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ ChartControl cleanup warning: {ex.Message}");
             }
         }
 
@@ -560,12 +547,12 @@ namespace BusBuddy.UI.Base
                 if (themeName == "Office2016Black")
                 {
                     // Dark theme colors
-                    this.BackColor = Color.FromArgb(68, 68, 68);
+                    this.BackColor = BusBuddyThemeManager.DarkTheme.BackgroundColor;
                     this.ForeColor = Color.White;
                     if (_mainPanel != null)
-                        _mainPanel.BackColor = Color.FromArgb(68, 68, 68);
+                        _mainPanel.BackColor = BusBuddyThemeManager.DarkTheme.BackgroundColor;
                     if (_buttonPanel != null)
-                        _buttonPanel.BackColor = Color.FromArgb(68, 68, 68);
+                        _buttonPanel.BackColor = BusBuddyThemeManager.DarkTheme.BackgroundColor;
                 }
                 else if (themeName == "Office2016White")
                 {
@@ -640,24 +627,133 @@ namespace BusBuddy.UI.Base
         {
             try
             {
+                var controlsList = new List<Control>();
                 foreach (Control control in controls)
                 {
-                    // Dispose child controls first
-                    if (control.HasChildren)
-                    {
-                        DisposeSyncfusionControlsRecursive(control.Controls);
-                    }
+                    controlsList.Add(control);
+                }
 
-                    // Dispose Syncfusion-specific controls
-                    if (control.GetType().Namespace?.StartsWith("Syncfusion") == true)
+                foreach (Control control in controlsList)
+                {
+                    try
                     {
-                        control.Dispose();
+                        // Dispose child controls first
+                        if (control.HasChildren)
+                        {
+                            DisposeSyncfusionControlsRecursive(control.Controls);
+                        }
+
+                        // Handle specific Syncfusion controls that need special disposal
+                        if (control.GetType().Namespace?.StartsWith("Syncfusion") == true)
+                        {
+                            // Special handling for ChartControl to prevent ChartToolBar null reference
+                            if (control is Syncfusion.Windows.Forms.Chart.ChartControl chartControl)
+                            {
+                                DisposeChartControlSafely(chartControl);
+                            }
+                            else
+                            {
+                                // Standard Syncfusion control disposal
+                                control.Dispose();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogInfo($"Individual control disposal warning for {control?.GetType().Name}: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
                 LogInfo($"Syncfusion control disposal warning: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Safely dispose ChartControl to prevent ChartToolBar null reference exceptions
+        /// This is a known issue with Syncfusion ChartControl disposal
+        /// </summary>
+        private void DisposeChartControlSafely(Syncfusion.Windows.Forms.Chart.ChartControl chartControl)
+        {
+            try
+            {
+                if (chartControl == null) return;
+
+                // Step 1: Disable the toolbar first to prevent ChartToolBar disposal issues
+                try
+                {
+                    chartControl.ShowToolbar = false;
+                }
+                catch (Exception ex)
+                {
+                    LogInfo($"ChartControl toolbar disable warning: {ex.Message}");
+                }
+
+                // Step 2: Clear chart data to prevent disposal issues
+                try
+                {
+                    if (chartControl.Series != null)
+                    {
+                        chartControl.Series.Clear();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogInfo($"ChartControl series clear warning: {ex.Message}");
+                }
+
+                // Step 3: Disable tooltips and other features that might cause disposal issues
+                try
+                {
+                    chartControl.ShowToolTips = false;
+                    chartControl.ShowLegend = false;
+                }
+                catch (Exception ex)
+                {
+                    LogInfo($"ChartControl features disable warning: {ex.Message}");
+                }
+
+                // Step 4: Hide the chart to prevent drawing during disposal
+                try
+                {
+                    chartControl.Visible = false;
+                }
+                catch (Exception ex)
+                {
+                    LogInfo($"ChartControl hide warning: {ex.Message}");
+                }
+
+                // Step 5: Remove from parent to prevent cascading disposal issues
+                try
+                {
+                    if (chartControl.Parent != null)
+                    {
+                        chartControl.Parent.Controls.Remove(chartControl);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogInfo($"ChartControl parent removal warning: {ex.Message}");
+                }
+
+                // Step 6: Finally dispose the chart control (this may still throw, so we catch it)
+                try
+                {
+                    chartControl.Dispose();
+                    LogInfo("ChartControl disposed safely");
+                }
+                catch (Exception ex)
+                {
+                    LogInfo($"ChartControl disposal warning (known Syncfusion issue): {ex.Message}");
+                    // Don't rethrow - this is a known Syncfusion ChartToolBar disposal issue
+                    // The control is already removed from parent and hidden, so it's effectively disposed
+                }
+            }
+            catch (Exception ex)
+            {
+                LogInfo($"ChartControl safe disposal outer warning: {ex.Message}");
+                // Don't rethrow - we're in cleanup, best effort only
             }
         }
 

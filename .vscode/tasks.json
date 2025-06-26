@@ -5,17 +5,93 @@
 			"type": "shell",
 			"label": "build BusBuddy",
 			"command": "dotnet build BusBuddy.sln",
-			"group": "build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
 			"problemMatcher": [
 				"$msCompile"
-			]
+			],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"type": "shell",
+			"label": "check Syncfusion dependencies",
+			"command": "pwsh",
+			"args": [
+				"-ExecutionPolicy", "Bypass",
+				"-File", "${workspaceFolder}/check-syncfusion-deps.ps1"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
 		},
 		{
 			"type": "shell",
 			"label": "test BusBuddy",
 			"command": "dotnet test BusBuddy.sln",
 			"group": "test",
-			"problemMatcher": ["$msCompile"]
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"type": "shell",
+			"label": "test BusBuddy (verbose)",
+			"command": "dotnet test BusBuddy.sln --verbosity normal",
+			"group": "test",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"type": "shell",
+			"label": "test BusBuddy (debug mode)",
+			"command": "dotnet test BusBuddy.sln --verbosity normal",
+			"group": "test",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"options": {
+				"env": {
+					"VSTEST_HOST_DEBUG": "1"
+				}
+			}
+		},
+		{
+			"type": "shell",
+			"label": "Discover Tests",
+			"command": "dotnet test BusBuddy.sln --list-tests --nologo",
+			"group": "test",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
 		},
 		{
 			"label": "Generate Code Coverage",
@@ -81,18 +157,116 @@
 			"options": {
 				"cwd": "${workspaceFolder}"
 			}
-		},        {
-            "label": "Generate Coverage + Display",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "Generate Code Coverage"
-            ],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false
-            }
-        }
+		},
+		{
+			"label": "Generate Coverage + Display",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"Generate Code Coverage"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false
+			}
+		},
+		{
+			"label": "Discover Tests",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"test",
+				"--list-tests",
+				"--logger:console;verbosity=normal"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new"
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "check Syncfusion license",
+			"command": "powershell",
+			"args": [
+				"-Command",
+				"$licenseKeys = @(); $licenseKeys += Get-Content -Path '*.cs' -Recurse | Select-String -Pattern 'Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense' | Select-Object -First 5; $configKeys = Get-Content -Path 'App.*.config' -ErrorAction SilentlyContinue | Select-String -Pattern 'SyncfusionLicense' | Select-Object -First 5; if ($licenseKeys.Count -gt 0 -or $configKeys.Count -gt 0) { Write-Host '✅ Syncfusion license configuration found' -ForegroundColor Green; $licenseKeys | ForEach-Object { Write-Host \"  Found in: $($_.Filename)\" -ForegroundColor Cyan } } else { Write-Host '⚠️  No Syncfusion license configuration found' -ForegroundColor Yellow; Write-Host '   Consider adding license registration in Program.cs or App.config' -ForegroundColor Gray }"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"type": "shell",
+			"label": "debug setup assistant",
+			"command": "powershell",
+			"args": [
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"${workspaceFolder}/debug-setup.ps1"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "new"
+			}
+		},
+		{
+			"type": "shell",
+			"label": "Generate xUnit Test for Current File",
+			"command": "powershell",
+			"args": [
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$sourcePath = '${file}'; $className = [System.IO.Path]::GetFileNameWithoutExtension('${file}'); $namespace = (Get-Content '${file}' | Select-String -Pattern 'namespace\\s+([^\\s{]+)' | ForEach-Object { $_.Matches.Groups[1].Value } | Select-Object -First 1); $testPath = Join-Path '${workspaceFolder}' 'BusBuddy.UI.Tests' \"$className`Test.cs\"; if (Test-Path $testPath) { Write-Host \"Test file already exists at: $testPath\" -ForegroundColor Yellow } else { $templateContent = Get-Content '${workspaceFolder}/copilot-examples.md' -Raw; $templateContent = $templateContent -replace 'DynamicLayoutManager', $className; $templateContent = $templateContent -replace 'BusBuddy.UI.Layout', $namespace; Set-Content -Path $testPath -Value $templateContent -Encoding UTF8; Write-Host \"Created test file at: $testPath\" -ForegroundColor Green }"
+			],
+			"group": "test",
+			"problemMatcher": [],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared"
+			}
+		},
+		{
+			"type": "shell",
+			"label": "Generate xUnit Test (Script)",
+			"command": "powershell",
+			"args": [
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"${workspaceFolder}/Generate-XUnitTest.ps1",
+				"-SourceFile",
+				"${file}"
+			],
+			"group": "test",
+			"problemMatcher": [],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared"
+			}
+		}
 	]
 }

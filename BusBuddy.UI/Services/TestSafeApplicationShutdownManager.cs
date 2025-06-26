@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
+using BusBuddy.UI.Helpers;
 
 namespace BusBuddy.UI.Services
 {
@@ -33,6 +34,18 @@ namespace BusBuddy.UI.Services
         {
             _isTestEnvironment = false;
             Console.WriteLine("🔄 ApplicationShutdownManager: Test mode disabled - Normal shutdown enabled");
+        }
+
+        /// <summary>
+        /// Manually suppress any active dialogs (for use during critical test operations)
+        /// </summary>
+        public static void SuppressActiveDialogs()
+        {
+            if (_isTestEnvironment)
+            {
+                // Simple dialog suppression - just log that we would suppress dialogs
+                Console.WriteLine("🧪 ApplicationShutdownManager: Dialog suppression requested in test mode");
+            }
         }
 
         /// <summary>

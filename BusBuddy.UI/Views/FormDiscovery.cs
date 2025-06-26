@@ -30,6 +30,17 @@ namespace BusBuddy.UI.Views
         }
 
         /// <summary>
+        /// Form association for linking management forms with their edit forms
+        /// </summary>
+        public class FormAssociation
+        {
+            public string ManagementFormName { get; set; }
+            public string EditFormName { get; set; }
+            public string DisplayName { get; set; }
+            public bool IsEditFormAvailable { get; set; } = true;
+        }
+
+        /// <summary>
         /// Configuration for a form
         /// </summary>
         public class FormConfiguration
@@ -40,6 +51,7 @@ namespace BusBuddy.UI.Views
             public string NavigationMethod { get; set; }
             public bool IsEnabled { get; set; } = true;
             public int SortOrder { get; set; }
+            public string AssociatedEditForm { get; set; } // New property for edit form association
         }
 
         /// <summary>
@@ -121,26 +133,80 @@ namespace BusBuddy.UI.Views
         /// <summary>
         /// Loads form configurations - hardcoded for Phase 4 compliance
         /// </summary>
-        private static List<FormConfiguration> LoadFormConfigurations()
+        public static List<FormConfiguration> LoadFormConfigurations()
         {
             try
             {
                 return new List<FormConfiguration>
                 {
-                    new FormConfiguration { Name = "VehicleManagementFormSyncfusion", DisplayName = "🚗 Vehicle Management", Description = "Manage vehicle fleet", NavigationMethod = "ShowVehicleManagement", SortOrder = 1 },
-                    new FormConfiguration { Name = "DriverManagementFormSyncfusion", DisplayName = "👤 Driver Management", Description = "Manage drivers", NavigationMethod = "ShowDriverManagement", SortOrder = 2 },
-                    new FormConfiguration { Name = "RouteManagementFormSyncfusion", DisplayName = "🚌 Route Management", Description = "Manage routes", NavigationMethod = "ShowRouteManagement", SortOrder = 3 },
-                    new FormConfiguration { Name = "ActivityManagementFormSyncfusion", DisplayName = "🎯 Activity Management", Description = "Manage activities", NavigationMethod = "ShowActivityManagement", SortOrder = 4 },
-                    new FormConfiguration { Name = "FuelManagementFormSyncfusion", DisplayName = "⛽ Fuel Management", Description = "Manage fuel records", NavigationMethod = "ShowFuelManagement", SortOrder = 5 },
-                    new FormConfiguration { Name = "MaintenanceManagementFormSyncfusion", DisplayName = "🔧 Maintenance Management", Description = "Manage maintenance records", NavigationMethod = "ShowMaintenanceManagement", SortOrder = 6 },
-                    new FormConfiguration { Name = "SchoolCalendarManagementFormSyncfusion", DisplayName = "📅 School Calendar", Description = "Manage school calendar", NavigationMethod = "ShowSchoolCalendarManagement", SortOrder = 7 },
-                    new FormConfiguration { Name = "ActivityScheduleManagementFormSyncfusion", DisplayName = "📋 Activity Schedule", Description = "Manage activity schedules", NavigationMethod = "ShowActivityScheduleManagement", SortOrder = 8 }
+                    new FormConfiguration { Name = "VehicleManagementFormSyncfusion", DisplayName = "🚗 Vehicle Management", Description = "Manage vehicle fleet", NavigationMethod = "ShowVehicleManagement", SortOrder = 1, AssociatedEditForm = "VehicleFormSyncfusion" },
+                    new FormConfiguration { Name = "DriverManagementFormSyncfusion", DisplayName = "👤 Driver Management", Description = "Manage drivers", NavigationMethod = "ShowDriverManagement", SortOrder = 2, AssociatedEditForm = "DriverEditFormSyncfusion" },
+                    new FormConfiguration { Name = "RouteManagementFormSyncfusion", DisplayName = "🚌 Route Management", Description = "Manage routes", NavigationMethod = "ShowRouteManagement", SortOrder = 3, AssociatedEditForm = "RouteEditFormSyncfusion" },
+                    new FormConfiguration { Name = "ActivityManagementFormSyncfusion", DisplayName = "🎯 Activity Management", Description = "Manage activities", NavigationMethod = "ShowActivityManagement", SortOrder = 4, AssociatedEditForm = "ActivityEditFormSyncfusion" },
+                    new FormConfiguration { Name = "FuelManagementFormSyncfusion", DisplayName = "⛽ Fuel Management", Description = "Manage fuel records", NavigationMethod = "ShowFuelManagement", SortOrder = 5, AssociatedEditForm = "FuelEditFormSyncfusion" },
+                    new FormConfiguration { Name = "MaintenanceManagementFormSyncfusion", DisplayName = "🔧 Maintenance Management", Description = "Manage maintenance records", NavigationMethod = "ShowMaintenanceManagement", SortOrder = 6, AssociatedEditForm = "MaintenanceEditFormSyncfusion" },
+                    new FormConfiguration { Name = "SchoolCalendarManagementFormSyncfusion", DisplayName = "📅 School Calendar", Description = "Manage school calendar", NavigationMethod = "ShowSchoolCalendarManagement", SortOrder = 7, AssociatedEditForm = "SchoolCalendarEditFormSyncfusion" },
+                    new FormConfiguration { Name = "ActivityScheduleManagementFormSyncfusion", DisplayName = "📋 Activity Schedule", Description = "Manage activity schedules", NavigationMethod = "ShowActivityScheduleManagement", SortOrder = 8, AssociatedEditForm = "ActivityScheduleEditFormSyncfusion" }
                 };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error creating form configurations: {ex.Message}");
                 return new List<FormConfiguration>(); // Return empty list instead of null
+            }
+        }
+
+        /// <summary>
+        /// Gets all form associations between management forms and their edit forms
+        /// </summary>
+        public static List<FormAssociation> GetFormAssociations()
+        {
+            try
+            {
+                var configurations = LoadFormConfigurations();
+                var associations = new List<FormAssociation>();
+
+                foreach (var config in configurations.Where(c => c != null && !string.IsNullOrEmpty(c.AssociatedEditForm)))
+                {
+                    var association = new FormAssociation
+                    {
+                        ManagementFormName = config.Name,
+                        EditFormName = config.AssociatedEditForm,
+                        DisplayName = config.DisplayName,
+                        IsEditFormAvailable = VerifyFormExists(config.AssociatedEditForm)
+                    };
+                    associations.Add(association);
+                }
+
+                return associations;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error getting form associations: {ex.Message}");
+                return new List<FormAssociation>();
+            }
+        }
+
+        /// <summary>
+        /// Verifies if a form type exists in the assembly
+        /// </summary>
+        public static bool VerifyFormExists(string formName)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(formName))
+                    return false;
+
+                var assembly = Assembly.GetExecutingAssembly();
+                var fullTypeName = $"BusBuddy.UI.Views.{formName}";
+                var type = assembly.GetType(fullTypeName);
+
+                return type != null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error verifying form existence for {formName}: {ex.Message}");
+                return false;
             }
         }
 

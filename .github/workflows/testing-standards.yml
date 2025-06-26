@@ -33,7 +33,7 @@ jobs:
     - name: Verify test naming conventions
       shell: pwsh
       run: |
-        $testFiles = Get-ChildItem -Path "BusBuddy.Tests" -Filter "*.cs" -Recurse
+        $testFiles = Get-ChildItem -Path "BusBuddy.UI.Tests" -Filter "*.cs" -Recurse
         $badNames = @()
 
         foreach ($file in $testFiles) {
@@ -55,7 +55,7 @@ jobs:
     - name: Check UI test threading
       shell: pwsh
       run: |
-        $uiTestFiles = Get-ChildItem -Path "BusBuddy.Tests" -Filter "*UI*.cs"
+        $uiTestFiles = Get-ChildItem -Path "BusBuddy.UI.Tests" -Filter "*UI*.cs"
         $missingSTAThread = @()
 
         foreach ($file in $uiTestFiles) {
@@ -70,6 +70,64 @@ jobs:
           $missingSTAThread | ForEach-Object { Write-Host "  - $_" -ForegroundColor Yellow }
         } else {
           Write-Host "✅ All UI tests have proper threading attributes" -ForegroundColor Green
+        }
+
+    - name: Enforce xUnit-only tests
+      shell: pwsh
+      run: |
+        Write-Host "Checking for non-xUnit test frameworks..." -ForegroundColor Cyan
+
+        # Check for MSTest references
+        $msTestFiles = @()
+        $nunitFiles = @()
+        $allProjects = Get-ChildItem -Path . -Filter "*.csproj" -Recurse
+
+        foreach ($project in $allProjects) {
+          $content = Get-Content $project.FullName -Raw
+          if ($content -match "MSTest|Microsoft\.VisualStudio\.TestPlatform|TestMethod|Microsoft\.VisualStudio\.TestTools\.UnitTesting") {
+            $msTestFiles += $project.FullName
+          }
+          if ($content -match "NUnit|nunit") {
+            $nunitFiles += $project.FullName
+          }
+        }
+
+        # Check for test files outside BusBuddy.UI.Tests
+        $outsideTestFiles = @()
+        $csharpFiles = Get-ChildItem -Path . -Filter "*.cs" -Recurse -Exclude "BusBuddy.UI.Tests\*"
+
+        foreach ($file in $csharpFiles) {
+          $content = Get-Content $file.FullName -Raw
+          if ($content -match "\[Fact\]|\[Theory\]|\[Test\]|\[TestMethod\]|\[TestCase\]|\[TestFixture\]") {
+            $outsideTestFiles += $file.FullName
+          }
+        }
+
+        $hasErrors = $false
+
+        if ($msTestFiles.Count -gt 0) {
+          Write-Host "❌ Found MSTest references in projects:" -ForegroundColor Red
+          $msTestFiles | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+          $hasErrors = $true
+        }
+
+        if ($nunitFiles.Count -gt 0) {
+          Write-Host "❌ Found NUnit references in projects:" -ForegroundColor Red
+          $nunitFiles | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+          $hasErrors = $true
+        }
+
+        if ($outsideTestFiles.Count -gt 0) {
+          Write-Host "❌ Found test files outside BusBuddy.UI.Tests:" -ForegroundColor Red
+          $outsideTestFiles | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+          $hasErrors = $true
+        }
+
+        if ($hasErrors) {
+          Write-Host "Testing standards violation: Only xUnit tests in BusBuddy.UI.Tests are allowed." -ForegroundColor Red
+          exit 1
+        } else {
+          Write-Host "✅ All tests use xUnit and are in the correct location" -ForegroundColor Green
         }
 
     - name: Upload coverage reports
@@ -88,3 +146,5 @@ jobs:
         echo "| Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
         echo "| Formatting | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
         echo "| Naming Conventions | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+        echo "| xUnit-only | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+        echo "| Test Location | ✅ Passed |" >> $GITHUB_STEP_SUMMARY

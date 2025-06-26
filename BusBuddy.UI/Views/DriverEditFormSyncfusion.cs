@@ -108,18 +108,16 @@ namespace BusBuddy.UI.Views
 
             var cdlExpirationLabel = ControlFactory.CreateLabel("CDL Expiration:");
             cdlExpirationLabel.Location = new Point(300, 445);
-            _mainPanel.Controls.Add(cdlExpirationLabel);
-
-            // Text boxes - use BannerTextProvider from base class
-            _firstNameTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter first name");
-            _lastNameTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter last name");
-            _phoneTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter phone number");
-            _emailTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter email address");
-            _addressTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter address");
-            _cityTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter city");
-            _stateTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter state");
-            _zipTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter ZIP code");
-            _notesTextBox = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter notes", multiline: true);
+            _mainPanel.Controls.Add(cdlExpirationLabel);            // Text boxes - using PlaceholderText instead of BannerTextProvider
+            _firstNameTextBox = ControlFactory.CreateTextBox("Enter first name");
+            _lastNameTextBox = ControlFactory.CreateTextBox("Enter last name");
+            _phoneTextBox = ControlFactory.CreateTextBox("Enter phone number");
+            _emailTextBox = ControlFactory.CreateTextBox("Enter email address");
+            _addressTextBox = ControlFactory.CreateTextBox("Enter address");
+            _cityTextBox = ControlFactory.CreateTextBox("Enter city");
+            _stateTextBox = ControlFactory.CreateTextBox("Enter state");
+            _zipTextBox = ControlFactory.CreateTextBox("Enter ZIP code");
+            _notesTextBox = ControlFactory.CreateTextBox("Enter notes", multiline: true);
 
             // Combo boxes
             _licenseTypeComboBox = ControlFactory.CreateComboBox();
@@ -167,8 +165,15 @@ namespace BusBuddy.UI.Views
 
         private void LayoutControls()
         {
-            // Setup combo box items
-            _licenseTypeComboBox.DataSource = new[] { "CDL Class A", "CDL Class B", "CDL Class C", "Regular License" };
+            // Setup combo box items with error handling
+            try
+            {
+                _licenseTypeComboBox.DataSource = new[] { "CDL Class A", "CDL Class B", "CDL Class C", "Regular License" };
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading license type options: {ex.Message}", "Data Loading Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void SetupEventHandlers()
@@ -176,7 +181,6 @@ namespace BusBuddy.UI.Views
             _saveButton.Click += SaveButton_Click;
             _cancelButton.Click += CancelButton_Click;
         }
-
         #region Data Handling
 
         private void PopulateFields(Driver driver)
@@ -233,7 +237,6 @@ namespace BusBuddy.UI.Views
                 CDLExpirationDate = _cdlExpirationDatePicker.Value
             };
         }
-
         #endregion
 
         #region Event Handlers
@@ -268,7 +271,6 @@ namespace BusBuddy.UI.Views
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
-
         #endregion
     }
 }

@@ -59,9 +59,13 @@
   <ItemGroup>
     <!-- Exclude ALL test files from main project compilation -->
     <Compile Remove="BusBuddy.Tests\**\*.cs" />
+    <Compile Remove="BusBuddy.UI.Tests\**\*.cs" />
+    <Compile Remove="Test Engine\**\*.cs" />
     <Compile Remove="**\*Test.cs" />
     <Compile Remove="**\*Tests.cs" />
     <None Include="BusBuddy.Tests\**\*.cs" />
+    <None Include="BusBuddy.UI.Tests\**\*.cs" />
+    <None Include="Test Engine\**\*.cs" />
     <!-- Exclude temporary test forms that were removed -->
     <Compile Remove="SimpleButtonTestForm.cs" />
     <Compile Remove="MinimalTestForm.cs" />

@@ -91,7 +91,7 @@ namespace BusBuddy.UI.Views
             var lblFuelAmount = ControlFactory.CreateLabel("⛽ Gallons:");
             lblFuelAmount.Location = new Point(labelX, y);
             this.Controls.Add(lblFuelAmount);
-            txtFuelAmount = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter gallons (e.g., 15.50)");
+            txtFuelAmount = ControlFactory.CreateTextBox("Enter gallons (e.g., 15.50)");
             txtFuelAmount.Location = new Point(controlX, y);
             txtFuelAmount.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtFuelAmount);
@@ -101,7 +101,7 @@ namespace BusBuddy.UI.Views
             var lblFuelCost = ControlFactory.CreateLabel("💰 Total Cost:");
             lblFuelCost.Location = new Point(labelX, y);
             this.Controls.Add(lblFuelCost);
-            txtFuelCost = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter cost (e.g., 45.75)");
+            txtFuelCost = ControlFactory.CreateTextBox("Enter cost (e.g., 45.75)");
             txtFuelCost.Location = new Point(controlX, y);
             txtFuelCost.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtFuelCost);
@@ -111,7 +111,7 @@ namespace BusBuddy.UI.Views
             var lblNotes = ControlFactory.CreateLabel("📝 Notes:");
             lblNotes.Location = new Point(labelX, y);
             this.Controls.Add(lblNotes);
-            txtNotes = ControlFactory.CreateTextBox(_bannerTextProvider, "Optional notes", true);
+            txtNotes = ControlFactory.CreateTextBox("Optional notes", true);
             txtNotes.Location = new Point(controlX, y);
             txtNotes.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtNotes);
@@ -140,7 +140,7 @@ namespace BusBuddy.UI.Views
 
             // Configure date picker for Material Design
             dtpFuelDate.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-            dtpFuelDate.BackColor = Color.White;
+            dtpFuelDate.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
 
             // Style all labels
             foreach (Control control in this.Controls)

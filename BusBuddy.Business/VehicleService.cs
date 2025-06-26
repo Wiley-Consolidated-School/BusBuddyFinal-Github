@@ -16,6 +16,8 @@ namespace BusBuddy.Business
             _repository = repository;
         }
 
+        public VehicleService() : this(new VehicleRepository()) { }
+
         public bool IsValidVehicleNumber(string? vehicleNumber)
         {
             return !string.IsNullOrEmpty(vehicleNumber) && vehicleNumber.Length >= 3;
@@ -30,6 +32,11 @@ namespace BusBuddy.Business
         {
             var allVehicles = _repository.GetAllVehicles();
             return allVehicles.FindAll(v => v.Status == "Active");
+        }
+
+        public List<Vehicle> GetAllVehicles()
+        {
+            return _repository.GetAllVehicles();
         }
 
         public bool AddVehicle(Vehicle vehicle)

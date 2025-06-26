@@ -253,6 +253,18 @@ namespace BusBuddy.Business
 
             return ValidationResult.Combine(validations);
         }
+
+        /// <summary>
+        /// Validates a vehicle number for correct format and length
+        /// </summary>
+        public bool IsValidVehicleNumber(string? vehicleNumber)
+        {
+            // Accepts formats like BUS-123, BB-456, etc. (letters, dash, numbers, min 3 chars before dash)
+            if (string.IsNullOrWhiteSpace(vehicleNumber))
+                return false;
+            // Example pattern: 2-6 uppercase letters, dash, 1-4 digits
+            return System.Text.RegularExpressions.Regex.IsMatch(vehicleNumber, @"^[A-Z]{2,6}-\d{1,4}$");
+        }
     }
 
     /// <summary>

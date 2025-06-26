@@ -106,7 +106,7 @@ namespace BusBuddy.UI.Views
             var lblDestination = ControlFactory.CreateLabel("📍 Destination:");
             lblDestination.Location = new Point(labelX, y);
             this.Controls.Add(lblDestination);
-            txtDestination = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter destination");
+            txtDestination = ControlFactory.CreateTextBox("Enter destination");
             txtDestination.Location = new Point(controlX, y);
             txtDestination.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtDestination);
@@ -116,7 +116,7 @@ namespace BusBuddy.UI.Views
             var lblLeaveTime = ControlFactory.CreateLabel("🕐 Leave Time:");
             lblLeaveTime.Location = new Point(labelX, y);
             this.Controls.Add(lblLeaveTime);
-            txtLeaveTime = ControlFactory.CreateTextBox(_bannerTextProvider, "HH:MM (e.g., 08:30)");
+            txtLeaveTime = ControlFactory.CreateTextBox("HH:MM (e.g., 08:30)");
             txtLeaveTime.Location = new Point(controlX, y);
             txtLeaveTime.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtLeaveTime);
@@ -126,7 +126,7 @@ namespace BusBuddy.UI.Views
             var lblEventTime = ControlFactory.CreateLabel("🕒 Event Time:");
             lblEventTime.Location = new Point(labelX, y);
             this.Controls.Add(lblEventTime);
-            txtEventTime = ControlFactory.CreateTextBox(_bannerTextProvider, "HH:MM (e.g., 10:00)");
+            txtEventTime = ControlFactory.CreateTextBox("HH:MM (e.g., 10:00)");
             txtEventTime.Location = new Point(controlX, y);
             txtEventTime.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtEventTime);
@@ -136,7 +136,7 @@ namespace BusBuddy.UI.Views
             var lblReturnTime = ControlFactory.CreateLabel("🕕 Return Time:");
             lblReturnTime.Location = new Point(labelX, y);
             this.Controls.Add(lblReturnTime);
-            txtReturnTime = ControlFactory.CreateTextBox(_bannerTextProvider, "HH:MM (e.g., 15:30)");
+            txtReturnTime = ControlFactory.CreateTextBox("HH:MM (e.g., 15:30)");
             txtReturnTime.Location = new Point(controlX, y);
             txtReturnTime.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtReturnTime);
@@ -146,7 +146,7 @@ namespace BusBuddy.UI.Views
             var lblRequestedBy = ControlFactory.CreateLabel("👤 Requested By:");
             lblRequestedBy.Location = new Point(labelX, y);
             this.Controls.Add(lblRequestedBy);
-            txtRequestedBy = ControlFactory.CreateTextBox(_bannerTextProvider, "Enter requester name");
+            txtRequestedBy = ControlFactory.CreateTextBox("Enter requester name");
             txtRequestedBy.Location = new Point(controlX, y);
             txtRequestedBy.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtRequestedBy);
@@ -156,7 +156,7 @@ namespace BusBuddy.UI.Views
             var lblNotes = ControlFactory.CreateLabel("📝 Notes:");
             lblNotes.Location = new Point(labelX, y);
             this.Controls.Add(lblNotes);
-            txtNotes = ControlFactory.CreateTextBox(_bannerTextProvider, "Additional notes", true);
+            txtNotes = ControlFactory.CreateTextBox("Additional notes", true);
             txtNotes.Location = new Point(controlX, y);
             txtNotes.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtNotes);
@@ -182,7 +182,7 @@ namespace BusBuddy.UI.Views
 
             // Configure date picker with safe defaults
             dtpDate.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-            dtpDate.BackColor = Color.White;
+            dtpDate.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
 
             // Style all labels with safe approach
             foreach (Control control in this.Controls)

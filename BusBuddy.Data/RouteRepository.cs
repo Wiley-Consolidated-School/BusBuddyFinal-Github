@@ -35,18 +35,39 @@ namespace BusBuddy.Data
 
         public List<Route> GetRoutesByDate(DateTime date)
         {
-            using (var connection = CreateConnection())
+            try
             {
-                connection.Open();
+                using (var connection = CreateConnection())
+                {
+                    connection.Open();
 
-                // Convert the date to string in yyyy-MM-dd format for comparison
-                var dateString = date.Date.ToString("yyyy-MM-dd");
+                    // First check if the table exists
+                    var tableExists = connection.QueryFirstOrDefault<int>(
+                        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Routes'");
 
-                // Compare only the date part (first 10 chars) of the NVARCHAR column
-                var routes = connection.Query<Route>(
-                    "SELECT * FROM Routes WHERE LEFT(Date, 10) = @DateString",
-                    new { DateString = dateString }).AsList();
-                return routes;
+                    if (tableExists == 0)
+                    {
+                        Console.WriteLine("⚠️ Routes table does not exist, returning empty list");
+                        return new List<Route>();
+                    }
+
+                    // Convert the date to string in yyyy-MM-dd format for comparison
+                    var dateString = date.Date.ToString("yyyy-MM-dd");
+
+                    // Compare only the date part (first 10 chars) of the NVARCHAR column
+                    var routes = connection.Query<Route>(
+                        "SELECT * FROM Routes WHERE LEFT([Date], 10) = @DateString",
+                        new { DateString = dateString }).AsList();
+
+                    Console.WriteLine($"🔍 Found {routes.Count} routes for date {dateString}");
+                    return routes;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in GetRoutesByDate: {ex.Message}");
+                // Return empty list instead of throwing to prevent infinite loops
+                return new List<Route>();
             }
         }
 
@@ -173,6 +194,9 @@ namespace BusBuddy.Data
 
         private void ValidateRouteReferences(IDbConnection connection, Route route, IDbTransaction transaction)
         {
+            if (route == null)
+                throw new ArgumentNullException(nameof(route));
+
             // Validate AM Vehicle
             if (route.AMVehicleID.HasValue)
             {

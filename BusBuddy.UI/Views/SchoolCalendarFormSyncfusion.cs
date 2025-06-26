@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using BusBuddy.Data;
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
+using BusBuddy.UI.Helpers;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.Input;
 
@@ -161,7 +162,7 @@ namespace BusBuddy.UI.Views
                 Text = "Save",
                 Location = new Point(260, 410),
                 Size = new Size(80, 35),
-                BackColor = System.Drawing.Color.FromArgb(46, 204, 113)
+                BackColor = BusBuddyThemeManager.ThemeColors.GetSuccessColor(BusBuddyThemeManager.CurrentTheme)
             };
             _saveButton.Click += SaveButton_Click;
             Controls.Add(_saveButton);
@@ -171,7 +172,7 @@ namespace BusBuddy.UI.Views
                 Text = "Cancel",
                 Location = new Point(350, 410),
                 Size = new Size(80, 35),
-                BackColor = System.Drawing.Color.FromArgb(231, 76, 60)
+                BackColor = BusBuddyThemeManager.ThemeColors.GetErrorColor(BusBuddyThemeManager.CurrentTheme)
             };
             _cancelButton.Click += CancelButton_Click;
             Controls.Add(_cancelButton);

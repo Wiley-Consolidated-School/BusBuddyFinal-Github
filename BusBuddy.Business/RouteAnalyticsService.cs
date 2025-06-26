@@ -95,27 +95,70 @@ namespace BusBuddy.Business
         /// </summary>
         public async Task<List<RouteEfficiencyMetrics>> GetRouteEfficiencyMetricsAsync(DateTime startDate, DateTime endDate)
         {
-            return await Task.Run(() =>
+            // Add timeout protection
+            using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2)))
             {
-                var metrics = new List<RouteEfficiencyMetrics>();
-                var currentDate = startDate.Date;
-
-                while (currentDate <= endDate.Date)
+                return await Task.Run(() =>
                 {
-                    var routes = _routeRepository.GetRoutesByDate(currentDate);
-                    foreach (var route in routes)
+                    var metrics = new List<RouteEfficiencyMetrics>();
+
+                    // Safety checks
+                    if (startDate > endDate)
                     {
-                        var routeMetrics = CalculateRouteEfficiency(route);
-                        if (routeMetrics != null)
+                        throw new ArgumentException("Start date cannot be after end date");
+                    }
+
+                    var daysDifference = (endDate.Date - startDate.Date).Days;
+                    if (daysDifference > 365)
+                    {
+                        throw new ArgumentException("Date range cannot exceed 365 days");
+                    }
+
+                    var currentDate = startDate.Date;
+                    var maxIterations = Math.Min(daysDifference + 1, 365); // Hard limit
+                    var iterations = 0;
+
+                    while (currentDate <= endDate.Date && iterations < maxIterations && !cts.Token.IsCancellationRequested)
+                    {
+                        try
                         {
-                            metrics.Add(routeMetrics);
+                            var routes = _routeRepository.GetRoutesByDate(currentDate);
+                            foreach (var route in routes)
+                            {
+                                if (cts.Token.IsCancellationRequested) break;
+
+                                var routeMetrics = CalculateRouteEfficiency(route);
+                                if (routeMetrics != null)
+                                {
+                                    metrics.Add(routeMetrics);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log but continue with next day
+                            Console.WriteLine($"⚠️ Error loading routes for {currentDate:yyyy-MM-dd}: {ex.Message}");
+                        }
+
+                        currentDate = currentDate.AddDays(1);
+                        iterations++;
+
+                        // Additional safety check
+                        if (iterations >= maxIterations)
+                        {
+                            Console.WriteLine($"⚠️ Route efficiency loop reached max iterations ({maxIterations})");
+                            break;
                         }
                     }
-                    currentDate = currentDate.AddDays(1);
-                }
 
-                return metrics.OrderBy(m => m.Date).ThenBy(m => m.RouteName).ToList();
-            });
+                    if (cts.Token.IsCancellationRequested)
+                    {
+                        Console.WriteLine("⚠️ Route efficiency calculation timed out");
+                    }
+
+                    return metrics.OrderBy(m => m.Date).ThenBy(m => m.RouteName).ToList();
+                }, cts.Token);
+            }
         }
 
         /// <summary>
@@ -192,12 +235,16 @@ namespace BusBuddy.Business
                 // Get all routes for this driver in the period
                 var allRoutes = new List<Route>();
                 var currentDate = startDate.Date;
-                while (currentDate <= endDate.Date)
+                var maxIterations = (endDate.Date - startDate.Date).Days + 1;
+                var iterations = 0;
+
+                while (currentDate <= endDate.Date && iterations < maxIterations)
                 {
                     var dayRoutes = _routeRepository.GetRoutesByDate(currentDate)
                         .Where(r => r.AMDriverID == driverId || r.PMDriverID == driverId);
                     allRoutes.AddRange(dayRoutes);
                     currentDate = currentDate.AddDays(1);
+                    iterations++;
                 }
 
                 // Calculate metrics
@@ -244,10 +291,14 @@ namespace BusBuddy.Business
                 // Get all routes in period
                 var allRoutes = new List<Route>();
                 var currentDate = startDate.Date;
-                while (currentDate <= endDate.Date)
+                var maxIterations = (endDate.Date - startDate.Date).Days + 1;
+                var iterations = 0;
+
+                while (currentDate <= endDate.Date && iterations < maxIterations)
                 {
                     allRoutes.AddRange(_routeRepository.GetRoutesByDate(currentDate));
                     currentDate = currentDate.AddDays(1);
+                    iterations++;
                 }
 
                 // Basic metrics
@@ -302,10 +353,14 @@ namespace BusBuddy.Business
                 // Get all routes in the date range
                 var routes = new List<Route>();
                 var currentDate = startDate.Date;
-                while (currentDate <= endDate.Date)
+                var maxIterations = (endDate.Date - startDate.Date).Days + 1;
+                var iterations = 0;
+
+                while (currentDate <= endDate.Date && iterations < maxIterations)
                 {
                     routes.AddRange(_routeRepository.GetRoutesByDate(currentDate));
                     currentDate = currentDate.AddDays(1);
+                    iterations++;
                 }
 
                 // Get all activities in the date range
@@ -384,6 +439,16 @@ namespace BusBuddy.Business
 
                 return metrics;
             });
+        }
+
+        /// <summary>
+        /// Gets the efficiency score for a route by its ID
+        /// </summary>
+        public double GetRouteEfficiency(int routeId)
+        {
+            var route = _routeRepository.GetRouteById(routeId);
+            var metrics = CalculateRouteEfficiency(route);
+            return metrics?.EfficiencyScore ?? 0;
         }
 
         #region Private Helper Methods

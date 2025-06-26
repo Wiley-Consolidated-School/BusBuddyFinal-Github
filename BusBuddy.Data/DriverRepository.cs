@@ -59,48 +59,48 @@ namespace BusBuddy.Data
                 Console.WriteLine($"ERROR in GetDriverById({id}): {ex.Message}");
                 return null;
             }
-        }
-
-        public List<Driver> GetDriversByLicenseType(string licenseType)
+        }        public List<Driver> GetDriversByLicenseType(string licenseType)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var drivers = connection.Query<Driver>(
-                    "SELECT * FROM Drivers WHERE DriversLicenseType = @LicenseType",
+                    "SELECT * FROM Drivers WHERE LicenseType = @LicenseType",
                     new { LicenseType = licenseType }).AsList();
                 return drivers;
             }
-        }        public int AddDriver(Driver driver)
+        }public int AddDriver(Driver driver)
         {
+            if (driver == null)
+                throw new ArgumentNullException(nameof(driver));
+
             using (var connection = CreateConnection())
             {
-                connection.Open();
-                var sql = @"
+                connection.Open();                var sql = @"
                     INSERT INTO Drivers (
                         DriverName, DriverPhone, DriverEmail,
                         Address, City, State, Zip,
-                        DriversLicenseType, TrainingComplete, Notes,
+                        LicenseType, TrainingComplete, Notes,
                         Status, FirstName, LastName, CDLExpirationDate
                     )
                     VALUES (
                         @DriverName, @DriverPhone, @DriverEmail,
                         @Address, @City, @State, @Zip,
-                        @DriversLicenseType, @TrainingComplete, @Notes,
+                        @LicenseType, @TrainingComplete, @Notes,
                         @Status, @FirstName, @LastName, @CDLExpirationDate
                     );
                     SELECT SCOPE_IDENTITY()";
 
                 return connection.QuerySingle<int>(sql, driver);
             }
-        }
-
-        public bool UpdateDriver(Driver driver)
+        }        public bool UpdateDriver(Driver driver)
         {
+            if (driver == null)
+                throw new ArgumentNullException(nameof(driver));
+
             using (var connection = CreateConnection())
             {
-                connection.Open();
-                var sql = @"                    UPDATE Drivers
+                connection.Open();                var sql = @"                    UPDATE Drivers
                     SET DriverName = @DriverName,
                         DriverPhone = @DriverPhone,
                         DriverEmail = @DriverEmail,
@@ -108,7 +108,7 @@ namespace BusBuddy.Data
                         City = @City,
                         State = @State,
                         Zip = @Zip,
-                        DriversLicenseType = @DriversLicenseType,
+                        LicenseType = @LicenseType,
                         TrainingComplete = @TrainingComplete,
                         Notes = @Notes,
                         Status = @Status,

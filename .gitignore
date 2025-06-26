@@ -46,6 +46,15 @@ Migration_Backups/
 *.coverage
 *.coveragexml
 
+# Design tools temporary files
+*.psd.bak
+*.xd.bak
+*.fig.bak
+*.ai.bak
+*.sketch.bak
+# Exception for DashboardDesign.png - DO NOT ignore this file
+!docs/DashboardDesign.png
+
 #####################################################
 # 🔧 Visual Studio & Development Environment       #
 #####################################################

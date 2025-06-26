@@ -23,7 +23,7 @@ namespace BusBuddy.Models
         public string? Model { get; set; }
         public int Year { get; set; }
         public int Capacity { get; set; }
-        public int SeatingCapacity { get { return Capacity; } set { Capacity = value; } } // For backward compatibility
+        public int SeatingCapacity { get { return Capacity; } set { Capacity = value; } } // For database compatibility
         public string? FuelType { get; set; }
         public string? Status { get; set; }
 
