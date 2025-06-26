@@ -89,15 +89,20 @@ namespace BusBuddy.UI.Views
         private Panel _analyticsPanel;
         private Panel _statisticsPanel;
         private ComboBoxAdv _themeSelector;
+        private TreeView _navigationTreeView;
+        private Panel _navigationPanel;
 
-        // MISSING COMPONENTS - Added based on Figma design requirements
-        private Maps _mapControl;
-        private Panel _mapPanel;
-        private Panel _managementPanel;
-        private TabPageAdv _vehicleManagementTab;
-        private TabPageAdv _driverManagementTab;
-        private TabPageAdv _routeManagementTab;
-        private TabPageAdv _maintenanceTab;
+        // FUTURE ENHANCEMENT: Map and management features (currently disabled)
+#pragma warning disable CS0414 // Field assigned but never used - planned for future release
+        private Maps _mapControl = null; // TODO: Implement in future release
+        private Panel _mapPanel = null; // TODO: Implement in future release
+        private Panel _managementPanel = null; // TODO: Implement in future release
+        private TabPageAdv _vehicleManagementTab = null; // TODO: Implement in future release
+        private TabPageAdv _driverManagementTab = null; // TODO: Implement in future release
+        private TabPageAdv _routeManagementTab = null; // TODO: Implement in future release
+        private TabPageAdv _maintenanceTab = null; // TODO: Implement in future release
+        private bool _dataInitialized = false; // TODO: Remove when data layer is fully implemented
+#pragma warning restore CS0414
 
         // Loading indicator for async initialization
         private Panel _loadingPanel;
@@ -106,7 +111,6 @@ namespace BusBuddy.UI.Views
         // Data caching to improve performance
         private System.Collections.Generic.List<object> _cachedVehicleData;
         private System.Collections.Generic.List<object> _cachedRouteData;
-        private bool _dataInitialized = false;
 
         // Layout manager for dashboard components
         private DockingManager _dockingManager;
@@ -324,8 +328,8 @@ namespace BusBuddy.UI.Views
             try
             {
                 HideLoadingIndicator();
-                CreateFallbackLayoutWithControls();
-                Console.WriteLine("✅ Fallback layout created successfully");
+                CreateMinimalViableForm(ex);
+                Console.WriteLine("✅ Minimal viable form created successfully");
             }
             catch (Exception fallbackEx)
             {
@@ -389,23 +393,16 @@ namespace BusBuddy.UI.Views
             bool useWindowedMode = Environment.GetEnvironmentVariable("BUSBUDDY_WINDOWED") == "1" ||
                                   System.Diagnostics.Debugger.IsAttached;
 
-            if (useWindowedMode)
-            {
-                LogMessage("  [4.2.1] Using windowed mode with system controls...");
-                this.WindowState = FormWindowState.Maximized;
-                this.FormBorderStyle = FormBorderStyle.Sizable; // Keep system controls
-                this.MaximizeBox = true;
-                this.MinimizeBox = true;
-                this.ControlBox = true;
-                LogMessage("  [4.2.2] ✅ Windowed mode configured");
-            }
-            else
-            {
-                LogMessage("  [4.2.3] Using fullscreen mode without borders...");
-                this.WindowState = FormWindowState.Maximized;
-                this.FormBorderStyle = FormBorderStyle.None;
-                LogMessage("  [4.2.4] ✅ Fullscreen mode configured");
-            }
+            // Set form size to 1200x800 and center on screen
+            LogMessage("  [4.2.1] Setting form size to 1200x800...");
+            this.Size = new Size(1200, 800);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.WindowState = FormWindowState.Normal;
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.MaximizeBox = true;
+            this.MinimizeBox = true;
+            this.ControlBox = true;
+            LogMessage("  [4.2.2] ✅ Form configured with size 1200x800, centered");
 
             LogMessage("  [4.3] Setting AutoScaleMode to Dpi (already set above)...");
             // Already set above with High DPI configuration
@@ -481,7 +478,7 @@ namespace BusBuddy.UI.Views
             // Reference: https://help.syncfusion.com/windowsforms/overview
 
             // Set theme using the documented SyncfusionBaseForm.ThemeName property
-            this.ThemeName = "Office2016Black";
+            this.ThemeName = "MaterialDark";
 
             // Also use SkinManager.SetVisualStyle for consistent application
             SkinManager.SetVisualStyle(this, Syncfusion.Windows.Forms.VisualTheme.Office2016Black);
@@ -514,10 +511,10 @@ namespace BusBuddy.UI.Views
                 _dockingManager.CloseTabOnMiddleClick = true;
                 LogMessage("    [DockMgr.6] ✅ CloseTabOnMiddleClick set");
 
-                // STEP 3 FIX: Apply theme during initialization
-                LogMessage($"    [DockMgr.7] Setting ThemeName to 'Office2016Black'...");
-                _dockingManager.ThemeName = "Office2016Black";
-                LogMessage("    [DockMgr.8] ✅ ThemeName set to Office2016Black");
+                // STEP 3 FIX: Apply MaterialDark theme during initialization
+                LogMessage($"    [DockMgr.7] Setting ThemeName to 'MaterialDark'...");
+                _dockingManager.ThemeName = "MaterialDark";
+                LogMessage("    [DockMgr.8] ✅ ThemeName set to MaterialDark");
 
                 LogMessage($"    [DockMgr.9] DockingManager initialized - HostControl: {_dockingManager.HostControl?.Name ?? "null"}");
                 LogMessage($"    [DockMgr.10] DockingManager container info - Type: {_dockingManager.GetType().Name}");
@@ -1199,16 +1196,38 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                // Step 4: Create the content panel to hold main UI components
-                LogMessage("  [7.11] Creating content panel...");
+                // Step 4: Create the navigation panel and main content using DockingManager
+                LogMessage("  [7.11] Creating navigation panel and docking layout...");
+                CreateNavigationPanelWithDocking();
+
+                if (token.IsCancellationRequested) {
+                    LogMessage("  [7.12] Cancelled after navigation panel creation");
+                    this.ResumeLayout(false);
+                    return;
+                }
+
+                // Step 5: Create the main content panel to hold UI components
+                LogMessage("  [7.13] Creating main content panel...");
                 _contentPanel = new Panel
                 {
                     Dock = DockStyle.Fill,
-                    BackColor = Color.FromArgb(60, 60, 65), // Slightly different color to distinguish from form
-                    Visible = true, // Explicitly ensure it's visible
-                    Name = "MainContentPanel" // For debugging
+                    BackColor = Color.FromArgb(60, 60, 65),
+                    Visible = true,
+                    Name = "MainContentPanel"
                 };
-                this.Controls.Add(_contentPanel);
+
+                // Use DockingManager to dock the content panel in the center
+                if (_dockingManager != null)
+                {
+                    _dockingManager.DockControl(_contentPanel, this, DockingStyle.Fill, 600);
+                    LogMessage("  [7.14] ✅ Content panel docked using DockingManager with Fill style");
+                }
+                else
+                {
+                    // Fallback if DockingManager failed
+                    this.Controls.Add(_contentPanel);
+                    LogMessage("  [7.14] ⚠️ Content panel added directly (DockingManager unavailable)");
+                }
 
                 // CRITICAL FIX: Force content panel visibility
                 _contentPanel.Show();
@@ -1283,8 +1302,8 @@ namespace BusBuddy.UI.Views
             {
                 LogMessage($"  [7.ERROR] ❌ Error creating dashboard layout: {ex.Message}");
                 LogMessage($"  [7.ERROR] ❌ Stack trace: {ex.StackTrace}");
-                LogMessage("  [7.22] Calling CreateFallbackLayoutWithControls()...");
-                CreateFallbackLayoutWithControls();
+                LogMessage("  [7.22] Creating minimal viable form...");
+                CreateMinimalViableForm(ex);
             }
             finally
             {
@@ -1378,7 +1397,7 @@ namespace BusBuddy.UI.Views
                 _refreshButton = new SfButton
                 {
                     Text = "Refresh Data",
-                    ThemeName = this.ThemeName,
+                    ThemeName = "MaterialDark",
                     Size = new Size(120, 36),
                     BackColor = Color.FromArgb(42, 120, 212), // Use BackColor as documented
                     ForeColor = Color.White,
@@ -1388,7 +1407,7 @@ namespace BusBuddy.UI.Views
                 _addVehicleButton = new SfButton
                 {
                     Text = "Add Vehicle",
-                    ThemeName = this.ThemeName,
+                    ThemeName = "MaterialDark",
                     Size = new Size(120, 36),
                     BackColor = Color.FromArgb(28, 183, 77), // Use BackColor as documented
                     ForeColor = Color.White,
@@ -1399,7 +1418,7 @@ namespace BusBuddy.UI.Views
                 _closeButton = new SfButton
                 {
                     Text = "✕ Close",
-                    ThemeName = this.ThemeName,
+                    ThemeName = "MaterialDark",
                     Size = new Size(100, 36),
                     BackColor = Color.FromArgb(220, 53, 69), // Red color for close action
                     ForeColor = Color.White,
@@ -1533,8 +1552,8 @@ namespace BusBuddy.UI.Views
                 _vehiclesGrid = new SfDataGrid
                 {
                     Dock = DockStyle.Fill,
-                    ThemeName = this.ThemeName,
-                    AutoSizeColumnsMode = Syncfusion.WinForms.DataGrid.Enums.AutoSizeColumnsMode.Fill,
+                    ThemeName = "MaterialDark",
+                    AutoSizeColumnsMode = Syncfusion.WinForms.DataGrid.Enums.AutoSizeColumnsMode.None,
                     AllowResizingColumns = true,
                     AllowSorting = true,
                     AllowFiltering = true,
@@ -1542,15 +1561,63 @@ namespace BusBuddy.UI.Views
                     ShowGroupDropArea = true,
                     NavigationMode = Syncfusion.WinForms.DataGrid.Enums.NavigationMode.Row
                 };
-                LogMessage("    [7.16.9] ✅ Vehicles grid created successfully");
+
+                // Configure specific column widths after data binding
+                _vehiclesGrid.AutoGenerateColumns = false;
+                
+                // Add columns with specific widths as requested
+                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "ID", 
+                    HeaderText = "ID", 
+                    Width = 50 
+                });
+                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "VehicleNumber", 
+                    HeaderText = "Vehicle Number", 
+                    Width = 100 
+                });
+                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "Model", 
+                    HeaderText = "Model", 
+                    Width = 120 
+                });
+                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "Year", 
+                    HeaderText = "Year", 
+                    Width = 80 
+                });
+                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "Status", 
+                    HeaderText = "Status", 
+                    Width = 100 
+                });
+                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "FuelLevel", 
+                    HeaderText = "Fuel Level", 
+                    Width = 90 
+                });
+                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "LastMaintenance", 
+                    HeaderText = "Last Maintenance", 
+                    Width = 120 
+                });
+
+                LogMessage("    [7.16.9] ✅ Vehicles grid created with custom column widths");
 
                 // Initialize SfDataGrid for routes with same configuration
                 LogMessage("    [7.16.10] Creating routes SfDataGrid...");
                 _routesGrid = new SfDataGrid
                 {
                     Dock = DockStyle.Fill,
-                    ThemeName = this.ThemeName,
-                    AutoSizeColumnsMode = Syncfusion.WinForms.DataGrid.Enums.AutoSizeColumnsMode.Fill,
+                    ThemeName = "MaterialDark",
+                    AutoSizeColumnsMode = Syncfusion.WinForms.DataGrid.Enums.AutoSizeColumnsMode.None,
                     AllowResizingColumns = true,
                     AllowSorting = true,
                     AllowFiltering = true,
@@ -1558,7 +1625,53 @@ namespace BusBuddy.UI.Views
                     ShowGroupDropArea = true,
                     NavigationMode = Syncfusion.WinForms.DataGrid.Enums.NavigationMode.Row
                 };
-                LogMessage("    [7.16.11] ✅ Routes grid created successfully");
+
+                // Configure routes grid columns
+                _routesGrid.AutoGenerateColumns = false;
+                _routesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "ID", 
+                    HeaderText = "ID", 
+                    Width = 50 
+                });
+                _routesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "RouteName", 
+                    HeaderText = "Route Name", 
+                    Width = 120 
+                });
+                _routesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "Distance", 
+                    HeaderText = "Distance", 
+                    Width = 100 
+                });
+                _routesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "Duration", 
+                    HeaderText = "Duration", 
+                    Width = 80 
+                });
+                _routesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "Status", 
+                    HeaderText = "Status", 
+                    Width = 90 
+                });
+                _routesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "AssignedVehicle", 
+                    HeaderText = "Assigned Vehicle", 
+                    Width = 120 
+                });
+                _routesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn() 
+                { 
+                    MappingName = "StudentsCount", 
+                    HeaderText = "Students", 
+                    Width = 80 
+                });
+
+                LogMessage("    [7.16.11] ✅ Routes grid created with custom column widths");
 
                 // Initialize ChartControl for analytics following official documentation
                 // Reference: https://help.syncfusion.com/windowsforms/chart/getting-started
@@ -1719,118 +1832,133 @@ namespace BusBuddy.UI.Views
         }
 
         /// <summary>
-        /// Creates a fallback layout with basic controls when initialization fails
-        /// Using standard Windows Forms controls as a reliable fallback
+        /// Creates a navigation panel with TreeView using DockingManager
+        /// Based on Syncfusion DockingManager documentation for docked panels
+        /// 
+        /// 📖 SYNCFUSION DOCUMENTATION:
+        /// - DockingManager: https://help.syncfusion.com/windowsforms/docking-manager/getting-started
+        /// - DockControl Method: https://help.syncfusion.com/cr/windowsforms/Syncfusion.Windows.Forms.Tools.DockingManager.html
         /// </summary>
-        private void CreateFallbackLayoutWithControls()
+        private void CreateNavigationPanelWithDocking()
         {
-            Console.WriteLine("⚠️ Creating fallback layout with basic controls");
+            LogMessage("    [NAV.1] 🧭 Creating navigation panel with TreeView");
 
             try
             {
-                // Clear existing controls for clean initialization
-                this.Controls.Clear();
-                this.SuspendLayout();
-
-                // Create minimal header with standard Panel and Label
-                var headerPanel = new Panel
+                // Create the navigation panel
+                _navigationPanel = new Panel
                 {
-                    Dock = DockStyle.Top,
-                    Height = 50,
-                    BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme)
+                    Name = "NavigationPanel",
+                    BackColor = Color.FromArgb(45, 45, 48),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Size = new Size(200, this.ClientSize.Height),
+                    Visible = true
                 };
 
-                var titleLabel = new Label
+                // Create the TreeView for navigation
+                _navigationTreeView = new TreeView
                 {
-                    Text = "BusBuddy Dashboard (Fallback Mode)",
                     Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleCenter,
+                    BackColor = Color.FromArgb(45, 45, 48),
                     ForeColor = Color.White,
-                    Font = new Font("Segoe UI", 14f, FontStyle.Bold)
+                    BorderStyle = BorderStyle.None,
+                    ShowLines = true,
+                    ShowPlusMinus = true,
+                    ShowRootLines = false,
+                    FullRowSelect = true,
+                    HideSelection = false,
+                    Font = new Font("Segoe UI", 10f)
                 };
 
-                headerPanel.Controls.Add(titleLabel);
+                // Add navigation nodes
+                var dashboardNode = new TreeNode("Dashboard") { Tag = "dashboard" };
+                var vehiclesNode = new TreeNode("Fleet Management") { Tag = "vehicles" };
+                vehiclesNode.Nodes.Add(new TreeNode("Vehicles") { Tag = "vehicles_list" });
+                vehiclesNode.Nodes.Add(new TreeNode("Maintenance") { Tag = "maintenance" });
 
-                // Create content panel
-                var contentPanel = new Panel
+                var routesNode = new TreeNode("Route Management") { Tag = "routes" };
+                routesNode.Nodes.Add(new TreeNode("Routes") { Tag = "routes_list" });
+                routesNode.Nodes.Add(new TreeNode("Schedules") { Tag = "schedules" });
+
+                var analyticsNode = new TreeNode("Analytics") { Tag = "analytics" };
+                analyticsNode.Nodes.Add(new TreeNode("Performance") { Tag = "performance" });
+                analyticsNode.Nodes.Add(new TreeNode("Reports") { Tag = "reports" });
+
+                _navigationTreeView.Nodes.Add(dashboardNode);
+                _navigationTreeView.Nodes.Add(vehiclesNode);
+                _navigationTreeView.Nodes.Add(routesNode);
+                _navigationTreeView.Nodes.Add(analyticsNode);
+
+                // Expand all nodes for better visibility
+                _navigationTreeView.ExpandAll();
+
+                // Add TreeView to navigation panel
+                _navigationPanel.Controls.Add(_navigationTreeView);
+
+                // Use DockingManager to dock the navigation panel on the left
+                if (_dockingManager != null)
                 {
-                    Dock = DockStyle.Fill,
-                    BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme)
-                };
-
-                // Create basic tab control for fallback (standard Windows Forms)
-                // We use standard TabControl instead of Syncfusion controls
-                // since this is a fallback for when Syncfusion controls fail
-                var fallbackTabs = new TabControl
+                    _dockingManager.DockControl(_navigationPanel, this, DockingStyle.Left, 200);
+                    LogMessage("    [NAV.2] ✅ Navigation panel docked using DockingManager (Left, 200px)");
+                }
+                else
                 {
-                    Dock = DockStyle.Fill
-                };
+                    // Fallback - dock manually
+                    _navigationPanel.Dock = DockStyle.Left;
+                    _navigationPanel.Width = 200;
+                    this.Controls.Add(_navigationPanel);
+                    LogMessage("    [NAV.2] ⚠️ Navigation panel added directly (DockingManager unavailable)");
+                }
 
-                // Create basic tabs
-                var vehiclesTab = new TabPage("Vehicles");
-                var routesTab = new TabPage("Routes");
+                // Add navigation event handler
+                _navigationTreeView.AfterSelect += NavigationTreeView_AfterSelect;
 
-                // Add informative labels
-                var vehiclesLabel = new Label
-                {
-                    Text = "Vehicle data unavailable in fallback mode.\n\n" +
-                           "The application encountered an error during initialization.\n" +
-                           "Please try restarting the application.",
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    ForeColor = Color.Black
-                };
-
-                var routesLabel = new Label
-                {
-                    Text = "Route data unavailable in fallback mode.\n\n" +
-                           "The application encountered an error during initialization.\n" +
-                           "Please try restarting the application.",
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    ForeColor = Color.Black
-                };
-
-                // Add labels to tabs
-                vehiclesTab.Controls.Add(vehiclesLabel);
-                routesTab.Controls.Add(routesLabel);
-
-                // Add tabs to tab control
-                fallbackTabs.TabPages.Add(vehiclesTab);
-                fallbackTabs.TabPages.Add(routesTab);
-
-                // Add tab control to content panel
-                contentPanel.Controls.Add(fallbackTabs);
-
-                // Create status bar with error information
-                var statusBar = new StatusStrip();
-                var statusLabel = new ToolStripStatusLabel
-                {
-                    Text = "Running in fallback mode due to initialization error"
-                };
-
-                statusBar.Items.Add(statusLabel);
-
-                // Add all components to form
-                this.Controls.Add(contentPanel);
-                this.Controls.Add(headerPanel);
-                this.Controls.Add(statusBar);
-
-                // Store references to panels for cleanup
-                _headerPanel = headerPanel;
-                _contentPanel = contentPanel;
-
-                Console.WriteLine("✅ Fallback layout created successfully");
+                LogMessage($"    [NAV.3] ✅ Navigation panel created - Size: {_navigationPanel.Size}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error creating fallback layout: {ex.Message}");
-                // If even fallback fails, create absolute minimal UI in CreateMinimalViableForm
-                CreateMinimalViableForm(ex);
+                LogMessage($"    [NAV.ERROR] ❌ Error creating navigation panel: {ex.Message}");
+                // Create minimal fallback
+                _navigationPanel = new Panel
+                {
+                    Dock = DockStyle.Left,
+                    Width = 200,
+                    BackColor = Color.FromArgb(45, 45, 48)
+                };
+                this.Controls.Add(_navigationPanel);
             }
-            finally
+        }
+
+        /// <summary>
+        /// Handles navigation TreeView selection events
+        /// </summary>
+        private void NavigationTreeView_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            try
             {
-                this.ResumeLayout(true);
+                if (e.Node?.Tag != null)
+                {
+                    string selectedTag = e.Node.Tag.ToString();
+                    LogMessage($"    [NAV.SELECT] Navigation selected: {selectedTag}");
+
+                    // Switch to the appropriate tab based on selection
+                    if (_mainTabControl != null && selectedTag == "vehicles_list")
+                    {
+                        _mainTabControl.SelectedIndex = 0; // Vehicles tab
+                    }
+                    else if (_mainTabControl != null && selectedTag == "routes_list")
+                    {
+                        _mainTabControl.SelectedIndex = 1; // Routes tab
+                    }
+                    else if (_mainTabControl != null && selectedTag == "analytics")
+                    {
+                        _mainTabControl.SelectedIndex = 2; // Analytics tab
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"    [NAV.SELECT.ERROR] ❌ Error handling navigation selection: {ex.Message}");
             }
         }
 
