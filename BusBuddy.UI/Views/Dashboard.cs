@@ -2654,18 +2654,25 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [DOCK.1] Creating DockingManager for Fill layout...");
-                var container = new System.ComponentModel.Container();
-                _dockingManager = new DockingManager(container)
+                // Use the parameterless constructor as per Syncfusion documentation
+                _dockingManager = new DockingManager()
                 {
+                    // Set the host control immediately after creation
+                    HostControl = this,
                     // Apply basic styling following documentation
                     VisualStyle = VisualStyle.Office2016Colorful,
-                    SplitterWidth = 4
+                    SplitterWidth = 4,
+                    EnableDocumentMode = true,
+                    CloseTabOnMiddleClick = true,
+                    ThemeName = "Office2016Black"
                 };
                 LogMessage("    [DOCK.2] ✅ DockingManager created successfully");
             }
             catch (Exception ex)
             {
                 LogMessage($"    [DOCK.ERROR] ❌ Error creating DockingManager: {ex.Message}");
+                LogMessage($"    [DOCK.ERROR] Stack trace: {ex.StackTrace}");
+                _dockingManager = null; // Ensure fallback logic triggers
             }
         }
 

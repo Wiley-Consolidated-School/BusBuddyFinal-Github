@@ -21,12 +21,47 @@ namespace BusBuddy.UI.Tests
 
             Console.WriteLine("Creating shared Dashboard instance for all tests...");
 
-            // Skip UI creation in test environments to avoid handle creation issues
-            Console.WriteLine("Test environment detected - using mock dashboard for testing");
-            SharedDashboard = null; // Tests will handle null dashboard appropriately
-            TestForm = null;
+            try
+            {
+                // Create a minimal test form for testing UI components
+                TestForm = new Form
+                {
+                    Text = "BusBuddy Test Environment",
+                    Size = new Size(800, 600),
+                    WindowState = FormWindowState.Minimized, // Keep minimized to avoid UI conflicts
+                    ShowInTaskbar = false
+                };
 
-            Console.WriteLine("Test fixture initialized with mock components");
+                // Attempt to create Dashboard but handle gracefully if it fails
+                try
+                {
+                    SharedDashboard = new Dashboard();
+                    Console.WriteLine("✅ Dashboard created successfully in test environment");
+
+                    // Only add to test form if dashboard creation succeeds
+                    if (SharedDashboard != null && !SharedDashboard.IsDisposed)
+                    {
+                        SharedDashboard.TopLevel = false;
+                        SharedDashboard.FormBorderStyle = FormBorderStyle.None;
+                        SharedDashboard.Dock = DockStyle.Fill;
+                        TestForm.Controls.Add(SharedDashboard);
+                    }
+                }
+                catch (Exception dashboardEx)
+                {
+                    Console.WriteLine($"⚠️ Dashboard creation failed in test environment: {dashboardEx.Message}");
+                    Console.WriteLine("Using mock dashboard for testing - tests will adapt accordingly");
+                    SharedDashboard = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Test fixture setup failed: {ex.Message}");
+                SharedDashboard = null;
+                TestForm = null;
+            }
+
+            Console.WriteLine("Test fixture initialized - tests will handle null components appropriately");
         }
 
         /// <summary>

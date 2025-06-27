@@ -36,25 +36,50 @@ namespace BusBuddy.DependencyInjection
         /// </summary>
         private void ConfigureServices(ServiceCollection services)
         {
-            // Register EF Core DbContext - ONLY ONCE to avoid configuration conflicts
-            // Temporarily hardcode connection string to bypass duplicate config issue
-            var connectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;";
-
-            services.AddDbContext<BusBuddyContext>(options =>
+            try
             {
-                options.UseSqlServer(connectionString);
-            }, ServiceLifetime.Scoped);
+                // Register EF Core DbContext - ONLY ONCE to avoid configuration conflicts
+                // Get connection string from configuration with error handling
+                var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString;
 
-            // Register services
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    // Fallback to hardcoded connection string if configuration fails
+                    connectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;";
+                    Console.WriteLine("⚠️ Using fallback connection string");
+                }
+
+                Console.WriteLine($"🔗 Using connection string: {connectionString.Substring(0, Math.Min(50, connectionString.Length))}...");
+
+                services.AddDbContext<BusBuddyContext>(options =>
+                {
+                    options.UseSqlServer(connectionString);
+                    options.EnableSensitiveDataLogging(false); // Disable in production
+                    options.EnableServiceProviderCaching(true);
+                }, ServiceLifetime.Scoped);
+
+                // Register services with proper error handling
+                RegisterUIServices(services);
+                RegisterBusinessServices(services);
+                RegisterDataServices(services);
+
+                Console.WriteLine("✅ All services registered successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Critical error configuring services: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw; // Re-throw to prevent silent failures
+            }
+        }
+
+        private void RegisterUIServices(ServiceCollection services)
+        {
+            // Register UI services
             services.AddSingleton<BusBuddy.UI.Services.IFormFactory, BusBuddy.UI.Services.ServiceContainer>();
             services.AddSingleton<BusBuddy.UI.Services.INavigationService>(provider =>
                 new BusBuddy.UI.Services.NavigationService((BusBuddy.UI.Services.IFormFactory)provider.GetService(typeof(BusBuddy.UI.Services.IFormFactory))));
-            services.AddScoped<BusBuddy.Business.IDatabaseHelperService, BusBuddy.Business.DatabaseHelperService>();
             services.AddScoped<BusBuddy.UI.Services.IDatabaseHelperService, BusBuddy.UI.Services.DatabaseHelperService>();
-
-            // Fix: Register interfaces properly - use fully qualified names to avoid ambiguity
-            services.AddScoped<BusBuddy.Business.IRouteAnalyticsService, BusBuddy.Business.RouteAnalyticsService>();
-            services.AddScoped<BusBuddy.Business.IPredictiveMaintenanceService, BusBuddy.Business.PredictiveMaintenanceService>();
 
             // Task 5: Register Report Service for CDE-40 reporting
             services.AddSingleton<HttpClient>(); // Register HttpClient
@@ -71,7 +96,19 @@ namespace BusBuddy.DependencyInjection
 
             // Task 7: Register Error Handler Service
             services.AddScoped<BusBuddy.UI.Services.IErrorHandlerService, BusBuddy.UI.Services.ErrorHandlerService>();
+        }
 
+        private void RegisterBusinessServices(ServiceCollection services)
+        {
+            services.AddScoped<BusBuddy.Business.IDatabaseHelperService, BusBuddy.Business.DatabaseHelperService>();
+
+            // Fix: Register interfaces properly - use fully qualified names to avoid ambiguity
+            services.AddScoped<BusBuddy.Business.IRouteAnalyticsService, BusBuddy.Business.RouteAnalyticsService>();
+            services.AddScoped<BusBuddy.Business.IPredictiveMaintenanceService, BusBuddy.Business.PredictiveMaintenanceService>();
+        }
+
+        private void RegisterDataServices(ServiceCollection services)
+        {
             // Register Data repositories
             services.AddScoped<IVehicleRepository, VehicleRepository>();
             services.AddScoped<IDriverRepository, DriverRepository>();
