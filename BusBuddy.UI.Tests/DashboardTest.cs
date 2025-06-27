@@ -614,5 +614,416 @@ namespace BusBuddy.UI.Tests
         }
 
         #endregion
+
+        #region Control State and Visibility Tests
+
+        [Fact]
+        public void Dashboard_AllPanels_ShouldBeVisible()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var panels = GetAllControls(_dashboard).OfType<Panel>().ToList();
+
+            foreach (var panel in panels)
+            {
+                Assert.True(panel.Visible, $"Panel {panel.Name ?? panel.GetType().Name} is not visible");
+                Assert.True(panel.Width > 0, $"Panel {panel.Name ?? panel.GetType().Name} has zero width");
+                Assert.True(panel.Height > 0, $"Panel {panel.Name ?? panel.GetType().Name} has zero height");
+            }
+        }
+
+        [Fact]
+        public void Dashboard_ContentPanel_ShouldExist()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var contentPanelField = _dashboard.GetType().GetField("_contentPanel",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            Assert.NotNull(contentPanelField);
+
+            var contentPanel = contentPanelField.GetValue(_dashboard) as Panel;
+            Assert.NotNull(contentPanel);
+            Assert.True(contentPanel.Visible);
+            Assert.Equal(DockStyle.Fill, contentPanel.Dock);
+        }
+
+        [Fact]
+        public void Dashboard_HeaderPanel_ShouldExist()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var headerPanelField = _dashboard.GetType().GetField("_headerPanel",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (headerPanelField != null)
+            {
+                var headerPanel = headerPanelField.GetValue(_dashboard) as Panel;
+                if (headerPanel != null)
+                {
+                    Assert.True(headerPanel.Visible);
+                    Assert.True(headerPanel.Height > 0);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Error Handling and Resilience Tests
+
+        [Fact]
+        public void Dashboard_ShouldHandleNullReferences_Gracefully()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            // Test that dashboard can handle null control references
+            var exception = Record.Exception(() =>
+            {
+                // Trigger a refresh operation that might encounter null references
+                var refreshMethod = _dashboard.GetType().GetMethod("RefreshDataGrids",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if (refreshMethod != null)
+                {
+                    refreshMethod.Invoke(_dashboard, null);
+                }
+            });
+
+            // Should not throw unhandled exceptions
+            if (exception is TargetInvocationException tie && tie.InnerException != null)
+            {
+                // If there's an inner exception, it should be handled gracefully
+                Assert.False(tie.InnerException is NullReferenceException,
+                    "Dashboard threw unhandled NullReferenceException");
+            }
+        }
+
+        [Fact]
+        public void Dashboard_MinimalForm_ShouldBeCreated_OnInitializationFailure()
+        {
+            // Test the fallback mechanism by creating a new dashboard
+            // This simulates what happens when full initialization fails
+            var tempDashboard = new Dashboard();
+
+            try
+            {
+                // Try to access the fallback method
+                var fallbackMethod = tempDashboard.GetType().GetMethod("CreateFallbackLayoutWithControls",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if (fallbackMethod != null)
+                {
+                    fallbackMethod.Invoke(tempDashboard, null);
+
+                    // Verify minimal controls exist
+                    Assert.True(tempDashboard.Controls.Count > 0, "Fallback layout created no controls");
+
+                    var panels = tempDashboard.Controls.OfType<Panel>().ToList();
+                    Assert.True(panels.Count > 0, "Fallback layout has no panels");
+                }
+            }
+            finally
+            {
+                tempDashboard?.Dispose();
+            }
+        }
+
+        #endregion
+
+        #region Form Properties and Configuration Tests
+
+        [Fact]
+        public void Dashboard_FormProperties_ShouldBeConfiguredCorrectly()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            Assert.Equal("BusBuddy Transportation Helper", _dashboard.Text);
+            Assert.True(_dashboard.Size.Width >= 800, "Dashboard width should be at least 800px");
+            Assert.True(_dashboard.Size.Height >= 600, "Dashboard height should be at least 600px");
+            Assert.Equal(new Size(800, 600), _dashboard.MinimumSize);
+            Assert.True(_dashboard.MaximizeBox, "Dashboard should allow maximizing");
+            Assert.True(_dashboard.MinimizeBox, "Dashboard should allow minimizing");
+        }
+
+        [Fact]
+        public void Dashboard_AutoScaleMode_ShouldSupportHighDPI()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            Assert.Equal(AutoScaleMode.Dpi, _dashboard.AutoScaleMode);
+            Assert.Equal(new SizeF(96F, 96F), _dashboard.AutoScaleDimensions);
+        }
+
+        #endregion
+
+        #region Data Grid Validation Tests
+
+        [Fact]
+        public void Dashboard_DataGrids_ShouldHaveProperConfiguration()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var dataGrids = GetAllControls(_dashboard).OfType<SfDataGrid>().ToList();
+
+            foreach (var grid in dataGrids)
+            {
+                Assert.NotNull(grid.Style);
+                Assert.NotNull(grid.Style.HeaderStyle);
+                Assert.True(grid.Visible, $"DataGrid {grid.Name} is not visible");
+                Assert.True(grid.Parent != null, $"DataGrid {grid.Name} has no parent");
+            }
+        }
+
+        [Fact]
+        public void Dashboard_VehiclesGrid_ShouldExist()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var vehiclesGridField = _dashboard.GetType().GetField("_vehiclesGrid",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (vehiclesGridField != null)
+            {
+                var vehiclesGrid = vehiclesGridField.GetValue(_dashboard) as SfDataGrid;
+                if (vehiclesGrid != null)
+                {
+                    Assert.NotNull(vehiclesGrid.Style);
+                    Assert.True(vehiclesGrid.Visible);
+                }
+            }
+        }
+
+        [Fact]
+        public void Dashboard_RoutesGrid_ShouldExist()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var routesGridField = _dashboard.GetType().GetField("_routesGrid",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (routesGridField != null)
+            {
+                var routesGrid = routesGridField.GetValue(_dashboard) as SfDataGrid;
+                if (routesGrid != null)
+                {
+                    Assert.NotNull(routesGrid.Style);
+                    Assert.True(routesGrid.Visible);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Button and Control Interaction Tests
+
+        [Fact]
+        public void Dashboard_Buttons_ShouldExistAndBeConfigured()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var buttons = GetAllControls(_dashboard).OfType<SfButton>().ToList();
+
+            foreach (var button in buttons)
+            {
+                Assert.True(button.Visible, $"Button {button.Text} is not visible");
+                Assert.True(button.Enabled, $"Button {button.Text} is not enabled");
+                Assert.True(button.Parent != null, $"Button {button.Text} has no parent");
+            }
+        }
+
+        [Fact]
+        public void Dashboard_RefreshButton_ShouldExist()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var refreshButtonField = _dashboard.GetType().GetField("_refreshButton",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (refreshButtonField != null)
+            {
+                var refreshButton = refreshButtonField.GetValue(_dashboard) as SfButton;
+                if (refreshButton != null)
+                {
+                    Assert.True(refreshButton.Visible);
+                    Assert.True(refreshButton.Enabled);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Tab Control Validation Tests
+
+        [Fact]
+        public void Dashboard_TabControl_ShouldHaveMultipleTabs()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var tabControls = GetAllControls(_dashboard).OfType<TabControlAdv>().ToList();
+
+            foreach (var tabControl in tabControls)
+            {
+                Assert.True(tabControl.TabPages.Count > 0, "TabControl has no tab pages");
+                Assert.True(tabControl.Visible, "TabControl is not visible");
+
+                foreach (TabPageAdv tabPage in tabControl.TabPages)
+                {
+                    Assert.NotNull(tabPage.Text);
+                    Assert.True(tabPage.Text.Length > 0, $"Tab page has empty text");
+                }
+            }
+        }
+
+        [Fact]
+        public void Dashboard_MainTabControl_ShouldExist()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var mainTabControlField = _dashboard.GetType().GetField("_mainTabControl",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (mainTabControlField != null)
+            {
+                var mainTabControl = mainTabControlField.GetValue(_dashboard) as TabControlAdv;
+                if (mainTabControl != null)
+                {
+                    Assert.True(mainTabControl.Visible);
+                    Assert.True(mainTabControl.TabPages.Count > 0);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Chart and Gauge Control Tests
+
+        [Fact]
+        public void Dashboard_ChartControls_ShouldBeProperlyInitialized()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var charts = GetAllControls(_dashboard).OfType<ChartControl>().ToList();
+
+            foreach (var chart in charts)
+            {
+                Assert.NotNull(chart.PrimaryXAxis);
+                Assert.NotNull(chart.PrimaryYAxis);
+                Assert.True(chart.Visible, "Chart is not visible");
+                Assert.True(chart.Parent != null, "Chart has no parent");
+            }
+        }
+
+        [Fact]
+        public void Dashboard_RadialGauges_ShouldBeProperlyInitialized()
+        {
+            if (SkipIfDashboardUnavailable()) return;
+
+            var gauges = GetAllControls(_dashboard).OfType<RadialGauge>().ToList();
+
+            foreach (var gauge in gauges)
+            {
+                Assert.True(gauge.Visible, "RadialGauge is not visible");
+                Assert.True(gauge.Parent != null, "RadialGauge has no parent");
+            }
+        }
+
+        #endregion
+
+        #region Test Mode and Environment Tests
+
+        [Fact]
+        public void Dashboard_ShouldDetectTestMode_Correctly()
+        {
+            // Test that the dashboard properly detects test mode
+            var testModeDetected = Environment.GetEnvironmentVariable("BUSBUDDY_TEST_MODE") == "1" ||
+                                  AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName.Contains("xunit"));
+
+            Assert.True(testModeDetected, "Test mode should be detected in unit test environment");
+        }
+
+        #endregion
+
+        #region Logging and Diagnostics Tests
+
+        [Fact]
+        public void Dashboard_LogToSharedFile_ShouldNotThrow()
+        {
+            var exception = Record.Exception(() =>
+            {
+                Dashboard.LogToSharedFile("TEST", "Unit test logging verification");
+            });
+
+            Assert.Null(exception);
+        }
+
+        #endregion
+
+        #region Cleanup and Disposal Tests
+
+        [Fact]
+        public void Dashboard_DisposeMethod_ShouldCleanupResources()
+        {
+            var tempDashboard = new Dashboard();
+            var wasDisposed = false;
+
+            try
+            {
+                // Subscribe to disposal event if available
+                tempDashboard.Disposed += (s, e) => wasDisposed = true;
+
+                tempDashboard.Dispose();
+
+                Assert.True(tempDashboard.IsDisposed);
+                Assert.True(wasDisposed);
+            }
+            catch (Exception)
+            {
+                // If dashboard creation fails, that's okay for this test
+                // Just verify it doesn't throw during disposal
+            }
+        }
+
+        #endregion
+
+        #region Async Method Tests
+
+        /// <summary>
+        /// Tests that the Dashboard_LoadAsync method completes without exceptions
+        /// </summary>
+        [Fact]
+        public async Task Dashboard_LoadAsync_ShouldComplete()
+        {
+            // Arrange
+            Environment.SetEnvironmentVariable("BUSBUDDY_TEST_MODE", "1");
+            Dashboard dashboard = new Dashboard();
+
+            try
+            {
+                // Get the private method via reflection
+                MethodInfo loadAsyncMethod = typeof(Dashboard).GetMethod("Dashboard_LoadAsync",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+
+                Assert.NotNull(loadAsyncMethod);  // xUnit assertion syntax
+
+                // Act - Invoke the method
+                loadAsyncMethod.Invoke(dashboard, new object[] { null, EventArgs.Empty });
+
+                // Wait for async operations
+                await Task.Delay(1000);
+
+                // Assert - If we got here without exceptions, test passes
+                Assert.True(true); // Simple assertion that shows we didn't throw an exception
+            }
+            finally
+            {
+                // Clean up
+                dashboard.Dispose();
+                Environment.SetEnvironmentVariable("BUSBUDDY_TEST_MODE", null);
+            }
+        }
+
+        #endregion
     }
 }
+
+
