@@ -496,6 +496,14 @@ namespace BusBuddy.UI.Base
         }
 
         /// <summary>
+        /// Get the repository instance for data operations
+        /// </summary>
+        protected virtual object? GetRepository()
+        {
+            return _repository;
+        }
+
+        /// <summary>
         /// Load data from the repository into the grid
         /// </summary>
         protected virtual void LoadData()

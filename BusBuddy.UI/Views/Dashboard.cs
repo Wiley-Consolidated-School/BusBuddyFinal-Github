@@ -1926,92 +1926,51 @@ namespace BusBuddy.UI.Views
         /// </summary>
         private void NavigationTreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
+            if (e.Node?.Tag == null) return;
+
             try
             {
-                if (e.Node?.Tag != null)
-                {
-                    string selectedTag = e.Node.Tag.ToString();
-                    LogMessage($"    [NAV.SELECT] Navigation selected: {selectedTag}");
+                string selectedTag = e.Node.Tag.ToString();
+                LogMessage($"    [NAV.SELECT] Navigation selected: {selectedTag}");
 
-                    // Handle management forms
-                    switch (selectedTag)
-                    {
-                        case "activity_trips":
-                            try
-                            {
-                                var activityForm = new ActivityManagementForm(new ActivityRepository());
-                                activityForm.ShowDialog();
-                            }
-                            catch (Exception ex)
-                            {
-                                LogMessage($"    [NAV.ERROR] Error opening Activity Management: {ex.Message}");
-                            }
-                            break;
-                        case "activity_schedules":
-                            try
-                            {
-                                var scheduleForm = new ActivityScheduleManagementForm(new ActivityScheduleRepository());
-                                scheduleForm.ShowDialog();
-                            }
-                            catch (Exception ex)
-                            {
-                                LogMessage($"    [NAV.ERROR] Error opening Activity Schedule Management: {ex.Message}");
-                            }
-                            break;
-                        case "vehicles":
-                            try
-                            {
-                                var vehicleForm = new VehicleManagementForm(new VehicleRepository());
-                                vehicleForm.ShowDialog();
-                            }
-                            catch (Exception ex)
-                            {
-                                LogMessage($"    [NAV.ERROR] Error opening Vehicle Management: {ex.Message}");
-                            }
-                            break;
-                        case "drivers":
-                            try
-                            {
-                                var driverForm = new DriverManagementForm(new DriverRepository());
-                                driverForm.ShowDialog();
-                            }
-                            catch (Exception ex)
-                            {
-                                LogMessage($"    [NAV.ERROR] Error opening Driver Management: {ex.Message}");
-                            }
-                            break;
-                        case "routes":
-                            try
-                            {
-                                var routeForm = new RouteManagementForm(new RouteRepository());
-                                routeForm.ShowDialog();
-                            }
-                            catch (Exception ex)
-                            {
-                                LogMessage($"    [NAV.ERROR] Error opening Route Management: {ex.Message}");
-                            }
-                            break;
-                        default:
-                            // Handle existing tab navigation
-                            if (_mainTabControl != null && selectedTag == "vehicles_list")
-                            {
-                                _mainTabControl.SelectedIndex = 0; // Vehicles tab
-                            }
-                            else if (_mainTabControl != null && selectedTag == "routes_list")
-                            {
-                                _mainTabControl.SelectedIndex = 1; // Routes tab
-                            }
-                            else if (_mainTabControl != null && selectedTag == "analytics")
-                            {
-                                _mainTabControl.SelectedIndex = 2; // Analytics tab
-                            }
-                            break;
-                    }
+                // Handle management forms with improved error handling
+                switch (selectedTag)
+                {
+                    case "activity_trips":
+                        new ActivityManagementForm(new ActivityRepository()).ShowDialog();
+                        break;
+                    case "activity_schedules":
+                        new ActivityScheduleManagementForm(new ActivityScheduleRepository()).ShowDialog();
+                        break;
+                    case "vehicles":
+                        new VehicleManagementForm(new VehicleRepository()).ShowDialog();
+                        break;
+                    case "drivers":
+                        new DriverManagementForm(new DriverRepository()).ShowDialog();
+                        break;
+                    case "routes":
+                        new RouteManagementForm(new RouteRepository()).ShowDialog();
+                        break;
+                    default:
+                        // Handle existing tab navigation
+                        if (_mainTabControl != null && selectedTag == "vehicles_list")
+                        {
+                            _mainTabControl.SelectedIndex = 0; // Vehicles tab
+                        }
+                        else if (_mainTabControl != null && selectedTag == "routes_list")
+                        {
+                            _mainTabControl.SelectedIndex = 1; // Routes tab
+                        }
+                        else if (_mainTabControl != null && selectedTag == "analytics")
+                        {
+                            _mainTabControl.SelectedIndex = 2; // Analytics tab
+                        }
+                        break;
                 }
             }
             catch (Exception ex)
             {
-                LogMessage($"    [NAV.SELECT.ERROR] ❌ Error handling navigation selection: {ex.Message}");
+                LogMessage($"    [NAV.ERROR] Failed to load form: {ex.Message}");
             }
         }
 

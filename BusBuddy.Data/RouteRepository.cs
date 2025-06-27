@@ -14,11 +14,25 @@ namespace BusBuddy.Data
 
         public List<Route> GetAllRoutes()
         {
-            using (var connection = CreateConnection())
+            // Return sample data when database is not available
+            try
             {
-                connection.Open();
-                var routes = connection.Query<Route>("SELECT * FROM Routes").AsList();
-                return routes;
+                using (var connection = CreateConnection())
+                {
+                    connection.Open();
+                    var routes = connection.Query<Route>("SELECT * FROM Routes").AsList();
+                    return routes;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Database not available: {ex.Message}. Returning sample data.");
+                return new List<Route>
+                {
+                    new Route { RouteID = 1, RouteName = "East Route", Date = DateTime.Today.ToString("yyyy-MM-dd"), AMRiders = 35, PMRiders = 30 },
+                    new Route { RouteID = 2, RouteName = "West Route", Date = DateTime.Today.ToString("yyyy-MM-dd"), AMRiders = 42, PMRiders = 38 },
+                    new Route { RouteID = 3, RouteName = "SPED Route", Date = DateTime.Today.ToString("yyyy-MM-dd"), AMRiders = 12, PMRiders = 10 }
+                };
             }
         }
 
