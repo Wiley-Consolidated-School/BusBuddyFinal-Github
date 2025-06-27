@@ -12,6 +12,7 @@ using Syncfusion.Windows.Forms.Maps;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Layout; // Add reference to our new layout namespace
+using BusBuddy.Data; // Add reference to repository classes
 using System.Linq;
 using Syncfusion.Windows.Forms;
 using System.IO; // Add for file logging
@@ -402,7 +403,7 @@ namespace BusBuddy.UI.Views
             this.MaximizeBox = true;
             this.MinimizeBox = true;
             this.ControlBox = true;
-            
+
             // Ensure no taskbar overlap by adjusting position if needed
             var workingArea = Screen.PrimaryScreen.WorkingArea;
             if (this.Bottom > workingArea.Bottom)
@@ -413,7 +414,7 @@ namespace BusBuddy.UI.Views
             {
                 this.Left = Math.Max(0, workingArea.Right - this.Width);
             }
-            
+
             LogMessage("  [4.2.2] ✅ Form configured with size 1400x900, centered, no taskbar overlap");
 
             LogMessage("  [4.3] Setting AutoScaleMode to Dpi (already set above)...");
@@ -1932,18 +1933,79 @@ namespace BusBuddy.UI.Views
                     string selectedTag = e.Node.Tag.ToString();
                     LogMessage($"    [NAV.SELECT] Navigation selected: {selectedTag}");
 
-                    // Switch to the appropriate tab based on selection
-                    if (_mainTabControl != null && selectedTag == "vehicles_list")
+                    // Handle management forms
+                    switch (selectedTag)
                     {
-                        _mainTabControl.SelectedIndex = 0; // Vehicles tab
-                    }
-                    else if (_mainTabControl != null && selectedTag == "routes_list")
-                    {
-                        _mainTabControl.SelectedIndex = 1; // Routes tab
-                    }
-                    else if (_mainTabControl != null && selectedTag == "analytics")
-                    {
-                        _mainTabControl.SelectedIndex = 2; // Analytics tab
+                        case "activity_trips":
+                            try
+                            {
+                                var activityForm = new ActivityManagementForm(new ActivityRepository());
+                                activityForm.ShowDialog();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogMessage($"    [NAV.ERROR] Error opening Activity Management: {ex.Message}");
+                            }
+                            break;
+                        case "activity_schedules":
+                            try
+                            {
+                                var scheduleForm = new ActivityScheduleManagementForm(new ActivityScheduleRepository());
+                                scheduleForm.ShowDialog();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogMessage($"    [NAV.ERROR] Error opening Activity Schedule Management: {ex.Message}");
+                            }
+                            break;
+                        case "vehicles":
+                            try
+                            {
+                                var vehicleForm = new VehicleManagementForm(new VehicleRepository());
+                                vehicleForm.ShowDialog();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogMessage($"    [NAV.ERROR] Error opening Vehicle Management: {ex.Message}");
+                            }
+                            break;
+                        case "drivers":
+                            try
+                            {
+                                var driverForm = new DriverManagementForm(new DriverRepository());
+                                driverForm.ShowDialog();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogMessage($"    [NAV.ERROR] Error opening Driver Management: {ex.Message}");
+                            }
+                            break;
+                        case "routes":
+                            try
+                            {
+                                var routeForm = new RouteManagementForm(new RouteRepository());
+                                routeForm.ShowDialog();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogMessage($"    [NAV.ERROR] Error opening Route Management: {ex.Message}");
+                            }
+                            break;
+                        default:
+                            // Handle existing tab navigation
+                            if (_mainTabControl != null && selectedTag == "vehicles_list")
+                            {
+                                _mainTabControl.SelectedIndex = 0; // Vehicles tab
+                            }
+                            else if (_mainTabControl != null && selectedTag == "routes_list")
+                            {
+                                _mainTabControl.SelectedIndex = 1; // Routes tab
+                            }
+                            else if (_mainTabControl != null && selectedTag == "analytics")
+                            {
+                                _mainTabControl.SelectedIndex = 2; // Analytics tab
+                            }
+                            break;
                     }
                 }
             }
@@ -2301,7 +2363,7 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [NAV.1] Creating left navigation TreeView (200px)...");
-                
+
                 // Create the navigation panel
                 _navigationPanel = new Panel
                 {
@@ -2328,11 +2390,18 @@ namespace BusBuddy.UI.Views
                 };
 
                 // Add navigation nodes for the specified structure
-                var vehiclesNode = new TreeNode("Vehicles") { Tag = "vehicles" };
+                var managementNode = new TreeNode("Management") { Tag = "management" };
+                managementNode.Nodes.Add(new TreeNode("Activity Trips") { Tag = "activity_trips" });
+                managementNode.Nodes.Add(new TreeNode("Activity Schedules") { Tag = "activity_schedules" });
+                managementNode.Nodes.Add(new TreeNode("Vehicles") { Tag = "vehicles" });
+                managementNode.Nodes.Add(new TreeNode("Drivers") { Tag = "drivers" });
+                managementNode.Nodes.Add(new TreeNode("Routes") { Tag = "routes" });
+
+                var vehiclesNode = new TreeNode("Fleet Overview") { Tag = "fleet" };
                 vehiclesNode.Nodes.Add(new TreeNode("Fleet Management") { Tag = "vehicles_list" });
                 vehiclesNode.Nodes.Add(new TreeNode("Maintenance") { Tag = "maintenance" });
 
-                var routesNode = new TreeNode("Routes") { Tag = "routes" };
+                var routesNode = new TreeNode("Route Overview") { Tag = "route_overview" };
                 routesNode.Nodes.Add(new TreeNode("Route Planning") { Tag = "routes_list" });
                 routesNode.Nodes.Add(new TreeNode("Schedules") { Tag = "schedules" });
 
@@ -2340,6 +2409,7 @@ namespace BusBuddy.UI.Views
                 analyticsNode.Nodes.Add(new TreeNode("Performance") { Tag = "performance" });
                 analyticsNode.Nodes.Add(new TreeNode("Reports") { Tag = "reports" });
 
+                _navigationTreeView.Nodes.Add(managementNode);
                 _navigationTreeView.Nodes.Add(vehiclesNode);
                 _navigationTreeView.Nodes.Add(routesNode);
                 _navigationTreeView.Nodes.Add(analyticsNode);
@@ -2384,7 +2454,7 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [CONTENT.1] Creating main content panel with Fill docking...");
-                
+
                 _contentPanel = new Panel
                 {
                     Name = "MainContentPanel",
@@ -2408,7 +2478,7 @@ namespace BusBuddy.UI.Views
 
                 _contentPanel.Show();
                 _contentPanel.BringToFront();
-                
+
                 LogMessage($"    [CONTENT.3] ✅ Main content panel created - Size: {_contentPanel.Size}");
             }
             catch (Exception ex)
@@ -2426,7 +2496,7 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [TAB.1] Creating TabControl with Map, Statistics, Analytics tabs...");
-                
+
                 // Create TabControlAdv following official documentation
                 _mainTabControl = new TabControlAdv
                 {
@@ -2450,7 +2520,7 @@ namespace BusBuddy.UI.Views
                 // Create Statistics tab with ChartControl
                 _driverManagementTab = new TabPageAdv
                 {
-                    Text = "Statistics", 
+                    Text = "Statistics",
                     BackColor = Color.FromArgb(32, 32, 32),
                     Name = "StatisticsTab"
                 };
@@ -2496,7 +2566,7 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [MAP.1] Configuring MapControl with sample school routes...");
-                
+
                 if (_vehicleManagementTab != null)
                 {
                     // Create Maps control following Syncfusion documentation
@@ -2541,7 +2611,7 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [CHART.1] Configuring ChartControl for fuel statistics...");
-                
+
                 if (_driverManagementTab != null)
                 {
                     // Create ChartControl following official documentation
@@ -2596,7 +2666,7 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [GRID.1] Configuring SfDataGrid for analytics data...");
-                
+
                 if (_routeManagementTab != null)
                 {
                     // Create SfDataGrid following official documentation
@@ -2704,11 +2774,11 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [CHART.SAMPLE.1] Creating sample fuel statistics data...");
-                
+
                 // Create sample data series for fuel consumption
                 var fuelSeries = new ChartSeries("Fuel Consumption");
                 fuelSeries.Type = ChartSeriesType.Line;
-                
+
                 // Add sample data points (last 7 days)
                 var baseDate = DateTime.Now.AddDays(-7);
                 for (int i = 0; i < 7; i++)
@@ -2717,7 +2787,7 @@ namespace BusBuddy.UI.Views
                     var fuelUsed = 25 + (i * 3) + (new Random().Next(-5, 5)); // Simulate fuel usage
                     fuelSeries.Points.Add(date, fuelUsed);
                 }
-                
+
                 _analyticsChart.Series.Add(fuelSeries);
                 LogMessage("    [CHART.SAMPLE.2] ✅ Sample fuel statistics data created");
             }
@@ -2735,11 +2805,11 @@ namespace BusBuddy.UI.Views
             try
             {
                 LogMessage("    [GRID.SAMPLE.1] Creating sample analytics data...");
-                
+
                 var sampleData = new System.Collections.Generic.List<object>();
                 var baseDate = DateTime.Now.AddDays(-30);
                 var random = new Random();
-                
+
                 for (int i = 0; i < 30; i++)
                 {
                     sampleData.Add(new
@@ -2752,7 +2822,7 @@ namespace BusBuddy.UI.Views
                         Efficiency = Math.Round(6 + random.NextDouble() * 4, 1)
                     });
                 }
-                
+
                 grid.DataSource = sampleData;
                 LogMessage($"    [GRID.SAMPLE.2] ✅ Sample analytics data created ({sampleData.Count} records)");
             }
