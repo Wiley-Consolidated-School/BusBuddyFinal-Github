@@ -94,13 +94,13 @@ namespace BusBuddy.Data
                     INSERT INTO Drivers (
                         DriverName, DriverPhone, DriverEmail,
                         Address, City, State, Zip,
-                        LicenseType, TrainingComplete, Notes,
+                        DriversLicenseType, TrainingComplete, Notes,
                         Status, FirstName, LastName, CDLExpirationDate
                     )
                     VALUES (
                         @DriverName, @DriverPhone, @DriverEmail,
                         @Address, @City, @State, @Zip,
-                        @LicenseType, @TrainingComplete, @Notes,
+                        @DriversLicenseType, @TrainingComplete, @Notes,
                         @Status, @FirstName, @LastName, @CDLExpirationDate
                     );
                     SELECT SCOPE_IDENTITY()";

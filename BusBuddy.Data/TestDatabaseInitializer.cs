@@ -236,6 +236,56 @@ namespace BusBuddy.Data
                         Console.WriteLine("ActivitySchedule table created successfully.");
                     }
                 }
+
+                // Create Fuel table if it doesn't exist
+                if (!TableExists(connection, "Fuel"))
+                {
+                    using (var command = new SqlCommand())
+                    {
+                        command.Connection = connection;
+
+                        // Create Fuel table
+                        command.CommandText = @"
+                            CREATE TABLE Fuel (
+                                FuelID INT IDENTITY(1,1) PRIMARY KEY,
+                                FuelDate NVARCHAR(50),
+                                FuelLocation NVARCHAR(200),
+                                VehicleFueledID INT,
+                                VehicleOdometerReading INT,
+                                FuelType NVARCHAR(50),
+                                FuelAmount DECIMAL(10,2),
+                                FuelCost DECIMAL(10,2),
+                                Notes NVARCHAR(MAX)
+                            )";
+                        command.ExecuteNonQuery();
+
+                        Console.WriteLine("Fuel table created successfully.");
+                    }
+                }
+
+                // Create Maintenance table if it doesn't exist
+                if (!TableExists(connection, "Maintenance"))
+                {
+                    using (var command = new SqlCommand())
+                    {
+                        command.Connection = connection;
+
+                        // Create Maintenance table
+                        command.CommandText = @"
+                            CREATE TABLE Maintenance (
+                                MaintenanceID INT IDENTITY(1,1) PRIMARY KEY,
+                                Date NVARCHAR(50),
+                                VehicleID INT,
+                                MaintenanceCompleted NVARCHAR(500),
+                                RepairCost DECIMAL(10,2),
+                                OdometerReading INT,
+                                Notes NVARCHAR(MAX)
+                            )";
+                        command.ExecuteNonQuery();
+
+                        Console.WriteLine("Maintenance table created successfully.");
+                    }
+                }
             }
         }
 

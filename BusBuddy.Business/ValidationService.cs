@@ -79,7 +79,7 @@ namespace BusBuddy.Business
             // Check for license expiration
             if (driver.CDLExpirationDate.HasValue && driver.CDLExpirationDate.Value < date)
             {
-                return ValidationResult.Failed($"Driver {driver.FirstName} {driver.LastName}'s CDL expires on {driver.CDLExpirationDate.Value.ToShortDateString()}.");
+                return ValidationResult.Failed($"Driver {driver.FirstName} {driver.LastName}'s CDL expired on {driver.CDLExpirationDate.Value.ToShortDateString()}.");
             }
 
             return ValidationResult.Success();
@@ -117,7 +117,14 @@ namespace BusBuddy.Business
 
             if (!fuelRecord.FuelAmount.HasValue || fuelRecord.FuelAmount <= 0)
             {
-                validations.Add(ValidationResult.Failed("Fuel amount is required and must be greater than 0."));
+                if (fuelRecord.FuelAmount.HasValue && fuelRecord.FuelAmount < 0)
+                {
+                    validations.Add(ValidationResult.Failed("Fuel amount cannot be negative."));
+                }
+                else
+                {
+                    validations.Add(ValidationResult.Failed("Fuel amount is required and must be greater than 0."));
+                }
             }
 
             // Validate vehicle exists (only if VehicleFueledID is provided)
@@ -259,11 +266,13 @@ namespace BusBuddy.Business
         /// </summary>
         public bool IsValidVehicleNumber(string? vehicleNumber)
         {
-            // Accepts formats like BUS-123, BB-456, etc. (letters, dash, numbers, min 3 chars before dash)
+            // Accepts various formats: BUS001, V123, BUS-123, etc. (minimum 3 characters)
             if (string.IsNullOrWhiteSpace(vehicleNumber))
                 return false;
-            // Example pattern: 2-6 uppercase letters, dash, 1-4 digits
-            return System.Text.RegularExpressions.Regex.IsMatch(vehicleNumber, @"^[A-Z]{2,6}-\d{1,4}$");
+            
+            // Allow alphanumeric with optional dash, minimum 3 characters
+            return vehicleNumber.Length >= 3 && 
+                   System.Text.RegularExpressions.Regex.IsMatch(vehicleNumber, @"^[A-Z0-9\-]+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
     }
 

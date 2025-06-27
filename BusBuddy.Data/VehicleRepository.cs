@@ -61,6 +61,8 @@ namespace BusBuddy.Data
                     }
                     else
                     {
+                        // Ensure the VehicleID property is set correctly from the Id column
+                        vehicle.VehicleID = vehicle.Id;
                         Console.WriteLine($"Vehicle found: ID={vehicle.Id}, Number={vehicle.VehicleNumber}");
                     }
 
@@ -82,7 +84,9 @@ namespace BusBuddy.Data
                     VALUES (@VehicleNumber, @Make, @Model, @Year, @SeatingCapacity, @FuelType, @Status, @VINNumber, @LicenseNumber, @DateLastInspection);
                     SELECT SCOPE_IDENTITY();";
 
-                return connection.QuerySingle<int>(sql, vehicle);
+                var newId = connection.QuerySingle<int>(sql, vehicle);
+                vehicle.VehicleID = newId; // Set the ID on the vehicle object
+                return newId;
             }
         }
 
