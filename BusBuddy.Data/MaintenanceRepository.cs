@@ -96,17 +96,19 @@ namespace BusBuddy.Data
                 var sql = @"
                     INSERT INTO Maintenance (
                         Date, VehicleID, OdometerReading,
-                        MaintenanceCompleted, Vendor, RepairCost, Notes
+                        MaintenanceCompleted, RepairCost, Notes
                     )
                     VALUES (
                         @Date, @VehicleID, @OdometerReading,
-                        @MaintenanceCompleted, @Vendor, @RepairCost, @Notes
+                        @MaintenanceCompleted, @RepairCost, @Notes
                     );
                     SELECT SCOPE_IDENTITY()";
 
                 return connection.QuerySingle<int>(sql, maintenance);
             }
-        }        public bool UpdateMaintenance(Maintenance maintenance)
+        }
+
+        public bool UpdateMaintenance(Maintenance maintenance)
         {
             using (var connection = CreateConnection())
             {
@@ -116,7 +118,7 @@ namespace BusBuddy.Data
                 if (maintenance.VehicleID.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
-                        "SELECT COUNT(*) FROM Vehicles WHERE VehicleID = @VehicleID",
+                        "SELECT COUNT(*) FROM Vehicles WHERE Id = @VehicleID",
                         new { VehicleID = maintenance.VehicleID });
 
                     if (vehicleExists == 0)
@@ -125,16 +127,41 @@ namespace BusBuddy.Data
                     }
                 }
 
-                var sql = @"
-                    UPDATE Maintenance
-                    SET Date = @Date,
-                        VehicleID = @VehicleID,
-                        OdometerReading = @OdometerReading,
-                        MaintenanceCompleted = @MaintenanceCompleted,
-                        Vendor = @Vendor,
-                        RepairCost = @RepairCost,
-                        Notes = @Notes
-                    WHERE MaintenanceID = @MaintenanceID";
+                // Check if Vendor column exists before trying to update it
+                var checkColumnSql = @"
+                    SELECT COUNT(*)
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = 'Maintenance' AND COLUMN_NAME = 'Vendor'";
+
+                var vendorColumnExists = connection.QuerySingleOrDefault<int>(checkColumnSql);
+
+                string sql;
+                if (vendorColumnExists > 0)
+                {
+                    sql = @"
+                        UPDATE Maintenance
+                        SET Date = @Date,
+                            VehicleID = @VehicleID,
+                            OdometerReading = @OdometerReading,
+                            MaintenanceCompleted = @MaintenanceCompleted,
+                            Vendor = @Vendor,
+                            RepairCost = @RepairCost,
+                            Notes = @Notes
+                        WHERE MaintenanceID = @MaintenanceID";
+                }
+                else
+                {
+                    // Fallback: update without Vendor column if it doesn't exist
+                    sql = @"
+                        UPDATE Maintenance
+                        SET Date = @Date,
+                            VehicleID = @VehicleID,
+                            OdometerReading = @OdometerReading,
+                            MaintenanceCompleted = @MaintenanceCompleted,
+                            RepairCost = @RepairCost,
+                            Notes = @Notes
+                        WHERE MaintenanceID = @MaintenanceID";
+                }
 
                 var rowsAffected = connection.Execute(sql, maintenance);
                 return rowsAffected > 0;

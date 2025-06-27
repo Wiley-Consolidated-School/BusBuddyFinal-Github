@@ -276,10 +276,12 @@ namespace BusBuddy.Data
                                 MaintenanceID INT IDENTITY(1,1) PRIMARY KEY,
                                 Date NVARCHAR(50),
                                 VehicleID INT,
-                                MaintenanceCompleted NVARCHAR(500),
+                                OdometerReading DECIMAL(10,2),
+                                MaintenanceCompleted NVARCHAR(MAX),
+                                Vendor NVARCHAR(200),
                                 RepairCost DECIMAL(10,2),
-                                OdometerReading INT,
-                                Notes NVARCHAR(MAX)
+                                Notes NVARCHAR(MAX),
+                                FOREIGN KEY (VehicleID) REFERENCES Vehicles(Id)
                             )";
                         command.ExecuteNonQuery();
 

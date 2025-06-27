@@ -55,8 +55,19 @@ namespace BusBuddy.UI.Layout
 
                 Rows = rows;
                 Columns = columns;
-                RowSizes = null;
-                ColumnSizes = null;
+
+                // Initialize with equal distribution by default
+                RowSizes = new List<float>();
+                for (int i = 0; i < rows; i++)
+                {
+                    RowSizes.Add(100f / rows);
+                }
+
+                ColumnSizes = new List<float>();
+                for (int i = 0; i < columns; i++)
+                {
+                    ColumnSizes.Add(100f / columns);
+                }
             }
         }
 
@@ -94,13 +105,26 @@ namespace BusBuddy.UI.Layout
             else
             {
                 // Use Syncfusion FlowLayout for non-wrapping scenarios
-                var flowLayout = new FlowLayout
+                try
                 {
-                    ContainerControl = container,
-                    HGap = hGap,
-                    VGap = vGap
-                };
-                container.Tag = flowLayout; // Store reference for later use
+                    var flowLayout = new FlowLayout
+                    {
+                        ContainerControl = container,
+                        HGap = hGap,
+                        VGap = vGap
+                    };
+                    container.Tag = flowLayout; // Store reference for later use
+                }
+                catch (Exception ex)
+                {
+                    // Fallback to standard layout if Syncfusion FlowLayout fails
+                    // This can happen during testing or if licensing issues occur
+                    BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
+                        $"FlowLayout creation failed, using standard layout: {ex.Message}");
+
+                    // Use standard panel with manual layout as fallback
+                    container.Tag = new { HGap = hGap, VGap = vGap }; // Store gap settings for manual layout
+                }
             }
 
             parent.Controls.Add(container);

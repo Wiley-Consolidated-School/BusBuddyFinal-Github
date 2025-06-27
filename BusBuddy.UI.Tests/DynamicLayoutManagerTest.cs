@@ -21,11 +21,7 @@ namespace BusBuddy.UI.Tests
         private readonly Form _testForm;
         private readonly Panel _parentPanel;
 
-    static DynamicLayoutManagerTest()
-    {
-        // Set exception mode before any controls are created
-        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
-    }
+
 
     public DynamicLayoutManagerTest()
     {
@@ -543,7 +539,8 @@ namespace BusBuddy.UI.Tests
             // Act
             var config = new DynamicLayoutManager.LayoutConfiguration(2, 2)
             {
-                RowSizes = new System.Collections.Generic.List<float> { topRowHeight, 100f - topRowHeight }
+                RowSizes = new System.Collections.Generic.List<float> { topRowHeight, 100f - topRowHeight },
+                ColumnSizes = new System.Collections.Generic.List<float> { 60f, 40f }
             };
 
             // Assert

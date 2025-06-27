@@ -76,6 +76,9 @@ namespace BusBuddy.Data
             }
         }        public virtual int AddVehicle(Vehicle vehicle)
         {
+            if (vehicle == null)
+                throw new ArgumentNullException(nameof(vehicle));
+
             using (var connection = CreateConnection())
             {
                 connection.Open();

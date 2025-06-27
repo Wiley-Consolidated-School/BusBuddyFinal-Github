@@ -30,11 +30,11 @@ namespace BusBuddy
         {
             // Check ServiceContainerInstance availability
             Console.WriteLine("🔧 Checking Service Container...");
-            ServiceContainerInstance? serviceContainer = null;
+            BusBuddy.DependencyInjection.ServiceContainerInstance? serviceContainer = null;
 
             try
             {
-                serviceContainer = ServiceContainerInstance.Instance;
+                serviceContainer = BusBuddy.DependencyInjection.ServiceContainerInstance.Instance;
                 Console.WriteLine($"✅ ServiceContainerInstance.Instance: {(serviceContainer != null ? "Available" : "NULL")}");
             }
             catch (Exception scEx)

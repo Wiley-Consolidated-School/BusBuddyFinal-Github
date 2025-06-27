@@ -114,7 +114,8 @@ namespace BusBuddy.Data
 
             using (var connection = CreateConnection())
             {
-                connection.Open();                var sql = @"                    UPDATE Drivers
+                connection.Open();                var sql = @"
+                    UPDATE Drivers
                     SET DriverName = @DriverName,
                         DriverPhone = @DriverPhone,
                         DriverEmail = @DriverEmail,
@@ -122,7 +123,7 @@ namespace BusBuddy.Data
                         City = @City,
                         State = @State,
                         Zip = @Zip,
-                        LicenseType = @LicenseType,
+                        DriversLicenseType = @DriversLicenseType,
                         TrainingComplete = @TrainingComplete,
                         Notes = @Notes,
                         Status = @Status,

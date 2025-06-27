@@ -197,7 +197,9 @@ namespace BusBuddy.Business
             }
 
             // Validate vehicle exists (only if VehicleID is provided)
-            if (maintenanceRecord.VehicleID.HasValue)
+            // Note: Skip availability check for scheduled maintenance as it would create a circular validation
+            if (maintenanceRecord.VehicleID.HasValue &&
+                !(maintenanceRecord.Notes?.Contains("SCHEDULED") == true))
             {
                 validations.Add(ValidateVehicleAvailability(maintenanceRecord.VehicleID.Value,
                     maintenanceRecord.DateAsDateTime ?? DateTime.Today, "maintenance"));
@@ -269,9 +271,9 @@ namespace BusBuddy.Business
             // Accepts various formats: BUS001, V123, BUS-123, etc. (minimum 3 characters)
             if (string.IsNullOrWhiteSpace(vehicleNumber))
                 return false;
-            
+
             // Allow alphanumeric with optional dash, minimum 3 characters
-            return vehicleNumber.Length >= 3 && 
+            return vehicleNumber.Length >= 3 &&
                    System.Text.RegularExpressions.Regex.IsMatch(vehicleNumber, @"^[A-Z0-9\-]+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
     }

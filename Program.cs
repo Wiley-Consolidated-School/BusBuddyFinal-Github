@@ -254,10 +254,10 @@ namespace BusBuddy
         /// <summary>
         /// Initialize and configure the service container
         /// </summary>
-        private static ServiceContainerInstance InitializeServiceContainer()
+        private static BusBuddy.DependencyInjection.ServiceContainerInstance InitializeServiceContainer()
         {
             Console.WriteLine("🔧 Creating service container...");
-            var serviceContainer = ServiceContainerInstance.Instance;
+            var serviceContainer = BusBuddy.DependencyInjection.ServiceContainerInstance.Instance;
             TestServiceResolution(serviceContainer);
             return serviceContainer;
         }
@@ -265,7 +265,7 @@ namespace BusBuddy
         /// <summary>
         /// Validate that required services are properly registered
         /// </summary>
-        private static void ValidateRequiredServices(ServiceContainerInstance serviceContainer)
+        private static void ValidateRequiredServices(BusBuddy.DependencyInjection.ServiceContainerInstance serviceContainer)
         {
             Console.WriteLine("🔌 Validating required services...");
 
@@ -342,7 +342,7 @@ namespace BusBuddy
         {
             try
             {
-                ServiceContainerInstance.Instance.Reset();
+                BusBuddy.DependencyInjection.ServiceContainerInstance.Instance.Reset();
                 Console.WriteLine("🏁 Application cleanup complete, exiting.");
             }
             catch (Exception ex)
@@ -366,7 +366,7 @@ namespace BusBuddy
             {
                 // Initialize minimal services needed for analytics
                 Console.WriteLine("🔧 Initializing minimal service container...");
-                var serviceContainer = ServiceContainerInstance.Instance;
+                var serviceContainer = BusBuddy.DependencyInjection.ServiceContainerInstance.Instance;
                 Console.WriteLine("✅ Service container initialized");
 
                 // Run analytics validation with enhanced debugging
@@ -393,7 +393,7 @@ namespace BusBuddy
                 Console.WriteLine("🧹 Cleaning up...");
                 try
                 {
-                    ServiceContainerInstance.Instance.Reset();
+                    BusBuddy.DependencyInjection.ServiceContainerInstance.Instance.Reset();
                 }
                 catch (Exception ex)
                 {
@@ -427,7 +427,7 @@ namespace BusBuddy
         /// <summary>
         /// Test method to verify all required services are properly registered
         /// </summary>
-        private static void TestServiceResolution(ServiceContainerInstance serviceContainer)
+        private static void TestServiceResolution(BusBuddy.DependencyInjection.ServiceContainerInstance serviceContainer)
         {
             try
             {
