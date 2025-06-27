@@ -13,6 +13,7 @@ using Syncfusion.WinForms.DataGrid.Events;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.Input;
 using Syncfusion.WinForms.ListView;
+using Syncfusion.Windows.Forms.Tools;
 
 namespace BusBuddy.UI.Views
 {
@@ -20,7 +21,7 @@ namespace BusBuddy.UI.Views
     /// Activity Trips Management Form - Shell Structure
     /// Manages activity trip records with CRUD operations
     /// Based on Syncfusion SfDataGrid documentation
-    /// 
+    ///
     /// 📖 SYNCFUSION DOCUMENTATION:
     /// - SfDataGrid: https://help.syncfusion.com/windowsforms/datagrid/getting-started
     /// - SfButton: https://help.syncfusion.com/windowsforms/button/getting-started
@@ -29,11 +30,11 @@ namespace BusBuddy.UI.Views
     {
         #region Private Fields
         private readonly IActivityRepository _activityRepository;
-        
+
         // Additional controls specific to Activity management
         private SfButton _exportButton;
         private SfButton _importButton;
-        private SfComboBox _activityTypeFilter;
+        private ComboBoxAdv _activityTypeFilter;
         private SfDateTimeEdit _dateFromFilter;
         private SfDateTimeEdit _dateToFilter;
         #endregion
@@ -45,19 +46,19 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public ActivityManagementForm() : this(new ActivityRepository(), new MessageBoxService()) 
-        { 
+        public ActivityManagementForm() : this(new ActivityRepository(), new MessageBoxService())
+        {
         }
 
-        public ActivityManagementForm(IActivityRepository activityRepository) : this(activityRepository, new MessageBoxService()) 
-        { 
+        public ActivityManagementForm(IActivityRepository activityRepository) : this(activityRepository, new MessageBoxService())
+        {
         }
 
         public ActivityManagementForm(IActivityRepository activityRepository, IMessageService messageService) : base(messageService)
         {
             _activityRepository = activityRepository ?? throw new ArgumentNullException(nameof(activityRepository));
             SetRepository(_activityRepository);
-            
+
             // Initialize additional controls (implementation will be added in next prompt)
             InitializeActivitySpecificControls();
         }
@@ -66,11 +67,9 @@ namespace BusBuddy.UI.Views
         #region Base Implementation Override - Shell Methods
         protected override void LoadDataFromRepository()
         {
-            // TODO: Implement data loading logic
             try
             {
-                // Shell implementation - will be populated later
-                _entities = new List<Activity>();
+                _entities = _activityRepository.GetAllActivities().ToList();
                 PopulateDataGrid();
             }
             catch (Exception ex)
@@ -82,78 +81,442 @@ namespace BusBuddy.UI.Views
 
         protected override void AddNewEntity()
         {
-            // TODO: Implement add new activity logic
-            // Will open ActivityEditForm in add mode
+            try
+            {
+                using (var addForm = new ActivityEditForm())
+                {
+                    if (addForm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        LoadDataFromRepository(); // Refresh the grid
+                        _messageService.ShowInfo("Activity added successfully.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error adding new activity: {ex.Message}", "Add Activity Error", ex);
+            }
         }
 
         protected override void EditSelectedEntity()
         {
-            // TODO: Implement edit selected activity logic
-            // Will open ActivityEditForm in edit mode
+            try
+            {
+                var selectedActivity = GetSelectedEntity();
+                if (selectedActivity == null)
+                {
+                    _messageService.ShowWarning("Please select an activity to edit.");
+                    return;
+                }
+
+                using (var editForm = new ActivityEditForm(selectedActivity))
+                {
+                    if (editForm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        LoadDataFromRepository(); // Refresh the grid
+                        _messageService.ShowInfo("Activity updated successfully.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error editing activity: {ex.Message}", "Edit Activity Error", ex);
+            }
         }
 
         protected override void DeleteSelectedEntity()
         {
-            // TODO: Implement delete selected activity logic
-            // Will show confirmation dialog and delete if confirmed
+            try
+            {
+                var selectedActivity = GetSelectedEntity();
+                if (selectedActivity == null)
+                {
+                    _messageService.ShowWarning("Please select an activity to delete.");
+                    return;
+                }
+
+                var confirmMessage = $"Are you sure you want to delete this activity?\n\n" +
+                                   $"Type: {selectedActivity.ActivityType}\n" +
+                                   $"Destination: {selectedActivity.Destination}\n" +
+                                   $"Date: {selectedActivity.Date}\n\n" +
+                                   "This action cannot be undone.";
+
+                if (_messageService.ShowConfirmation(confirmMessage))
+                {
+                    var success = _activityRepository.DeleteActivity(selectedActivity.ActivityID);
+                    if (success)
+                    {
+                        LoadDataFromRepository(); // Refresh the grid
+                        _messageService.ShowInfo("Activity deleted successfully.");
+                    }
+                    else
+                    {
+                        _messageService.ShowError("Failed to delete activity. It may be referenced by other records.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error deleting activity: {ex.Message}", "Delete Activity Error", ex);
+            }
         }
 
         protected override void ViewEntityDetails()
         {
-            // TODO: Implement view activity details logic
-            // Will open ActivityEditForm in read-only mode
+            try
+            {
+                var selectedActivity = GetSelectedEntity();
+                if (selectedActivity == null)
+                {
+                    _messageService.ShowWarning("Please select an activity to view.");
+                    return;
+                }
+
+                using (var viewForm = new ActivityEditForm(selectedActivity, readOnlyMode: true))
+                {
+                    viewForm.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error viewing activity details: {ex.Message}", "View Activity Error", ex);
+            }
         }
 
         protected override void SearchEntities()
         {
-            // TODO: Implement search functionality
-            // Will filter activities based on search criteria
+            try
+            {
+                var searchText = GetSearchText();
+                if (string.IsNullOrWhiteSpace(searchText))
+                {
+                    _entities = _activityRepository.GetAllActivities().ToList();
+                }
+                else
+                {
+                    _entities = _activityRepository.GetAllActivities()
+                        .Where(a =>
+                            (a.ActivityType?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                            (a.Destination?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                            (a.Notes?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                            (a.RequestedBy?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .ToList();
+                }
+
+                ApplyFilters(); // Apply any additional filters
+                PopulateDataGrid();
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error searching activities: {ex.Message}", "Search Error", ex);
+            }
+        }
+
+        private string GetSearchText()
+        {
+            return _searchBox?.Text?.Trim() ?? string.Empty;
+        }
+
+        private void ApplyFilters()
+        {
+            try
+            {
+                if (_entities == null) return;
+
+                var filteredEntities = _entities.AsEnumerable();
+
+                // Apply activity type filter
+                if (_activityTypeFilter?.SelectedIndex > 0 && _activityTypeFilter.SelectedItem != null)
+                {
+                    var selectedType = _activityTypeFilter.SelectedItem.ToString();
+                    if (selectedType != "All Types")
+                    {
+                        filteredEntities = filteredEntities.Where(a => a.ActivityType == selectedType);
+                    }
+                }
+
+                // Apply date range filter
+                if (_dateFromFilter != null && _dateToFilter != null)
+                {
+                    var fromDate = _dateFromFilter.Value?.Date ?? DateTime.MinValue;
+                    var toDate = _dateToFilter.Value?.Date.AddDays(1) ?? DateTime.MaxValue;
+
+                    filteredEntities = filteredEntities.Where(a =>
+                    {
+                        var activityDate = a.DateAsDateTime?.Date ?? DateTime.MinValue;
+                        return activityDate >= fromDate && activityDate < toDate;
+                    });
+                }
+
+                _entities = filteredEntities.ToList();
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error applying filters: {ex.Message}", "Filter Error", ex);
+            }
         }
 
         protected override void SetupDataGridColumns()
         {
-            // TODO: Implement data grid column setup
-            // Will configure columns for Activity display
+            try
+            {
+                if (_dataGrid != null)
+                {
+                    _dataGrid.Columns.Clear();
+
+                    // Activity ID column
+                    _dataGrid.Columns.Add(new GridTextColumn()
+                    {
+                        MappingName = "ActivityID",
+                        HeaderText = "ID",
+                        Width = 60,
+                        AllowResizing = false
+                    });
+
+                    // Date column
+                    _dataGrid.Columns.Add(new GridDateTimeColumn()
+                    {
+                        MappingName = "Date",
+                        HeaderText = "Date",
+                        Width = 100,
+                        Format = "d"
+                    });
+
+                    // Activity Type column
+                    _dataGrid.Columns.Add(new GridTextColumn()
+                    {
+                        MappingName = "ActivityType",
+                        HeaderText = "Type",
+                        Width = 120
+                    });
+
+                    // Destination column
+                    _dataGrid.Columns.Add(new GridTextColumn()
+                    {
+                        MappingName = "Destination",
+                        HeaderText = "Destination",
+                        Width = 150
+                    });
+
+                    // Leave Time column
+                    _dataGrid.Columns.Add(new GridTextColumn()
+                    {
+                        MappingName = "LeaveTime",
+                        HeaderText = "Leave Time",
+                        Width = 80
+                    });
+
+                    // Event Time column
+                    _dataGrid.Columns.Add(new GridTextColumn()
+                    {
+                        MappingName = "EventTime",
+                        HeaderText = "Event Time",
+                        Width = 80
+                    });
+
+                    // Return Time column
+                    _dataGrid.Columns.Add(new GridTextColumn()
+                    {
+                        MappingName = "ReturnTime",
+                        HeaderText = "Return Time",
+                        Width = 80
+                    });
+
+                    // Requested By column
+                    _dataGrid.Columns.Add(new GridTextColumn()
+                    {
+                        MappingName = "RequestedBy",
+                        HeaderText = "Requested By",
+                        Width = 120
+                    });
+
+                    // Notes column (truncated for display)
+                    _dataGrid.Columns.Add(new GridTextColumn()
+                    {
+                        MappingName = "Notes",
+                        HeaderText = "Notes",
+                        Width = 200
+                    });
+
+                    // Configure grid appearance
+                    _dataGrid.AllowSorting = true;
+                    _dataGrid.AllowFiltering = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error setting up data grid columns: {ex.Message}", "Grid Setup Error", ex);
+            }
         }
         #endregion
 
         #region Activity-Specific Methods - Shell Implementation
         private void InitializeActivitySpecificControls()
         {
-            // TODO: Initialize activity-specific controls
-            // Export button, import button, filters, etc.
+            // Export Button - SfButton per documentation
+            _exportButton = new SfButton
+            {
+                Text = "Export",
+                Size = new Size(75, 30)
+            };
+
+            // Import Button - SfButton
+            _importButton = new SfButton
+            {
+                Text = "Import",
+                Size = new Size(75, 30)
+            };
+
+            // Activity Type Filter - ComboBoxAdv
+            _activityTypeFilter = new ComboBoxAdv
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            // Date From Filter - SfDateTimeEdit
+            _dateFromFilter = new SfDateTimeEdit
+            {
+                Size = new Size(120, 23)
+            };
+
+            // Date To Filter - SfDateTimeEdit
+            _dateToFilter = new SfDateTimeEdit
+            {
+                Size = new Size(120, 23)
+            };
         }
 
         private void PopulateDataGrid()
         {
-            // TODO: Implement data grid population
-            // Bind activity data to grid with proper formatting
+            try
+            {
+                if (_dataGrid != null && _entities != null)
+                {
+                    // Create display objects for better grid binding
+                    var displayData = _entities.Select(activity => new
+                    {
+                        ActivityID = activity.ActivityID,
+                        Date = activity.DateAsDateTime?.ToString("d") ?? activity.Date,
+                        ActivityType = activity.ActivityType ?? "Not Specified",
+                        Destination = activity.Destination ?? "Not Specified",
+                        LeaveTime = activity.LeaveTimeSpan?.ToString(@"hh\:mm") ?? activity.LeaveTime,
+                        EventTime = activity.EventTimeSpan?.ToString(@"hh\:mm") ?? activity.EventTime,
+                        ReturnTime = activity.ReturnTimeSpan?.ToString(@"hh\:mm") ?? activity.ReturnTime,
+                        RequestedBy = activity.RequestedBy ?? "Unknown",
+                        Notes = string.IsNullOrEmpty(activity.Notes) ? "" :
+                               (activity.Notes.Length > 50 ? activity.Notes.Substring(0, 47) + "..." : activity.Notes)
+                    }).ToList();
+
+                    _dataGrid.DataSource = displayData;
+                    _dataGrid.Refresh();
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error populating data grid: {ex.Message}", "Grid Population Error", ex);
+            }
         }
 
         private void SetupFilters()
         {
-            // TODO: Implement filter setup
-            // Activity type filter, date range filters
+            try
+            {
+                // Populate activity type filter
+                _activityTypeFilter.Items.Clear();
+                _activityTypeFilter.Items.Add("All Types");
+                _activityTypeFilter.Items.Add("Field Trip");
+                _activityTypeFilter.Items.Add("Sports Event");
+                _activityTypeFilter.Items.Add("Academic Competition");
+                _activityTypeFilter.Items.Add("Community Service");
+                _activityTypeFilter.Items.Add("Special Event");
+                _activityTypeFilter.Items.Add("Transportation Service");
+                _activityTypeFilter.SelectedIndex = 0;
+
+                // Set default date range (last 30 days to future)
+                _dateFromFilter.Value = DateTime.Today.AddDays(-30);
+                _dateToFilter.Value = DateTime.Today.AddDays(365);
+
+                // Wire up events
+                _activityTypeFilter.SelectedIndexChanged += ActivityTypeFilter_SelectionChanged;
+                _dateFromFilter.ValueChanged += DateFilter_ValueChanged;
+                _dateToFilter.ValueChanged += DateFilter_ValueChanged;
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error setting up filters: {ex.Message}", "Filter Setup Error", ex);
+            }
         }
 
         private void ExportButton_Click(object sender, EventArgs e)
         {
-            // TODO: Implement export functionality
+            try
+            {
+                using (var saveDialog = new SaveFileDialog())
+                {
+                    saveDialog.Filter = "CSV files (*.csv)|*.csv|Excel files (*.xlsx)|*.xlsx";
+                    saveDialog.DefaultExt = "csv";
+                    saveDialog.FileName = $"Activities_{DateTime.Now:yyyyMMdd_HHmmss}";
+
+                    if (saveDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // TODO: Implement actual export logic here
+                        _messageService.ShowInfo($"Export functionality not yet implemented.\nWould export to: {saveDialog.FileName}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error exporting activities: {ex.Message}", "Export Error", ex);
+            }
         }
 
         private void ImportButton_Click(object sender, EventArgs e)
         {
-            // TODO: Implement import functionality
+            try
+            {
+                using (var openDialog = new OpenFileDialog())
+                {
+                    openDialog.Filter = "CSV files (*.csv)|*.csv|Excel files (*.xlsx)|*.xlsx";
+                    openDialog.DefaultExt = "csv";
+
+                    if (openDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // TODO: Implement actual import logic here
+                        _messageService.ShowInfo($"Import functionality not yet implemented.\nWould import from: {openDialog.FileName}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error importing activities: {ex.Message}", "Import Error", ex);
+            }
         }
 
         private void ActivityTypeFilter_SelectionChanged(object sender, EventArgs e)
         {
-            // TODO: Implement activity type filtering
+            try
+            {
+                // Reload data with filters applied
+                LoadDataFromRepository();
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error applying activity type filter: {ex.Message}", "Filter Error", ex);
+            }
         }
 
         private void DateFilter_ValueChanged(object sender, EventArgs e)
         {
-            // TODO: Implement date range filtering
+            try
+            {
+                // Reload data with filters applied
+                LoadDataFromRepository();
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error applying date filter: {ex.Message}", "Filter Error", ex);
+            }
         }
         #endregion
 
@@ -162,7 +525,7 @@ namespace BusBuddy.UI.Views
         {
             if (disposing)
             {
-                // TODO: Dispose of activity-specific resources
+                // Dispose of activity-specific resources
                 _exportButton?.Dispose();
                 _importButton?.Dispose();
                 _activityTypeFilter?.Dispose();

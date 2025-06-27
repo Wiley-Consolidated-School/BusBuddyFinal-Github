@@ -151,20 +151,157 @@ namespace BusBuddy.UI.Views
         #region Control Creation - Shell Methods
         private void CreateLayoutPanels()
         {
-            // TODO: Create main layout panels
-            // _mainPanel, _buttonPanel, group boxes
+            _mainPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(12)
+            };
+
+            _buttonPanel = new Panel
+            {
+                Height = 50,
+                Dock = DockStyle.Bottom,
+                Padding = new Padding(12, 8, 12, 12)
+            };
+
+            _basicInfoGroup = new GroupBox
+            {
+                Text = "Basic Information",
+                Height = 120
+            };
+
+            _timingGroup = new GroupBox
+            {
+                Text = "Timing",
+                Height = 100
+            };
+
+            _assignmentGroup = new GroupBox
+            {
+                Text = "Assignment",
+                Height = 100
+            };
+
+            _schedulingGroup = new GroupBox
+            {
+                Text = "Scheduling",
+                Height = 100
+            };
+
+            this.Controls.Add(_mainPanel);
+            this.Controls.Add(_buttonPanel);
         }
 
         private void CreateInputControls()
         {
-            // TODO: Create all input controls using Syncfusion components
-            // Schedule ID, date, trip type, vehicle, destination, times, riders, driver, notes
+            // Schedule ID - TextBoxExt per Syncfusion documentation
+            _scheduleIdTextBox = new TextBoxExt
+            {
+                ReadOnly = true,
+                Size = new Size(100, 23)
+            };
+
+            // Schedule Date - SfDateTimeEdit per documentation
+            _scheduleDatePicker = new SfDateTimeEdit
+            {
+                Size = new Size(150, 23)
+            };
+
+            // Trip Type - ComboBoxAdv per documentation
+            _tripTypeComboBox = new ComboBoxAdv
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            // Vehicle - ComboBoxAdv
+            _vehicleComboBox = new ComboBoxAdv
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            // Destination - TextBoxExt
+            _destinationTextBox = new TextBoxExt
+            {
+                Size = new Size(200, 23)
+            };
+
+            // Time pickers - DateTimePickerAdv per documentation
+            _leaveTimePicker = new DateTimePickerAdv
+            {
+                Format = DateTimePickerFormat.Time,
+                Size = new Size(100, 23)
+            };
+
+            _eventTimePicker = new DateTimePickerAdv
+            {
+                Format = DateTimePickerFormat.Time,
+                Size = new Size(100, 23)
+            };
+
+            _returnTimePicker = new DateTimePickerAdv
+            {
+                Format = DateTimePickerFormat.Time,
+                Size = new Size(100, 23)
+            };
+
+            // Riders - SfNumericTextBox per documentation
+            _ridersNumericBox = new SfNumericTextBox
+            {
+                Size = new Size(80, 23)
+            };
+
+            // Driver - ComboBoxAdv
+            _driverComboBox = new ComboBoxAdv
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            // Notes - TextBoxExt
+            _notesTextBox = new TextBoxExt
+            {
+                Multiline = true,
+                Size = new Size(300, 60)
+            };
         }
 
         private void CreateActionButtons()
         {
-            // TODO: Create action buttons (Save, Cancel, Delete, Copy to Activity)
-            // Configure based on edit mode and read-only mode
+            // Save Button - SfButton per documentation
+            _saveButton = new SfButton
+            {
+                Text = "Save",
+                Size = new Size(75, 30)
+            };
+
+            // Cancel Button - SfButton
+            _cancelButton = new SfButton
+            {
+                Text = "Cancel",
+                Size = new Size(75, 30)
+            };
+
+            // Delete Button - SfButton
+            _deleteButton = new SfButton
+            {
+                Text = "Delete",
+                Size = new Size(75, 30),
+                Visible = _isEditMode && !_isReadOnlyMode
+            };
+
+            // Copy to Activity Button - SfButton
+            _copyToActivityButton = new SfButton
+            {
+                Text = "Copy to Activity",
+                Size = new Size(120, 30)
+            };
+
+            _buttonPanel.Controls.Add(_deleteButton);
+            _buttonPanel.Controls.Add(_copyToActivityButton);
+            _buttonPanel.Controls.Add(_cancelButton);
+            _buttonPanel.Controls.Add(_saveButton);
         }
         #endregion
 

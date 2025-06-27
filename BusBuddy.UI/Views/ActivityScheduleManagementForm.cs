@@ -122,8 +122,59 @@ namespace BusBuddy.UI.Views
         #region Activity Schedule-Specific Methods - Shell Implementation
         private void InitializeScheduleSpecificControls()
         {
-            // TODO: Initialize schedule-specific controls
-            // Export button, import button, schedule view, filters, etc.
+            // Export Button - SfButton per documentation
+            _exportButton = new SfButton
+            {
+                Text = "Export",
+                Size = new Size(75, 30)
+            };
+
+            // Import Button - SfButton
+            _importButton = new SfButton
+            {
+                Text = "Import",
+                Size = new Size(75, 30)
+            };
+
+            // Schedule View Button - SfButton
+            _scheduleViewButton = new SfButton
+            {
+                Text = "Schedule View",
+                Size = new Size(100, 30)
+            };
+
+            // Trip Type Filter - ComboBoxAdv
+            _tripTypeFilter = new ComboBoxAdv
+            {
+                Size = new Size(120, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            // Date From Filter - DateTimePickerAdv
+            _dateFromFilter = new DateTimePickerAdv
+            {
+                Size = new Size(120, 23)
+            };
+
+            // Date To Filter - DateTimePickerAdv
+            _dateToFilter = new DateTimePickerAdv
+            {
+                Size = new Size(120, 23)
+            };
+
+            // Vehicle Filter - ComboBoxAdv
+            _vehicleFilter = new ComboBoxAdv
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            // Driver Filter - ComboBoxAdv
+            _driverFilter = new ComboBoxAdv
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
         }
 
         private void PopulateDataGrid()

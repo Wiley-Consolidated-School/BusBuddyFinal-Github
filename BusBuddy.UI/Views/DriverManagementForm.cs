@@ -121,8 +121,39 @@ namespace BusBuddy.UI.Views
         #region Driver-Specific Methods - Shell Implementation
         private void InitializeDriverSpecificControls()
         {
-            // TODO: Initialize driver-specific controls
-            // Export button, import button, filters, etc.
+            // Export Button - SfButton per documentation
+            _exportButton = new SfButton
+            {
+                Text = "Export",
+                Size = new Size(75, 30)
+            };
+
+            // Import Button - SfButton
+            _importButton = new SfButton
+            {
+                Text = "Import",
+                Size = new Size(75, 30)
+            };
+
+            // License Type Filter - SfComboBox
+            _licenseTypeFilter = new SfComboBox
+            {
+                Size = new Size(120, 23),
+                DropDownStyle = Syncfusion.WinForms.ListView.Enums.DropDownStyle.DropDownList
+            };
+
+            // Status Filter - SfComboBox
+            _statusFilter = new SfComboBox
+            {
+                Size = new Size(100, 23),
+                DropDownStyle = Syncfusion.WinForms.ListView.Enums.DropDownStyle.DropDownList
+            };
+
+            // License Expiry Filter - SfDateTimeEdit
+            _licenseExpiryFilter = new SfDateTimeEdit
+            {
+                Size = new Size(120, 23)
+            };
         }
 
         private void PopulateDataGrid()

@@ -76,8 +76,89 @@ namespace BusBuddy.UI.Views
 
         private void InitializeComponent()
         {
-            // TODO: Initialize form components
-            // Will be implemented with proper Syncfusion control setup
+            SetupFormProperties();
+            CreateControls();
+            LayoutControls();
+            SetupEventHandlers();
+        }
+
+        private void SetupFormProperties()
+        {
+            this.Text = _isEditMode ? "Edit Route" : "Add Route";
+            this.ClientSize = new Size(600, 400);
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+        }
+
+        private void CreateControls()
+        {
+            // Save Button - SfButton per documentation
+            _saveButton = new SfButton
+            {
+                Text = "Save",
+                Size = new Size(75, 30)
+            };
+
+            // Cancel Button - SfButton
+            _cancelButton = new SfButton
+            {
+                Text = "Cancel",
+                Size = new Size(75, 30)
+            };
+
+            // Route Name - TextBoxExt
+            _routeNameTextBox = new TextBoxExt
+            {
+                Size = new Size(200, 23)
+            };
+
+            // Route Number - TextBoxExt
+            _routeNumberTextBox = new TextBoxExt
+            {
+                Size = new Size(100, 23)
+            };
+
+            // Description - TextBoxExt
+            _descriptionTextBox = new TextBoxExt
+            {
+                Multiline = true,
+                Size = new Size(300, 60)
+            };
+
+            // Route Type - SfComboBox
+            _routeTypeComboBox = new SfComboBox
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = Syncfusion.WinForms.ListView.Enums.DropDownStyle.DropDownList
+            };
+
+            // Status - SfComboBox
+            _statusComboBox = new SfComboBox
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = Syncfusion.WinForms.ListView.Enums.DropDownStyle.DropDownList
+            };
+
+            this.Controls.Add(_saveButton);
+            this.Controls.Add(_cancelButton);
+            this.Controls.Add(_routeNameTextBox);
+            this.Controls.Add(_routeNumberTextBox);
+            this.Controls.Add(_descriptionTextBox);
+            this.Controls.Add(_routeTypeComboBox);
+            this.Controls.Add(_statusComboBox);
+        }
+
+        private void LayoutControls()
+        {
+            // Basic layout implementation
+        }
+
+        private void SetupEventHandlers()
+        {
+            _saveButton.Click += SaveButton_Click;
+            _cancelButton.Click += CancelButton_Click;
         }
 
         private void LoadRouteData()

@@ -121,8 +121,40 @@ namespace BusBuddy.UI.Views
         #region Route-Specific Methods - Shell Implementation
         private void InitializeRouteSpecificControls()
         {
-            // TODO: Initialize route-specific controls
-            // Export button, import button, filters, etc.
+            // Export Button - SfButton per documentation
+            _exportButton = new SfButton
+            {
+                Text = "Export",
+                Size = new Size(75, 30)
+            };
+
+            // Import Button - SfButton
+            _importButton = new SfButton
+            {
+                Text = "Import",
+                Size = new Size(75, 30)
+            };
+
+            // Route Type Filter - SfComboBox
+            _routeTypeFilter = new SfComboBox
+            {
+                Size = new Size(120, 23),
+                DropDownStyle = Syncfusion.WinForms.ListView.Enums.DropDownStyle.DropDownList
+            };
+
+            // Status Filter - SfComboBox
+            _statusFilter = new SfComboBox
+            {
+                Size = new Size(100, 23),
+                DropDownStyle = Syncfusion.WinForms.ListView.Enums.DropDownStyle.DropDownList
+            };
+
+            // School Filter - SfComboBox
+            _schoolFilter = new SfComboBox
+            {
+                Size = new Size(150, 23),
+                DropDownStyle = Syncfusion.WinForms.ListView.Enums.DropDownStyle.DropDownList
+            };
         }
 
         private void PopulateDataGrid()
