@@ -20,6 +20,8 @@ namespace BusBuddy.Data
         // Constructor with options (preferred for EF Core)
         public BusBuddyContext(DbContextOptions<BusBuddyContext> options) : base(options)
         {
+            // Set extended command timeout to prevent OperationCanceledException
+            Database.SetCommandTimeout(120); // 2 minutes timeout
         }
 
         // Constructor with connection (for compatibility with existing code)
@@ -54,7 +56,7 @@ namespace BusBuddy.Data
                                 maxRetryCount: 5,
                                 maxRetryDelay: TimeSpan.FromSeconds(10),
                                 errorNumbersToAdd: null);
-                            options.CommandTimeout(60); // Increase timeout to 60 seconds
+                            options.CommandTimeout(120); // Increase timeout to 2 minutes
                         });
                     }
                     else
@@ -79,7 +81,7 @@ namespace BusBuddy.Data
                                     maxRetryCount: 5,
                                     maxRetryDelay: TimeSpan.FromSeconds(10),
                                     errorNumbersToAdd: null);
-                                options.CommandTimeout(60); // Increase timeout to 60 seconds
+                                options.CommandTimeout(120); // Increase timeout to 2 minutes
                             });
                         }
                         else
@@ -112,7 +114,7 @@ namespace BusBuddy.Data
                                         maxRetryCount: 3,
                                         maxRetryDelay: TimeSpan.FromSeconds(5),
                                         errorNumbersToAdd: null);
-                                    options.CommandTimeout(60);
+                                    options.CommandTimeout(120);
                                 });
                             }
                             catch (Exception repairEx)
@@ -123,7 +125,7 @@ namespace BusBuddy.Data
                                 Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
                                 optionsBuilder.UseSqlServer(defaultConnectionString, options =>
                                 {
-                                    options.CommandTimeout(60);
+                                    options.CommandTimeout(120);
                                 });
                             }
                         }
@@ -134,7 +136,7 @@ namespace BusBuddy.Data
                             Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
                             optionsBuilder.UseSqlServer(defaultConnectionString, options =>
                             {
-                                options.CommandTimeout(60);
+                                options.CommandTimeout(120);
                             });
                         }
                     }

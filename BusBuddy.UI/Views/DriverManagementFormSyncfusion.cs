@@ -55,6 +55,12 @@ namespace BusBuddy.UI.Views
                 _entities = drivers?.ToList() ?? new List<Driver>();
                 PopulateDriverGrid();
             }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("⚠️ Driver data load operation was canceled");
+                _entities = new List<Driver>(); // Ensure _entities is never null
+                ShowErrorMessage("Data loading was canceled. Please try again.");
+            }
             catch (Exception ex)
             {
                 HandleError($"Error loading drivers: {ex.Message}", "$($EntityName) Error", ex);

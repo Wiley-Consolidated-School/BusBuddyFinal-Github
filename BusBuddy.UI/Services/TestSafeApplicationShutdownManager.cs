@@ -249,13 +249,41 @@ namespace BusBuddy.UI.Services
                 {
                     try
                     {
+                        // CRITICAL FIX: Validate process before attempting operations
+                        if (process == null || process.HasExited)
+                        {
+                            Console.WriteLine("⚠️ Process already exited or null, skipping");
+                            continue;
+                        }
+
                         Console.WriteLine($"🗡️ Killing orphaned process: {process.ProcessName} (PID: {process.Id})");
                         process.Kill();
-                        process.WaitForExit(3000);
+
+                        // Wait with proper validation
+                        if (!process.WaitForExit(3000))
+                        {
+                            Console.WriteLine($"⚠️ Process {process.Id} did not exit within timeout");
+                        }
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.WriteLine($"⚠️ Process {process?.Id ?? -1} access error: {ex.Message}");
+                        // This is expected if process already terminated
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"⚠️ Could not kill process {process.Id}: {ex.Message}");
+                        Console.WriteLine($"⚠️ Could not kill process {process?.Id ?? -1}: {ex.Message}");
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            process?.Dispose();
+                        }
+                        catch
+                        {
+                            // Ignore disposal errors
+                        }
                     }
                 }
             }

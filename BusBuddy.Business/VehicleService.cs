@@ -35,9 +35,15 @@ namespace BusBuddy.Business
                 var allVehicles = _repository.GetAllVehicles();
                 return allVehicles.FindAll(v => v.Status == "Active");
             }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("⚠️ Active vehicles data load operation was canceled");
+                throw; // Re-throw to let caller handle
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error getting active vehicles: {ex.Message}");
+                Console.WriteLine($"   Stack trace: {ex.StackTrace}");
                 throw new ApplicationException($"Failed to retrieve active vehicles: {ex.Message}", ex);
             }
         }
@@ -48,9 +54,15 @@ namespace BusBuddy.Business
             {
                 return _repository.GetAllVehicles();
             }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("⚠️ Vehicle data load operation was canceled");
+                throw; // Re-throw to let caller handle
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error getting all vehicles: {ex.Message}");
+                Console.WriteLine($"   Stack trace: {ex.StackTrace}");
                 throw new ApplicationException($"Failed to retrieve vehicles: {ex.Message}", ex);
             }
         }

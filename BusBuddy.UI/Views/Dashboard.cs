@@ -26,6 +26,19 @@ namespace BusBuddy.UI.Views
     /// Based on official Syncfusion Windows Forms documentation
     /// Inherits from SyncfusionBaseForm for enhanced DPI support and theming
     /// ENHANCED: Added async initialization and null reference prevention
+    ///
+    /// CLEANUP OPTIMIZATION (June 27, 2025):
+    /// ====================================
+    /// Resource cleanup has been centralized in Program.cs to prevent redundant cleanup attempts
+    /// and System.InvalidOperationException issues. Dashboard_FormClosing now only cancels
+    /// async operations, while all resource disposal is handled by centralized ApplicationExit
+    /// event in Program.cs using the stored Dashboard reference.
+    ///
+    /// Benefits:
+    /// - Eliminates duplicate cleanup operations
+    /// - Reduces risk of System.InvalidOperationException during shutdown
+    /// - Centralizes all resource disposal logic
+    /// - Prevents race conditions between form closing and application exit events
     /// </summary>
     public partial class Dashboard : SyncfusionBaseForm
     {
@@ -101,7 +114,7 @@ namespace BusBuddy.UI.Views
 
         // FUTURE ENHANCEMENT: Map and management features (currently disabled)
 #pragma warning disable CS0414 // Field assigned but never used - planned for future release
-        private Maps _mapControl = null; // TODO: Implement in future release
+        private Maps _mapControl = null; // Map functionality not implemented yet - intentionally null
         private Panel _mapPanel = null; // TODO: Implement in future release
         private Panel _managementPanel = null; // TODO: Implement in future release
         private TabPageAdv _vehicleManagementTab = null; // TODO: Implement in future release
@@ -215,41 +228,8 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                LogMessage("[LOAD.1] Form loaded - finalizing visibility checks");
-
-                // Force visibility of key components
-                if (_contentPanel != null)
-                {
-                    _contentPanel.Visible = true;
-                    _contentPanel.BringToFront();
-                    LogMessage($"[LOAD.2] Content panel visibility enforced: {_contentPanel.Visible}");
-                }
-
-                if (_mainTabControl != null)
-                {
-                    _mainTabControl.Visible = true;
-                    _mainTabControl.BringToFront();
-                    LogMessage($"[LOAD.3] Tab control visibility enforced: {_mainTabControl.Visible}");
-                }
-
-                if (_analyticsPanel != null)
-                {
-                    _analyticsPanel.Visible = true;
-                    LogMessage($"[LOAD.4] Analytics panel visibility enforced: {_analyticsPanel.Visible}");
-                }
-
-                if (_statisticsPanel != null)
-                {
-                    _statisticsPanel.Visible = true;
-                    LogMessage($"[LOAD.5] Statistics panel visibility enforced: {_statisticsPanel.Visible}");
-                }
-
-                // Force form refresh
-                this.Show();
-                this.Refresh();
-                this.PerformLayout();
-
-                LogMessage("[LOAD.6] ✅ Dashboard Load event completed successfully");
+                LogMessage("[LOAD.1] Form loaded - layout creation handled in initialization");
+                LogMessage("[LOAD.2] ✅ Dashboard Load event completed successfully");
                 LogMessage("=== 🔧 DASHBOARD LOAD EVENT END ===");
             }
             catch (Exception ex)
@@ -260,27 +240,22 @@ namespace BusBuddy.UI.Views
         }
 
         /// <summary>
-        /// Handle form closing event to cancel any pending operations
-        /// and properly dispose resources to prevent exceptions during shutdown
+        /// Handle form closing event to cancel any pending operations only.
+        /// Resource cleanup is deferred to centralized ApplicationExit handler in Program.cs
+        /// to prevent redundant cleanup attempts and System.InvalidOperationException issues.
         /// </summary>
         private void Dashboard_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
             {
-                // Cancel any pending async operations
+                // Only cancel async tasks; defer resource cleanup to ApplicationExit
                 BusBuddy.UI.Helpers.DashboardInitializationFix.CancelInitialization();
 
-                // Give the UI thread a moment to process cancellation
-                Application.DoEvents();
-
-                Console.WriteLine("⚠️ Dashboard closing - canceling pending operations");
-
-                // Properly dispose Syncfusion controls
-                DisposeSyncfusionControlsSafely();
+                Console.WriteLine("⚠️ Dashboard closing - canceling pending operations (resource cleanup deferred to ApplicationExit)");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ Error during form closing cleanup: {ex.Message}");
+                Console.WriteLine($"⚠️ Error during form closing operation cancellation: {ex.Message}");
                 // Continue with form closing despite errors
             }
         }
@@ -1182,180 +1157,33 @@ namespace BusBuddy.UI.Views
         ///
         /// 📖 SYNCFUSION DOCUMENTATION:
         /// - Control Lifecycle: https://help.syncfusion.com/windowsforms/overview
-        /// - Disposal Pattern: Standard IDisposable implementation
+        /// - Disposal Pattern: Standard IDisposable implementation with improved safety
         /// </summary>
         private void DisposeSyncfusionControlsSafely()
         {
-            Console.WriteLine("🗑️ Dashboard dispose starting - disposing Syncfusion controls safely");
             LogMessage("[DISPOSE] Starting comprehensive resource cleanup");
+            ClearCachedData();
 
-            try
+            var controls = new Control[] {
+                _refreshButton, _addVehicleButton, _closeButton, _vehiclesGrid, _routesGrid,
+                _analyticsChart, _statisticsGauge, _mainTabControl, _themeSelector, _headerPanel, _contentPanel,
+                _analyticsPanel, _statisticsPanel, _loadingPanel, _loadingLabel, _navigationPanel, _navigationTreeView
+            };
+
+            foreach (var control in controls)
             {
-                // Clear any cached data
-                ClearCachedData();
-
-                // Dispose Syncfusion controls with enhanced error handling
-                LogMessage("[DISPOSE.1] Disposing SfButton controls...");
-                if (_refreshButton != null && !_refreshButton.IsDisposed)
+                if (control?.IsDisposed == false)
                 {
-                    _refreshButton.Dispose();
-                    _refreshButton = null;
+                    control.Controls?.Clear();
+                    control.Dispose();
                 }
-
-                if (_addVehicleButton != null && !_addVehicleButton.IsDisposed)
-                {
-                    _addVehicleButton.Dispose();
-                    _addVehicleButton = null;
-                }
-
-                if (_closeButton != null && !_closeButton.IsDisposed)
-                {
-                    _closeButton.Dispose();
-                    _closeButton = null;
-                }
-
-                // Dispose data grids
-                LogMessage("[DISPOSE.2] Disposing SfDataGrid controls...");
-                try
-                {
-                    if (_vehiclesGrid != null && !_vehiclesGrid.IsDisposed)
-                    {
-                        _vehiclesGrid.DataSource = null; // Clear data source first
-                        _vehiclesGrid.Dispose();
-                        _vehiclesGrid = null;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogMessage($"[DISPOSE.2] Warning: VehiclesGrid disposal error: {ex.Message}");
-                    _vehiclesGrid = null;
-                }
-
-                try
-                {
-                    if (_routesGrid != null && !_routesGrid.IsDisposed)
-                    {
-                        _routesGrid.DataSource = null; // Clear data source first
-                        _routesGrid.Dispose();
-                        _routesGrid = null;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogMessage($"[DISPOSE.2] Warning: RoutesGrid disposal error: {ex.Message}");
-                    _routesGrid = null;
-                }
-
-                // Dispose chart and gauge controls
-                LogMessage("[DISPOSE.3] Disposing chart and gauge controls...");
-                if (_analyticsChart != null && !_analyticsChart.IsDisposed)
-                {
-                    _analyticsChart.Dispose();
-                    _analyticsChart = null;
-                }
-
-                if (_statisticsGauge != null && !_statisticsGauge.IsDisposed)
-                {
-                    _statisticsGauge.Dispose();
-                    _statisticsGauge = null;
-                }
-
-                // Dispose TabControlAdv
-                LogMessage("[DISPOSE.4] Disposing TabControlAdv...");
-                if (_mainTabControl != null && !_mainTabControl.IsDisposed)
-                {
-                    // Clear tab pages first to prevent lingering references
-                    _mainTabControl.TabPages.Clear();
-                    _mainTabControl.Dispose();
-                    _mainTabControl = null;
-                }
-
-                // Dispose ComboBoxAdv
-                LogMessage("[DISPOSE.5] Disposing ComboBoxAdv...");
-                if (_themeSelector != null && !_themeSelector.IsDisposed)
-                {
-                    _themeSelector.Dispose();
-                    _themeSelector = null;
-                }
-
-                // Dispose DockingManager
-                LogMessage("[DISPOSE.6] Disposing DockingManager...");
-                if (_dockingManager != null)
-                {
-                    try
-                    {
-                        _dockingManager.Dispose();
-                        _dockingManager = null;
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage($"[DISPOSE.6.ERROR] Error disposing DockingManager: {ex.Message}");
-                        _dockingManager = null; // Set to null even if disposal fails
-                    }
-                }
-
-                // Dispose standard panels with control clearing
-                LogMessage("[DISPOSE.7] Disposing panel controls...");
-                if (_headerPanel != null && !_headerPanel.IsDisposed)
-                {
-                    _headerPanel.Controls.Clear();
-                    _headerPanel.Dispose();
-                    _headerPanel = null;
-                }
-
-                if (_contentPanel != null && !_contentPanel.IsDisposed)
-                {
-                    _contentPanel.Controls.Clear();
-                    _contentPanel.Dispose();
-                    _contentPanel = null;
-                }
-
-                if (_analyticsPanel != null && !_analyticsPanel.IsDisposed)
-                {
-                    _analyticsPanel.Controls.Clear();
-                    _analyticsPanel.Dispose();
-                    _analyticsPanel = null;
-                }
-
-                if (_statisticsPanel != null && !_statisticsPanel.IsDisposed)
-                {
-                    _statisticsPanel.Controls.Clear();
-                    _statisticsPanel.Dispose();
-                    _statisticsPanel = null;
-                }
-
-                // Dispose loading indicator
-                LogMessage("[DISPOSE.8] Disposing loading indicator...");
-                if (_loadingPanel != null && !_loadingPanel.IsDisposed)
-                {
-                    _loadingPanel.Controls.Clear();
-                    _loadingPanel.Dispose();
-                    _loadingPanel = null;
-                }
-
-                if (_loadingLabel != null && !_loadingLabel.IsDisposed)
-                {
-                    _loadingLabel.Dispose();
-                    _loadingLabel = null;
-                }
-
-                // Clear form controls collection
-                LogMessage("[DISPOSE.9] Clearing form controls...");
-                this.Controls.Clear();
-
-                // Force garbage collection to help with resource cleanup
-                LogMessage("[DISPOSE.10] Forcing garbage collection...");
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-
-                LogMessage("[DISPOSE.11] ✅ Comprehensive resource cleanup completed");
-                Console.WriteLine("✅ Syncfusion controls disposed safely using documented methods");
             }
-            catch (Exception ex)
-            {
-                LogMessage($"[DISPOSE.ERROR] ⚠️ Error during Syncfusion control disposal: {ex.Message}");
-                Console.WriteLine($"⚠️ Error during Syncfusion control disposal: {ex.Message}");
-            }
+
+            _dockingManager?.Dispose();
+            this.Controls.Clear();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            LogMessage("[DISPOSE] ✅ Comprehensive resource cleanup completed");
         }
 
         /// <summary>
@@ -1437,8 +1265,8 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                // Step 6: Configure MapControl with sample school routes
-                LogMessage("  [7.15] Configuring MapControl with sample school routes...");
+                // Step 6: Add map placeholder (full map functionality not implemented yet)
+                LogMessage("  [7.15] Adding map placeholder - full MapControl functionality not implemented yet...");
                 ConfigureMapControlWithSchoolRoutes();
 
                 if (token.IsCancellationRequested)
@@ -1478,22 +1306,6 @@ namespace BusBuddy.UI.Views
 
                 LogMessage("  [7.22] ✅ New dashboard layout created successfully with DockingManager.Fill");
 
-                // Force final visibility and layout updates
-                if (_contentPanel != null)
-                {
-                    _contentPanel.Visible = true;
-                    _contentPanel.Show();
-                    _contentPanel.BringToFront();
-                }
-
-                if (_mainTabControl != null)
-                {
-                    _mainTabControl.Visible = true;
-                    _mainTabControl.Show();
-                    _mainTabControl.BringToFront();
-                    LogMessage($"  [7.19.3] TabControl forced visible: {_mainTabControl.Visible}");
-                }
-
                 // Log final control hierarchy
                 LogMessage($"  [7.20] Final control count - Form: {this.Controls.Count}, Content Panel: {_contentPanel?.Controls.Count ?? 0}");
                 if (_mainTabControl != null)
@@ -1513,32 +1325,25 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.23] Calling ResumeLayout(true)...");
                 this.ResumeLayout(true);
 
-                // STEP 2 FIX: Enhanced visibility management - comprehensive final enforcement
-                LogMessage("  [7.24] POST-LAYOUT visibility check and final enforcement...");
+                // STEP 2 FIX: Enhanced visibility management - consolidated final enforcement
+                LogMessage("  [7.24] POST-LAYOUT visibility enforcement and final refresh...");
 
-                // Force layout refresh and repaint
-                this.PerformLayout();
-                this.Refresh();
-
+                // Consolidated visibility enforcement - set once after all controls are added
                 if (_contentPanel != null)
                 {
-                    bool wasVisible = _contentPanel.Visible;
                     _contentPanel.Visible = true;
-                    _contentPanel.Show();
-                    _contentPanel.BringToFront();
-                    _contentPanel.Refresh();
-                    LogMessage($"  [7.24.1] Content panel post-layout - was: {wasVisible}, now: {_contentPanel.Visible}");
+                    LogMessage($"  [7.24.1] Content panel visibility enforced: {_contentPanel.Visible}");
                 }
 
                 if (_mainTabControl != null)
                 {
-                    bool wasVisible = _mainTabControl.Visible;
                     _mainTabControl.Visible = true;
-                    _mainTabControl.Show();
-                    _mainTabControl.BringToFront();
-                    _mainTabControl.Refresh();
-                    LogMessage($"  [7.24.2] TabControl post-layout - was: {wasVisible}, now: {_mainTabControl.Visible}");
+                    LogMessage($"  [7.24.2] TabControl visibility enforced: {_mainTabControl.Visible}");
                 }
+
+                // Single layout refresh after all visibility is set
+                this.PerformLayout();
+                this.Refresh();
 
                 // STEP 2 FIX: Ensure loading indicator is hidden
                 if (_loadingPanel != null && _loadingPanel.Visible)
@@ -2404,134 +2209,67 @@ namespace BusBuddy.UI.Views
         /// - Maps Shape Files: https://help.syncfusion.com/cr/windowsforms/Syncfusion.Windows.Forms.Maps.Maps.html
         /// - Shape Layer Configuration: Use documented patterns for shape file loading
         /// </summary>
+        /// <summary>
+        /// Map initialization placeholder - functionality not implemented yet
+        /// Based on Syncfusion Maps documentation for future implementation
+        ///
+        /// 📖 SYNCFUSION DOCUMENTATION:
+        /// - Maps Getting Started: https://help.syncfusion.com/windowsforms/maps/getting-started
+        /// - Shape File Layers: https://help.syncfusion.com/windowsforms/maps/shape-file-layer
+        /// </summary>
         private void InitializeMapWithShapeFiles()
         {
-            LogMessage("    [MAP.1] 🗺️ Initializing map with shape files...");
+            LogMessage("    [MAP] 🗺️ Map functionality not implemented yet - skipping shape file initialization");
+            LogMessage("    [MAP] ⚠️ _mapControl is null by design until full map integration is completed");
+            LogMessage("    [MAP] 📋 TODO: Implement Syncfusion Maps with shape files in future release");
 
-            try
-            {
-                if (_mapControl == null)
-                {
-                    LogMessage("    [MAP.ERROR] ❌ Map control is null - cannot initialize shape files");
-                    return;
-                }
-
-                // Based on Syncfusion documentation - create shape file layer
-                LogMessage("    [MAP.2] Creating shape file layer...");
-
-                // Check for shape files using systematic path resolution
-                string shapeFilePath = FindShapeFileLocation("tl_2024_us_state.shp");
-
-                if (!string.IsNullOrEmpty(shapeFilePath))
-                {
-                    LogMessage($"    [MAP.3] Found shape file at: {shapeFilePath}");
-
-                    // Create shape file layer using basic documented Syncfusion pattern
-                    var shapeLayer = new ShapeFileLayer();
-                    shapeLayer.Uri = shapeFilePath;
-                    shapeLayer.ShapeIDPath = "NAME"; // State name field
-
-                    // Add layer to map using documented method
-                    _mapControl.Layers.Add(shapeLayer);
-
-                    LogMessage("    [MAP.4] ✅ Shape file layer added successfully");
-                }
-                else
-                {
-                    LogMessage($"    [MAP.3] ⚠️ Shape file not found at expected paths, creating sample markers");
-                    CreateSampleBusMarkers();
-                }
-
-                // Add bus route markers
-                CreateBusRouteMarkers();
-
-                LogMessage("    [MAP.5] ✅ Map initialization completed");
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"    [MAP.ERROR] ❌ Error initializing map with shape files: {ex.Message}");
-                LogMessage($"    [MAP.ERROR] ❌ Stack trace: {ex.StackTrace}");
-
-                // Fallback to simple map
-                CreateFallbackMapContent();
-            }
+            // Future implementation will include:
+            // - Shape file layer creation
+            // - Bus route markers
+            // - Real-time vehicle tracking
+            // - Interactive map controls
         }
 
         /// <summary>
-        /// Systematically search for shape file in common locations
-        /// Following BusBuddy path resolution standards
+        /// Shape file location search placeholder - not implemented yet
         /// </summary>
         /// <param name="shapeFileName">Name of the shape file to locate</param>
-        /// <returns>Full path to shape file if found, otherwise null</returns>
+        /// <returns>Null - map functionality not implemented</returns>
         private string FindShapeFileLocation(string shapeFileName)
         {
-            var searchPaths = new[]
-            {
-                Path.Combine(Application.StartupPath, shapeFileName),
-                Path.Combine(Path.GetDirectoryName(Application.StartupPath) ?? "", "BusBuddy.UI", shapeFileName),
-                Path.Combine(Environment.CurrentDirectory, shapeFileName),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, shapeFileName),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BusBuddy.UI", shapeFileName)
-            };
-
-            foreach (var path in searchPaths)
-            {
-                if (File.Exists(path))
-                {
-                    LogMessage($"    [MAP.PATH] Found shape file at: {path}");
-                    return path;
-                }
-            }
-
-            LogMessage($"    [MAP.PATH] ⚠️ Shape file '{shapeFileName}' not found in any expected location");
+            LogMessage($"    [MAP.PATH] Shape file search not implemented yet - skipping '{shapeFileName}'");
+            LogMessage("    [MAP.PATH] 📋 TODO: Implement shape file discovery in future release");
             return null;
         }
 
         /// <summary>
-        /// Create sample bus markers for the map
-        /// Based on Syncfusion Maps marker documentation
+        /// Bus marker creation placeholder - functionality not implemented yet
         /// </summary>
         private void CreateSampleBusMarkers()
         {
-            LogMessage("    [MAP.MARKERS.1] Creating sample bus markers...");
+            LogMessage("    [MAP.MARKERS] Bus marker creation not implemented yet - skipping");
+            LogMessage("    [MAP.MARKERS] 📋 TODO: Implement Syncfusion Maps markers in future release");
 
-            try
-            {
-                // Create sample bus locations
-                var busLocations = new List<object>
-                {
-                    new { Name = "Bus 001", Latitude = 40.7128, Longitude = -74.0060, Status = "Active" },
-                    new { Name = "Bus 002", Latitude = 40.7589, Longitude = -73.9851, Status = "Active" },
-                    new { Name = "Bus 003", Latitude = 40.6892, Longitude = -74.0445, Status = "Maintenance" }
-                };
-
-                // Add markers using documented Syncfusion approach
-                foreach (var bus in busLocations)
-                {
-                    var marker = new MapMarker();
-                    // Configure marker properties based on documentation
-                    // Note: Specific implementation depends on exact Syncfusion Maps API
-                }
-
-                LogMessage("    [MAP.MARKERS.2] ✅ Sample bus markers created");
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"    [MAP.MARKERS.ERROR] ❌ Error creating bus markers: {ex.Message}");
-            }
+            // Future implementation will include:
+            // - Real-time bus location markers
+            // - Status indicators (Active, Maintenance, etc.)
+            // - Interactive marker tooltips
+            // - Custom bus icons
         }
 
         /// <summary>
-        /// Create bus route markers
+        /// Bus route marker creation placeholder - functionality not implemented yet
         /// </summary>
         private void CreateBusRouteMarkers()
         {
-            LogMessage("    [MAP.ROUTES.1] Creating bus route markers...");
+            LogMessage("    [MAP.ROUTES] Bus route marker creation not implemented yet - skipping");
+            LogMessage("    [MAP.ROUTES] 📋 TODO: Implement route visualization in future release");
 
-            // Add route lines connecting bus stops
-            // Implementation depends on specific route data
-
-            LogMessage("    [MAP.ROUTES.2] ✅ Bus route markers created");
+            // Future implementation will include:
+            // - Route path drawing on map
+            // - Stop location markers
+            // - Route status indicators
+            // - Interactive route selection
         }
 
         /// <summary>
@@ -2955,44 +2693,42 @@ namespace BusBuddy.UI.Views
         /// Configure MapControl with sample school routes following Syncfusion documentation
         /// Reference: https://help.syncfusion.com/windowsforms/maps/getting-started
         /// </summary>
+        /// <summary>
+        /// Map control configuration placeholder - functionality not implemented yet
+        /// Based on Syncfusion Maps documentation for future implementation
+        ///
+        /// 📖 SYNCFUSION DOCUMENTATION:
+        /// - Maps Control: https://help.syncfusion.com/windowsforms/maps/getting-started
+        /// - Maps Configuration: https://help.syncfusion.com/windowsforms/maps/customization
+        /// </summary>
         private void ConfigureMapControlWithSchoolRoutes()
         {
-            try
+            LogMessage("    [MAP] Map control configuration not implemented yet - skipping");
+            LogMessage("    [MAP] ⚠️ _mapControl intentionally kept null until proper implementation");
+            LogMessage("    [MAP] 📋 TODO: Implement full Syncfusion Maps integration in future release");
+
+            // Add placeholder content to vehicle management tab instead
+            if (_vehicleManagementTab != null)
             {
-                LogMessage("    [MAP.1] Configuring MapControl with sample school routes...");
-
-                if (_vehicleManagementTab != null)
+                var mapPlaceholder = new Label
                 {
-                    // Create Maps control following Syncfusion documentation
-                    _mapControl = new Maps
-                    {
-                        Dock = DockStyle.Fill,
-                        BackColor = Color.FromArgb(32, 32, 32)
-                    };
+                    Text = "🗺️ MAP VIEW\n\n" +
+                           "School bus tracking map will be\n" +
+                           "implemented in a future release.\n\n" +
+                           "Features planned:\n" +
+                           "• Real-time bus locations\n" +
+                           "• Route visualization\n" +
+                           "• Interactive controls\n" +
+                           "• Shape file integration",
+                    Dock = DockStyle.Fill,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Font = new Font("Segoe UI", 12f),
+                    ForeColor = Color.White,
+                    BackColor = Color.FromArgb(32, 32, 32)
+                };
 
-                    // Add sample school route markers
-                    CreateSampleSchoolRouteMarkers();
-
-                    _vehicleManagementTab.Controls.Add(_mapControl);
-                    LogMessage("    [MAP.2] ✅ MapControl configured with sample school routes");
-                }
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"    [MAP.ERROR] ❌ Error configuring MapControl: {ex.Message}");
-                // Add fallback label for map tab
-                if (_vehicleManagementTab != null)
-                {
-                    var fallbackLabel = new Label
-                    {
-                        Text = "Map View\n(Under Development)",
-                        Dock = DockStyle.Fill,
-                        TextAlign = ContentAlignment.MiddleCenter,
-                        ForeColor = Color.White,
-                        Font = new Font("Segoe UI", 14f, FontStyle.Bold)
-                    };
-                    _vehicleManagementTab.Controls.Add(fallbackLabel);
-                }
+                _vehicleManagementTab.Controls.Add(mapPlaceholder);
+                LogMessage("    [MAP] ✅ Map placeholder added to vehicle management tab");
             }
         }
 
@@ -3145,19 +2881,19 @@ namespace BusBuddy.UI.Views
         /// <summary>
         /// Create sample school route markers for the map
         /// </summary>
+        /// <summary>
+        /// Sample school route marker creation placeholder - functionality not implemented yet
+        /// </summary>
         private void CreateSampleSchoolRouteMarkers()
         {
-            try
-            {
-                LogMessage("    [MAP.SAMPLE.1] Creating sample school route markers...");
-                // This would contain actual map marker implementation
-                // For now, we'll add a placeholder since full map integration requires shape files
-                LogMessage("    [MAP.SAMPLE.2] ✅ Sample school route markers created");
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"    [MAP.SAMPLE.ERROR] ❌ Error creating sample route markers: {ex.Message}");
-            }
+            LogMessage("    [MAP.SAMPLE] Sample school route marker creation not implemented yet - skipping");
+            LogMessage("    [MAP.SAMPLE] 📋 TODO: Implement school route visualization in future release");
+
+            // Future implementation will include:
+            // - School-specific route markers
+            // - Student pickup/dropoff points
+            // - Route scheduling integration
+            // - Safety zone indicators
         }
 
         /// <summary>

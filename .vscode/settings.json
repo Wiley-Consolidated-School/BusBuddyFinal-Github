@@ -72,6 +72,18 @@
     }
   },
 
+  // Editor settings for C# files
+  "[csharp]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
+    }
+  },
+
   // Coverage Gutters Configuration
   "coverage-gutters.coverageFileNames": [
     "lcov.info",
@@ -107,6 +119,16 @@
   "dotnet-test-explorer.testArguments": "--settings=./BusBuddy.Tests/test.runsettings",
   "dotnet-test-explorer.treeMode": "flat",
 
+  // .NET/C# Configuration
+  "dotnet.defaultSolution": "BusBuddy.sln",
+  "omnisharp.enableRoslynAnalyzers": true,
+  "omnisharp.enableEditorConfigSupport": true,
+  "omnisharp.organizeImportsOnFormat": true,
+  "csharp.semanticHighlighting.enabled": true,
+  "csharp.format.enable": true,
+  "omnisharp.projectLoadTimeout": 60,
+  "omnisharp.maxProjectResults": 250,
+
   // VS Code Native Testing
   "dotnet.unitTests.runSettingsPath": "./BusBuddy.Tests/test.runsettings",
   "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
@@ -120,6 +142,9 @@
   "testExplorer.useNativeTesting": true,
   "testExplorer.sort": "byLocation",
   "dotnet.test.autoDiscoverTests": true,
+  "dotnet.codeLens.enableReferencesCodeLens": true,
+  "dotnet.inlayHints.enableInlayHintsForTypes": true,
+  "dotnet.inlayHints.enableInlayHintsForParameters": true,
 
   // Auto-save for coverage updates
   "files.autoSave": "onFocusChange",

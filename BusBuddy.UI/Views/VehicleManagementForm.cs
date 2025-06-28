@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
@@ -78,6 +80,53 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
+                HandleError($"Error loading vehicles: {ex.Message}", "Vehicle Error", ex);
+                _entities = new List<Vehicle>();
+            }
+        }
+
+        /// <summary>
+        /// Async data loading with timeout and cancellation support
+        /// </summary>
+        protected override async Task LoadDataFromRepositoryAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Create a timeout for data loading (2 minutes to match database timeout)
+                using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(2)))
+                using (var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token))
+                {
+                    await Task.Run(() =>
+                    {
+                        // Check for cancellation before starting
+                        combinedCts.Token.ThrowIfCancellationRequested();
+
+                        _entities = _vehicleRepository.GetAllVehicles();
+
+                        // Check for cancellation after data load
+                        combinedCts.Token.ThrowIfCancellationRequested();
+
+                        // Update UI on main thread
+                        if (InvokeRequired)
+                        {
+                            Invoke(new System.Action(PopulateDataGrid));
+                        }
+                        else
+                        {
+                            PopulateDataGrid();
+                        }
+                    }, combinedCts.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("Vehicle data loading canceled");
+                _messageService.ShowInfo("Data loading was canceled. You can retry by refreshing.", "Loading Canceled");
+                _entities = new List<Vehicle>();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Vehicle loading error: {ex.Message}");
                 HandleError($"Error loading vehicles: {ex.Message}", "Vehicle Error", ex);
                 _entities = new List<Vehicle>();
             }

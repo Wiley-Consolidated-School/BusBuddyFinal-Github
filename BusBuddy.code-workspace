@@ -1,0 +1,27 @@
+{
+    "folders": [
+        {
+            "name": "BusBuddy",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "dotnet.defaultSolution": "./BusBuddy.sln",
+        "omnisharp.projectLoadTimeout": 60,
+        "omnisharp.maxProjectResults": 250,
+        "files.exclude": {
+            "**/bin": true,
+            "**/obj": true,
+            "**/.vs": true,
+            "**/TestResults": true,
+            "**/*.user": true
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-dotnettools.csharp",
+            "ms-dotnettools.csdevkit",
+            "ms-dotnettools.vscode-dotnet-runtime"
+        ]
+    }
+}

@@ -182,9 +182,26 @@ namespace BusBuddy.UI.Services
                     {
                         try
                         {
+                            // CRITICAL FIX: Validate process before attempting operations
+                            if (process == null || process.HasExited)
+                            {
+                                Console.WriteLine("⚠️ Process already exited or null, skipping");
+                                continue;
+                            }
+
                             Console.WriteLine($"🗑️ Terminating orphaned process PID: {process.Id}");
                             process.Kill();
-                            process.WaitForExit(3000); // Wait up to 3 seconds
+
+                            // Wait with proper validation
+                            if (!process.WaitForExit(3000)) // Wait up to 3 seconds
+                            {
+                                Console.WriteLine($"⚠️ Process {process.Id} did not exit within timeout");
+                            }
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            Console.WriteLine($"⚠️ Process {process?.Id ?? -1} access error: {ex.Message}");
+                            // This is expected if process already terminated
                         }
                         catch (Exception ex)
                         {

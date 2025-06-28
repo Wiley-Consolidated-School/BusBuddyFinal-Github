@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.Data;
@@ -95,6 +97,108 @@ namespace BusBuddy.UI.Views
                     "The application is running in safe mode.\n" +
                     "Please check your database connection.",
                     "Data Loading Error");
+            }
+        }
+
+        /// <summary>
+        /// Async data loading with timeout and cancellation support
+        /// </summary>
+        protected override async Task LoadDataFromRepositoryAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Create a timeout for data loading (2 minutes to match database timeout)
+                using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(2)))
+                using (var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token))
+                {
+                    await Task.Run(() =>
+                    {
+                        // Check for cancellation before starting
+                        combinedCts.Token.ThrowIfCancellationRequested();
+
+                        _entities = _activityRepository.GetAllActivities().ToList();
+
+                        // Check for cancellation after data load
+                        combinedCts.Token.ThrowIfCancellationRequested();
+
+                        // Update UI on main thread
+                        if (InvokeRequired)
+                        {
+                            Invoke(new System.Action(() =>
+                            {
+                                PopulateDataGrid();
+
+                                // Check if we're running in offline mode and notify user
+                                if (_entities.Count > 0 && _entities.All(a => a.ActivityID <= 4))
+                                {
+                                    _messageService.ShowInfo(
+                                        "📊 Activity Trips Management\n\n" +
+                                        "Running in offline mode with sample data.\n" +
+                                        "Database connection unavailable - showing demo activities.",
+                                        "Offline Mode");
+                                }
+                            }));
+                        }
+                        else
+                        {
+                            PopulateDataGrid();
+
+                            // Check if we're running in offline mode and notify user
+                            if (_entities.Count > 0 && _entities.All(a => a.ActivityID <= 4))
+                            {
+                                _messageService.ShowInfo(
+                                    "📊 Activity Trips Management\n\n" +
+                                    "Running in offline mode with sample data.\n" +
+                                    "Database connection unavailable - showing demo activities.",
+                                    "Offline Mode");
+                            }
+                        }
+                    }, combinedCts.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("Activity data loading canceled");
+                _messageService.ShowInfo("Data loading was canceled. You can retry by refreshing.", "Loading Canceled");
+                _entities = new List<Activity>();
+                if (InvokeRequired)
+                {
+                    Invoke(new System.Action(PopulateDataGrid));
+                }
+                else
+                {
+                    PopulateDataGrid();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Activity loading error: {ex.Message}");
+
+                // GRACEFUL DEGRADATION: Even if repository fails, provide empty list
+                Console.WriteLine($"⚠️ Repository error in LoadDataFromRepositoryAsync: {ex.Message}");
+                _entities = new List<Activity>();
+
+                if (InvokeRequired)
+                {
+                    Invoke(new System.Action(() =>
+                    {
+                        PopulateDataGrid();
+                        _messageService.ShowWarning(
+                            "⚠️ Unable to load activity data.\n\n" +
+                            "The application is running in safe mode.\n" +
+                            "Please check your database connection.",
+                            "Data Loading Error");
+                    }));
+                }
+                else
+                {
+                    PopulateDataGrid();
+                    _messageService.ShowWarning(
+                        "⚠️ Unable to load activity data.\n\n" +
+                        "The application is running in safe mode.\n" +
+                        "Please check your database connection.",
+                        "Data Loading Error");
+                }
             }
         }
 

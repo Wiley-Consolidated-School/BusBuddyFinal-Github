@@ -202,6 +202,7 @@ namespace BusBuddy.UI.Services
 
         /// <summary>
         /// Kill any orphaned BusBuddy.UI processes that might be lingering
+        /// FIXED: Added proper process validation to prevent InvalidOperationException
         /// </summary>
         private static void KillOrphanedBusBuddyProcesses()
         {
@@ -222,17 +223,41 @@ namespace BusBuddy.UI.Services
                     {
                         try
                         {
+                            // CRITICAL FIX: Validate process before attempting operations
+                            if (process == null || process.HasExited)
+                            {
+                                Console.WriteLine("⚠️ Process already exited or null, skipping");
+                                continue;
+                            }
+
                             Console.WriteLine($"🔥 Killing orphaned process: PID {process.Id}");
                             process.Kill();
-                            process.WaitForExit(2000); // Wait up to 2 seconds
+
+                            // Wait with proper timeout and validation
+                            if (!process.WaitForExit(2000)) // Wait up to 2 seconds
+                            {
+                                Console.WriteLine($"⚠️ Process {process.Id} did not exit within timeout");
+                            }
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            Console.WriteLine($"⚠️ Process {process?.Id ?? -1} access error: {ex.Message}");
+                            // This is expected if process already terminated
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"⚠️ Error killing process {process.Id}: {ex.Message}");
+                            Console.WriteLine($"⚠️ Error killing process {process?.Id ?? -1}: {ex.Message}");
                         }
                         finally
                         {
-                            process.Dispose();
+                            try
+                            {
+                                process?.Dispose();
+                            }
+                            catch
+                            {
+                                // Ignore disposal errors
+                            }
                         }
                     }
                 }
