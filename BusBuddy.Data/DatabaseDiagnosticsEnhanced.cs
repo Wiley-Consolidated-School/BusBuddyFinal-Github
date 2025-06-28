@@ -139,8 +139,8 @@ namespace BusBuddy.Data
                     await connection.OpenAsync();
                     using (var command = new SqlCommand("SELECT COUNT(*) FROM sys.databases WHERE name = 'BusBuddy'", connection))
                     {
-                        var result = (int)await command.ExecuteScalarAsync();
-                        return result > 0;
+                        var result = await command.ExecuteScalarAsync();
+                        return result != null && Convert.ToInt32(result) > 0;
                     }
                 }
             }

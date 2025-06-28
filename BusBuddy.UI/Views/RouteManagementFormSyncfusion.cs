@@ -41,7 +41,7 @@ namespace BusBuddy.UI.Views
                 _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
                 _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
                 _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
-                _databaseHelperService = new DatabaseHelperService();
+                _databaseHelperService = UnifiedServiceManager.Instance.GetService<DatabaseHelperService>();
 
                 // NOTE: LoadData() and LoadVehiclesAndDrivers() are called by the base class after all controls are initialized
             }

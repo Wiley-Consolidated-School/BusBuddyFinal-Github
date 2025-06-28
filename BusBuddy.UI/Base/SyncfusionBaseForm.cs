@@ -23,7 +23,7 @@ namespace BusBuddy.UI.Base
     public class SyncfusionBaseForm : SfForm
     {
         protected readonly ErrorProvider _errorProvider;
-        protected readonly BusBuddy.Business.DatabaseHelperService _databaseService;
+        protected readonly BusBuddy.Business.IDatabaseHelperService _databaseService;
         // BannerTextProvider removed - causes license popups, not needed per official Syncfusion docs
 
         // Common UI elements
@@ -62,6 +62,7 @@ namespace BusBuddy.UI.Base
         public SyncfusionBaseForm()
         {
             // Syncfusion license is already registered in Program.cs Main() method
+            // No additional license validation should be performed here
             Console.WriteLine("✅ SyncfusionBaseForm: License already registered at application startup");
 
             // Set consistent initialization before component initialization
@@ -69,7 +70,7 @@ namespace BusBuddy.UI.Base
 
             // Initialize common components
             _errorProvider = new ErrorProvider();
-            _databaseService = new BusBuddy.Business.DatabaseHelperService();
+            _databaseService = UnifiedServiceManager.Instance.GetService<BusBuddy.Business.IDatabaseHelperService>();
             // BannerTextProvider removed - causes license popups, not needed per official Syncfusion docs
 
             // Initialize DPI awareness for proper scaling
@@ -120,6 +121,7 @@ namespace BusBuddy.UI.Base
         private void InitializeSyncfusionDesign()
         {
             // Syncfusion license is already registered in Program.cs Main() method
+            // No additional license validation is needed - it should be done only once in Main()
             Console.WriteLine("✅ SyncfusionBaseForm: Using pre-registered license for theme initialization");
 
             // Apply proper Syncfusion theming following official documentation

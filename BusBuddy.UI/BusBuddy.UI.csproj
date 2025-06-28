@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Library</OutputType>
     <RootNamespace>BusBuddy.UI</RootNamespace>
     <AssemblyName>BusBuddy.UI</AssemblyName>
     <Nullable>enable</Nullable>

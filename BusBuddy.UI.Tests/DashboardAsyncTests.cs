@@ -28,7 +28,7 @@ namespace BusBuddy.Tests.Simple
 
                 // Create sender object for method invocation
                 object sender = dashboard;
-                
+
                 // Act - Invoke the method
                 loadAsyncMethod.Invoke(dashboard, new object[] { sender, EventArgs.Empty });
 

@@ -351,16 +351,25 @@ namespace BusBuddy.UI.Views
 
         private void PopulateDataGrid()
         {
-            if (_dataGrid == null) return;
+            if (_dataGrid == null)
+            {
+                Console.WriteLine("⚠️ DataGrid is null - cannot populate data");
+                return;
+            }
 
             try
             {
+                Console.WriteLine($"Populating data grid with {_entities?.Count ?? 0} vehicles");
+
                 _dataGrid.DataSource = null;
                 _dataGrid.DataSource = _entities;
                 _dataGrid.Refresh();
+
+                Console.WriteLine("✅ Data grid populated successfully");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ Error populating vehicle grid: {ex.Message}");
                 HandleError($"Error populating vehicle grid: {ex.Message}", "Display Error", ex);
             }
         }

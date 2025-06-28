@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using BusBuddy.Data;
 using BusBuddy.Business;
 using BusBuddy.UI.Views;
+using BusBuddy.UI.Helpers;
 
 namespace BusBuddy.UI.Services
 {
@@ -62,7 +63,7 @@ namespace BusBuddy.UI.Services
 
                 // Register services
                 RegisterSingleton<IVehicleService>(() => (IVehicleService)new VehicleService(GetService<IVehicleRepository>()));
-                RegisterSingleton<IDatabaseHelperService>(() => (IDatabaseHelperService)new BusBuddy.Business.DatabaseHelperService());
+                RegisterSingleton<IDatabaseHelperService>(() => UnifiedServiceManager.Instance.GetService<BusBuddy.Business.IDatabaseHelperService>());
                 RegisterSingleton<IRouteAnalyticsService>(() => new BusBuddy.Business.RouteAnalyticsService(GetService<IRouteRepository>()));
 
                 // Register form factory
@@ -72,7 +73,7 @@ namespace BusBuddy.UI.Services
                 RegisterSingleton<INavigationService>(() => new NavigationService(GetService<IFormFactory>()));
 
                 // Task 5: Register report service with xAI Grok 3 API integration
-                RegisterSingleton<IReportService>(() => new ReportService(GetService<IDatabaseHelperService>()));
+                RegisterSingleton<IReportService>(() => new ReportService(UnifiedServiceManager.Instance.GetService<IUIDataService>()));
 
                 // Task 6: Register analytics service for driver pay and CDE-40 reporting
                 RegisterSingleton<IAnalyticsService>(() => new AnalyticsService(

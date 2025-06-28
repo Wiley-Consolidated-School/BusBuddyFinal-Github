@@ -30,36 +30,78 @@ namespace BusBuddy.Business
 
         public List<Vehicle> GetActiveVehicles()
         {
-            var allVehicles = _repository.GetAllVehicles();
-            return allVehicles.FindAll(v => v.Status == "Active");
+            try
+            {
+                var allVehicles = _repository.GetAllVehicles();
+                return allVehicles.FindAll(v => v.Status == "Active");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error getting active vehicles: {ex.Message}");
+                throw new ApplicationException($"Failed to retrieve active vehicles: {ex.Message}", ex);
+            }
         }
 
         public List<Vehicle> GetAllVehicles()
         {
-            return _repository.GetAllVehicles();
+            try
+            {
+                return _repository.GetAllVehicles();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error getting all vehicles: {ex.Message}");
+                throw new ApplicationException($"Failed to retrieve vehicles: {ex.Message}", ex);
+            }
         }
 
         public bool AddVehicle(Vehicle vehicle)
         {
-            if (!IsValidVehicleNumber(vehicle.VehicleNumber))
-                return false;
+            try
+            {
+                if (!IsValidVehicleNumber(vehicle.VehicleNumber))
+                    return false;
 
-            _repository.AddVehicle(vehicle);
-            return true;
+                _repository.AddVehicle(vehicle);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error adding vehicle: {ex.Message}");
+                throw new ApplicationException($"Failed to add vehicle: {ex.Message}", ex);
+            }
         }
 
         public bool UpdateVehicle(Vehicle vehicle)
         {
-            if (!IsValidVehicleNumber(vehicle.VehicleNumber))
-                return false;
+            try
+            {
+                if (!IsValidVehicleNumber(vehicle.VehicleNumber))
+                    return false;
 
-            return _repository.UpdateVehicle(vehicle);
+                return _repository.UpdateVehicle(vehicle);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error updating vehicle: {ex.Message}");
+                throw new ApplicationException($"Failed to update vehicle: {ex.Message}", ex);
+            }
         }
 
         public bool DeleteVehicle(int id)
         {
-            if (id <= 0)
-                return false;            return _repository.DeleteVehicle(id);
+            try
+            {
+                if (id <= 0)
+                    return false;
+
+                return _repository.DeleteVehicle(id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error deleting vehicle: {ex.Message}");
+                throw new ApplicationException($"Failed to delete vehicle: {ex.Message}", ex);
+            }
         }
 
         // IVehicleService async implementations

@@ -71,11 +71,30 @@ namespace BusBuddy.UI.Views
             {
                 _entities = _activityRepository.GetAllActivities().ToList();
                 PopulateDataGrid();
+
+                // Check if we're running in offline mode and notify user
+                if (_entities.Count > 0 && _entities.All(a => a.ActivityID <= 4))
+                {
+                    // This indicates we're likely using sample data
+                    _messageService.ShowInfo(
+                        "📊 Activity Trips Management\n\n" +
+                        "Running in offline mode with sample data.\n" +
+                        "Database connection unavailable - showing demo activities.",
+                        "Offline Mode");
+                }
             }
             catch (Exception ex)
             {
-                HandleError($"Error loading activities: {ex.Message}", "Activity Error", ex);
+                // GRACEFUL DEGRADATION: Even if repository fails, provide empty list
+                Console.WriteLine($"⚠️ Repository error in LoadDataFromRepository: {ex.Message}");
                 _entities = new List<Activity>();
+                PopulateDataGrid();
+
+                _messageService.ShowWarning(
+                    "⚠️ Unable to load activity data.\n\n" +
+                    "The application is running in safe mode.\n" +
+                    "Please check your database connection.",
+                    "Data Loading Error");
             }
         }
 

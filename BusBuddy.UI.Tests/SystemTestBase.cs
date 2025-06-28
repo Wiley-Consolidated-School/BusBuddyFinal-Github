@@ -28,7 +28,10 @@ namespace BusBuddy.UI.Tests
 
         protected SystemTestBase()
         {
-            // Initialize repositories
+            // Initialize test database before creating repositories
+            TestDatabaseInitializer.EnsureTestDatabaseExists();
+
+            // Initialize repositories with proper test database context
             VehicleRepository = new VehicleRepository();
             DriverRepository = new DriverRepository();
             RouteRepository = new RouteRepository();
@@ -39,6 +42,7 @@ namespace BusBuddy.UI.Tests
             ValidationService = new ValidationService(
                 VehicleRepository,
                 DriverRepository,
+                RouteRepository,
                 MaintenanceRepository,
                 FuelRepository);
 

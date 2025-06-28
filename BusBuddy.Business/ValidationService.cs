@@ -33,24 +33,32 @@ namespace BusBuddy.Business
         /// </summary>
         public ValidationResult ValidateVehicleAssignment(int vehicleId, DateTime date, string assignmentType = "route")
         {
-            var validations = new List<ValidationResult>();
-
-            var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-            if (vehicle == null)
+            try
             {
-                return ValidationResult.Failed($"Vehicle with ID {vehicleId} not found.");
-            }
+                var validations = new List<ValidationResult>();
 
-            // Validate vehicle status
-            if (!string.IsNullOrEmpty(vehicle.Status) && vehicle.Status.ToLower() == "out of service")
+                var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
+                if (vehicle == null)
+                {
+                    return ValidationResult.Failed($"Vehicle with ID {vehicleId} not found.");
+                }
+
+                // Validate vehicle status
+                if (!string.IsNullOrEmpty(vehicle.Status) && vehicle.Status.ToLower() == "out of service")
+                {
+                    validations.Add(ValidationResult.Failed($"Vehicle {vehicle.VehicleNumber} is currently out of service."));
+                }
+
+                // Validate vehicle availability
+                validations.Add(ValidateVehicleAvailability(vehicleId, date, assignmentType));
+
+                return ValidationResult.Combine(validations);
+            }
+            catch (Exception ex)
             {
-                validations.Add(ValidationResult.Failed($"Vehicle {vehicle.VehicleNumber} is currently out of service."));
+                Console.WriteLine($"❌ Error validating vehicle assignment for vehicle {vehicleId}: {ex.Message}");
+                return ValidationResult.Failed($"Validation error: {ex.Message}");
             }
-
-            // Validate vehicle availability
-            validations.Add(ValidateVehicleAvailability(vehicleId, date, assignmentType));
-
-            return ValidationResult.Combine(validations);
         }
 
         /// <summary>
@@ -58,25 +66,27 @@ namespace BusBuddy.Business
         /// </summary>
         public ValidationResult ValidateDriverAssignment(int driverId, DateTime date, string assignmentType = "route")
         {
-            var validations = new List<ValidationResult>();
-
-            var driver = _driverRepository.GetDriverById(driverId);
-            if (driver == null)
+            try
             {
-                return ValidationResult.Failed($"Driver with ID {driverId} not found.");
-            }
+                var validations = new List<ValidationResult>();
 
-            // Validate driver qualifications
-            if (string.IsNullOrWhiteSpace(driver.DriversLicenseType))
-            {
-                validations.Add(ValidationResult.Failed($"Driver {driver.DriverName} does not have a valid license type."));
-            }
+                var driver = _driverRepository.GetDriverById(driverId);
+                if (driver == null)
+                {
+                    return ValidationResult.Failed($"Driver with ID {driverId} not found.");
+                }
 
-            // Validate license expiration if available
-            if (driver.CDLExpirationDate.HasValue && driver.CDLExpirationDate < DateTime.Now)
-            {
-                validations.Add(ValidationResult.Failed($"Driver {driver.DriverName}'s CDL has expired."));
-            }
+                // Validate driver qualifications
+                if (string.IsNullOrWhiteSpace(driver.DriversLicenseType))
+                {
+                    validations.Add(ValidationResult.Failed($"Driver {driver.DriverName} does not have a valid license type."));
+                }
+
+                // Validate license expiration if available
+                if (driver.CDLExpirationDate.HasValue && driver.CDLExpirationDate < DateTime.Now)
+                {
+                    validations.Add(ValidationResult.Failed($"Driver {driver.DriverName}'s CDL has expired."));
+                }
 
             // Check if training is complete
             if (!driver.IsTrainingComplete)
@@ -84,10 +94,16 @@ namespace BusBuddy.Business
                 validations.Add(ValidationResult.Failed($"Driver {driver.DriverName} has not completed required training."));
             }
 
-            // Validate driver availability
-            validations.Add(ValidateDriverAvailability(driverId, date, assignmentType));
+                // Validate driver availability
+                validations.Add(ValidateDriverAvailability(driverId, date, assignmentType));
 
-            return ValidationResult.Combine(validations);
+                return ValidationResult.Combine(validations);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error validating driver assignment for driver {driverId}: {ex.Message}");
+                return ValidationResult.Failed($"Validation error: {ex.Message}");
+            }
         }
 
         /// <summary>

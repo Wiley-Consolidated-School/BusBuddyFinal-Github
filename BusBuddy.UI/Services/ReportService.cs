@@ -57,17 +57,18 @@ namespace BusBuddy.UI.Services
     /// <summary>
     /// Implementation of report service with xAI Grok 3 API integration
     /// Task 5: Enhanced CDE-40 reporting with AI-powered insights and recommendations
+    /// 🔧 FIXED: Updated to use renamed IUIDataService instead of IDatabaseHelperService
     /// </summary>
     public class ReportService : IReportService
     {
-        private readonly IDatabaseHelperService _databaseHelperService;
+        private readonly IUIDataService _uiDataService;
         private readonly HttpClient _httpClient;
         private readonly string _xaiApiKey;
         private const string XAI_API_URL = "https://api.x.ai/v1/chat/completions";
 
-        public ReportService(IDatabaseHelperService databaseHelperService, HttpClient httpClient = null)
+        public ReportService(IUIDataService uiDataService, HttpClient httpClient = null)
         {
-            _databaseHelperService = databaseHelperService ?? throw new ArgumentNullException(nameof(databaseHelperService));
+            _uiDataService = uiDataService ?? throw new ArgumentNullException(nameof(uiDataService));
             _httpClient = httpClient ?? new HttpClient();
             _xaiApiKey = Environment.GetEnvironmentVariable("XAI_API_KEY") ?? string.Empty;
 
@@ -218,7 +219,7 @@ namespace BusBuddy.UI.Services
             try
             {
                 // Collect route data for mileage and pupil counts - prioritize this per user requirements
-                var routes = _databaseHelperService.GetAllRoutesWithDetails();
+                var routes = _uiDataService.GetAllRoutesWithDetails();
                 reportData.Routes = routes ?? new List<Route>();
 
                 // Calculate totals from routes data

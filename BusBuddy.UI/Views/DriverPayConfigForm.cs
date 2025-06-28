@@ -33,8 +33,8 @@ namespace BusBuddy.UI.Views
         private Label _titleLabel;
 
         public DriverPayConfigForm() : this(
-            ServiceContainerSingleton.Instance.GetService<IErrorHandlerService>(),
-            ServiceContainerSingleton.Instance.GetService<PayRateManager>())
+            BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IErrorHandlerService>(),
+            BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<PayRateManager>())
         {
         }
 

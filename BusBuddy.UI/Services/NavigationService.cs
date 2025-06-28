@@ -11,50 +11,6 @@ using BusBuddy.UI.Services;
 namespace BusBuddy.UI.Services
 {
     /// <summary>
-    /// Task 4: Enhanced Navigation Service for BusBuddy Dashboard
-    /// Provides navigation functionality for dashboard modules supporting CDE-40 reporting,
-    /// financial contributions tracking, and transportation value demonstration.
-    /// Supports Office2016Black theme and seamless module access.
-    /// </summary>
-    public interface INavigationService
-    {
-        void ShowVehicleManagement();
-        void ShowDriverManagement();
-        void ShowRouteManagement();
-        void ShowActivityManagement();
-        void ShowFuelManagement();
-        void ShowMaintenanceManagement();
-        void ShowCalendarManagement();
-        void ShowScheduleManagement();
-        void ShowTimeCardManagement();
-        void ShowReportsManagement();
-        void ShowSchoolCalendarManagement();
-        void ShowActivityScheduleManagement();
-        void ShowAnalyticsDemo();
-        void ShowReports();
-
-        /// <summary>
-        /// Task 4: Enhanced Navigate method with improved error handling and CDE-40 support
-        /// Navigate to a specific module by name with optional parameters
-        /// Supports CDE-40 reporting, financial analytics, and transportation value modules
-        /// </summary>
-        /// <param name="moduleName">Name of the module to navigate to</param>
-        /// <param name="parameters">Optional parameters to pass to the module</param>
-        /// <returns>True if navigation was successful, false otherwise</returns>
-        bool Navigate(string moduleName, params object[] parameters);
-
-        /// <summary>
-        /// Check if a specific module is available in the current configuration
-        /// </summary>
-        /// <param name="moduleName">Name of the module to check</param>
-        /// <returns>True if the module is available, false otherwise</returns>
-        bool IsModuleAvailable(string moduleName);
-
-        DialogResult ShowDialog<T>() where T : Form;
-        DialogResult ShowDialog<T>(params object[] parameters) where T : Form;
-    }
-
-    /// <summary>
     /// Task 4: Enhanced NavigationService Implementation
     /// Implementation of navigation service supporting dashboard redesign with CDE-40 reporting,
     /// financial analytics, and transportation value demonstration capabilities.
@@ -244,8 +200,8 @@ namespace BusBuddy.UI.Services
             Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowVehicleManagement() called");
             try
             {
-                // Try to get repository from service container instead of direct instantiation
-                var vehicleRepository = ServiceContainerSingleton.Instance.GetService<IVehicleRepository>();
+                // Try to get repository from unified service container
+                var vehicleRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IVehicleRepository>();
                 if (vehicleRepository != null)
                 {
                     // Test database connection with repository from DI container
@@ -272,7 +228,7 @@ namespace BusBuddy.UI.Services
             Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowDriverManagement() called");
             try
             {
-                var driverRepository = ServiceContainerSingleton.Instance.GetService<IDriverRepository>();
+                var driverRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IDriverRepository>();
                 if (driverRepository != null)
                 {
                     EnsureRepositoryInitializedWithDI(() => driverRepository.GetAllDrivers());
@@ -297,7 +253,7 @@ namespace BusBuddy.UI.Services
             Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowActivityScheduleManagement() called");
             try
             {
-                var activityScheduleRepository = ServiceContainerSingleton.Instance.GetService<IActivityScheduleRepository>();
+                var activityScheduleRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IActivityScheduleRepository>();
                 if (activityScheduleRepository != null)
                 {
                     EnsureRepositoryInitializedWithDI(() => activityScheduleRepository.GetAllScheduledActivities());
@@ -321,7 +277,7 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                var routeRepository = ServiceContainerSingleton.Instance.GetService<IRouteRepository>();
+                var routeRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IRouteRepository>();
                 if (routeRepository != null)
                 {
                     EnsureRepositoryInitializedWithDI(() => routeRepository.GetAllRoutes());
@@ -344,7 +300,7 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                var activityRepository = ServiceContainerSingleton.Instance.GetService<IActivityRepository>();
+                var activityRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IActivityRepository>();
                 if (activityRepository != null)
                 {
                     EnsureRepositoryInitializedWithDI(() => activityRepository.GetAllActivities());
@@ -367,7 +323,7 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                var fuelRepository = ServiceContainerSingleton.Instance.GetService<IFuelRepository>();
+                var fuelRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IFuelRepository>();
                 if (fuelRepository != null)
                 {
                     EnsureRepositoryInitializedWithDI(() => fuelRepository.GetAllFuelRecords());
@@ -390,7 +346,7 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                var maintenanceRepository = ServiceContainerSingleton.Instance.GetService<IMaintenanceRepository>();
+                var maintenanceRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IMaintenanceRepository>();
                 if (maintenanceRepository != null)
                 {
                     EnsureRepositoryInitializedWithDI(() => maintenanceRepository.GetAllMaintenanceRecords());
@@ -413,7 +369,7 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                var schoolCalendarRepository = ServiceContainerSingleton.Instance.GetService<ISchoolCalendarRepository>();
+                var schoolCalendarRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<ISchoolCalendarRepository>();
                 if (schoolCalendarRepository != null)
                 {
                     EnsureRepositoryInitializedWithDI(() => schoolCalendarRepository.GetAllCalendarEntries());
@@ -436,7 +392,7 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                var activityScheduleRepository = ServiceContainerSingleton.Instance.GetService<IActivityScheduleRepository>();
+                var activityScheduleRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IActivityScheduleRepository>();
                 if (activityScheduleRepository != null)
                 {
                     EnsureRepositoryInitializedWithDI(() => activityScheduleRepository.GetAllScheduledActivities());

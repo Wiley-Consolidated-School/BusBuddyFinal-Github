@@ -29,6 +29,7 @@ namespace BusBuddy.UI.Tests
             _validationService = new ValidationService(
                 _vehicleRepository,
                 _driverRepository,
+                new RouteRepository(),
                 new MaintenanceRepository(),
                 new FuelRepository());
 

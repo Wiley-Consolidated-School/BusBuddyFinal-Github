@@ -41,7 +41,7 @@ namespace BusBuddy.UI.Tests
     [DashboardTests]
     public class DashboardTest
     {
-        private readonly Dashboard _dashboard;
+        private readonly Form _dashboard;
         private readonly ITestOutputHelper _output;
         private readonly DashboardTestFixture _fixture;
 

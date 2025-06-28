@@ -72,6 +72,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
+                Console.WriteLine("🚗 Starting vehicle data loading...");
                 var vehicles = _vehicleRepository.GetAllVehicles() ?? new List<Vehicle>();
                 _entities = vehicles.ToList();
 
@@ -82,8 +83,15 @@ namespace BusBuddy.UI.Views
 
                 Console.WriteLine($"✅ Loaded {vehicles.Count()} vehicles successfully");
             }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("⚠️ Vehicle data loading was canceled");
+                // Handle cancellation gracefully - don't propagate as error
+                _entities = new List<Vehicle>();
+            }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ Error loading vehicles: {ex.Message}");
                 HandleError($"Error loading vehicles: {ex.Message}", "🚗 Vehicle Management", ex);
             }
         }

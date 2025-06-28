@@ -7,35 +7,69 @@ applyTo: '**'
 
 - **Version 1.0.0 (June 2025)**: Initial standards for .NET 8, Syncfusion, and SQL Server integration.
 - **Version 1.1.0 (June 2025)**: Added feature development process, automation guidance, production readiness criteria, and codebase cleanup.
+- **Version 1.2.0 (June 27, 2025)**: Consolidated and refactored duplicate instruction files, enhanced Syncfusion implementation guidelines.
 
 ## Coding Standards, Domain Knowledge, and Preferences
 
-### File Management and Cleanup
+### File Management and Cleanup Best Practices
 
-#### 🚮 **Cleanup Rules**
+#### 🧹 **Temporary File Cleanup**
+Always clean up temporary files created during development:
 
-**Remove immediately:**
-- **Temporary files**: `.new`, `.bak`, `.backup`, `.old`, `*_temp`, `*_tmp`, `*_test`, `*.crdownload`, `*.tmp`, `*.backup_*`, `*_backup*`
-- **Build artifacts**: `bin/`, `obj/`, `TestResults/`
-- **IDE files**: `.vs/`, `*.user`, `*.suo`
-- **Migration backups**: `Migration_Backups/` after completion
-- **Duplicate files**: e.g., `file.cs` and `file_new.cs`
-- **Empty directories**
+- **Remove `.new`, `.bak`, `.backup`, `.old` files** after successful operations
+- **Delete `*_temp`, `*_tmp`, `*_test` files** when no longer needed
+- **Clean up `Migration_Backups/` directories** after migration completion
+- **Remove duplicate files** (e.g., `file.cs` and `file_new.cs`)
 
-**Git hygiene:**
-- Use `.gitignore` for build artifacts
-- Remove large binaries from git history with `git filter-repo`
-- Stage only source files
-- Remove trailing whitespace and ensure single newline at file end
-- Use CRLF (Windows) or LF (Unix) consistently
+#### 🚫 **Files to Always Remove**
+- Build artifacts: `bin/`, `obj/`, `TestResults/`
+- IDE files: `.vs/`, `*.user`, `*.suo`
+- Temporary downloads: `*.crdownload`, `*.tmp`
+- Backup files: `*.backup_*`, `*_backup*`
+- Empty directories that serve no purpose
 
-**Automated cleanup (PowerShell):**
-```powershell
-# Remove temporary files
-Get-ChildItem -Recurse -Include *.bak,*.tmp,*.new,*.old | Remove-Item -Force
-# Clean untracked files
-git clean -fd
-```
+#### 📝 **Git Repository Hygiene**
+- Use `.gitignore` to prevent tracking build artifacts
+- Remove large binary files from git history if accidentally committed
+- Stage only source files, never build artifacts
+- Clean up redundant documentation after project phases complete
+- **Remove trailing whitespace** at the end of lines and files
+- **Ensure files end with a single newline** character
+- **Use consistent line endings** (CRLF on Windows, LF on Unix)
+
+#### ✨ **Code Formatting Standards**
+- **No trailing whitespace** - remove spaces/tabs at line endings
+- **Consistent indentation** - use spaces or tabs consistently (prefer spaces)
+- **File endings** - ensure files end with exactly one newline
+- **Line length** - keep lines under 120 characters when practical
+- **Empty lines** - use sparingly and consistently for logical separation
+- **No nullable reference types** - avoid using nullable properties, parameters, or return types in new code
+
+#### 🔄 **Development Workflow**
+When creating temporary files:
+1. Use descriptive names with clear temporary indicators
+2. Set reminders to clean up after task completion
+3. Add temporary patterns to `.gitignore` if needed
+4. Use `git clean -fd` to remove untracked files periodically
+
+**File Corruption Assessment Protocol:**
+1. **First Check**: Identify specific error messages and their line numbers
+2. **Scope Analysis**: Determine if errors are localized (missing method, typo) or systemic
+3. **Impact Assessment**: Count affected files and error types
+4. **User Consultation**: For 3+ files or complex structural issues, ask user before rebuilding
+5. **Documentation**: Always report what was found before proposing solution approach
+
+#### 📊 **Repository Size Management**
+- Monitor repository size with `git count-objects -vH`
+- Use `git gc --aggressive --prune=now` for cleanup
+- Remove files from history with `git filter-repo` if needed
+- Keep pushes under 10MB when possible
+
+#### 🎯 **Project-Specific Rules**
+- Consolidate similar scripts (keep general ones, remove specific variants)
+- Remove duplicate config files (e.g., `codecov.yml` vs `.codecov.yml`)
+- Archive old documentation rather than keeping in active project
+- Prefer PowerShell scripts over batch files for consistency
 
 #### 🧹 **Codebase Cleanup (Unneeded Code Review)**
 
@@ -142,9 +176,11 @@ git clean -fd
 
 ### Syncfusion Guidelines
 
+**See detailed requirements in the "Syncfusion Implementation Requirements" section at the end of this document**
+
 **Mandatory**: Use only official documentation (https://help.syncfusion.com/cr/windowsforms/Syncfusion.html)
 
-**Checklist:**
+**Quick Reference:**
 1. Search docs for control/feature
 2. Copy patterns from sample browser or "Getting Started" guides
 3. Verify properties/methods in API reference
@@ -157,7 +193,7 @@ git clean -fd
 **Example:**
 ```csharp
 // https://help.syncfusion.com/cr/windowsforms/Syncfusion.html
-_dockingManager.DockControl(panel, this, DockingStyle.Left, 280);
+_dockingManager.DockControl(panel, this, DockingStyle.Left, 280); // Documented enum
 ```
 
 ### Automation
@@ -179,40 +215,100 @@ _dockingManager.DockControl(panel, this, DockingStyle.Left, 280);
 
 ## BusBuddy Domain Knowledge
 
-- **Context**: School transportation system for buses, drivers, routes, maintenance, fuel, activities
-- **Users**: Coordinators, mechanics, administrators
-- **Features**: Safety compliance, route optimization, maintenance tracking
-- **UI**: Syncfusion controls, Material Design, responsive layouts
-- **Data**: Entity Framework Core, repository pattern, SQL Server
-- **Testing**: UI/integration tests in `BusBuddy.Tests`
+#### 🚌 **Core Business Context**
+- **School transportation management system** for bus fleet operations
+- **Key entities**: Vehicles, Drivers, Routes, Maintenance, Fuel, Activities
+- **Primary users**: Transportation coordinators, mechanics, administrators
+- **Critical features**: Safety compliance, route optimization, maintenance tracking
 
-## Development Tools
+#### 🎨 **UI/UX Standards**
+- **Syncfusion controls preferred** over standard Windows Forms
+- **Material Design theming** with consistent color schemes
+- **Responsive layouts** that handle DPI scaling properly
+- **Enhanced dashboards** with diagnostic logging and fallback strategies
 
-- Use **PowerShell (pwsh)** for commands
-- **Single build approach**: `dotnet build`, analyze, proceed
-- **VS Code tasks** for build/test
-- **Git hooks** for quality enforcement
+#### 📚 **Syncfusion Essential Windows Forms Guidelines**
 
-## Problem Resolution
+Based on [Syncfusion Windows Forms Overview](https://help.syncfusion.com/windowsforms/overview):
 
-**Approach:**
-1. **Incremental fixes** for specific errors
-2. **Assess corruption** (error scope, affected files)
-3. **Consult Copilot** if 3+ files or complex issues
-4. **Minimal viable fix**
+**Core Principles:**
+- **100+ Essential Controls** - Comprehensive collection for enterprise applications
+- **Performance-first** - Unparalleled performance and rendering
+- **Touch-friendly UI** - Modern, responsive interface design
+- **Built-in themes** - Professional, consistent visual styling
+- **Visual Studio integration** - Seamless development experience
 
-**File Corruption Protocol:**
-1. Check error messages/line numbers
-2. Analyze scope (localized vs. systemic)
-3. Assess impact (file count, error types)
-4. Consult for 3+ files or structural issues
-5. Report findings before fixing
+**Key Control Categories:**
+- **Data Visualization**: Chart, Diagram, Maps, Gauges, TreeMap, Sparkline
+- **Data Management**: DataGrid, Grid Control, Pivot Grid, GridGroupingControl
+- **Navigation**: Docking Manager, TabControl, TreeView, Navigation Drawer, Ribbon
+- **Layout Management**: Border Layout, Flow Layout, Grid Layout, Tile Layout
+- **Input Controls**: MaskedTextBox, AutoComplete, ColorPicker, DateTimePickerAdv
+- **File Handling**: PDF Viewer, Spreadsheet, Syntax Editor, HTML Viewer
 
-## Archived Rules
+**BusBuddy-Specific Usage:**
+- **Docking Manager**: Primary dashboard layout with professional docking
+- **DataGrid**: Vehicle, driver, and route data management
+- **Chart Controls**: Fleet analytics and performance visualization
+- **Scheduler**: Route planning and maintenance scheduling
+- **TabControl**: Multi-module interface organization
+- **TreeView**: Hierarchical data navigation (routes, organizations)
 
-See `ARCHIVE.md` for outdated rules (e.g., legacy test file cleanup).
+**Development Best Practices:**
+1. **Getting Started**: Always refer to component-specific "Getting Started" guides
+2. **Code Examples**: Use sample browser with hundreds of code examples
+3. **API Reference**: Detailed object hierarchy and settings documentation
+4. **Search First**: Use search functionality for specific features
+5. **Licensing**: Proper license key registration to avoid runtime dialogs
 
-## Syncfusion Implementation Requirements
+**Resource Utilization:**
+- **Knowledge Base**: Common questions and solutions
+- **Community Forums**: Peer support and discussions
+- **Support Tickets**: Direct technical assistance
+- **Feedback Portal**: Feature requests and suggestions
+
+**Version Compatibility:**
+- **Target .NET 8.0+** (Support for .NET 6.0/7.0 discontinued in 2025 Volume 1)
+- **Regular updates** following Syncfusion release cycles
+- **Backward compatibility** considerations for existing components
+
+#### 💾 **Data Architecture**
+- **Entity Framework Core** for data access
+- **Repository pattern** with dependency injection
+- **SQL Server backend** with proper connection management
+- **Test database initialization** for development/testing
+
+#### 🧪 **Testing Approach**
+- **UI tests** in `BusBuddy.Tests/UI/` directory
+- **Integration tests** for data layer operations
+- **Coverage reports** generated via PowerShell scripts
+- **Avoid legacy test files** - consolidate into organized structure
+
+#### 🔧 **Development Tools**
+- **PowerShell (pwsh)** for ALL commands - use abbreviated pwsh when possible
+- **Single build approach** - run one build, get data, move on - no repetitive builds
+- **VS Code tasks** for build/test operations
+- **Syncfusion licensing** handled via helper classes
+- **Git hooks** for code quality enforcement
+
+#### 💬 **Communication Preferences**
+- **Concise responses** - conserve time with brief, focused answers
+- **One-form-at-a-time** approach for fixing build errors
+- **Efficient debugging** - minimal tool calls, maximum progress
+- **Direct action** - fix issues immediately rather than extensive analysis
+
+#### 🔧 **Problem Resolution Approach**
+- **Incremental fixes first** - Always attempt targeted edits before complete rebuilds
+- **Assess corruption level** - Check actual errors and their scope before deciding approach
+- **User consultation** - Let the user decide on complete overhauls vs. targeted fixes
+- **Error analysis** - Identify root causes (missing methods, property name mismatches, duplicates)
+- **Minimal viable fix** - Use the smallest change that resolves the issue
+- **Escalation path**:
+  1. First: Targeted edits for specific errors
+  2. Second: Consult user if issues appear complex
+  3. Last resort: Complete rebuild only with user approval
+
+#### 🏗️ **Syncfusion Implementation Requirements**
 
 **CRITICAL RULE: Only Use Official Syncfusion Documentation**
 - **Reference ONLY**: https://help.syncfusion.com/cr/windowsforms/Syncfusion.html
@@ -220,8 +316,6 @@ See `ARCHIVE.md` for outdated rules (e.g., legacy test file cleanup).
 - **No invented code**: Every Syncfusion implementation must be found in official docs
 - **Verify before implementing**: Search documentation first, implement only documented patterns
 - **API Reference**: Use Syncfusion's complete API reference for all controls and methods
-- **DO NOT modify existing Syncfusion licensing**: The licensing is already properly configured in Program.cs and should not be changed
-- **NO additional license helpers or managers**: Do not create or use any custom licensing helpers, managers, or wrappers as they are unnecessary
 
 **Documentation-First Development Process:**
 1. **Search Syncfusion docs** for the specific control/feature needed
@@ -266,6 +360,6 @@ var tabItem = new TabHost
 };
 _ribbonControl.Header.AddMainItem(tabItem); // Documented method
 
-// Based on official DockingManager documentation  
+// Based on official DockingManager documentation
 _dockingManager.DockControl(panel, this, DockingStyle.Left, 280); // Documented enum
 ```

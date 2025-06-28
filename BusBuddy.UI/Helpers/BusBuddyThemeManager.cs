@@ -50,7 +50,7 @@ namespace BusBuddy.UI.Helpers
             MaterialLight
         }
 
-        private static SupportedThemes _currentTheme = SupportedThemes.Office2016White;
+        private static SupportedThemes _currentTheme = SupportedThemes.Office2016Black;
 
         public static SupportedThemes CurrentTheme
         {

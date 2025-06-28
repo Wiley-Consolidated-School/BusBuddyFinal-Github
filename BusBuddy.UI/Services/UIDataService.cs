@@ -8,11 +8,15 @@ using BusBuddy.Models;
 
 namespace BusBuddy.UI.Services
 {
-    public class DatabaseHelperService : IDatabaseHelperService
+    /// <summary>
+    /// UI-specific data service implementation for connection testing and simple operations
+    /// Renamed from DatabaseHelperService implementing IDatabaseHelperService to avoid conflict
+    /// </summary>
+    public class UIDataService : IUIDataService
     {
         private readonly BusBuddyContext _context;
 
-        public DatabaseHelperService(BusBuddyContext context)
+        public UIDataService(BusBuddyContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }

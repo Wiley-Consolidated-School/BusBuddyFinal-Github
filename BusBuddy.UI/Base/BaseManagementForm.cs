@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
@@ -37,6 +39,10 @@ namespace BusBuddy.UI.Base
 
         // Repository support
         private object? _repository;
+
+        // Async operation support
+        protected CancellationTokenSource? _cancellationTokenSource;
+        private readonly object _cancellationLock = new object();
         #endregion
 
         #region Abstract Properties and Methods
@@ -51,6 +57,13 @@ namespace BusBuddy.UI.Base
         protected abstract void ViewEntityDetails();
         protected abstract void SearchEntities();
         protected abstract void SetupDataGridColumns();
+
+        // Async data loading support - optional override
+        protected virtual async Task LoadDataFromRepositoryAsync(CancellationToken cancellationToken = default)
+        {
+            // Default implementation calls synchronous method
+            await Task.Run(() => LoadDataFromRepository(), cancellationToken);
+        }
         #endregion
 
         #region Constructor and Initialization
@@ -100,7 +113,7 @@ namespace BusBuddy.UI.Base
             // CRITICAL FIX: Load data after all controls are initialized
             try
             {
-                LoadData();
+                LoadDataAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -263,7 +276,7 @@ namespace BusBuddy.UI.Base
         {
             try
             {
-                LoadData();
+                RefreshGridAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -272,6 +285,29 @@ namespace BusBuddy.UI.Base
                 _entities = new List<T>();
 
                 // Throw a specific exception for test verification
+                throw new InvalidOperationException(errorMessage, ex);
+            }
+        }
+
+        /// <summary>
+        /// Async version of RefreshGrid with cancellation support
+        /// </summary>
+        protected virtual async Task RefreshGridAsync()
+        {
+            try
+            {
+                await LoadDataAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"🚫 Data refresh cancelled for {FormTitle}");
+                // Don't show error for cancellation, it's expected
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Error refreshing data: {ex.Message}";
+                _messageService.ShowError(errorMessage);
+                _entities = new List<T>();
                 throw new InvalidOperationException(errorMessage, ex);
             }
         }
@@ -320,6 +356,9 @@ namespace BusBuddy.UI.Base
             try
             {
                 Console.WriteLine($"🧽 BaseManagementForm closing: {this.GetType().Name}");
+
+                // Cancel any pending async operations
+                CancelCurrentOperation();
 
                 // Clear data sources to prevent memory leaks
                 ClearDataSources();
@@ -513,17 +552,28 @@ namespace BusBuddy.UI.Base
                 // Check if repository is initialized before attempting to load data
                 if (_repository == null)
                 {
-                    // In test mode, skip loading data if repository is not initialized
+                    // GRACEFUL DEGRADATION: Handle uninitialized repository gracefully
                     if (IsTestMode)
                     {
                         return;
                     }
 
-                    throw new InvalidOperationException("Repository not initialized. Please check database connection.");
+                    // Instead of throwing exception, show user-friendly message and continue
+                    _messageService.ShowWarning(
+                        $"📊 {FormTitle}\n\n" +
+                        "Database connection unavailable.\n" +
+                        "The application is running in offline mode.",
+                        "Offline Mode");
+                    return;
                 }
 
                 // Call the derived class implementation to load data from repository
                 LoadDataFromRepository();
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"🚫 Data loading cancelled for {FormTitle}");
+                // Don't show error for cancellation, it's expected
             }
             catch (Exception ex)
             {
@@ -533,6 +583,90 @@ namespace BusBuddy.UI.Base
 
                 // Throw a specific exception for test verification
                 throw new InvalidOperationException(errorMessage, ex);
+            }
+        }
+
+        /// <summary>
+        /// Async version of LoadData with cancellation support
+        /// </summary>
+        protected virtual async Task LoadDataAsync()
+        {
+            // Cancel any existing operation
+            CancelCurrentOperation();
+
+            lock (_cancellationLock)
+            {
+                _cancellationTokenSource = new CancellationTokenSource();
+            }
+
+            try
+            {
+                // Check if repository is initialized before attempting to load data
+                if (_repository == null)
+                {
+                    // GRACEFUL DEGRADATION: Handle uninitialized repository gracefully
+                    if (IsTestMode)
+                    {
+                        return;
+                    }
+
+                    // Instead of throwing exception, show user-friendly message and continue
+                    _messageService.ShowWarning(
+                        $"📊 {FormTitle}\n\n" +
+                        "Database connection unavailable.\n" +
+                        "The application is running in offline mode.",
+                        "Offline Mode");
+                    return;
+                }
+
+                // Call the derived class implementation to load data from repository
+                await LoadDataFromRepositoryAsync(_cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"🚫 Data loading cancelled for {FormTitle}");
+                // Don't show error for cancellation, it's expected
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Error loading {FormTitle} data: {ex.Message}";
+                _messageService.ShowError(errorMessage);
+                _entities = new List<T>();
+
+                // Throw a specific exception for test verification
+                throw new InvalidOperationException(errorMessage, ex);
+            }
+            finally
+            {
+                lock (_cancellationLock)
+                {
+                    _cancellationTokenSource?.Dispose();
+                    _cancellationTokenSource = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Cancel any current async operation
+        /// </summary>
+        protected virtual void CancelCurrentOperation()
+        {
+            lock (_cancellationLock)
+            {
+                try
+                {
+                    _cancellationTokenSource?.Cancel();
+                    _cancellationTokenSource?.Dispose();
+                    _cancellationTokenSource = null;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Token source already disposed, ignore
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error cancelling operation: {ex.Message}");
+                }
             }
         }
         #endregion

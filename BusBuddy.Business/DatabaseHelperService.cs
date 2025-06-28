@@ -8,6 +8,10 @@ using BusBuddy.Data;
 
 namespace BusBuddy.Business
 {
+    /// <summary>
+    /// Business layer database helper service with complex data operations
+    /// 🔧 FIXED: Now uses dependency injection instead of direct repository instantiation
+    /// </summary>
     public class DatabaseHelperService : IDatabaseHelperService
     {
         private readonly IVehicleRepository _vehicleRepository;
@@ -19,16 +23,28 @@ namespace BusBuddy.Business
         private readonly ISchoolCalendarRepository _schoolCalendarRepository;
         private readonly IActivityScheduleRepository _activityScheduleRepository;
 
-        public DatabaseHelperService()
+        /// <summary>
+        /// 🔧 DEPENDENCY INJECTION CONSTRUCTOR - No more direct instantiation
+        /// All repositories are injected via DI container
+        /// </summary>
+        public DatabaseHelperService(
+            IVehicleRepository vehicleRepository,
+            IDriverRepository driverRepository,
+            IRouteRepository routeRepository,
+            IActivityRepository activityRepository,
+            IFuelRepository fuelRepository,
+            IMaintenanceRepository maintenanceRepository,
+            ISchoolCalendarRepository schoolCalendarRepository,
+            IActivityScheduleRepository activityScheduleRepository)
         {
-            _vehicleRepository = new VehicleRepository();
-            _driverRepository = new DriverRepository();
-            _routeRepository = new RouteRepository();
-            _activityRepository = new ActivityRepository();
-            _fuelRepository = new FuelRepository();
-            _maintenanceRepository = new MaintenanceRepository();
-            _schoolCalendarRepository = new SchoolCalendarRepository();
-            _activityScheduleRepository = new ActivityScheduleRepository();
+            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
+            _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
+            _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
+            _activityRepository = activityRepository ?? throw new ArgumentNullException(nameof(activityRepository));
+            _fuelRepository = fuelRepository ?? throw new ArgumentNullException(nameof(fuelRepository));
+            _maintenanceRepository = maintenanceRepository ?? throw new ArgumentNullException(nameof(maintenanceRepository));
+            _schoolCalendarRepository = schoolCalendarRepository ?? throw new ArgumentNullException(nameof(schoolCalendarRepository));
+            _activityScheduleRepository = activityScheduleRepository ?? throw new ArgumentNullException(nameof(activityScheduleRepository));
         }
 
         public Route GetRouteWithDetails(int routeId)

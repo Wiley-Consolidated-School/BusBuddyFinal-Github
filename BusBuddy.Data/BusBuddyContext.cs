@@ -52,8 +52,9 @@ namespace BusBuddy.Data
                         {
                             options.EnableRetryOnFailure(
                                 maxRetryCount: 5,
-                                maxRetryDelay: TimeSpan.FromSeconds(5),
+                                maxRetryDelay: TimeSpan.FromSeconds(10),
                                 errorNumbersToAdd: null);
+                            options.CommandTimeout(60); // Increase timeout to 60 seconds
                         });
                     }
                     else
@@ -76,8 +77,9 @@ namespace BusBuddy.Data
                             {
                                 options.EnableRetryOnFailure(
                                     maxRetryCount: 5,
-                                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                                    maxRetryDelay: TimeSpan.FromSeconds(10),
                                     errorNumbersToAdd: null);
+                                options.CommandTimeout(60); // Increase timeout to 60 seconds
                             });
                         }
                         else
@@ -101,35 +103,39 @@ namespace BusBuddy.Data
 
                             try
                             {
-                                // Run repair asynchronously but wait for it to complete before continuing
-                                Task.Run(async () => await DatabaseRepair.RepairDatabaseAsync()).Wait();
-
-                                // Try again with the original connection string
+                                // Use fallback connection string for recovery attempts
                                 var connectionString = DatabaseConfiguration.GetConnectionString();
-                                Console.WriteLine($"Retry with connection string after repair: {connectionString}");
+                                Console.WriteLine($"Retry with connection string after timeout increase: {connectionString}");
                                 optionsBuilder.UseSqlServer(connectionString, options =>
                                 {
                                     options.EnableRetryOnFailure(
                                         maxRetryCount: 3,
-                                        maxRetryDelay: TimeSpan.FromSeconds(2),
+                                        maxRetryDelay: TimeSpan.FromSeconds(5),
                                         errorNumbersToAdd: null);
+                                    options.CommandTimeout(60);
                                 });
                             }
                             catch (Exception repairEx)
                             {
                                 Console.WriteLine($"Database repair failed: {repairEx.Message}");
                                 // Fall back to default connection
-                                var defaultConnectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=30;Integrated Security=True;";
+                                var defaultConnectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
                                 Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
-                                optionsBuilder.UseSqlServer(defaultConnectionString);
+                                optionsBuilder.UseSqlServer(defaultConnectionString, options =>
+                                {
+                                    options.CommandTimeout(60);
+                                });
                             }
                         }
                         else
                         {
                             // Fallback to SQL Server Express with local server name and database
-                            var defaultConnectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=30;Integrated Security=True;";
+                            var defaultConnectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
                             Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
-                            optionsBuilder.UseSqlServer(defaultConnectionString);
+                            optionsBuilder.UseSqlServer(defaultConnectionString, options =>
+                            {
+                                options.CommandTimeout(60);
+                            });
                         }
                     }
                 }

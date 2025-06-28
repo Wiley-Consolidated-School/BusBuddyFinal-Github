@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>BusBuddy</RootNamespace>
@@ -11,7 +11,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8603;CS8604;CS0436;CS8602;CS8625;CS8601;CS8600</NoWarn>
-    <StartupObject>BusBuddy.Program</StartupObject>
+
     <Authors>Steve McKitrick</Authors>
     <Description>School Bus Management System - Developed independently by Steve McKitrick using personal funds and open source technologies. NOT the property of Wiley School District.</Description>
     <Version>1.0.0.0</Version>
@@ -34,6 +34,13 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
+    <!-- ReadyToRun for faster startup (AOT compilation) -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- Self-contained deployment (trimming disabled for Windows Forms compatibility) -->
+    <SelfContained>true</SelfContained>
+    <!-- Note: Trimming disabled due to Windows Forms incompatibility (NETSDK1175) -->
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
@@ -63,9 +70,11 @@
     <Compile Remove="Test Engine\**\*.cs" />
     <Compile Remove="**\*Test.cs" />
     <Compile Remove="**\*Tests.cs" />
+    <Compile Remove="TestConsole.cs" />
     <None Include="BusBuddy.Tests\**\*.cs" />
     <None Include="BusBuddy.UI.Tests\**\*.cs" />
     <None Include="Test Engine\**\*.cs" />
+    <None Include="TestConsole.cs" />
     <!-- Exclude temporary test forms that were removed -->
     <Compile Remove="SimpleButtonTestForm.cs" />
     <Compile Remove="MinimalTestForm.cs" />

@@ -5,7 +5,11 @@ using BusBuddy.Models;
 
 namespace BusBuddy.UI.Services
 {
-    public interface IDatabaseHelperService
+    /// <summary>
+    /// UI-specific data service for connection testing and simple operations
+    /// Renamed from IDatabaseHelperService to avoid conflict with Business layer service
+    /// </summary>
+    public interface IUIDataService
     {
         Task<bool> TestConnectionAsync();
         List<Route> GetAllRoutesWithDetails();

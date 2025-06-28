@@ -16,15 +16,95 @@ namespace BusBuddy.Data
         {
         }
 
+    /// <summary>
+    /// Diagnostic method to verify data retrieval is working
+    /// </summary>
+    /// <returns>A diagnostic string with information about data retrieval</returns>
+    public string DiagnoseDataRetrieval()
+    {
+        var result = new System.Text.StringBuilder();
+        result.AppendLine($"=== Vehicle Repository Diagnostics: {DateTime.Now} ===");
+
+        try
+        {
+            result.AppendLine("Testing database connection...");
+            using (var connection = CreateConnection())
+            {
+                try
+                {
+                    connection.Open();
+                    result.AppendLine($"✅ Database connection successful: {connection.State}");
+
+                    // Check if we can count vehicles
+                    result.AppendLine("Checking Vehicles table...");
+
+                    // Try to count records
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "SELECT COUNT(*) FROM Vehicles";
+                        var count = Convert.ToInt32(command.ExecuteScalar());
+                        result.AppendLine($"Vehicles table has {count} records");
+
+                        if (count > 0)
+                        {
+                            // Get sample records
+                            command.CommandText = "SELECT TOP 3 Id, VehicleNumber FROM Vehicles";
+                            using (var reader = command.ExecuteReader())
+                            {
+                                int recordCount = 0;
+                                result.AppendLine("Sample vehicle records:");
+
+                                while (reader.Read())
+                                {
+                                    recordCount++;
+                                    var id = reader["Id"];
+                                    var number = reader["VehicleNumber"];
+                                    result.AppendLine($"  ID: {id}, Number: {number}");
+                                }
+
+                                if (recordCount == 0)
+                                {
+                                    result.AppendLine("⚠️ No vehicle records found despite count > 0");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.AppendLine($"❌ Error accessing database: {ex.Message}");
+                    result.AppendLine($"Stack trace: {ex.StackTrace}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            result.AppendLine($"❌ Error creating connection: {ex.Message}");
+            result.AppendLine($"Stack trace: {ex.StackTrace}");
+        }
+
+        return result.ToString();
+    }
+
         public virtual List<Vehicle> GetAllVehicles()
         {
-            // Return sample data when database is not available
             try
             {
                 using (var connection = CreateConnection())
                 {
                     connection.Open();
                     var vehicles = connection.Query<Vehicle>("SELECT * FROM Vehicles").AsList();
+
+                    // Map the database Id column to VehicleID property for consistency
+                    foreach (var vehicle in vehicles)
+                    {
+                        if (vehicle.VehicleID == 0 && vehicle.Id > 0)
+                        {
+                            vehicle.VehicleID = vehicle.Id;
+                        }
+                    }
+
+                    Console.WriteLine($"Retrieved {vehicles.Count} vehicles from database");
                     return vehicles;
                 }
             }

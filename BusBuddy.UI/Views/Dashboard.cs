@@ -14,7 +14,7 @@ using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Layout; // Add reference to our new layout namespace
 using BusBuddy.Data; // Add reference to repository classes
-using BusBuddy.Business; // Add reference to ServiceContainerInstance
+using BusBuddy.Business; // Business service interfaces
 using System.Linq;
 using Syncfusion.Windows.Forms;
 using System.IO; // Add for file logging
@@ -39,26 +39,30 @@ namespace BusBuddy.UI.Views
         /// <summary>
         /// Log messages to both console and file for debugging
         /// </summary>
+        private static readonly object _logLock = new object(); // Thread-safe logging
         private static void LogMessage(string message)
         {
-            try
+            lock (_logLock) // Prevent file locking conflicts
             {
-                Console.WriteLine(message);
-
-                // Ensure log directory exists
-                var logDir = Path.GetDirectoryName(LogFileName);
-                if (!Directory.Exists(logDir))
+                try
                 {
-                    Directory.CreateDirectory(logDir);
-                }
+                    Console.WriteLine(message);
 
-                // Append to log file
-                File.AppendAllText(LogFileName, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} - {message}{Environment.NewLine}");
-            }
-            catch (Exception ex)
-            {
-                // Fallback to console only if file logging fails
-                Console.WriteLine($"[LOG ERROR] {message} (File logging failed: {ex.Message})");
+                    // Ensure log directory exists
+                    var logDir = Path.GetDirectoryName(LogFileName);
+                    if (!Directory.Exists(logDir))
+                    {
+                        Directory.CreateDirectory(logDir);
+                    }
+
+                    // Append to log file
+                    File.AppendAllText(LogFileName, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} - {message}{Environment.NewLine}");
+                }
+                catch (Exception ex)
+                {
+                    // Fallback to console only if file logging fails
+                    Console.WriteLine($"[LOG ERROR] {message} (File logging failed: {ex.Message})");
+                }
             }
         }
 
@@ -146,6 +150,21 @@ namespace BusBuddy.UI.Views
                     // Continue with normal initialization but skip heavy operations
                     // Tests need real controls to validate patterns
                 }
+
+                // CRITICAL FIX: Initialize UnifiedServiceManager early
+                LogMessage("[STEP 2.3] 🔧 Starting UnifiedServiceManager pre-warming...");
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await UnifiedServiceManager.Instance.PreWarmServicesAsync();
+                        LogMessage("[STEP 2.4] ✅ UnifiedServiceManager pre-warmed successfully");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage($"[STEP 2.4] ⚠️ UnifiedServiceManager pre-warming warning: {ex.Message}");
+                    }
+                });
 
                 // Normal mode initialization - add Load event handler for final UI setup
                 this.Load += Dashboard_Load;
@@ -1174,15 +1193,33 @@ namespace BusBuddy.UI.Views
 
                 // Dispose data grids
                 LogMessage("[DISPOSE.2] Disposing SfDataGrid controls...");
-                if (_vehiclesGrid != null && !_vehiclesGrid.IsDisposed)
+                try
                 {
-                    _vehiclesGrid.Dispose();
+                    if (_vehiclesGrid != null && !_vehiclesGrid.IsDisposed)
+                    {
+                        _vehiclesGrid.DataSource = null; // Clear data source first
+                        _vehiclesGrid.Dispose();
+                        _vehiclesGrid = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMessage($"[DISPOSE.2] Warning: VehiclesGrid disposal error: {ex.Message}");
                     _vehiclesGrid = null;
                 }
 
-                if (_routesGrid != null && !_routesGrid.IsDisposed)
+                try
                 {
-                    _routesGrid.Dispose();
+                    if (_routesGrid != null && !_routesGrid.IsDisposed)
+                    {
+                        _routesGrid.DataSource = null; // Clear data source first
+                        _routesGrid.Dispose();
+                        _routesGrid = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMessage($"[DISPOSE.2] Warning: RoutesGrid disposal error: {ex.Message}");
                     _routesGrid = null;
                 }
 
@@ -1777,7 +1814,7 @@ namespace BusBuddy.UI.Views
                     AllowSorting = true,
                     AllowFiltering = true,
                     AllowEditing = false,
-                    ShowGroupDropArea = true,
+                    ShowGroupDropArea = false, // CRITICAL FIX: Disable to prevent GroupPanel null ref
                     NavigationMode = Syncfusion.WinForms.DataGrid.Enums.NavigationMode.Row
                 };
 
@@ -1844,7 +1881,7 @@ namespace BusBuddy.UI.Views
                     AllowSorting = true,
                     AllowFiltering = true,
                     AllowEditing = false,
-                    ShowGroupDropArea = true,
+                    ShowGroupDropArea = false, // CRITICAL FIX: Disable to prevent GroupPanel null ref
                     NavigationMode = Syncfusion.WinForms.DataGrid.Enums.NavigationMode.Row
                 };
 
@@ -2210,8 +2247,8 @@ namespace BusBuddy.UI.Views
                 string selectedTag = e.Node.Tag.ToString();
                 LogMessage($"    [NAV.SELECT] Navigation selected: {selectedTag}");
 
-                // Use ServiceContainerInstance for proper dependency injection
-                var serviceContainer = ServiceContainerInstance.Instance;
+                // Use UnifiedServiceManager for proper dependency injection (ONLY service container)
+                var serviceContainer = UnifiedServiceManager.Instance;
 
                 // Handle management forms with proper dependency injection
                 switch (selectedTag)
@@ -2768,34 +2805,27 @@ namespace BusBuddy.UI.Views
         }
 
         /// <summary>
-        /// Create main content panel with Fill docking following Syncfusion documentation
+        /// Create main content panel with proper docking following Syncfusion documentation
+        /// FIXED: Don't use DockingStyle.Fill with host control - use standard Panel docking instead
         /// </summary>
         private void CreateMainContentPanelWithFillDocking()
         {
             try
             {
-                LogMessage("    [CONTENT.1] Creating main content panel with Fill docking...");
+                LogMessage("    [CONTENT.1] Creating main content panel with standard Fill docking...");
 
                 _contentPanel = new Panel
                 {
                     Name = "MainContentPanel",
                     BackColor = Color.FromArgb(60, 60, 65),
-                    Visible = true
+                    Visible = true,
+                    Dock = DockStyle.Fill  // Use standard WinForms docking for main content
                 };
 
-                // Use DockingManager to dock the content panel with Fill style
-                if (_dockingManager != null)
-                {
-                    _dockingManager.DockControl(_contentPanel, this, DockingStyle.Fill, 0);
-                    LogMessage("    [CONTENT.2] ✅ Main content panel docked with Fill style");
-                }
-                else
-                {
-                    // Fallback if DockingManager failed
-                    _contentPanel.Dock = DockStyle.Fill;
-                    this.Controls.Add(_contentPanel);
-                    LogMessage("    [CONTENT.2] ⚠️ Main content panel added directly (DockingManager unavailable)");
-                }
+                // Don't use DockingManager for the main content panel - it's the host container
+                // DockingManager is for docking child panels within the main content area
+                this.Controls.Add(_contentPanel);
+                LogMessage("    [CONTENT.2] ✅ Main content panel added with standard Fill docking");
 
                 _contentPanel.Show();
                 _contentPanel.BringToFront();
@@ -3000,7 +3030,7 @@ namespace BusBuddy.UI.Views
                         AllowSorting = true,
                         AllowFiltering = true,
                         AllowEditing = false,
-                        ShowGroupDropArea = true,
+                        ShowGroupDropArea = false, // CRITICAL FIX: Disable to prevent GroupPanel null ref
                         NavigationMode = Syncfusion.WinForms.DataGrid.Enums.NavigationMode.Row
                     };
 

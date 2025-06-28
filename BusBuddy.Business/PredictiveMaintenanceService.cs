@@ -37,17 +37,20 @@ namespace BusBuddy.Business
         {
             if (vehicleId <= 0)
                 throw new ArgumentException($"Invalid vehicle ID: {vehicleId}");
-            return await Task.Run(() =>
+
+            try
             {
-                var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-                if (vehicle == null)
-                    throw new ArgumentException($"Vehicle with ID {vehicleId} not found");
+                return await Task.Run(() =>
+                {
+                    var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
+                    if (vehicle == null)
+                        throw new ArgumentException($"Vehicle with ID {vehicleId} not found");
 
-                var predictions = new List<MaintenancePrediction>();
-                var maintenanceHistory = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
-                var currentMileage = GetCurrentMileage(vehicleId);
+                    var predictions = new List<MaintenancePrediction>();
+                    var maintenanceHistory = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
+                    var currentMileage = GetCurrentMileage(vehicleId);
 
-                // Oil Change Prediction
+                    // Oil Change Prediction
                 var lastOilChange = GetLastMaintenanceOfType(maintenanceHistory, "Oil Change");
                 var oilChangePrediction = PredictOilChange(vehicleId, lastOilChange, currentMileage);
                 if (oilChangePrediction != null)
@@ -76,7 +79,13 @@ namespace BusBuddy.Business
                     predictions.Add(enginePrediction);
 
                 return predictions.OrderBy(p => p.PredictedDate).ToList();
-            });
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error getting maintenance predictions for vehicle {vehicleId}: {ex.Message}");
+                throw new ApplicationException($"Failed to get maintenance predictions: {ex.Message}", ex);
+            }
         }
 
         /// <summary>

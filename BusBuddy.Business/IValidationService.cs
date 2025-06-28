@@ -23,10 +23,12 @@ namespace BusBuddy.Business
         bool IsValidPhoneNumber(string phoneNumber);
         bool IsStrongPassword(string password);
         bool IsValidZipCode(string zipCode);
-        List<string> ValidateVehicle(Vehicle vehicle);
-        List<string> ValidateDriver(Driver driver);
-        List<string> ValidateRoute(Route route);
-        List<string> ValidateMaintenance(Maintenance maintenance);
-        List<string> ValidateFuelRecord(Fuel fuelRecord);
+        ValidationResult ValidateVehicle(Vehicle vehicle);
+        ValidationResult ValidateDriver(Driver driver);
+        ValidationResult ValidateRoute(Route route);
+        ValidationResult ValidateMaintenance(Maintenance maintenance);
+        ValidationResult ValidateFuelRecord(Fuel fuelRecord);
+        ValidationResult ValidateVehicleAvailability(int vehicleId, DateTime date, string assignmentType = "general", int? currentRouteId = null);
+        ValidationResult ValidateDriverAvailability(int driverId, DateTime date, string assignmentType = "general", int? currentRouteId = null);
     }
 }

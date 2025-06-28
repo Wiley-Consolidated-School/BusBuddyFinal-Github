@@ -172,13 +172,13 @@
 			}
 		},
 		{
-			"label": "Discover Tests",
+			"label": "Discover Tests (Detailed)",
 			"type": "shell",
 			"command": "dotnet",
 			"args": [
 				"test",
 				"--list-tests",
-				"--logger:console;verbosity=normal"
+				"--verbosity", "normal"
 			],
 			"group": "test",
 			"presentation": {

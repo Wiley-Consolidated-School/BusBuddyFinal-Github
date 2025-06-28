@@ -37,17 +37,19 @@ namespace BusBuddy.Business
         /// </summary>
         public RouteEfficiencyMetrics? CalculateRouteEfficiency(Route? route)
         {
-            // Return null for null routes
-            if (route == null)
-                return null;
+            try
+            {
+                // Return null for null routes
+                if (route == null)
+                    return null;
 
-            // Return null for routes with no meaningful data
-            if (route.RouteID <= 0 &&
-                string.IsNullOrWhiteSpace(route.RouteName) &&
-                !route.AMVehicleID.HasValue &&
-                !route.PMVehicleID.HasValue &&
-                !route.AMDriverID.HasValue &&
-                !route.PMDriverID.HasValue &&
+                // Return null for routes with no meaningful data
+                if (route.RouteID <= 0 &&
+                    string.IsNullOrWhiteSpace(route.RouteName) &&
+                    !route.AMVehicleID.HasValue &&
+                    !route.PMVehicleID.HasValue &&
+                    !route.AMDriverID.HasValue &&
+                    !route.PMDriverID.HasValue &&
                 (!route.AMBeginMiles.HasValue || !route.AMEndMiles.HasValue) &&
                 (!route.PMBeginMiles.HasValue || !route.PMEndMiles.HasValue))
             {
@@ -88,6 +90,12 @@ namespace BusBuddy.Business
             metrics.EstimatedFuelCost = CalculateEstimatedFuelCost(metrics.TotalMiles);
 
             return metrics;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error calculating route efficiency for route {route?.RouteID}: {ex.Message}");
+                throw new ApplicationException($"Failed to calculate route efficiency: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
