@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using BusBuddy.Business;
+using BusBuddy.Data;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Views;
-using BusBuddy.Data;
-using BusBuddy.Business;
 
 namespace BusBuddy.UI.Services
 {
@@ -34,7 +34,7 @@ namespace BusBuddy.UI.Services
 
                 // Get services from DI container
                 var routeAnalyticsService = await _serviceManager.GetServiceAsync<IRouteAnalyticsService>();
-                var vehicleRepository = await _serviceManager.GetServiceAsync<IVehicleRepository>();
+                var busService = await _serviceManager.GetServiceAsync<IBusService>();
                 var routeRepository = await _serviceManager.GetServiceAsync<IRouteRepository>();
                 var driverRepository = await _serviceManager.GetServiceAsync<IDriverRepository>();
                 var activityRepository = await _serviceManager.GetServiceAsync<IActivityRepository>();
@@ -43,7 +43,7 @@ namespace BusBuddy.UI.Services
                 // Create ViewModel with injected dependencies
                 var viewModel = new DashboardViewModel(
                     routeAnalyticsService,
-                    vehicleRepository,
+                    busService,
                     routeRepository,
                     driverRepository,
                     activityRepository,

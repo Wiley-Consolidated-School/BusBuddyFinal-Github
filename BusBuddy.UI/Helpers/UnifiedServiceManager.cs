@@ -1,15 +1,15 @@
-using Microsoft.Extensions.DependencyInjection;
-using BusBuddy.UI.Services;
-using BusBuddy.Business;
-using BusBuddy.Data;
 using System;
-using System.Threading.Tasks;
 using System.Configuration;
-using Microsoft.EntityFrameworkCore;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
+using BusBuddy.Business;
+using BusBuddy.Data;
+using BusBuddy.UI.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.SqlServer; // This provides EnableRetryOnFailure
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BusBuddy.UI.Helpers
 {
@@ -150,9 +150,23 @@ namespace BusBuddy.UI.Helpers
                 {
                     // 🚀 CONNECTION POOLING for better performance
                     sqlServerOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+                    sqlServerOptions.CommandTimeout(60); // Extended timeout to prevent OperationCanceledException
                 });
+
+                // 🔍 Enhanced logging for debugging exceptions
                 options.EnableSensitiveDataLogging(false);
+                options.EnableDetailedErrors(true); // Better error messages for ApplicationException debugging
                 options.EnableServiceProviderCaching(true);
+
+                // 📊 Add logging to help diagnose data loading issues
+                options.LogTo(message =>
+                {
+                    if (message.Contains("error", StringComparison.OrdinalIgnoreCase) ||
+                        message.Contains("exception", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine($"🔍 EF Core: {message}");
+                    }
+                }, Microsoft.Extensions.Logging.LogLevel.Warning);
             }, ServiceLifetime.Scoped);
         }
 
@@ -197,6 +211,9 @@ namespace BusBuddy.UI.Helpers
             services.AddScoped<BusBuddy.Business.IPredictiveMaintenanceService, BusBuddy.Business.PredictiveMaintenanceService>();
             services.AddScoped<BusBuddy.Business.IVehicleService, BusBuddy.Business.VehicleService>();
             services.AddScoped<BusBuddy.Business.IValidationService, BusBuddy.Business.ValidationService>();
+
+            // Register BusService for accessing vehicle data as buses
+            services.AddScoped<BusBuddy.Business.IBusService, BusBuddy.Business.BusService>();
         }
 
         private void RegisterDataServices(ServiceCollection services)

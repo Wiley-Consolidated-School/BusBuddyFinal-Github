@@ -19,7 +19,7 @@ namespace BusBuddy.UI.Views
     {
         // Services and repositories
         private readonly IRouteAnalyticsService _routeAnalyticsService;
-        private readonly IVehicleRepository _vehicleRepository;
+        private readonly IBusService _busService;
         private readonly IRouteRepository _routeRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IActivityRepository _activityRepository;
@@ -49,7 +49,7 @@ namespace BusBuddy.UI.Views
         /// </summary>
         public DashboardViewModel(
             IRouteAnalyticsService? routeAnalyticsService = null,
-            IVehicleRepository? vehicleRepository = null,
+            IBusService? busService = null,
             IRouteRepository? routeRepository = null,
             IDriverRepository? driverRepository = null,
             IActivityRepository? activityRepository = null,
@@ -57,7 +57,7 @@ namespace BusBuddy.UI.Views
         {
             // Initialize services with sensible defaults if not provided
             _routeAnalyticsService = routeAnalyticsService ?? new RouteAnalyticsService();
-            _vehicleRepository = vehicleRepository ?? new VehicleRepository();
+            _busService = busService ?? new BusService();
             _routeRepository = routeRepository ?? new RouteRepository();
             _driverRepository = driverRepository ?? new DriverRepository();
             _activityRepository = activityRepository ?? new ActivityRepository();
@@ -311,31 +311,31 @@ namespace BusBuddy.UI.Views
                 DateTime endDate = DateTime.Today;
                 DateTime startDate = endDate.AddDays(-7);
 
-                // Load vehicles from repository
+                // Load vehicles from bus service
                 try
                 {
-                    var allVehicles = _vehicleRepository.GetAllVehicles();
-                    foreach (var vehicle in allVehicles)
+                    var allBuses = await _busService.GetAllBusesAsync();
+                    foreach (var bus in allBuses)
                     {
                         vehicles.Add(new VehicleData
                         {
-                            VehicleId = vehicle.VehicleID,
-                            VehicleNumber = vehicle.VehicleNumber ?? "",
-                            Make = vehicle.Make ?? "",
-                            Model = vehicle.Model ?? "",
-                            Year = vehicle.Year,
-                            Status = vehicle.Status ?? "Unknown",
-                            MaintenanceStatus = "Unknown", // Not in the Vehicle model
-                            Mileage = 0 // Not in the Vehicle model, would need to be tracked separately
+                            VehicleId = bus.Id,
+                            VehicleNumber = bus.VehicleNumber ?? "",
+                            Make = bus.Make ?? "",
+                            Model = bus.Model ?? "",
+                            Year = bus.Year,
+                            Status = bus.Status ?? "Unknown",
+                            MaintenanceStatus = "Unknown", // Not in the Bus model
+                            Mileage = 0 // Not in the Bus model, would need to be tracked separately
                         });
                     }
                     VehicleData = vehicles;
-                    Console.WriteLine($"✅ Loaded {vehicles.Count} vehicles from repository");
+                    Console.WriteLine($"✅ Loaded {vehicles.Count} buses from BusService");
                 }
                 catch (Exception ex)
                 {
-                    _errorHandler.HandleException(ex, "Loading vehicles");
-                    Console.WriteLine($"❌ Failed to load vehicles: {ex.Message}");
+                    _errorHandler.HandleException(ex, "Loading buses");
+                    Console.WriteLine($"❌ Failed to load buses: {ex.Message}");
                 }
 
                 // Load routes from repository (from last 7 days)

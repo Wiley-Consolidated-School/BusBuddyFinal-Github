@@ -1,23 +1,23 @@
 using System;
+using System.Collections.Generic; // Add for List<object>
 using System.ComponentModel;
 using System.Drawing;
-using System.Windows.Forms;
+using System.IO; // Add for file logging
+using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic; // Add for List<object>
-using Syncfusion.WinForms.Controls;
-using Syncfusion.WinForms.DataGrid;
-using Syncfusion.Windows.Forms.Tools;
-using Syncfusion.Windows.Forms.Chart;
-using Syncfusion.Windows.Forms.Gauge;
-using Syncfusion.Windows.Forms.Maps;
+using System.Windows.Forms;
+using BusBuddy.Business; // Business service interfaces
+using BusBuddy.Data; // Add reference to repository classes
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Layout; // Add reference to our new layout namespace
-using BusBuddy.Data; // Add reference to repository classes
-using BusBuddy.Business; // Business service interfaces
-using System.Linq;
 using Syncfusion.Windows.Forms;
-using System.IO; // Add for file logging
+using Syncfusion.Windows.Forms.Chart;
+using Syncfusion.Windows.Forms.Gauge;
+using Syncfusion.Windows.Forms.Maps;
+using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.WinForms.Controls;
+using Syncfusion.WinForms.DataGrid;
 
 namespace BusBuddy.UI.Views
 {
@@ -341,6 +341,21 @@ namespace BusBuddy.UI.Views
             {
                 Console.WriteLine("⚠️ Dashboard initialization was canceled (expected during shutdown)");
                 // This is normal during app shutdown - no need to show an error
+                // Ensure UI is in a safe state
+                try
+                {
+                    if (!this.IsDisposed)
+                    {
+                        BusBuddy.UI.Helpers.DashboardInitializationFix.SafeInvokeOnUI(this, () =>
+                        {
+                            HideLoadingIndicator();
+                        });
+                    }
+                }
+                catch
+                {
+                    // Ignore errors during cleanup after cancellation
+                }
             }
             catch (Exception ex)
             {
@@ -889,7 +904,8 @@ namespace BusBuddy.UI.Views
 
                     var metricLabel = new Label
                     {
-                        Text = i switch {
+                        Text = i switch
+                        {
                             0 => "Active Buses",
                             1 => "Total Routes",
                             _ => "Maintenance Alerts"
@@ -905,7 +921,8 @@ namespace BusBuddy.UI.Views
 
                     var metricValue = new Label
                     {
-                        Text = i switch {
+                        Text = i switch
+                        {
                             0 => "18/25",
                             1 => "12",
                             _ => "3"
@@ -1081,7 +1098,8 @@ namespace BusBuddy.UI.Views
 
                 // Add sample vehicle data to make grids visible
                 LogMessage("[PRE_INIT] Adding sample vehicle data...");
-                _cachedVehicleData.Add(new {
+                _cachedVehicleData.Add(new
+                {
                     ID = 1,
                     VehicleNumber = "BUS-001",
                     Model = "School Bus",
@@ -1090,7 +1108,8 @@ namespace BusBuddy.UI.Views
                     FuelLevel = "85%",
                     LastMaintenance = "2024-06-01"
                 });
-                _cachedVehicleData.Add(new {
+                _cachedVehicleData.Add(new
+                {
                     ID = 2,
                     VehicleNumber = "BUS-002",
                     Model = "Transit Bus",
@@ -1099,7 +1118,8 @@ namespace BusBuddy.UI.Views
                     FuelLevel = "72%",
                     LastMaintenance = "2024-05-28"
                 });
-                _cachedVehicleData.Add(new {
+                _cachedVehicleData.Add(new
+                {
                     ID = 3,
                     VehicleNumber = "BUS-003",
                     Model = "School Bus",
@@ -1111,7 +1131,8 @@ namespace BusBuddy.UI.Views
 
                 // Add sample route data
                 LogMessage("[PRE_INIT] Adding sample route data...");
-                _cachedRouteData.Add(new {
+                _cachedRouteData.Add(new
+                {
                     ID = 1,
                     RouteName = "Route A",
                     Distance = "12.5 miles",
@@ -1120,7 +1141,8 @@ namespace BusBuddy.UI.Views
                     AssignedVehicle = "BUS-001",
                     StudentsCount = 28
                 });
-                _cachedRouteData.Add(new {
+                _cachedRouteData.Add(new
+                {
                     ID = 2,
                     RouteName = "Route B",
                     Distance = "8.2 miles",
@@ -1129,7 +1151,8 @@ namespace BusBuddy.UI.Views
                     AssignedVehicle = "BUS-002",
                     StudentsCount = 22
                 });
-                _cachedRouteData.Add(new {
+                _cachedRouteData.Add(new
+                {
                     ID = 3,
                     RouteName = "Route C",
                     Distance = "15.3 miles",
@@ -1363,7 +1386,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.5] Initializing MaterialDark theme...");
                 InitializeMaterialDarkTheme();
 
-                if (token.IsCancellationRequested) {
+                if (token.IsCancellationRequested)
+                {
                     LogMessage("  [7.6] Cancelled after theme initialization");
                     this.ResumeLayout(false);
                     return;
@@ -1373,7 +1397,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.7] Initializing DockingManager for Fill layout...");
                 InitializeDockingManagerForFillLayout();
 
-                if (token.IsCancellationRequested) {
+                if (token.IsCancellationRequested)
+                {
                     LogMessage("  [7.8] Cancelled after DockingManager initialization");
                     this.ResumeLayout(false);
                     return;
@@ -1383,7 +1408,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.9] Creating left TreeView navigation (200px)...");
                 CreateLeftNavigationTreeView();
 
-                if (token.IsCancellationRequested) {
+                if (token.IsCancellationRequested)
+                {
                     LogMessage("  [7.10] Cancelled after left TreeView creation");
                     this.ResumeLayout(false);
                     return;
@@ -1393,7 +1419,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.11] Creating main content panel with Fill docking...");
                 CreateMainContentPanelWithFillDocking();
 
-                if (token.IsCancellationRequested) {
+                if (token.IsCancellationRequested)
+                {
                     LogMessage("  [7.12] Cancelled after main content panel creation");
                     this.ResumeLayout(false);
                     return;
@@ -1403,7 +1430,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.13] Creating top TabControl with Map, Statistics, Analytics tabs...");
                 CreateTopTabControlWithSpecializedTabs();
 
-                if (token.IsCancellationRequested) {
+                if (token.IsCancellationRequested)
+                {
                     LogMessage("  [7.14] Cancelled after TabControl creation");
                     this.ResumeLayout(false);
                     return;
@@ -1413,7 +1441,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.15] Configuring MapControl with sample school routes...");
                 ConfigureMapControlWithSchoolRoutes();
 
-                if (token.IsCancellationRequested) {
+                if (token.IsCancellationRequested)
+                {
                     LogMessage("  [7.16] Cancelled after MapControl configuration");
                     this.ResumeLayout(false);
                     return;
@@ -1423,7 +1452,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.17] Configuring ChartControl for fuel statistics...");
                 ConfigureChartControlForFuelStats();
 
-                if (token.IsCancellationRequested) {
+                if (token.IsCancellationRequested)
+                {
                     LogMessage("  [7.18] Cancelled after ChartControl configuration");
                     this.ResumeLayout(false);
                     return;
@@ -1433,7 +1463,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.19] Configuring SfDataGrid for analytics data...");
                 ConfigureSfDataGridForAnalytics();
 
-                if (token.IsCancellationRequested) {
+                if (token.IsCancellationRequested)
+                {
                     LogMessage("  [7.20] Cancelled after SfDataGrid configuration");
                     this.ResumeLayout(false);
                     return;
@@ -2056,7 +2087,8 @@ namespace BusBuddy.UI.Views
                 LogMessage("    [7.16.26] Checking for cached data to bind...");
 
                 // Use BeginInvoke to ensure data binding happens on UI thread after control is fully initialized
-                this.BeginInvoke(new System.Action(() => {
+                this.BeginInvoke(new System.Action(() =>
+                {
                     try
                     {
                         if (_cachedVehicleData != null && _cachedVehicleData.Count > 0 && _vehiclesGrid != null)
@@ -2284,16 +2316,27 @@ namespace BusBuddy.UI.Views
                         break;
 
                     case "vehicles":
-                        var vehicleRepo = serviceContainer.GetService<IVehicleRepository>();
-                        if (vehicleRepo != null)
+                        var busService = serviceContainer.GetService<IBusService>();
+                        if (busService != null)
                         {
-                            var vehicleForm = new VehicleManagementForm(vehicleRepo);
-                            vehicleForm.ShowDialog();
+                            // For now, still use VehicleManagementForm but will update it to use BusService
+                            var vehicleRepo = serviceContainer.GetService<IVehicleRepository>();
+                            if (vehicleRepo != null)
+                            {
+                                var vehicleForm = new VehicleManagementForm(vehicleRepo);
+                                vehicleForm.ShowDialog();
+                            }
+                            else
+                            {
+                                LogMessage($"    [NAV.ERROR] Failed to resolve IVehicleRepository");
+                                MessageBox.Show("Unable to load Vehicle Management. Repository service unavailable.",
+                                              "Service Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
                         }
                         else
                         {
-                            LogMessage($"    [NAV.ERROR] Failed to resolve IVehicleRepository");
-                            MessageBox.Show("Unable to load Vehicle Management. Repository service unavailable.",
+                            LogMessage($"    [NAV.ERROR] Failed to resolve IBusService");
+                            MessageBox.Show("Unable to load Vehicle Management. Bus service unavailable.",
                                           "Service Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
                         break;
