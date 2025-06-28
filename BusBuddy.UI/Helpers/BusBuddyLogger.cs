@@ -78,3 +78,4 @@ namespace BusBuddy.UI.Helpers
         public static void DataRefresh(string message) => Info("DataRefresh", message);
     }
 }
+

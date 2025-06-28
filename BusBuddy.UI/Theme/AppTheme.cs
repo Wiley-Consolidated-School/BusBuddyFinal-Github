@@ -285,3 +285,4 @@ namespace BusBuddy.UI.Theme
         // These methods are deprecated and no longer used
     }
 }
+

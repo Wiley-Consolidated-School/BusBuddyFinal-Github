@@ -11,9 +11,9 @@ namespace BusBuddy.Business
     public interface IPredictiveMaintenanceService
     {
         /// <summary>
-        /// Get maintenance predictions for a specific vehicle
+        /// Get maintenance predictions for a specific bus
         /// </summary>
-        Task<List<MaintenancePrediction>> GetMaintenancePredictionsAsync(int vehicleId);
+        Task<List<MaintenancePrediction>> GetMaintenancePredictionsAsync(int busId);
 
         /// <summary>
         /// Get fleet-wide maintenance schedule recommendations
@@ -21,14 +21,14 @@ namespace BusBuddy.Business
         Task<List<MaintenanceRecommendation>> GetFleetMaintenanceScheduleAsync(DateTime startDate, DateTime endDate);
 
         /// <summary>
-        /// Calculate vehicle health score based on maintenance history and usage
+        /// Calculate bus health score based on maintenance history and usage
         /// </summary>
-        Task<VehicleHealthScore> CalculateVehicleHealthScoreAsync(int vehicleId);
+        Task<BusHealthScore> CalculateBusHealthScoreAsync(int busId);
 
         /// <summary>
         /// Analyze maintenance cost trends
         /// </summary>
-        Task<MaintenanceCostAnalysis> AnalyzeMaintenanceCostsAsync(int vehicleId, DateTime startDate, DateTime endDate);
+        Task<MaintenanceCostAnalysis> AnalyzeMaintenanceCostsAsync(int BusId, DateTime startDate, DateTime endDate);
 
         /// <summary>
         /// Get priority maintenance alerts
@@ -36,3 +36,4 @@ namespace BusBuddy.Business
         Task<List<MaintenanceAlert>> GetMaintenanceAlertsAsync();
     }
 }
+

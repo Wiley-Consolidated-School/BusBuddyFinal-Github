@@ -21,3 +21,4 @@ namespace BusBuddy.UI.Services
         object GetService(Type serviceType);
     }
 }
+

@@ -11,7 +11,7 @@ namespace BusBuddy.UI.Views
 {
     public partial class FuelFormSyncfusion : SyncfusionBaseForm
     {
-        private ComboBoxAdv _vehicleComboBox;
+        private ComboBoxAdv _busComboBox;
         private SfDateTimeEdit _fillupDatePicker;
         private SfNumericTextBox _gallonsNumericTextBox;
         private SfNumericTextBox _costNumericTextBox;
@@ -51,7 +51,7 @@ namespace BusBuddy.UI.Views
 
         private void CreateControls()
         {
-            var vehicleLabel = new Label { Text = "Vehicle:", Location = new Point(20, 25), Size = new Size(100, 20) };
+            var vehicleLabel = new Label { Text = "Bus:", Location = new Point(20, 25), Size = new Size(100, 20) };
             var fillupDateLabel = new Label { Text = "Fillup Date:", Location = new Point(300, 25), Size = new Size(100, 20) };
             var gallonsLabel = new Label { Text = "Gallons:", Location = new Point(20, 95), Size = new Size(100, 20) };
             var costLabel = new Label { Text = "Total Cost:", Location = new Point(300, 95), Size = new Size(100, 20) };
@@ -65,7 +65,7 @@ namespace BusBuddy.UI.Views
                 odometerLabel, fuelTypeLabel, locationLabel, notesLabel
             });
 
-            _vehicleComboBox = new ComboBoxAdv
+            _busComboBox = new ComboBoxAdv
             {
                 Location = new Point(20, 50),
                 Size = new Size(250, 25)
@@ -120,7 +120,7 @@ namespace BusBuddy.UI.Views
             };
 
             _mainPanel.Controls.AddRange(new Control[] {
-                _vehicleComboBox, _fillupDatePicker, _gallonsNumericTextBox, _costNumericTextBox,
+                _busComboBox, _fillupDatePicker, _gallonsNumericTextBox, _costNumericTextBox,
                 _odometerNumericTextBox, _fuelTypeComboBox, _locationTextBox, _notesTextBox
             });
         }
@@ -159,7 +159,7 @@ namespace BusBuddy.UI.Views
 
         private void PopulateFields(Fuel fuel)
         {
-            _vehicleComboBox.Text = fuel.VehicleFueledID?.ToString() ?? "";
+            _busComboBox.Text = fuel.VehicleFueledID?.ToString() ?? "";
             _fillupDatePicker.Value = fuel.FuelDateAsDateTime ?? DateTime.Now;
             _gallonsNumericTextBox.Value = (double?)(fuel.FuelAmount ?? 0);
             _costNumericTextBox.Value = (double?)(fuel.FuelCost ?? 0);
@@ -174,8 +174,8 @@ namespace BusBuddy.UI.Views
             try
             {
                 // Parse VehicleFueledID from combo box text if it's numeric
-                if (int.TryParse(_vehicleComboBox.Text, out int vehicleId))
-                    Fuel.VehicleFueledID = vehicleId;
+                if (int.TryParse(_busComboBox.Text, out int BusId))
+                    Fuel.VehicleFueledID = BusId;
                 Fuel.FuelDateAsDateTime = _fillupDatePicker.Value;
                 Fuel.FuelAmount = (decimal?)_gallonsNumericTextBox.Value;
                 Fuel.FuelCost = (decimal?)_costNumericTextBox.Value;
@@ -200,3 +200,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

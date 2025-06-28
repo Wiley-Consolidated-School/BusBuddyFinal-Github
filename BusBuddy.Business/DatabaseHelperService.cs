@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using BusBuddy.Data;
 using BusBuddy.Models;
 using Dapper;
-using BusBuddy.Data;
 
 namespace BusBuddy.Business
 {
@@ -14,7 +14,7 @@ namespace BusBuddy.Business
     /// </summary>
     public class DatabaseHelperService : IDatabaseHelperService
     {
-        private readonly IVehicleRepository _vehicleRepository;
+        private readonly IBusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IRouteRepository _routeRepository;
         private readonly IActivityRepository _activityRepository;
@@ -24,11 +24,11 @@ namespace BusBuddy.Business
         private readonly IActivityScheduleRepository _activityScheduleRepository;
 
         /// <summary>
-        /// 🔧 DEPENDENCY INJECTION CONSTRUCTOR - No more direct instantiation
+        /// 🔧 DEPENDENCY INJECTION CONSTRUCTOR - Updated to use IBusRepository interface
         /// All repositories are injected via DI container
         /// </summary>
         public DatabaseHelperService(
-            IVehicleRepository vehicleRepository,
+            IBusRepository busRepository,
             IDriverRepository driverRepository,
             IRouteRepository routeRepository,
             IActivityRepository activityRepository,
@@ -37,7 +37,7 @@ namespace BusBuddy.Business
             ISchoolCalendarRepository schoolCalendarRepository,
             IActivityScheduleRepository activityScheduleRepository)
         {
-            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
+            _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
             _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
             _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
             _activityRepository = activityRepository ?? throw new ArgumentNullException(nameof(activityRepository));
@@ -47,44 +47,44 @@ namespace BusBuddy.Business
             _activityScheduleRepository = activityScheduleRepository ?? throw new ArgumentNullException(nameof(activityScheduleRepository));
         }
 
-        public Route GetRouteWithDetails(int routeId)
+        public Route GetRouteWithDetails(int RouteId)
         {
             // Add comprehensive error logging
-            Console.WriteLine($"GetRouteWithDetails called with routeId: {routeId}");
+            Console.WriteLine($"GetRouteWithDetails called with RouteId: {RouteId}");
 
             try
             {
-                var route = _routeRepository.GetRouteById(routeId);
+                var route = _routeRepository.GetRouteById(RouteId);
 
                 if (route == null)
                 {
-                    Console.WriteLine($"ERROR: Route with ID {routeId} not found in repository");
+                    Console.WriteLine($"ERROR: Route with ID {RouteId} not found in repository");
                     return null;
                 }
 
-                Console.WriteLine($"Route found: {route.RouteID}, {route.RouteName}");
+                Console.WriteLine($"Route found: {route.RouteId}, {route.RouteName}");
 
                 // Load AM Vehicle details
-                if (route.AMVehicleID.HasValue)
+                if (route.AMBusId.HasValue)
                 {
-                    route.AMVehicle = _vehicleRepository.GetVehicleById(route.AMVehicleID.Value);
-                    if (route.AMVehicle == null)
+                    route.AMBus = _busRepository.GetBusById(route.AMBusId.Value);
+                    if (route.AMBus == null)
                     {
-                        Console.WriteLine($"WARNING: AM Vehicle with ID {route.AMVehicleID.Value} not found");
+                        Console.WriteLine($"WARNING: AM Vehicle with ID {route.AMBusId.Value} not found");
                     }
                     else
                     {
-                        Console.WriteLine($"AM Vehicle loaded: {route.AMVehicle.VehicleNumber}");
+                        Console.WriteLine($"AM Vehicle loaded: {route.AMBus.BusNumber}");
                     }
                 }
 
                 // Load AM Driver details
-                if (route.AMDriverID.HasValue)
+                if (route.AMDriverId.HasValue)
                 {
-                    route.AMDriver = _driverRepository.GetDriverById(route.AMDriverID.Value);
+                    route.AMDriver = _driverRepository.GetDriverById(route.AMDriverId.Value);
                     if (route.AMDriver == null)
                     {
-                        Console.WriteLine($"WARNING: AM Driver with ID {route.AMDriverID.Value} not found");
+                        Console.WriteLine($"WARNING: AM Driver with ID {route.AMDriverId.Value} not found");
                     }
                     else
                     {
@@ -92,27 +92,27 @@ namespace BusBuddy.Business
                     }
                 }
 
-                // Load PM Vehicle details
-                if (route.PMVehicleID.HasValue)
+                // Load PM Bus details
+                if (route.PMBusId.HasValue)
                 {
-                    route.PMVehicle = _vehicleRepository.GetVehicleById(route.PMVehicleID.Value);
-                    if (route.PMVehicle == null)
+                    route.PMBus = _busRepository.GetBusById(route.PMBusId.Value);
+                    if (route.PMBus == null)
                     {
-                        Console.WriteLine($"WARNING: PM Vehicle with ID {route.PMVehicleID.Value} not found");
+                        Console.WriteLine($"WARNING: PM Bus with ID {route.PMBusId.Value} not found");
                     }
                     else
                     {
-                        Console.WriteLine($"PM Vehicle loaded: {route.PMVehicle.VehicleNumber}");
+                        Console.WriteLine($"PM Bus loaded: {route.PMBus.BusNumber}");
                     }
                 }
 
                 // Load PM Driver details
-                if (route.PMDriverID.HasValue)
+                if (route.PMDriverId.HasValue)
                 {
-                    route.PMDriver = _driverRepository.GetDriverById(route.PMDriverID.Value);
+                    route.PMDriver = _driverRepository.GetDriverById(route.PMDriverId.Value);
                     if (route.PMDriver == null)
                     {
-                        Console.WriteLine($"WARNING: PM Driver with ID {route.PMDriverID.Value} not found");
+                        Console.WriteLine($"WARNING: PM Driver with ID {route.PMDriverId.Value} not found");
                     }
                     else
                     {
@@ -137,24 +137,24 @@ namespace BusBuddy.Business
 
             foreach (var route in routes)
             {
-                if (route.AMVehicleID.HasValue)
+                if (route.AMBusId.HasValue)
                 {
-                    route.AMVehicle = _vehicleRepository.GetVehicleById(route.AMVehicleID.Value);
+                    route.AMBus = _busRepository.GetBusById(route.AMBusId.Value);
                 }
 
-                if (route.AMDriverID.HasValue)
+                if (route.AMDriverId.HasValue)
                 {
-                    route.AMDriver = _driverRepository.GetDriverById(route.AMDriverID.Value);
+                    route.AMDriver = _driverRepository.GetDriverById(route.AMDriverId.Value);
                 }
 
-                if (route.PMVehicleID.HasValue)
+                if (route.PMBusId.HasValue)
                 {
-                    route.PMVehicle = _vehicleRepository.GetVehicleById(route.PMVehicleID.Value);
+                    route.PMBus = _busRepository.GetBusById(route.PMBusId.Value);
                 }
 
-                if (route.PMDriverID.HasValue)
+                if (route.PMDriverId.HasValue)
                 {
-                    route.PMDriver = _driverRepository.GetDriverById(route.PMDriverID.Value);
+                    route.PMDriver = _driverRepository.GetDriverById(route.PMDriverId.Value);
                 }
             }
 
@@ -168,12 +168,12 @@ namespace BusBuddy.Business
             {
                 if (activity.AssignedVehicleID.HasValue)
                 {
-                    activity.AssignedVehicle = _vehicleRepository.GetVehicleById(activity.AssignedVehicleID.Value);
+                    activity.AssignedVehicle = _busRepository.GetBusById(activity.AssignedVehicleID.Value);
                 }
 
-                if (activity.DriverID.HasValue)
+                if (activity.DriverId.HasValue)
                 {
-                    activity.Driver = _driverRepository.GetDriverById(activity.DriverID.Value);
+                    activity.Driver = _driverRepository.GetDriverById(activity.DriverId.Value);
                 }
             }
 
@@ -185,7 +185,7 @@ namespace BusBuddy.Business
             var fuelRecord = _fuelRepository.GetFuelRecordById(fuelId);
             if (fuelRecord != null && fuelRecord.VehicleFueledID.HasValue)
             {
-                fuelRecord.VehicleFueled = _vehicleRepository.GetVehicleById(fuelRecord.VehicleFueledID.Value);
+                fuelRecord.VehicleFueled = _busRepository.GetBusById(fuelRecord.VehicleFueledID.Value);
             }
 
             return fuelRecord;
@@ -194,9 +194,9 @@ namespace BusBuddy.Business
         public Maintenance GetMaintenanceWithDetails(int maintenanceId)
         {
             var maintenance = _maintenanceRepository.GetMaintenanceById(maintenanceId);
-            if (maintenance != null && maintenance.VehicleID.HasValue)
+            if (maintenance != null && maintenance.BusId.HasValue)
             {
-                maintenance.Vehicle = _vehicleRepository.GetVehicleById(maintenance.VehicleID.Value);
+                maintenance.Vehicle = _busRepository.GetBusById(maintenance.BusId.Value);
             }
 
             return maintenance;
@@ -209,7 +209,7 @@ namespace BusBuddy.Business
             {
                 if (schedule.ScheduledVehicleID.HasValue)
                 {
-                    schedule.ScheduledVehicle = _vehicleRepository.GetVehicleById(schedule.ScheduledVehicleID.Value);
+                    schedule.ScheduledVehicle = _busRepository.GetBusById(schedule.ScheduledVehicleID.Value);
                 }
 
                 if (schedule.ScheduledDriverID.HasValue)
@@ -221,33 +221,57 @@ namespace BusBuddy.Business
             return schedule;
         }
 
-        // Get vehicle with all associated records
-        public VehicleDetailsViewModel GetVehicleDetails(int vehicleId)
+        // Get bus with all associated records
+        public BusDetailsViewModel GetBusDetails(int busId)
         {
-            var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-            if (vehicle == null)
+            var bus = _busRepository.GetBusById(busId);
+            if (bus == null)
             {
                 return null;
             }
 
-            var details = new VehicleDetailsViewModel
+            var details = new BusDetailsViewModel
             {
-                Vehicle = vehicle,
-                AMRoutes = _routeRepository.GetRoutesByVehicle(vehicleId).Where(r => r.AMVehicleID == vehicleId).ToList(),
-                PMRoutes = _routeRepository.GetRoutesByVehicle(vehicleId).Where(r => r.PMVehicleID == vehicleId).ToList(),
-                Activities = _activityRepository.GetActivitiesByVehicle(vehicleId),
-                FuelRecords = _fuelRepository.GetFuelRecordsByVehicle(vehicleId),
-                MaintenanceRecords = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId),
-                ScheduledActivities = _activityScheduleRepository.GetScheduledActivitiesByVehicle(vehicleId)
+                Bus = bus,
+                AMRoutes = _routeRepository.GetRoutesByBus(busId).Where(r => r.AMBusId == busId).ToList(),
+                PMRoutes = _routeRepository.GetRoutesByBus(busId).Where(r => r.PMBusId == busId).ToList(),
+                Activities = _activityRepository.GetActivitiesByBus(busId),
+                FuelRecords = _fuelRepository.GetFuelRecordsByBus(busId),
+                MaintenanceRecords = _maintenanceRepository.GetMaintenanceByBus(busId),
+                ScheduledActivities = _activityScheduleRepository.GetScheduledActivitiesByBus(busId)
             };
 
             return details;
         }
 
-        // Get driver with all associated records
-        public DriverDetailsViewModel GetDriverDetails(int driverId)
+        /// <summary>
+        /// Gets a bus by its ID
+        /// </summary>
+        public Bus GetBusById(int id)
         {
-            var driver = _driverRepository.GetDriverById(driverId);
+            return _busRepository.GetBusById(id);
+        }
+
+        /// <summary>
+        /// Gets all buses from the repository
+        /// </summary>
+        public List<Bus> GetAllBuses()
+        {
+            return _busRepository.GetAllBuses().ToList();
+        }
+
+        /// <summary>
+        /// Gets a route by its ID
+        /// </summary>
+        public Route GetRouteById(int id)
+        {
+            return _routeRepository.GetRouteById(id);
+        }
+
+        // Get driver with all associated records
+        public DriverDetailsViewModel GetDriverDetails(int DriverId)
+        {
+            var driver = _driverRepository.GetDriverById(DriverId);
             if (driver == null)
             {
                 return null;
@@ -256,10 +280,10 @@ namespace BusBuddy.Business
             var details = new DriverDetailsViewModel
             {
                 Driver = driver,
-                AMRoutes = _routeRepository.GetRoutesByDriver(driverId).Where(r => r.AMDriverID == driverId).ToList(),
-                PMRoutes = _routeRepository.GetRoutesByDriver(driverId).Where(r => r.PMDriverID == driverId).ToList(),
-                Activities = _activityRepository.GetActivitiesByDriver(driverId),
-                ScheduledActivities = _activityScheduleRepository.GetScheduledActivitiesByDriver(driverId)
+                AMRoutes = _routeRepository.GetRoutesByDriver(DriverId).Where(r => r.AMDriverId == DriverId).ToList(),
+                PMRoutes = _routeRepository.GetRoutesByDriver(DriverId).Where(r => r.PMDriverId == DriverId).ToList(),
+                Activities = _activityRepository.GetActivitiesByDriver(DriverId),
+                ScheduledActivities = _activityScheduleRepository.GetScheduledActivitiesByDriver(DriverId)
             };
 
             return details;
@@ -275,26 +299,26 @@ namespace BusBuddy.Business
 
                 foreach (var route in routes)
                 {
-                    if (route.AMVehicleID.HasValue)
+                    if (route.AMBusId.HasValue)
                     {
                         try
                         {
-                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading AM Vehicle {route.AMVehicleID}");
-                            route.AMVehicle = _vehicleRepository.GetVehicleById(route.AMVehicleID.Value);
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading AM Vehicle {route.AMBusId}");
+                            route.AMBus = _busRepository.GetBusById(route.AMBusId.Value);
                         }
                         catch (Exception ex)
                         {
                             System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Error loading AM Vehicle: {ex.Message}");
-                            route.AMVehicle = null; // Gracefully handle missing vehicle
+                            route.AMBus = null; // Gracefully handle missing vehicle
                         }
                     }
 
-                    if (route.AMDriverID.HasValue)
+                    if (route.AMDriverId.HasValue)
                     {
                         try
                         {
-                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading AM Driver {route.AMDriverID}");
-                            route.AMDriver = _driverRepository.GetDriverById(route.AMDriverID.Value);
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading AM Driver {route.AMDriverId}");
+                            route.AMDriver = _driverRepository.GetDriverById(route.AMDriverId.Value);
                         }
                         catch (Exception ex)
                         {
@@ -303,26 +327,26 @@ namespace BusBuddy.Business
                         }
                     }
 
-                    if (route.PMVehicleID.HasValue)
+                    if (route.PMBusId.HasValue)
                     {
                         try
                         {
-                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading PM Vehicle {route.PMVehicleID}");
-                            route.PMVehicle = _vehicleRepository.GetVehicleById(route.PMVehicleID.Value);
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading PM Vehicle {route.PMBusId}");
+                            route.PMBus = _busRepository.GetBusById(route.PMBusId.Value);
                         }
                         catch (Exception ex)
                         {
                             System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Error loading PM Vehicle: {ex.Message}");
-                            route.PMVehicle = null; // Gracefully handle missing vehicle
+                            route.PMBus = null; // Gracefully handle missing vehicle
                         }
                     }
 
-                    if (route.PMDriverID.HasValue)
+                    if (route.PMDriverId.HasValue)
                     {
                         try
                         {
-                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading PM Driver {route.PMDriverID}");
-                            route.PMDriver = _driverRepository.GetDriverById(route.PMDriverID.Value);
+                            System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Loading PM Driver {route.PMDriverId}");
+                            route.PMDriver = _driverRepository.GetDriverById(route.PMDriverId.Value);
                         }
                         catch (Exception ex)
                         {
@@ -340,12 +364,13 @@ namespace BusBuddy.Business
                 System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Exception in GetAllRoutesWithDetails: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"DatabaseHelperService: Stack trace: {ex.StackTrace}");
                 throw;
-            }        }
+            }
+        }
     }
 
-    public class VehicleDetailsViewModel
+    public class BusDetailsViewModel
     {
-        public Vehicle Vehicle { get; set; }
+        public Bus Bus { get; set; }
         public List<Route> AMRoutes { get; set; }
         public List<Route> PMRoutes { get; set; }
         public List<Activity> Activities { get; set; }
@@ -363,3 +388,4 @@ namespace BusBuddy.Business
         public List<ActivitySchedule> ScheduledActivities { get; set; }
     }
 }
+

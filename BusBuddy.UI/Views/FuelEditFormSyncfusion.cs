@@ -65,9 +65,9 @@ namespace BusBuddy.UI.Views
             int controlX = 150;
             int spacing = 60;
             int controlWidth = 250;            // Vehicle
-            var lblVehicle = ControlFactory.CreateLabel("🚌 Vehicle:");
-            lblVehicle.Location = new Point(labelX, y);
-            this.Controls.Add(lblVehicle);
+            var lblBus = ControlFactory.CreateLabel("🚌 Vehicle:");
+            lblBus.Location = new Point(labelX, y);
+            this.Controls.Add(lblBus);
             cboVehicle = ControlFactory.CreateComboBox();
             cboVehicle.Location = new Point(controlX, y);
             cboVehicle.Size = new Size(controlWidth, 30);
@@ -344,3 +344,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

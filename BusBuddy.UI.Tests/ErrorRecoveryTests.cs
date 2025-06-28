@@ -28,17 +28,17 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing database connection resilience...");
 
             // Test basic connectivity first
-            var vehicle = CreateTestVehicle("_ConnectivityTest");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var testBus = CreateTestVehicle("_ConnectivityTest");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
-            Assert.True(vehicleId > 0, "Basic database connection should work");
+            Assert.True(busId > 0, "Basic database connection should work");
             _output.WriteLine("✅ Basic database connectivity confirmed");
 
             // Test retrieval after connection stress
-            var retrievedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(retrievedVehicle);
-            Assert.Equal(vehicle.VehicleNumber, retrievedVehicle.VehicleNumber);
+            var retrievedBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(retrievedBus);
+            Assert.Equal(bus.BusNumber, retrievedBus.BusNumber);
 
             _output.WriteLine("✅ Data retrieval after operations successful");
             _output.WriteLine("✅ Database connection resilience test PASSED");
@@ -49,15 +49,15 @@ namespace BusBuddy.UI.Tests
         {
             _output.WriteLine("Testing invalid data handling...");
 
-            // Test null/invalid vehicle data
+            // Test null/invalid Bus data
             try
             {
-                var result = VehicleRepository.AddVehicle(null!);
-                Assert.True(result <= 0, "Adding null vehicle should fail gracefully");
+                var result = BusRepository.AddBus(null!);
+                Assert.True(result <= 0, "Adding null Bus should fail gracefully");
             }
             catch (Exception ex)
             {
-                _output.WriteLine($"✅ Null vehicle properly rejected: {ex.GetType().Name}");
+                _output.WriteLine($"✅ Null Bus properly rejected: {ex.GetType().Name}");
             }
 
             // Test invalid driver data
@@ -65,16 +65,16 @@ namespace BusBuddy.UI.Tests
             {
                 FirstName = "", // Invalid empty name
                 LastName = "",
-                DriverName = "",
+                Name = "",
                 Status = "InvalidStatus" // Invalid status
             };
 
             try
             {
-                var driverId = DriverRepository.AddDriver(invalidDriver);
-                if (driverId > 0)
+                var DriverId = DriverRepository.AddDriver(invalidDriver);
+                if (DriverId > 0)
                 {
-                    TestDriverIds.Add(driverId);
+                    TestDriverIds.Add(DriverId);
                     _output.WriteLine("⚠️ Invalid driver was accepted (validation needed)");
                 }
             }
@@ -96,10 +96,10 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing validation service error recovery...");
 
             // Test validation with non-existent IDs
-            var nonExistentVehicleResult = ValidationService.ValidateVehicleAvailability(99999, DateTime.Today);
+            var nonExistentVehicleResult = ValidationService.ValidateBusAvailability(99999, DateTime.Today);
             Assert.False(nonExistentVehicleResult.IsValid);
             Assert.Contains("does not exist", nonExistentVehicleResult.GetErrorMessage());
-            _output.WriteLine("✅ Non-existent vehicle validation handled correctly");
+            _output.WriteLine("✅ Non-existent Bus validation handled correctly");
 
             var nonExistentDriverResult = ValidationService.ValidateDriverAvailability(99999, DateTime.Today);
             Assert.False(nonExistentDriverResult.IsValid);
@@ -189,19 +189,19 @@ namespace BusBuddy.UI.Tests
         {
             _output.WriteLine("Testing data consistency under concurrent-like operations...");
 
-            // Create test vehicle and driver
-            var vehicle = CreateTestVehicle("_ConsistencyTest");
+            // Create test Bus and driver
+            var testBus = CreateTestVehicle("_ConsistencyTest");
             var driver = CreateTestDriver("_ConsistencyTest");
 
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            var driverId = DriverRepository.AddDriver(driver);
+            var busId = BusRepository.AddBus(bus);
+            var DriverId = DriverRepository.AddDriver(driver);
 
-            TestVehicleIds.Add(vehicleId);
-            TestDriverIds.Add(driverId);
+            TestbusIds.Add(busId);
+            TestDriverIds.Add(DriverId);
 
             // Simulate concurrent route operations
-            var route1 = CreateTestRoute(vehicleId, driverId, "_Concurrent1");
-            var route2 = CreateTestRoute(vehicleId, driverId, "_Concurrent2");
+            var route1 = CreateTestRoute(busId, DriverId, "_Concurrent1");
+            var route2 = CreateTestRoute(busId, DriverId, "_Concurrent2");
             route2.Date = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd"); // Different date
 
             var routeId1 = RouteRepository.AddRoute(route1);
@@ -210,30 +210,30 @@ namespace BusBuddy.UI.Tests
             TestRouteIds.Add(routeId1);
             TestRouteIds.Add(routeId2);
 
-            // Verify both routes reference the same vehicle and driver
+            // Verify both routes reference the same Bus and driver
             var retrievedRoute1 = RouteRepository.GetRouteById(routeId1);
             var retrievedRoute2 = RouteRepository.GetRouteById(routeId2);
 
             Assert.NotNull(retrievedRoute1);
             Assert.NotNull(retrievedRoute2);
-            Assert.Equal(vehicleId, retrievedRoute1.AMVehicleID);
-            Assert.Equal(vehicleId, retrievedRoute2.AMVehicleID);
-            Assert.Equal(driverId, retrievedRoute1.AMDriverID);
-            Assert.Equal(driverId, retrievedRoute2.AMDriverID);
+            Assert.Equal(busId, retrievedRoute1.AMbusId);
+            Assert.Equal(busId, retrievedRoute2.AMbusId);
+            Assert.Equal(DriverId, retrievedRoute1.AMDriverId);
+            Assert.Equal(DriverId, retrievedRoute2.AMDriverId);
 
             _output.WriteLine("✅ Concurrent route operations maintained referential integrity");
 
             // Test update operations
-            vehicle.Status = "Maintenance";
-            var updateResult = VehicleRepository.UpdateVehicle(vehicle);
+            bus.Status = "Maintenance";
+            var updateResult = BusRepository.UpdateBus(bus);
             Assert.True(updateResult);
 
-            // Verify routes still reference the updated vehicle
-            var updatedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(updatedVehicle);
-            Assert.Equal("Maintenance", updatedVehicle.Status);
+            // Verify routes still reference the updated bus
+            var updatedBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(updatedBus);
+            Assert.Equal("Maintenance", updatedBus.Status);
 
-            _output.WriteLine("✅ Vehicle update maintained data consistency");
+            _output.WriteLine("✅ Bus update maintained data consistency");
             _output.WriteLine("✅ Data consistency test PASSED");
         }
 
@@ -243,42 +243,42 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing orphaned data prevention...");
 
             // Create test data with dependencies
-            var vehicle = CreateTestVehicle("_OrphanTest");
+            var testBus = CreateTestVehicle("_OrphanTest");
             var driver = CreateTestDriver("_OrphanTest");
 
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            var driverId = DriverRepository.AddDriver(driver);
+            var busId = BusRepository.AddBus(bus);
+            var DriverId = DriverRepository.AddDriver(driver);
 
-            TestVehicleIds.Add(vehicleId);
-            TestDriverIds.Add(driverId);
+            TestbusIds.Add(busId);
+            TestDriverIds.Add(DriverId);
 
-            // Create route that depends on vehicle and driver
-            var route = CreateTestRoute(vehicleId, driverId, "_OrphanTest");
-            var routeId = RouteRepository.AddRoute(route);
-            TestRouteIds.Add(routeId);
+            // Create route that depends on Bus and driver
+            var route = CreateTestRoute(busId, DriverId, "_OrphanTest");
+            var RouteId = RouteRepository.AddRoute(route);
+            TestRouteIds.Add(RouteId);
 
             // Verify route references exist
-            var retrievedRoute = RouteRepository.GetRouteById(routeId);
+            var retrievedRoute = RouteRepository.GetRouteById(RouteId);
             Assert.NotNull(retrievedRoute);
-            Assert.Equal(vehicleId, retrievedRoute.AMVehicleID);
-            Assert.Equal(driverId, retrievedRoute.AMDriverID);
+            Assert.Equal(busId, retrievedRoute.AMbusId);
+            Assert.Equal(DriverId, retrievedRoute.AMDriverId);
 
-            // Attempt to delete vehicle that has dependent routes
-            var deleteResult = VehicleRepository.DeleteVehicle(vehicleId);
+            // Attempt to delete Bus that has dependent routes
+            var deleteResult = BusRepository.DeleteBus(busId);
 
             if (deleteResult)
             {
-                _output.WriteLine("⚠️ Vehicle deletion succeeded despite dependent route (cascade delete or weak reference)");
+                _output.WriteLine("⚠️ Bus deletion succeeded despite dependent route (cascade delete or weak reference)");
                 // If deletion succeeded, remove from our tracking since it's already deleted
-                TestVehicleIds.Remove(vehicleId);
+                TestbusIds.Remove(busId);
             }
             else
             {
-                _output.WriteLine("✅ Vehicle deletion prevented due to dependent route");
+                _output.WriteLine("✅ Bus deletion prevented due to dependent route");
             }
 
             // Verify route still exists and handles missing references gracefully
-            var routeAfterAttemptedDelete = RouteRepository.GetRouteById(routeId);
+            var routeAfterAttemptedDelete = RouteRepository.GetRouteById(RouteId);
             Assert.NotNull(routeAfterAttemptedDelete);
 
             _output.WriteLine("✅ Orphaned data prevention test PASSED");
@@ -296,7 +296,7 @@ namespace BusBuddy.UI.Tests
             // Test repository operations with boundary conditions
             try
             {
-                var result = VehicleRepository.GetVehicleById(0); // Zero ID
+                var result = BusRepository.GetBusById(0); // Zero ID
                 _output.WriteLine($"✅ Zero ID handled: {(result == null ? "returned null" : "returned data")}");
             }
             catch (Exception ex)
@@ -306,7 +306,7 @@ namespace BusBuddy.UI.Tests
 
             try
             {
-                var result = VehicleRepository.GetVehicleById(-1); // Negative ID
+                var result = BusRepository.GetBusById(-1); // Negative ID
                 _output.WriteLine($"✅ Negative ID handled: {(result == null ? "returned null" : "returned data")}");
             }
             catch (Exception ex)
@@ -315,13 +315,13 @@ namespace BusBuddy.UI.Tests
             }
 
             // Test validation with extreme dates
-            var vehicle = CreateTestVehicle("_ExceptionTest");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var testBus = CreateTestVehicle("_ExceptionTest");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
             try
             {
-                var result = ValidationService.ValidateVehicleAvailability(vehicleId, DateTime.MinValue);
+                var result = ValidationService.ValidateBusAvailability(busId, DateTime.MinValue);
                 _output.WriteLine($"✅ Min date validation: {(result.IsValid ? "valid" : "invalid")}");
             }
             catch (Exception ex)
@@ -331,7 +331,7 @@ namespace BusBuddy.UI.Tests
 
             try
             {
-                var result = ValidationService.ValidateVehicleAvailability(vehicleId, DateTime.MaxValue);
+                var result = ValidationService.ValidateBusAvailability(busId, DateTime.MaxValue);
                 _output.WriteLine($"✅ Max date validation: {(result.IsValid ? "valid" : "invalid")}");
             }
             catch (Exception ex)
@@ -345,3 +345,5 @@ namespace BusBuddy.UI.Tests
         #endregion
     }
 }
+
+

@@ -21,7 +21,7 @@ namespace BusBuddy.Data
             if (IsTestEnvironment())
             {
                 // Ensure test database exists before attempting to connect to it
-                TestDatabaseInitializer.EnsureTestDatabaseExists();
+                SimpleDatabaseCheck.CheckAndFixDatabaseAsync().GetAwaiter().GetResult();
 
                 // Use App.config connection string if available
                 var testConn = ConfigurationManager.ConnectionStrings["TestConnection"];
@@ -162,7 +162,7 @@ namespace BusBuddy.Data
                     Console.WriteLine("Attempting to repair database connection...");
 
                     // Attempt database recovery
-                    var recovered = DatabaseDiagnosticsEnhanced.RepairDatabaseAsync().GetAwaiter().GetResult();
+                    var recovered = SimpleDatabaseCheck.CheckAndFixDatabaseAsync().GetAwaiter().GetResult();
 
                     if (recovered)
                     {
@@ -191,3 +191,4 @@ namespace BusBuddy.Data
         }
     }
 }
+

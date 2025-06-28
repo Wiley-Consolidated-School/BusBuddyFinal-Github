@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using Syncfusion.WinForms.DataGrid;
@@ -19,34 +19,34 @@ namespace BusBuddy.UI.Views
     public class MaintenanceManagementFormSyncfusion : BaseManagementForm<Maintenance>
     {
         private readonly IMaintenanceRepository _maintenanceRepository;
-        private readonly IVehicleRepository _vehicleRepository;
-        private List<Vehicle> _vehicles = new List<Vehicle>();
+        private readonly BusRepository _busRepository;
+        private List<Bus> _buses = new List<Bus>();
         #region Properties Override
         protected override string FormTitle => "🔧 Maintenance Management";
         protected override string SearchPlaceholder => "Search maintenance...";
         protected override string EntityName => "Maintenance";
         #region Constructors
-        public MaintenanceManagementFormSyncfusion() : this(new MaintenanceRepository(), new VehicleRepository()) { }
+        public MaintenanceManagementFormSyncfusion() : this(new MaintenanceRepository(), new BusRepository()) { }
 
-        public MaintenanceManagementFormSyncfusion(IMaintenanceRepository maintenanceRepository, IVehicleRepository vehicleRepository)
+        public MaintenanceManagementFormSyncfusion(IMaintenanceRepository maintenanceRepository, BusRepository busRepository)
         {
             _maintenanceRepository = maintenanceRepository ?? throw new ArgumentNullException(nameof(maintenanceRepository));
-            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
-            // NOTE: LoadData() and LoadVehicles() are called by the base class after all controls are initialized
+            _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
+            // NOTE: LoadData() and LoadBuses() are called by the base class after all controls are initialized
         }
         #region Base Implementation Override
         protected override void LoadData()
         {
             try
             {
-                if (_maintenanceRepository == null || _vehicleRepository == null)
+                if (_maintenanceRepository == null || _busRepository == null)
                 {
                     ShowErrorMessage("Error loading maintenance records: Repository not initialized.");
                     _entities = new List<Maintenance>();
                     return;
                 }
-                // Load vehicles first for dropdowns/lookups
-                LoadVehicles();
+                // Load buses first for dropdowns/lookups
+                LoadBuses();
 
                 var maintenanceRecords = _maintenanceRepository.GetAllMaintenanceRecords();
                 _entities = maintenanceRecords?.ToList() ?? new List<Maintenance>();
@@ -140,7 +140,7 @@ namespace BusBuddy.UI.Views
                 var details = $"Maintenance Record Details:\n\n" +
                             $"ID: {selectedMaintenance.MaintenanceID}\n" +
                             $"Date: {selectedMaintenance.Date}\n" +
-                            $"Vehicle: {GetVehicleName(selectedMaintenance.VehicleID)}\n" +
+                            $"Bus: {GetBusName(selectedMaintenance.BusId)}\n" +
                             $"Odometer: {selectedMaintenance.OdometerReading:N0}\n" +
                             $"Type: {selectedMaintenance.MaintenanceCompleted}\n" +
                             $"Vendor: {selectedMaintenance.Vendor}\n" +
@@ -179,7 +179,7 @@ namespace BusBuddy.UI.Views
                 var filteredMaintenance = _entities.Where(m =>
                     (m.MaintenanceCompleted?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (m.Vendor?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
-                    (GetVehicleName(m.VehicleID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    (GetBusName(m.BusId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
 
                 _entities = filteredMaintenance;
@@ -200,7 +200,7 @@ namespace BusBuddy.UI.Views
 
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "MaintenanceID", HeaderText = "ID", Visible = false });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Date", HeaderText = "Date", Width = GetDpiAwareWidth(120) });
-            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "VehicleName", HeaderText = "Vehicle", Width = GetDpiAwareWidth(120) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "BusName", HeaderText = "Bus", Width = GetDpiAwareWidth(120) });
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "OdometerReading", HeaderText = "Odometer", Width = GetDpiAwareWidth(100) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "MaintenanceCompleted", HeaderText = "Type", Width = GetDpiAwareWidth(150) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Vendor", HeaderText = "Vendor", Width = GetDpiAwareWidth(120) });
@@ -209,20 +209,20 @@ namespace BusBuddy.UI.Views
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
         #region Helper Methods
-        private void LoadVehicles()
+        private void LoadBuses()
         {
             try
             {
                 // Defensive programming: Handle null repository results
-                var vehicles = _vehicleRepository.GetAllVehicles();
-                _vehicles = vehicles?.ToList() ?? new List<Vehicle>();
-                Console.WriteLine($"✅ Loaded {_vehicles.Count} vehicles for maintenance");
+                var buses = _busRepository.GetAllBuses();
+                _buses = buses?.ToList() ?? new List<Bus>();
+                Console.WriteLine($"✅ Loaded {_buses.Count} buses for maintenance");
             }
             catch (Exception ex)
             {
                 // Ensure collection is never null even on error
-                _vehicles = new List<Vehicle>();
-                HandleError($"Error loading vehicles: {ex.Message}", "$($EntityName) Error", ex);
+                _buses = new List<Bus>();
+                HandleError($"Error loading buses: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -242,7 +242,7 @@ namespace BusBuddy.UI.Views
                 {
                     MaintenanceID = m.MaintenanceID,
                     Date = m.Date ?? "Unknown",
-                    VehicleName = GetVehicleName(m.VehicleID),
+                    BusName = GetBusName(m.BusId),
                     OdometerReading = m.OdometerReading ?? 0,
                     MaintenanceCompleted = m.MaintenanceCompleted ?? "Unknown",
                     Vendor = m.Vendor ?? "Unknown",
@@ -257,18 +257,21 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private string GetVehicleName(int? vehicleId)
+        private string GetBusName(int? busId)
         {
-            if (!vehicleId.HasValue) return "Unknown";
+            if (!busId.HasValue) return "Unknown";
 
-            var vehicle = _vehicles.FirstOrDefault(v => v.Id == vehicleId.Value);
-            return vehicle?.VehicleNumber ?? "Unknown";        }    }
+            var bus = _buses.FirstOrDefault(b => b.BusId == busId.Value);
+            return bus?.BusNumber ?? "Unknown";
+        }
+    }
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 }
+

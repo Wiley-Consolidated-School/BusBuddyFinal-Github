@@ -19,3 +19,4 @@ namespace BusBuddy.UI.Services
         // Add other database helper methods as needed
     }
 }
+

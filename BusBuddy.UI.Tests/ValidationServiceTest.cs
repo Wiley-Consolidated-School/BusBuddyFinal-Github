@@ -12,37 +12,36 @@ namespace BusBuddy.UI.Tests
 {
     /// <summary>
     /// Tests for ValidationService ensuring proper business rule enforcement and data integrity.
-    /// Tests cover vehicle availability, driver availability, fuel records, and maintenance validation.
+    /// Tests cover Bus availability, driver availability, fuel records, and maintenance validation.
     /// </summary>
     public class ValidationServiceTest : IDisposable
     {
         private readonly ValidationService _validationService;
-        private readonly VehicleRepository _vehicleRepository;
+        private readonly BusRepository _busRepository;
         private readonly DriverRepository _driverRepository;
-        private readonly List<int> _testVehicleIds;
+        private readonly List<int> _testBusIds;
         private readonly List<int> _testDriverIds;
 
         public ValidationServiceTest()
         {
-            _vehicleRepository = new VehicleRepository();
+            _busRepository = new BusRepository();
             _driverRepository = new DriverRepository();
-            _validationService = new ValidationService(
-                _vehicleRepository,
+            _validationService = new ValidationService(_busRepository,
                 _driverRepository,
                 new RouteRepository(),
                 new MaintenanceRepository(),
                 new FuelRepository());
 
-            _testVehicleIds = new List<int>();
+            _testBusIds = new List<int>();
             _testDriverIds = new List<int>();
         }
 
         public void Dispose()
         {
             // Cleanup test data
-            foreach (var id in _testVehicleIds)
+            foreach (var id in _testBusIds)
             {
-                try { _vehicleRepository.DeleteVehicle(id); } catch { }
+                try { _busRepository.DeleteBus(id); } catch { }
             }
             foreach (var id in _testDriverIds)
             {
@@ -50,19 +49,19 @@ namespace BusBuddy.UI.Tests
             }
         }
 
-        #region Vehicle Availability Tests
+        #region Bus Availability Tests
 
         [Fact]
         public void ValidateVehicleAvailability_WithValidVehicle_ShouldReturnSuccess()
         {
             // Arrange
-            var testVehicle = CreateTestVehicle();
-            testVehicle.Status = "Active";
-            var vehicleId = _vehicleRepository.AddVehicle(testVehicle);
-            _testVehicleIds.Add(vehicleId);
+            var testBus = CreateTestBus();
+            testBus.Status = "Active";
+            var busId = _busRepository.AddBus(testBus);
+            _testBusIds.Add(busId);
 
             // Act
-            var result = _validationService.ValidateVehicleAvailability(vehicleId, DateTime.Today, "test operation");
+            var result = _validationService.ValidateBusAvailability(busId, DateTime.Today, "test operation");
 
             // Assert
             Assert.True(result.IsValid);
@@ -72,7 +71,7 @@ namespace BusBuddy.UI.Tests
         public void ValidateVehicleAvailability_WithNonExistentVehicle_ShouldReturnFailure()
         {
             // Act
-            var result = _validationService.ValidateVehicleAvailability(99999, DateTime.Today, "test operation");
+            var result = _validationService.ValidateBusAvailability(99999, DateTime.Today, "test operation");
 
             // Assert
             Assert.False(result.IsValid);
@@ -83,13 +82,13 @@ namespace BusBuddy.UI.Tests
         public void ValidateVehicleAvailability_WithOutOfServiceVehicle_ShouldReturnFailure()
         {
             // Arrange
-            var testVehicle = CreateTestVehicle();
-            testVehicle.Status = "Out of Service";
-            var vehicleId = _vehicleRepository.AddVehicle(testVehicle);
-            _testVehicleIds.Add(vehicleId);
+            var testBus = CreateTestBus();
+            testBus.Status = "Out of Service";
+            var busId = _busRepository.AddBus(testBus);
+            _testBusIds.Add(busId);
 
             // Act
-            var result = _validationService.ValidateVehicleAvailability(vehicleId, DateTime.Today, "test operation");
+            var result = _validationService.ValidateBusAvailability(busId, DateTime.Today, "test operation");
 
             // Assert
             Assert.False(result.IsValid);
@@ -107,11 +106,11 @@ namespace BusBuddy.UI.Tests
             var testDriver = CreateTestDriver();
             testDriver.Status = "Active";
             testDriver.CDLExpirationDate = DateTime.Today.AddYears(1);
-            var driverId = _driverRepository.AddDriver(testDriver);
-            _testDriverIds.Add(driverId);
+            var DriverId = _driverRepository.AddDriver(testDriver);
+            _testDriverIds.Add(DriverId);
 
             // Act
-            var result = _validationService.ValidateDriverAvailability(driverId, DateTime.Today, "test operation");
+            var result = _validationService.ValidateDriverAvailability(DriverId, DateTime.Today, "test operation");
 
             // Assert
             Assert.True(result.IsValid);
@@ -123,11 +122,11 @@ namespace BusBuddy.UI.Tests
             // Arrange
             var testDriver = CreateTestDriver();
             testDriver.Status = "Inactive";
-            var driverId = _driverRepository.AddDriver(testDriver);
-            _testDriverIds.Add(driverId);
+            var DriverId = _driverRepository.AddDriver(testDriver);
+            _testDriverIds.Add(DriverId);
 
             // Act
-            var result = _validationService.ValidateDriverAvailability(driverId, DateTime.Today, "test operation");
+            var result = _validationService.ValidateDriverAvailability(DriverId, DateTime.Today, "test operation");
 
             // Assert
             Assert.False(result.IsValid);
@@ -141,11 +140,11 @@ namespace BusBuddy.UI.Tests
             var testDriver = CreateTestDriver();
             testDriver.Status = "Active";
             testDriver.CDLExpirationDate = DateTime.Today.AddDays(-1); // Expired yesterday
-            var driverId = _driverRepository.AddDriver(testDriver);
-            _testDriverIds.Add(driverId);
+            var DriverId = _driverRepository.AddDriver(testDriver);
+            _testDriverIds.Add(DriverId);
 
             // Act
-            var result = _validationService.ValidateDriverAvailability(driverId, DateTime.Today, "test operation");
+            var result = _validationService.ValidateDriverAvailability(DriverId, DateTime.Today, "test operation");
 
             // Assert
             Assert.False(result.IsValid);
@@ -160,16 +159,16 @@ namespace BusBuddy.UI.Tests
         public void ValidateFuelRecord_WithValidRecord_ShouldReturnSuccess()
         {
             // Arrange
-            var testVehicle = CreateTestVehicle();
-            testVehicle.Status = "Active";
-            var vehicleId = _vehicleRepository.AddVehicle(testVehicle);
-            _testVehicleIds.Add(vehicleId);
+            var testBus = CreateTestBus();
+            testBus.Status = "Active";
+            var busId = _busRepository.AddBus(testBus);
+            _testBusIds.Add(busId);
 
             var fuelRecord = new Fuel
             {
                 FuelDate = DateTime.Today.ToString("yyyy-MM-dd"),
                 FuelLocation = "Test Station",
-                VehicleFueledID = vehicleId,
+                VehicleFueledID = busId,
                 FuelAmount = 25.5m,
                 FuelCost = 87.98m,
                 VehicleOdometerReading = 125000
@@ -222,15 +221,15 @@ namespace BusBuddy.UI.Tests
         public void ValidateMaintenanceRecord_WithValidRecord_ShouldReturnSuccess()
         {
             // Arrange
-            var testVehicle = CreateTestVehicle();
-            testVehicle.Status = "Active";
-            var vehicleId = _vehicleRepository.AddVehicle(testVehicle);
-            _testVehicleIds.Add(vehicleId);
+            var testBus = CreateTestBus();
+            testBus.Status = "Active";
+            var busId = _busRepository.AddBus(testBus);
+            _testBusIds.Add(busId);
 
             var maintenanceRecord = new Maintenance
             {
                 Date = DateTime.Today.ToString("yyyy-MM-dd"),
-                VehicleID = vehicleId,
+                BusId = busId,
                 MaintenanceCompleted = "Oil Change",
                 RepairCost = 75.00m,
                 OdometerReading = 125000
@@ -261,7 +260,7 @@ namespace BusBuddy.UI.Tests
             var maintenanceRecord = new Maintenance
             {
                 Date = DateTime.Today.ToString("yyyy-MM-dd"),
-                VehicleID = 1,
+                BusId = 1,
                 MaintenanceCompleted = "Oil Change",
                 RepairCost = -50.00m, // Negative cost
                 OdometerReading = 125000
@@ -277,7 +276,7 @@ namespace BusBuddy.UI.Tests
 
         #endregion
 
-        #region Vehicle Number Validation Tests
+        #region Bus Number Validation Tests
 
         [Theory]
         [InlineData("BUS001", true)]
@@ -285,10 +284,10 @@ namespace BusBuddy.UI.Tests
         [InlineData("AB", false)] // Too short
         [InlineData("", false)] // Empty
         [InlineData(null, false)] // Null
-        public void IsValidVehicleNumber_WithVariousInputs_ShouldReturnExpectedResult(string vehicleNumber, bool expected)
+        public void IsValidVehicleNumber_WithVariousInputs_ShouldReturnExpectedResult(string BusNumber, bool expected)
         {
             // Act
-            var result = _validationService.IsValidVehicleNumber(vehicleNumber);
+            var result = _validationService.IsValidBusNumber(BusNumber);
 
             // Assert
             Assert.Equal(expected, result);
@@ -298,21 +297,18 @@ namespace BusBuddy.UI.Tests
 
         #region Helper Methods
 
-        private Vehicle CreateTestVehicle()
+        private Bus CreateTestBus()
         {
             var timestamp = DateTime.Now.Ticks;
-            return new Vehicle
-            {
-                VehicleNumber = $"VTEST{timestamp}",
+            return new Bus {
+                BusNumber = $"VTEST{timestamp}",
                 Make = "Test Make",
                 Model = "Test Model",
                 Year = 2023,
                 SeatingCapacity = 72,
-                FuelType = "Diesel",
                 Status = "Active",
-                VINNumber = $"TESTVIN{timestamp}",
                 LicenseNumber = $"TESTLIC{timestamp}",
-                DateLastInspection = DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd")
+                LastInspectionDate = DateTime.Today.AddDays(-30)
             };
         }
 
@@ -323,16 +319,19 @@ namespace BusBuddy.UI.Tests
             {
                 FirstName = "Test",
                 LastName = $"Driver{timestamp}",
-                DriverName = $"Test Driver{timestamp}",
+                Name = $"Test Driver{timestamp}",
                 DriversLicenseType = "CDL",
                 Status = "Active",
                 DriverPhone = "555-0123",
                 DriverEmail = $"test{timestamp}@example.com",
                 CDLExpirationDate = DateTime.Today.AddYears(2),
-                TrainingComplete = 1
+                IsTrainingComplete = true
             };
         }
 
         #endregion
     }
 }
+
+
+

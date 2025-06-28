@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.IO;
-using BusBuddy.Models;
 using BusBuddy.Business;
 using BusBuddy.Data;
+using BusBuddy.Models;
 
 namespace BusBuddy.UI.Services
 {
@@ -185,32 +185,32 @@ namespace BusBuddy.UI.Services
                 foreach (var route in routes)
                 {
                     // Add AM driver routes
-                    if (route.AMDriverID.HasValue)
+                    if (route.AMDriverId.HasValue)
                     {
-                        if (!driverRoutes.ContainsKey(route.AMDriverID.Value))
-                            driverRoutes[route.AMDriverID.Value] = new List<Route>();
-                        driverRoutes[route.AMDriverID.Value].Add(route);
+                        if (!driverRoutes.ContainsKey(route.AMDriverId.Value))
+                            driverRoutes[route.AMDriverId.Value] = new List<Route>();
+                        driverRoutes[route.AMDriverId.Value].Add(route);
                     }
 
                     // Add PM driver routes
-                    if (route.PMDriverID.HasValue)
+                    if (route.PMDriverId.HasValue)
                     {
-                        if (!driverRoutes.ContainsKey(route.PMDriverID.Value))
-                            driverRoutes[route.PMDriverID.Value] = new List<Route>();
-                        driverRoutes[route.PMDriverID.Value].Add(route);
+                        if (!driverRoutes.ContainsKey(route.PMDriverId.Value))
+                            driverRoutes[route.PMDriverId.Value] = new List<Route>();
+                        driverRoutes[route.PMDriverId.Value].Add(route);
                     }
                 }
 
                 // Calculate pay for each driver
                 foreach (var driverGroup in driverRoutes)
                 {
-                    var driver = drivers.FirstOrDefault(d => d.DriverID == driverGroup.Key);
+                    var driver = drivers.FirstOrDefault(d => d.DriverId == driverGroup.Key);
                     if (driver == null) continue;
 
                     var report = new DriverPayReport
                     {
-                        DriverID = driver.DriverID,
-                        DriverName = driver.Name,
+                        DriverId = driver.DriverId,
+                        Name = driver.Name,
                         LicenseType = driver.DriversLicenseType ?? "Unknown",
                         PayPeriodStart = startDate,
                         PayPeriodEnd = endDate,
@@ -326,38 +326,38 @@ namespace BusBuddy.UI.Services
                 result["TotalPupils"] = await GetPupilCountsAsync(startDate, endDate);
                 result["CostPerStudent"] = await GetCostPerStudentAsync(startDate, endDate);
 
-                // Get vehicle fleet data
-                var vehicles = await GetAllVehiclesAsync();
+                // Get bus fleet data
+                var buses = await GetAllVehiclesAsync();
                 var routes = await GetRoutesForPeriodAsync(startDate, endDate);
                 var maintenance = await GetMaintenanceRecordsForPeriodAsync(startDate, endDate);
                 var fuel = await GetFuelRecordsForPeriodAsync(startDate, endDate);
 
-                // Calculate vehicle utilization
+                // Calculate bus utilization
                 var vehicleUtilization = new Dictionary<string, decimal>();
-                foreach (var vehicle in vehicles)
+                foreach (var bus in buses)
                 {
-                    var vehicleRoutes = routes.Count(r => r.AMVehicleID == vehicle.Id || r.PMVehicleID == vehicle.Id);
+                    var vehicleRoutes = routes.Count(r => r.AMBusId == bus.BusId || r.PMBusId == bus.BusId);
                     var utilizationPercentage = vehicleRoutes > 0
                         ? (decimal)vehicleRoutes / (decimal)routes.Count * 100
                         : 0;
-                    vehicleUtilization[vehicle.VehicleNumber ?? $"Vehicle {vehicle.Id}"] = Math.Round(utilizationPercentage, 1);
+                    vehicleUtilization[bus.BusNumber ?? $"Vehicle {bus.BusId}"] = Math.Round(utilizationPercentage, 1);
                 }
                 result["VehicleUtilization"] = vehicleUtilization;
 
-                // Calculate maintenance costs by vehicle
+                // Calculate maintenance costs by bus
                 var maintenanceCosts = maintenance
-                    .GroupBy(m => m.VehicleID)
+                    .GroupBy(m => m.BusId)
                     .ToDictionary(
-                        g => vehicles.FirstOrDefault(v => v.Id == g.Key)?.VehicleNumber ?? $"Vehicle {g.Key}",
+                        g => buses.FirstOrDefault(v => v.BusId == g.Key)?.BusNumber ?? $"Vehicle {g.Key}",
                         g => g.Sum(m => m.RepairCost ?? 0)
                     );
                 result["MaintenanceCosts"] = maintenanceCosts;
 
-                // Calculate fuel costs by vehicle
+                // Calculate fuel costs by bus
                 var fuelCosts = fuel
                     .GroupBy(f => f.VehicleFueledID)
                     .ToDictionary(
-                        g => vehicles.FirstOrDefault(v => v.Id == g.Key)?.VehicleNumber ?? $"Vehicle {g.Key}",
+                        g => buses.FirstOrDefault(v => v.BusId == g.Key)?.BusNumber ?? $"Vehicle {g.Key}",
                         g => g.Sum(f => f.FuelCost ?? 0)
                     );
                 result["FuelCosts"] = fuelCosts;
@@ -407,8 +407,8 @@ namespace BusBuddy.UI.Services
                 throw;
             }
         }        /// <summary>
-        /// Saves the updated pay scheme configuration
-        /// </summary>
+                 /// Saves the updated pay scheme configuration
+                 /// </summary>
         public async Task SavePaySchemeAsync(PayScheme payScheme)
         {
             try
@@ -492,7 +492,7 @@ namespace BusBuddy.UI.Services
             }
 
             sb.AppendLine();
-            sb.AppendLine("Focus on cost efficiency, vehicle utilization, and opportunities for improvement.");
+            sb.AppendLine("Focus on cost efficiency, bus utilization, and opportunities for improvement.");
 
             return sb.ToString();
         }
@@ -539,7 +539,7 @@ namespace BusBuddy.UI.Services
             return await Task.FromResult(context.Drivers.ToList());
         }
 
-        private async Task<List<Vehicle>> GetAllVehiclesAsync()
+        private async Task<List<Bus>> GetAllVehiclesAsync()
         {
             var context = new BusBuddyContext();
             return await Task.FromResult(context.Vehicles.ToList());
@@ -548,7 +548,7 @@ namespace BusBuddy.UI.Services
         private async Task<decimal> GetTotalVehicleCapacityAsync()
         {
             var context = new BusBuddyContext();
-            return await Task.FromResult(context.Vehicles.Sum(v => v.Capacity));
+            return await Task.FromResult((decimal)context.Vehicles.Sum(v => (int?)v.Capacity ?? 0));
         }
 
         private async Task<PayScheme> LoadPaySchemeAsync()
@@ -642,8 +642,8 @@ namespace BusBuddy.UI.Services
             int trips = 0;
             foreach (var route in routes)
             {
-                if (route.AMDriverID.HasValue) trips++;
-                if (route.PMDriverID.HasValue) trips++;
+                if (route.AMDriverId.HasValue) trips++;
+                if (route.PMDriverId.HasValue) trips++;
             }
             return trips;
         }
@@ -786,3 +786,4 @@ Focus on CDE-40 reporting value and cost-per-student optimization for school tra
         }
     }
 }
+

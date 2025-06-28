@@ -9,9 +9,10 @@ namespace BusBuddy.Data
         List<Fuel> GetAllFuelRecords();
         Fuel GetFuelRecordById(int id);
         List<Fuel> GetFuelRecordsByDate(DateTime date);
-        List<Fuel> GetFuelRecordsByVehicle(int vehicleId);
+        List<Fuel> GetFuelRecordsByBus(int busId);
         int AddFuelRecord(Fuel fuelRecord);
         bool UpdateFuelRecord(Fuel fuelRecord);
         bool DeleteFuelRecord(int id);
     }
 }
+

@@ -8,73 +8,73 @@ using BusBuddy.Data;
 namespace BusBuddy.Business
 {
     /// <summary>
-    /// Service for predictive maintenance scheduling and vehicle health analysis
+    /// Service for predictive maintenance scheduling and bus health analysis
     /// Provides intelligent maintenance recommendations based on usage patterns and history
     /// </summary>
     public class PredictiveMaintenanceService : IPredictiveMaintenanceService
     {
-        private readonly IVehicleRepository _vehicleRepository;
+        private readonly BusRepository _busRepository;
         private readonly IMaintenanceRepository _maintenanceRepository;
         private readonly IFuelRepository _fuelRepository;
         private readonly IRouteRepository _routeRepository;
 
         public PredictiveMaintenanceService(
-            IVehicleRepository? vehicleRepository = null,
+            BusRepository? busRepository = null,
             IMaintenanceRepository? maintenanceRepository = null,
             IFuelRepository? fuelRepository = null,
             IRouteRepository? routeRepository = null)
         {
-            _vehicleRepository = vehicleRepository ?? new VehicleRepository();
+            _busRepository = busRepository ?? new BusRepository();
             _maintenanceRepository = maintenanceRepository ?? new MaintenanceRepository();
             _fuelRepository = fuelRepository ?? new FuelRepository();
             _routeRepository = routeRepository ?? new RouteRepository();
         }
 
         /// <summary>
-        /// Generate maintenance predictions based on vehicle usage and history
+        /// Generate maintenance predictions based on bus usage and history
         /// </summary>
-        public async Task<List<MaintenancePrediction>> GetMaintenancePredictionsAsync(int vehicleId)
+        public async Task<List<MaintenancePrediction>> GetMaintenancePredictionsAsync(int busId)
         {
-            if (vehicleId <= 0)
-                throw new ArgumentException($"Invalid vehicle ID: {vehicleId}");
+            if (busId <= 0)
+                throw new ArgumentException($"Invalid bus ID: {busId}");
 
             try
             {
                 return await Task.Run(() =>
                 {
-                    var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-                    if (vehicle == null)
-                        throw new ArgumentException($"Vehicle with ID {vehicleId} not found");
+                    var bus = _busRepository.GetBusById(busId);
+                    if (bus == null)
+                        throw new ArgumentException($"Bus with ID {busId} not found");
 
                     var predictions = new List<MaintenancePrediction>();
-                    var maintenanceHistory = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
-                    var currentMileage = GetCurrentMileage(vehicleId);
+                    var maintenanceHistory = _maintenanceRepository.GetMaintenanceByBus(busId);
+                    var currentMileage = GetCurrentMileage(busId);
 
                     // Oil Change Prediction
                 var lastOilChange = GetLastMaintenanceOfType(maintenanceHistory, "Oil Change");
-                var oilChangePrediction = PredictOilChange(vehicleId, lastOilChange, currentMileage);
+                var oilChangePrediction = PredictOilChange(busId, lastOilChange, currentMileage);
                 if (oilChangePrediction != null)
                     predictions.Add(oilChangePrediction);
 
                 // Brake Inspection Prediction
                 var lastBrakeService = GetLastMaintenanceOfType(maintenanceHistory, "Brake");
-                var brakePrediction = PredictBrakeService(vehicleId, lastBrakeService, currentMileage);
+                var brakePrediction = PredictBrakeService(busId, lastBrakeService, currentMileage);
                 if (brakePrediction != null)
                     predictions.Add(brakePrediction);
 
                 // Tire Rotation/Replacement
                 var lastTireService = GetLastMaintenanceOfType(maintenanceHistory, "Tire");
-                var tirePrediction = PredictTireService(vehicleId, lastTireService, currentMileage);
+                var tirePrediction = PredictTireService(busId, lastTireService, currentMileage);
                 if (tirePrediction != null)
                     predictions.Add(tirePrediction);
 
                 // Annual Inspection
-                var inspectionPrediction = PredictAnnualInspection(vehicle);
+                var inspectionPrediction = PredictAnnualInspection(bus);
                 if (inspectionPrediction != null)
                     predictions.Add(inspectionPrediction);
 
                 // Engine Service based on age and mileage
-                var enginePrediction = PredictEngineService(vehicle, maintenanceHistory, currentMileage);
+                var enginePrediction = PredictEngineService(bus, maintenanceHistory, currentMileage);
                 if (enginePrediction != null)
                     predictions.Add(enginePrediction);
 
@@ -83,7 +83,7 @@ namespace BusBuddy.Business
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error getting maintenance predictions for vehicle {vehicleId}: {ex.Message}");
+                Console.WriteLine($"❌ Error getting maintenance predictions for bus {busId}: {ex.Message}");
                 throw new ApplicationException($"Failed to get maintenance predictions: {ex.Message}", ex);
             }
         }
@@ -96,11 +96,11 @@ namespace BusBuddy.Business
             return await Task.Run(() =>
             {
                 var recommendations = new List<MaintenanceRecommendation>();
-                var vehicles = _vehicleRepository.GetAllVehicles();
+                var buses = _busRepository.GetAllBuses();
 
-                foreach (var vehicle in vehicles)
+                foreach (var bus in buses)
                 {
-                    var predictions = GetMaintenancePredictionsAsync(vehicle.Id).Result;
+                    var predictions = GetMaintenancePredictionsAsync(bus.BusId).Result;
                     var periodicPredictions = predictions
                         .Where(p => p.PredictedDate >= startDate && p.PredictedDate <= endDate);
 
@@ -108,14 +108,14 @@ namespace BusBuddy.Business
                     {
                         recommendations.Add(new MaintenanceRecommendation
                         {
-                            VehicleId = vehicle.Id,
-                            VehicleNumber = vehicle.VehicleNumber ?? "Unknown",
+                            BusId = bus.BusId,
+                            BusNumber = bus.BusNumber ?? "Unknown",
                             MaintenanceType = prediction.MaintenanceType,
                             RecommendedDate = prediction.PredictedDate,
                             Priority = prediction.Priority,
                             EstimatedCost = prediction.EstimatedCost,
                             Reason = prediction.Reason,
-                            CurrentMileage = GetCurrentMileage(vehicle.Id)
+                            CurrentMileage = GetCurrentMileage(bus.BusId)
                         });
                     }
                 }
@@ -129,29 +129,29 @@ namespace BusBuddy.Business
         }
 
         /// <summary>
-        /// Calculate comprehensive vehicle health score
+        /// Calculate comprehensive bus health score
         /// </summary>
-        public async Task<VehicleHealthScore> CalculateVehicleHealthScoreAsync(int vehicleId)
+        public async Task<BusHealthScore> CalculateBusHealthScoreAsync(int busId)
         {
             return await Task.Run(() =>
             {
-                var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-                if (vehicle == null)
-                    throw new ArgumentException($"Vehicle with ID {vehicleId} not found");
+                var bus = _busRepository.GetBusById(busId);
+                if (bus == null)
+                    throw new ArgumentException($"Bus with ID {busId} not found");
 
-                var healthScore = new VehicleHealthScore
+                var healthScore = new BusHealthScore
                 {
-                    VehicleId = vehicleId,
-                    VehicleNumber = vehicle.VehicleNumber ?? "Unknown",
+                    BusId = busId,
+                    BusNumber = bus.BusNumber ?? "Unknown",
                     CalculatedDate = DateTime.Now
                 };
 
-                var maintenanceHistory = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
-                var currentMileage = GetCurrentMileage(vehicleId);
+                var maintenanceHistory = _maintenanceRepository.GetMaintenanceByBus(busId);
+                var currentMileage = GetCurrentMileage(busId);
 
                 // Calculate component scores
                 healthScore.MaintenanceComplianceScore = CalculateMaintenanceComplianceScore(maintenanceHistory);
-                healthScore.AgeScore = CalculateAgeScore(vehicle.Year);
+                healthScore.AgeScore = CalculateAgeScore(bus.Year ?? DateTime.Now.Year);
                 healthScore.MileageScore = CalculateMileageScore(currentMileage);
                 healthScore.ReliabilityScore = CalculateReliabilityScore(maintenanceHistory);
                 healthScore.CostEfficiencyScore = CalculateCostEfficiencyScore(maintenanceHistory);
@@ -168,11 +168,11 @@ namespace BusBuddy.Business
                 // Health status based on score
                 healthScore.HealthStatus = healthScore.OverallScore switch
                 {
-                    >= 85 => VehicleHealthStatus.Excellent,
-                    >= 70 => VehicleHealthStatus.Good,
-                    >= 55 => VehicleHealthStatus.Fair,
-                    >= 40 => VehicleHealthStatus.Poor,
-                    _ => VehicleHealthStatus.Critical
+                    >= 85 => BusHealthStatus.Excellent,
+                    >= 70 => BusHealthStatus.Good,
+                    >= 55 => BusHealthStatus.Fair,
+                    >= 40 => BusHealthStatus.Poor,
+                    _ => BusHealthStatus.Critical
                 };
 
                 // Generate recommendations
@@ -185,22 +185,22 @@ namespace BusBuddy.Business
         /// <summary>
         /// Analyze maintenance cost trends and provide insights
         /// </summary>
-        public async Task<MaintenanceCostAnalysis> AnalyzeMaintenanceCostsAsync(int vehicleId, DateTime startDate, DateTime endDate)
+        public async Task<MaintenanceCostAnalysis> AnalyzeMaintenanceCostsAsync(int busId, DateTime startDate, DateTime endDate)
         {
             return await Task.Run(() =>
             {
-                var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-                if (vehicle == null)
-                    throw new ArgumentException($"Vehicle with ID {vehicleId} not found");
+                var bus = _busRepository.GetBusById(busId);
+                if (bus == null)
+                    throw new ArgumentException($"Bus with ID {busId} not found");
 
-                var maintenanceRecords = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId)
+                var maintenanceRecords = _maintenanceRepository.GetMaintenanceByBus(busId)
                     .Where(m => m.DateAsDateTime >= startDate && m.DateAsDateTime <= endDate)
                     .ToList();
 
                 var analysis = new MaintenanceCostAnalysis
                 {
-                    VehicleId = vehicleId,
-                    VehicleNumber = vehicle.VehicleNumber ?? "Unknown",
+                    BusId = busId,
+                    BusNumber = bus.BusNumber ?? "Unknown",
                     PeriodStart = startDate,
                     PeriodEnd = endDate
                 };
@@ -237,14 +237,14 @@ namespace BusBuddy.Business
             return await Task.Run(() =>
             {
                 var alerts = new List<MaintenanceAlert>();
-                var vehicles = _vehicleRepository.GetAllVehicles();
+                var buses = _busRepository.GetAllBuses();
 
-                foreach (var vehicle in vehicles)
+                foreach (var bus in buses)
                 {
                     List<MaintenancePrediction> predictions;
                     try
                     {
-                        predictions = GetMaintenancePredictionsAsync(vehicle.Id).Result;
+                        predictions = GetMaintenancePredictionsAsync(bus.BusId).Result;
                     }
                     catch
                     {
@@ -258,29 +258,29 @@ namespace BusBuddy.Business
                     {
                         alerts.Add(new MaintenanceAlert
                         {
-                            VehicleId = vehicle.Id,
-                            VehicleNumber = vehicle.VehicleNumber ?? "Unknown",
+                            BusId = bus.BusId,
+                            BusNumber = bus.BusNumber ?? "Unknown",
                             AlertType = prediction.Priority == MaintenancePriority.Critical ?
                                 AlertType.Critical : AlertType.Urgent,
-                            Message = $"{prediction.MaintenanceType} due for {vehicle.VehicleNumber}",
+                            Message = $"{prediction.MaintenanceType} due for {bus.BusNumber}",
                             DueDate = prediction.PredictedDate,
                             EstimatedCost = prediction.EstimatedCost
                         });
                     }
 
                     // Check for overdue inspections
-                    if (vehicle.DateLastInspectionAsDateTime.HasValue)
+                    if (bus.LastInspectionDate.HasValue)
                     {
-                        var daysSinceInspection = (DateTime.Now - vehicle.DateLastInspectionAsDateTime.Value).Days;
+                        var daysSinceInspection = (DateTime.Now - bus.LastInspectionDate.Value).Days;
                         if (daysSinceInspection > 365)
                         {
                             alerts.Add(new MaintenanceAlert
                             {
-                                VehicleId = vehicle.Id,
-                                VehicleNumber = vehicle.VehicleNumber ?? "Unknown",
+                                BusId = bus.BusId,
+                                BusNumber = bus.BusNumber ?? "Unknown",
                                 AlertType = AlertType.Critical,
                                 Message = $"Annual inspection overdue by {daysSinceInspection - 365} days",
-                                DueDate = vehicle.DateLastInspectionAsDateTime.Value.AddDays(365),
+                                DueDate = bus.LastInspectionDate.Value.AddDays(365),
                                 EstimatedCost = 150m
                             });
                         }
@@ -293,10 +293,10 @@ namespace BusBuddy.Business
 
         #region Private Helper Methods
 
-        private decimal GetCurrentMileage(int vehicleId)
+        private decimal GetCurrentMileage(int busId)
         {
             // Get latest mileage from fuel records or routes
-            var latestFuel = _fuelRepository.GetFuelRecordsByVehicle(vehicleId)
+            var latestFuel = _fuelRepository.GetFuelRecordsByBus(busId)
                 .OrderByDescending(f => f.FuelDateAsDateTime)
                 .FirstOrDefault();
 
@@ -305,7 +305,7 @@ namespace BusBuddy.Business
 
             // Fallback to route mileage if available
             var routes = _routeRepository.GetAllRoutes()
-                .Where(r => r.AMVehicleID == vehicleId || r.PMVehicleID == vehicleId)
+                .Where(r => r.AMBusId == busId || r.PMBusId == busId)
                 .OrderByDescending(r => r.DateAsDateTime);
 
             var latestRoute = routes.FirstOrDefault();
@@ -326,7 +326,7 @@ namespace BusBuddy.Business
                 .FirstOrDefault();
         }
 
-        private MaintenancePrediction? PredictOilChange(int vehicleId, Maintenance? lastOilChange, decimal currentMileage)
+        private MaintenancePrediction? PredictOilChange(int busId, Maintenance? lastOilChange, decimal currentMileage)
         {
             const int oilChangeIntervalMiles = 5000;
             const int oilChangeIntervalDays = 180; // 6 months
@@ -348,7 +348,7 @@ namespace BusBuddy.Business
 
                 return new MaintenancePrediction
                 {
-                    VehicleId = vehicleId,
+                    BusId = busId,
                     MaintenanceType = "Oil Change",
                     PredictedDate = DateTime.Now.AddDays(priority == MaintenancePriority.High ? 7 : 14),
                     Priority = priority,
@@ -362,7 +362,7 @@ namespace BusBuddy.Business
             return null;
         }
 
-        private MaintenancePrediction? PredictBrakeService(int vehicleId, Maintenance? lastBrakeService, decimal currentMileage)
+        private MaintenancePrediction? PredictBrakeService(int busId, Maintenance? lastBrakeService, decimal currentMileage)
         {
             const int brakeServiceIntervalMiles = 25000;
 
@@ -376,7 +376,7 @@ namespace BusBuddy.Business
 
                 return new MaintenancePrediction
                 {
-                    VehicleId = vehicleId,
+                    BusId = busId,
                     MaintenanceType = "Brake Inspection",
                     PredictedDate = DateTime.Now.AddDays(priority == MaintenancePriority.High ? 14 : 30),
                     Priority = priority,
@@ -390,7 +390,7 @@ namespace BusBuddy.Business
             return null;
         }
 
-        private MaintenancePrediction? PredictTireService(int vehicleId, Maintenance? lastTireService, decimal currentMileage)
+        private MaintenancePrediction? PredictTireService(int busId, Maintenance? lastTireService, decimal currentMileage)
         {
             const int tireRotationIntervalMiles = 8000;
 
@@ -401,7 +401,7 @@ namespace BusBuddy.Business
             {
                 return new MaintenancePrediction
                 {
-                    VehicleId = vehicleId,
+                    BusId = busId,
                     MaintenanceType = "Tire Rotation/Inspection",
                     PredictedDate = DateTime.Now.AddDays(21),
                     Priority = MaintenancePriority.Medium,
@@ -415,12 +415,12 @@ namespace BusBuddy.Business
             return null;
         }
 
-        private MaintenancePrediction? PredictAnnualInspection(Vehicle vehicle)
+        private MaintenancePrediction? PredictAnnualInspection(Bus bus)
         {
-            if (vehicle.DateLastInspectionAsDateTime.HasValue)
+            if (bus.LastInspectionDate.HasValue)
             {
-                var daysSinceInspection = (DateTime.Now - vehicle.DateLastInspectionAsDateTime.Value).Days;
-                var nextInspectionDue = vehicle.DateLastInspectionAsDateTime.Value.AddDays(365);
+                var daysSinceInspection = (DateTime.Now - bus.LastInspectionDate.Value).Days;
+                var nextInspectionDue = bus.LastInspectionDate.Value.AddDays(365);
 
                 if (daysSinceInspection >= 330) // 11 months
                 {
@@ -429,7 +429,7 @@ namespace BusBuddy.Business
 
                     return new MaintenancePrediction
                     {
-                        VehicleId = vehicle.Id,
+                        BusId = bus.BusId,
                         MaintenanceType = "Annual Inspection",
                         PredictedDate = nextInspectionDue,
                         Priority = priority,
@@ -443,7 +443,7 @@ namespace BusBuddy.Business
             return null;
         }
 
-        private MaintenancePrediction? PredictEngineService(Vehicle vehicle, List<Maintenance> history, decimal currentMileage)
+        private MaintenancePrediction? PredictEngineService(Bus bus, List<Maintenance> history, decimal currentMileage)
         {
             var majorEngineService = history
                 .Where(m => m.MaintenanceCompleted?.Contains("Engine", StringComparison.OrdinalIgnoreCase) == true)
@@ -462,7 +462,7 @@ namespace BusBuddy.Business
 
                 return new MaintenancePrediction
                 {
-                    VehicleId = vehicle.Id,
+                    BusId = bus.BusId,
                     MaintenanceType = "Major Engine Service",
                     PredictedDate = DateTime.Now.AddDays(priority == MaintenancePriority.High ? 30 : 90),
                     Priority = priority,
@@ -558,7 +558,7 @@ namespace BusBuddy.Business
             };
         }
 
-        private List<string> GenerateHealthRecommendations(VehicleHealthScore healthScore, List<Maintenance> history)
+        private List<string> GenerateHealthRecommendations(BusHealthScore healthScore, List<Maintenance> history)
         {
             var recommendations = new List<string>();
 
@@ -610,3 +610,4 @@ namespace BusBuddy.Business
         #endregion
     }
 }
+

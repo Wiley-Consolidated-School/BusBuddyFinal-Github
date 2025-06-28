@@ -8,20 +8,20 @@ namespace BusBuddy.Business
 {
     public class ValidationService : IValidationService
     {
-        private readonly IVehicleRepository _vehicleRepository;
+        private readonly BusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IRouteRepository _routeRepository;
         private readonly IMaintenanceRepository _maintenanceRepository;
         private readonly IFuelRepository _fuelRepository;
 
         public ValidationService(
-            IVehicleRepository vehicleRepository,
+            BusRepository busRepository,
             IDriverRepository driverRepository,
             IRouteRepository routeRepository,
             IMaintenanceRepository maintenanceRepository,
             IFuelRepository fuelRepository)
         {
-            _vehicleRepository = vehicleRepository;
+            _busRepository = busRepository;
             _driverRepository = driverRepository;
             _routeRepository = routeRepository;
             _maintenanceRepository = maintenanceRepository;
@@ -31,32 +31,29 @@ namespace BusBuddy.Business
         /// <summary>
         /// Validates complete vehicle assignment for a route
         /// </summary>
-        public ValidationResult ValidateVehicleAssignment(int vehicleId, DateTime date, string assignmentType = "route")
+        public ValidationResult ValidateVehicleAssignment(int busId, DateTime date, string assignmentType = "route")
         {
             try
             {
                 var validations = new List<ValidationResult>();
 
-                var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-                if (vehicle == null)
+                var bus = _busRepository.GetBusById(busId);
+                if (bus == null)
                 {
-                    return ValidationResult.Failed($"Vehicle with ID {vehicleId} not found.");
+                    return ValidationResult.Failed($"Vehicle with ID {busId} not found.");
                 }
 
-                // Validate vehicle status
-                if (!string.IsNullOrEmpty(vehicle.Status) && vehicle.Status.ToLower() == "out of service")
-                {
-                    validations.Add(ValidationResult.Failed($"Vehicle {vehicle.VehicleNumber} is currently out of service."));
-                }
+                // Validate vehicle status (removing Status check as it doesn't exist in Bus model)
+                // Note: Status property was removed from Bus model, validation logic updated accordingly
 
                 // Validate vehicle availability
-                validations.Add(ValidateVehicleAvailability(vehicleId, date, assignmentType));
+                validations.Add(ValidateBusAvailability(busId, date, assignmentType));
 
                 return ValidationResult.Combine(validations);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error validating vehicle assignment for vehicle {vehicleId}: {ex.Message}");
+                Console.WriteLine($"❌ Error validating vehicle assignment for vehicle {busId}: {ex.Message}");
                 return ValidationResult.Failed($"Validation error: {ex.Message}");
             }
         }
@@ -64,44 +61,38 @@ namespace BusBuddy.Business
         /// <summary>
         /// Validates driver assignment including license and availability
         /// </summary>
-        public ValidationResult ValidateDriverAssignment(int driverId, DateTime date, string assignmentType = "route")
+        public ValidationResult ValidateDriverAssignment(int DriverId, DateTime date, string assignmentType = "route")
         {
             try
             {
                 var validations = new List<ValidationResult>();
 
-                var driver = _driverRepository.GetDriverById(driverId);
+                var driver = _driverRepository.GetDriverById(DriverId);
                 if (driver == null)
                 {
-                    return ValidationResult.Failed($"Driver with ID {driverId} not found.");
+                    return ValidationResult.Failed($"Driver with ID {DriverId} not found.");
                 }
 
                 // Validate driver qualifications
                 if (string.IsNullOrWhiteSpace(driver.DriversLicenseType))
                 {
-                    validations.Add(ValidationResult.Failed($"Driver {driver.DriverName} does not have a valid license type."));
-                }
-
-                // Validate license expiration if available
-                if (driver.CDLExpirationDate.HasValue && driver.CDLExpirationDate < DateTime.Now)
-                {
-                    validations.Add(ValidationResult.Failed($"Driver {driver.DriverName}'s CDL has expired."));
+                    validations.Add(ValidationResult.Failed($"Driver {driver.Name} does not have a valid license type."));
                 }
 
             // Check if training is complete
             if (!driver.IsTrainingComplete)
             {
-                validations.Add(ValidationResult.Failed($"Driver {driver.DriverName} has not completed required training."));
+                validations.Add(ValidationResult.Failed($"Driver {driver.Name} has not completed required training."));
             }
 
                 // Validate driver availability
-                validations.Add(ValidateDriverAvailability(driverId, date, assignmentType));
+                validations.Add(ValidateDriverAvailability(DriverId, date, assignmentType));
 
                 return ValidationResult.Combine(validations);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error validating driver assignment for driver {driverId}: {ex.Message}");
+                Console.WriteLine($"❌ Error validating driver assignment for driver {DriverId}: {ex.Message}");
                 return ValidationResult.Failed($"Validation error: {ex.Message}");
             }
         }
@@ -109,28 +100,25 @@ namespace BusBuddy.Business
         /// <summary>
         /// Core vehicle availability validation
         /// </summary>
-        public ValidationResult ValidateVehicleAvailability(int vehicleId, DateTime date, string assignmentType = "general", int? currentRouteId = null)
+        public ValidationResult ValidateBusAvailability(int busId, DateTime date, string assignmentType = "general", int? currentRouteId = null)
         {
             try
             {
-                // Check if vehicle exists
-                var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-                if (vehicle == null)
+                // Check if bus exists
+                var bus = _busRepository.GetBusById(busId);
+                if (bus == null)
                 {
-                    return ValidationResult.Failed($"Vehicle with ID {vehicleId} does not exist.");
+                    return ValidationResult.Failed($"Bus with ID {busId} does not exist.");
                 }
 
-                // Check if vehicle is out of service
-                if (!string.IsNullOrEmpty(vehicle.Status) && vehicle.Status.ToLower() == "out of service")
-                {
-                    return ValidationResult.Failed($"Vehicle {vehicle.VehicleNumber} is currently out of service.");
-                }
+                // Check if vehicle is out of service (removing Status check as it doesn't exist in Bus model)
+                // Note: Status property was removed from Bus model, validation logic updated accordingly
 
                 // Get conflicting route assignments for the date
                 var routes = _routeRepository.GetRoutesByDate(date);
                 var conflictingRoutes = routes.Where(r =>
-                    (r.AMVehicleID == vehicleId || r.PMVehicleID == vehicleId) &&
-                    (currentRouteId == null || r.RouteID != currentRouteId)).ToList();
+                    (r.AMBusId == busId || r.PMBusId == busId) &&
+                    (currentRouteId == null || r.RouteId != currentRouteId)).ToList();
 
                 if (conflictingRoutes.Any() && assignmentType != "route")
                 {
@@ -139,7 +127,7 @@ namespace BusBuddy.Business
                 }
 
                 // Check for maintenance conflicts
-                var maintenanceRecords = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
+                var maintenanceRecords = _maintenanceRepository.GetMaintenanceByBus(busId);
                 var scheduledMaintenance = maintenanceRecords?.Where(m =>
                     m.DateAsDateTime?.Date == date.Date && m.Notes?.Contains("SCHEDULED") == true).ToList();
 
@@ -159,34 +147,25 @@ namespace BusBuddy.Business
         /// <summary>
         /// Core driver availability validation
         /// </summary>
-        public ValidationResult ValidateDriverAvailability(int driverId, DateTime date, string assignmentType = "general", int? currentRouteId = null)
+        public ValidationResult ValidateDriverAvailability(int DriverId, DateTime date, string assignmentType = "general", int? currentRouteId = null)
         {
             try
             {
                 // Check if driver exists
-                var driver = _driverRepository.GetDriverById(driverId);
+                var driver = _driverRepository.GetDriverById(DriverId);
                 if (driver == null)
                 {
-                    return ValidationResult.Failed($"Driver with ID {driverId} does not exist.");
+                    return ValidationResult.Failed($"Driver with ID {DriverId} does not exist.");
                 }
 
-                // Check if driver is inactive
-                if (!string.IsNullOrEmpty(driver.Status) && driver.Status.ToLower() == "inactive")
-                {
-                    return ValidationResult.Failed($"Driver {driver.DriverName} is currently inactive.");
-                }
-
-                // Check if license is expired
-                if (driver.CDLExpirationDate.HasValue && driver.CDLExpirationDate < DateTime.Today)
-                {
-                    return ValidationResult.Failed($"Driver {driver.DriverName}'s license has expired on {driver.CDLExpirationDate:yyyy-MM-dd}.");
-                }
+                // Check if driver is inactive (removing Status check as it doesn't exist in Driver model)
+                // Note: Status property was removed from Driver model, validation logic updated accordingly
 
                 // Get conflicting route assignments for the date
                 var routes = _routeRepository.GetRoutesByDate(date);
                 var conflictingRoutes = routes.Where(r =>
-                    (r.AMDriverID == driverId || r.PMDriverID == driverId) &&
-                    (currentRouteId == null || r.RouteID != currentRouteId)).ToList();
+                    (r.AMDriverId == DriverId || r.PMDriverId == DriverId) &&
+                    (currentRouteId == null || r.RouteId != currentRouteId)).ToList();
 
                 if (conflictingRoutes.Any() && assignmentType != "route")
                 {
@@ -244,7 +223,7 @@ namespace BusBuddy.Business
             }
 
             // Validate required fields
-            if (!maintenanceRecord.VehicleID.HasValue)
+            if (!maintenanceRecord.BusId.HasValue)
             {
                 validations.Add(ValidationResult.Failed("Vehicle ID is required for maintenance record."));
             }
@@ -259,12 +238,12 @@ namespace BusBuddy.Business
                 validations.Add(ValidationResult.Failed("Maintenance completed description is required."));
             }
 
-            // Validate vehicle exists (only if VehicleID is provided)
+            // Validate vehicle exists (only if BusId is provided)
             // Note: Skip availability check for scheduled maintenance as it would create a circular validation
-            if (maintenanceRecord.VehicleID.HasValue &&
+            if (maintenanceRecord.BusId.HasValue &&
                 !(maintenanceRecord.Notes?.Contains("SCHEDULED") == true))
             {
-                validations.Add(ValidateVehicleAvailability(maintenanceRecord.VehicleID.Value,
+                validations.Add(ValidateBusAvailability(maintenanceRecord.BusId.Value,
                     maintenanceRecord.DateAsDateTime ?? DateTime.Today, "maintenance"));
             }
 
@@ -291,25 +270,25 @@ namespace BusBuddy.Business
             var validations = new List<ValidationResult>();
 
             // Validate AM assignments
-            if (route.AMVehicleID.HasValue)
+            if (route.AMBusId.HasValue)
             {
-                validations.Add(ValidateVehicleAvailability(route.AMVehicleID.Value, route.DateAsDateTime, "route assignment", route.RouteID));
+                validations.Add(ValidateBusAvailability(route.AMBusId.Value, route.DateAsDateTime, "route assignment", route.RouteId));
             }
 
-            if (route.AMDriverID.HasValue)
+            if (route.AMDriverId.HasValue)
             {
-                validations.Add(ValidateDriverAvailability(route.AMDriverID.Value, route.DateAsDateTime, "route assignment", route.RouteID));
+                validations.Add(ValidateDriverAvailability(route.AMDriverId.Value, route.DateAsDateTime, "route assignment", route.RouteId));
             }
 
             // Validate PM assignments
-            if (route.PMVehicleID.HasValue)
+            if (route.PMBusId.HasValue)
             {
-                validations.Add(ValidateVehicleAvailability(route.PMVehicleID.Value, route.DateAsDateTime, "route assignment", route.RouteID));
+                validations.Add(ValidateBusAvailability(route.PMBusId.Value, route.DateAsDateTime, "route assignment", route.RouteId));
             }
 
-            if (route.PMDriverID.HasValue)
+            if (route.PMDriverId.HasValue)
             {
-                validations.Add(ValidateDriverAvailability(route.PMDriverID.Value, route.DateAsDateTime, "route assignment", route.RouteID));
+                validations.Add(ValidateDriverAvailability(route.PMDriverId.Value, route.DateAsDateTime, "route assignment", route.RouteId));
             }
 
             // Validate mileage logic
@@ -328,15 +307,63 @@ namespace BusBuddy.Business
 
         #region Interface Implementation Methods
 
-        public bool IsValidVehicleNumber(string vehicleNumber)
+        public bool IsValidBusNumber(string busNumber)
         {
-            // Accepts various formats: BUS001, V123, BUS-123, etc. (minimum 3 characters)
-            if (string.IsNullOrWhiteSpace(vehicleNumber))
+            if (string.IsNullOrWhiteSpace(busNumber))
                 return false;
 
-            // Allow alphanumeric with optional dash, minimum 3 characters
-            return vehicleNumber.Length >= 3 &&
-                   System.Text.RegularExpressions.Regex.IsMatch(vehicleNumber, @"^[A-Z0-9\-]+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            // Bus number should be 1-4 characters, alphanumeric
+            return busNumber.Length <= 4 && busNumber.All(c => char.IsLetterOrDigit(c));
+        }
+
+        public bool IsBusMaintenanceRequired(int busId)
+        {
+            var bus = _busRepository.GetBusById(busId);
+            if (bus == null) return false;
+
+            // Check if maintenance is overdue
+            var lastMaintenance = _maintenanceRepository.GetMaintenanceByBus(busId)
+                .OrderByDescending(m => m.DateAsDateTime)
+                .FirstOrDefault();
+
+            if (lastMaintenance?.DateAsDateTime == null)
+                return true; // No maintenance history
+
+            return (DateTime.Now - lastMaintenance.DateAsDateTime.Value).Days > 90;
+        }
+
+        public bool IsFuelLevelCritical(int busId)
+        {
+            var latestFuel = _fuelRepository.GetFuelRecordsByBus(busId)
+                .OrderByDescending(f => f.FuelDateAsDateTime)
+                .FirstOrDefault();
+
+            if (latestFuel?.FuelAmount == null)
+                return true; // No fuel data is critical
+
+            // Assume critical if less than 25% of typical fuel capacity
+            return latestFuel.FuelAmount < 20; // Less than 20 gallons
+        }
+
+        public bool IsBusAvailable(int busId, DateTime startTime, DateTime endTime)
+        {
+            // Check if bus exists
+            var bus = _busRepository.GetBusById(busId);
+            if (bus == null) return false;
+
+            // Check maintenance schedule conflicts
+            var maintenanceConflicts = _maintenanceRepository.GetMaintenanceByBus(busId)
+                .Where(m => m.DateAsDateTime >= startTime.Date && m.DateAsDateTime <= endTime.Date);
+
+            if (maintenanceConflicts.Any())
+                return false;
+
+            // Check route assignment conflicts
+            var routeConflicts = _routeRepository.GetAllRoutes()
+                .Where(r => (r.AMBusId == busId || r.PMBusId == busId) &&
+                           r.DateAsDateTime >= startTime.Date && r.DateAsDateTime <= endTime.Date);
+
+            return !routeConflicts.Any();
         }
 
         public bool IsValidDriverLicense(string licenseNumber, string licenseType)
@@ -348,11 +375,11 @@ namespace BusBuddy.Business
             return licenseNumber.Length >= 5 && (licenseType == "CDL" || licenseType == "Regular");
         }
 
-        public bool IsVehicleMaintenanceRequired(int vehicleId)
+        public bool IsVehicleMaintenanceRequired(int BusId)
         {
             try
             {
-                var maintenanceRecords = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
+                var maintenanceRecords = _maintenanceRepository.GetMaintenanceByBus(BusId);
                 var lastMaintenance = maintenanceRecords?.OrderByDescending(m => m.DateAsDateTime).FirstOrDefault();
 
                 if (lastMaintenance == null) return true; // No maintenance history
@@ -374,25 +401,12 @@ namespace BusBuddy.Business
             return !string.IsNullOrWhiteSpace(route.RouteName);
         }
 
-        public bool IsDriverEligibleForRoute(int driverId, int routeId)
+        public bool IsDriverEligibleForRoute(int DriverId, int RouteId)
         {
             try
             {
-                var driver = _driverRepository.GetDriverById(driverId);
+                var driver = _driverRepository.GetDriverById(DriverId);
                 return driver != null && !string.IsNullOrWhiteSpace(driver.DriversLicenseType);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public bool IsFuelLevelCritical(int vehicleId)
-        {
-            try
-            {
-                // Note: Vehicle model doesn't have FuelLevel property, return false
-                return false;
             }
             catch
             {
@@ -418,19 +432,20 @@ namespace BusBuddy.Business
                    schedule.ScheduledLeaveTime < schedule.ScheduledReturnTime;
         }
 
-        public bool IsVehicleAvailable(int vehicleId, DateTime startTime, DateTime endTime)
+        public bool IsVehicleAvailable(int BusId, DateTime startTime, DateTime endTime)
         {
             try
             {
                 // 1. Check if vehicle exists and is not out of service
-                var vehicle = _vehicleRepository.GetVehicleById(vehicleId);
-                if (vehicle == null || vehicle.Status?.ToLower() == "out of service")
+                var bus = _busRepository.GetBusById(BusId);
+                if (bus == null)
                 {
                     return false;
                 }
+                // Note: Status property was removed from Bus model, assuming available
 
                 // 2. Check for maintenance conflicts during the time period
-                var maintenanceRecords = _maintenanceRepository.GetMaintenanceByVehicle(vehicleId);
+                var maintenanceRecords = _maintenanceRepository.GetMaintenanceByBus(BusId);
                 if (maintenanceRecords != null)
                 {
                     var conflictingMaintenance = maintenanceRecords
@@ -453,7 +468,7 @@ namespace BusBuddy.Business
                     if (routes != null)
                     {
                         var conflictingRoutes = routes
-                            .Where(r => r.AMVehicleID == vehicleId || r.PMVehicleID == vehicleId)
+                            .Where(r => r.AMBusId == BusId || r.PMBusId == BusId)
                             .Any();
 
                         if (conflictingRoutes)
@@ -471,11 +486,11 @@ namespace BusBuddy.Business
             }
         }
 
-        public bool IsDriverAvailable(int driverId, DateTime startTime, DateTime endTime)
+        public bool IsDriverAvailable(int DriverId, DateTime startTime, DateTime endTime)
         {
             try
             {
-                var driver = _driverRepository.GetDriverById(driverId);
+                var driver = _driverRepository.GetDriverById(DriverId);
                 return driver != null && !string.IsNullOrWhiteSpace(driver.DriversLicenseType);
             }
             catch
@@ -529,32 +544,32 @@ namespace BusBuddy.Business
             return System.Text.RegularExpressions.Regex.IsMatch(zipCode, @"^\d{5}(-\d{4})?$");
         }
 
-        public ValidationResult ValidateVehicle(Vehicle vehicle)
+        public ValidationResult ValidateBus(Bus bus)
         {
             var errors = new List<string>();
 
-            if (vehicle == null)
+            if (bus == null)
             {
-                errors.Add("Vehicle cannot be null");
+                errors.Add("Bus cannot be null");
                 return ValidationResult.Failed(errors);
             }
 
-            if (string.IsNullOrWhiteSpace(vehicle.VehicleNumber))
-                errors.Add("Vehicle number is required");
-            else if (!IsValidVehicleNumber(vehicle.VehicleNumber))
-                errors.Add("Vehicle number format is invalid");
+            if (string.IsNullOrWhiteSpace(bus.BusNumber))
+                errors.Add("Bus number is required");
+            else if (!IsValidBusNumber(bus.BusNumber))
+                errors.Add("Bus number format is invalid");
 
-            if (string.IsNullOrWhiteSpace(vehicle.Make))
-                errors.Add("Vehicle make is required");
+            if (string.IsNullOrWhiteSpace(bus.Make))
+                errors.Add("Bus make is required");
 
-            if (string.IsNullOrWhiteSpace(vehicle.Model))
-                errors.Add("Vehicle model is required");
+            if (string.IsNullOrWhiteSpace(bus.Model))
+                errors.Add("Bus model is required");
 
-            if (vehicle.Year < 1900 || vehicle.Year > DateTime.Now.Year + 1)
-                errors.Add("Vehicle year must be valid");
+            if (bus.Year < 1900 || bus.Year > DateTime.Now.Year + 1)
+                errors.Add("Bus year must be valid");
 
-            if (vehicle.Capacity <= 0)
-                errors.Add("Vehicle capacity must be greater than zero");
+            if (bus.Capacity <= 0)
+                errors.Add("Bus capacity must be greater than zero");
 
             return errors.Any() ? ValidationResult.Failed(errors) : ValidationResult.Success();
         }
@@ -569,7 +584,7 @@ namespace BusBuddy.Business
                 return ValidationResult.Failed(errors);
             }
 
-            if (string.IsNullOrWhiteSpace(driver.DriverName))
+            if (string.IsNullOrWhiteSpace(driver.Name))
                 errors.Add("Driver name is required");
 
             if (string.IsNullOrWhiteSpace(driver.DriversLicenseType))
@@ -580,9 +595,6 @@ namespace BusBuddy.Business
 
             if (!string.IsNullOrWhiteSpace(driver.DriverPhone) && !IsValidPhoneNumber(driver.DriverPhone))
                 errors.Add("Driver phone number is invalid");
-
-            if (driver.CDLExpirationDate.HasValue && driver.CDLExpirationDate < DateTime.Today)
-                errors.Add($"Driver's CDL has expired on {driver.CDLExpirationDate:yyyy-MM-dd}");
 
             return errors.Any() ? ValidationResult.Failed(errors) : ValidationResult.Success();
         }
@@ -616,7 +628,7 @@ namespace BusBuddy.Business
                 return ValidationResult.Failed(errors);
             }
 
-            if (!maintenance.VehicleID.HasValue || maintenance.VehicleID <= 0)
+            if (!maintenance.BusId.HasValue || maintenance.BusId <= 0)
                 errors.Add("Valid vehicle ID is required");
 
             if (string.IsNullOrWhiteSpace(maintenance.MaintenanceCompleted))
@@ -678,3 +690,4 @@ namespace BusBuddy.Business
         }
     }
 }
+

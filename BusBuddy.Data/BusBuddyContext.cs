@@ -31,7 +31,7 @@ namespace BusBuddy.Data
         }
 
         // DbSet properties for entities
-        public DbSet<Vehicle> Vehicles { get; set; } = null!;
+        public DbSet<Bus> Vehicles { get; set; } = null!;
         public DbSet<Driver> Drivers { get; set; } = null!;
         public DbSet<Fuel> Fuels { get; set; } = null!;
         public DbSet<Route> Routes { get; set; } = null!;
@@ -152,60 +152,60 @@ namespace BusBuddy.Data
             modelBuilder.Entity<Fuel>().ToTable("Fuel"); // Use singular table name
 
             // Configure primary keys for entities that don't follow default naming conventions
-            modelBuilder.Entity<Vehicle>().HasKey(v => v.VehicleID);
-            modelBuilder.Entity<Driver>().HasKey(d => d.DriverID);
+            modelBuilder.Entity<Bus>().HasKey(b => b.BusId);
+            modelBuilder.Entity<Driver>().HasKey(d => d.DriverId);
             modelBuilder.Entity<ActivitySchedule>().HasKey(a => a.ScheduleID);
             modelBuilder.Entity<Fuel>().HasKey(f => f.FuelID);
             modelBuilder.Entity<Maintenance>().HasKey(m => m.MaintenanceID);
             modelBuilder.Entity<SchoolCalendar>().HasKey(s => s.CalendarID);
-            modelBuilder.Entity<Route>().HasKey(r => r.RouteID);
+            modelBuilder.Entity<Route>().HasKey(r => r.RouteId);
             modelBuilder.Entity<Activity>().HasKey(a => a.ActivityID);
 
-            // Configure relationships between entities
+            // Configure relationships between entities (new schema)
             modelBuilder.Entity<Route>()
-                .HasOne<Vehicle>()
+                .HasOne<Bus>()
                 .WithMany()
-                .HasForeignKey(r => r.AMVehicleID)
+                .HasForeignKey(r => r.AMBusId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Route>()
-                .HasOne<Vehicle>()
+                .HasOne<Bus>()
                 .WithMany()
-                .HasForeignKey(r => r.PMVehicleID)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Route>()
-                .HasOne<Driver>()
-                .WithMany()
-                .HasForeignKey(r => r.AMDriverID)
+                .HasForeignKey(r => r.PMBusId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Route>()
                 .HasOne<Driver>()
                 .WithMany()
-                .HasForeignKey(r => r.PMDriverID)
+                .HasForeignKey(r => r.AMDriverId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Route>()
+                .HasOne<Driver>()
+                .WithMany()
+                .HasForeignKey(r => r.PMDriverId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Maintenance>()
-                .HasOne<Vehicle>()
+                .HasOne<Bus>()
                 .WithMany()
-                .HasForeignKey(m => m.VehicleID)
+                .HasForeignKey(m => m.BusId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Fuel>()
-                .HasOne<Vehicle>()
+                .HasOne<Bus>()
                 .WithMany()
                 .HasForeignKey(f => f.VehicleFueledID)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ActivitySchedule>()
-                .HasOne<Vehicle>()
+                .HasOne<Bus>()
                 .WithMany()
                 .HasForeignKey(a => a.ScheduledVehicleID)
                 .IsRequired(false)
@@ -219,18 +219,19 @@ namespace BusBuddy.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Activity>()
-                .HasOne<Vehicle>()
+                .HasOne<Bus>()
                 .WithMany()
-                .HasForeignKey(a => a.AssignedVehicleID)
+                .HasForeignKey(a => a.AssignedBusID)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Activity>()
                 .HasOne<Driver>()
                 .WithMany()
-                .HasForeignKey(a => a.DriverID)
+                .HasForeignKey(a => a.DriverId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
+

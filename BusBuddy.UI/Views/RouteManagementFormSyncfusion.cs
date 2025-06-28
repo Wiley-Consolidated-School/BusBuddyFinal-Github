@@ -20,10 +20,10 @@ namespace BusBuddy.UI.Views
     public class RouteManagementFormSyncfusion : BaseManagementForm<Route>
     {
         private readonly IRouteRepository _routeRepository;
-        private readonly IVehicleRepository _vehicleRepository;
+        private readonly BusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
         private IDatabaseHelperService _databaseHelperService;
-        private List<Vehicle> _vehicles = new List<Vehicle>();
+        private List<Bus> _buses = new List<Bus>();
         private List<Driver> _drivers = new List<Driver>();
         #region Properties Override
         protected override string FormTitle => "🗺️ Route Management";
@@ -32,14 +32,14 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public RouteManagementFormSyncfusion() : this(new RouteRepository(), new VehicleRepository(), new DriverRepository()) { }
+        public RouteManagementFormSyncfusion() : this(new RouteRepository(), new BusRepository(), new DriverRepository()) { }
 
-        public RouteManagementFormSyncfusion(IRouteRepository routeRepository, IVehicleRepository vehicleRepository, IDriverRepository driverRepository)
+        public RouteManagementFormSyncfusion(IRouteRepository routeRepository, BusRepository busRepository, IDriverRepository driverRepository)
         {
             try
             {
                 _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
-                _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
+                _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
                 _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
                 _databaseHelperService = UnifiedServiceManager.Instance.GetService<DatabaseHelperService>();
 
@@ -127,8 +127,8 @@ namespace BusBuddy.UI.Views
             // Return mock data for testing to avoid database calls
             return new List<Route>
             {
-                new Route { RouteID = 1, RouteName = "Test Route 1", Date = DateTime.Today.ToString("yyyy-MM-dd") },
-                new Route { RouteID = 2, RouteName = "Test Route 2", Date = DateTime.Today.ToString("yyyy-MM-dd") }
+                new Route { RouteId = 1, RouteName = "Test Route 1", Date = DateTime.Today.ToString("yyyy-MM-dd") },
+                new Route { RouteId = 2, RouteName = "Test Route 2", Date = DateTime.Today.ToString("yyyy-MM-dd") }
             };
         }
 
@@ -184,7 +184,7 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                _routeRepository.DeleteRoute(selectedRoute.RouteID);
+                _routeRepository.DeleteRoute(selectedRoute.RouteId);
                 RefreshGrid();
                 ShowInfo("Route deleted successfully.");
             }
@@ -206,16 +206,16 @@ namespace BusBuddy.UI.Views
             try
             {
                 var details = $"Route Details:\n\n" +
-                            $"ID: {selectedRoute.RouteID}\n" +
+                            $"ID: {selectedRoute.RouteId}\n" +
                             $"Name: {selectedRoute.RouteName}\n" +
                             $"AM Miles: {selectedRoute.AMMiles}\n" +
                             $"AM Riders: {selectedRoute.AMRiders}\n" +
                             $"PM Miles: {selectedRoute.PMMiles}\n" +
                             $"PM Riders: {selectedRoute.PMRiders}\n" +
-                            $"AM Vehicle: {GetVehicleName(selectedRoute.AMVehicleID)}\n" +
-                            $"PM Vehicle: {GetVehicleName(selectedRoute.PMVehicleID)}\n" +
-                            $"AM Driver: {GetDriverName(selectedRoute.AMDriverID)}\n" +
-                            $"PM Driver: {GetDriverName(selectedRoute.PMDriverID)}";
+                            $"AM Vehicle: {GetBusName(selectedRoute.AMBusId)}\n" +
+                            $"PM Vehicle: {GetBusName(selectedRoute.PMBusId)}\n" +
+                            $"AM Driver: {GetDriverName(selectedRoute.AMDriverId)}\n" +
+                            $"PM Driver: {GetDriverName(selectedRoute.PMDriverId)}";
 
                 ShowInfo(details, "Route Details");
             }
@@ -247,10 +247,10 @@ namespace BusBuddy.UI.Views
 
                 var filteredRoutes = _entities.Where(r =>
                     (r.RouteName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
-                    (GetVehicleName(r.AMVehicleID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                    (GetVehicleName(r.PMVehicleID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                    (GetDriverName(r.AMDriverID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                    (GetDriverName(r.PMDriverID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    (GetBusName(r.AMBusId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (GetBusName(r.PMBusId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (GetDriverName(r.AMDriverId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (GetDriverName(r.PMDriverId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
 
                 _entities = filteredRoutes;
@@ -274,7 +274,7 @@ namespace BusBuddy.UI.Views
             _dataGrid.AutoGenerateColumns = false;
             _dataGrid.Columns.Clear();
 
-            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "RouteID", HeaderText = "ID", Visible = false });
+            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "RouteId", HeaderText = "ID", Visible = false });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "RouteName", HeaderText = "Route Name", Width = GetDpiAwareWidth(150) });
 
             // Task 6.6: Update RouteType to use dropdown
@@ -307,20 +307,20 @@ namespace BusBuddy.UI.Views
             try
             {
                 // Defensive programming: Handle null repository results
-                var vehicles = _vehicleRepository.GetAllVehicles();
-                _vehicles = vehicles?.ToList() ?? new List<Vehicle>();
+                var buses = _busRepository.GetAllBuses();
+                _buses = buses?.ToList() ?? new List<Bus>();
 
                 var drivers = _driverRepository.GetAllDrivers();
                 _drivers = drivers?.ToList() ?? new List<Driver>();
 
-                Console.WriteLine($"✅ Loaded {_vehicles.Count} vehicles and {_drivers.Count} drivers");
+                Console.WriteLine($"✅ Loaded {_buses.Count} buses and {_drivers.Count} drivers");
             }
             catch (Exception ex)
             {
                 // Ensure collections are never null even on error
-                _vehicles = new List<Vehicle>();
+                _buses = new List<Bus>();
                 _drivers = new List<Driver>();
-                HandleError($"Error loading vehicles and drivers: {ex.Message}", "$($EntityName) Error", ex);
+                HandleError($"Error loading buses and drivers: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
 
@@ -358,16 +358,17 @@ namespace BusBuddy.UI.Views
 
                 var routeData = _entities.Select(r => new
                 {
-                    RouteID = r.RouteID,
+                    RouteId = r.RouteId,
                     RouteName = r.RouteName ?? "Unknown",
+                    RouteType = r.RouteType ?? "CDL", // Include RouteType for grid display
                     AMMiles = r.AMMiles,
                     AMRiders = r.AMRiders,
                     PMMiles = r.PMMiles,
                     PMRiders = r.PMRiders,
-                    AMVehicleName = GetVehicleName(r.AMVehicleID),
-                    PMVehicleName = GetVehicleName(r.PMVehicleID),
-                    AMDriverName = GetDriverName(r.AMDriverID),
-                    PMDriverName = GetDriverName(r.PMDriverID)
+                    AMVehicleName = GetBusName(r.AMBusId),
+                    PMVehicleName = GetBusName(r.PMBusId),
+                    AMDriverName = GetDriverName(r.AMDriverId),
+                    PMDriverName = GetDriverName(r.PMDriverId)
                 }).ToList();
 
                 // Ensure DataSource assignment is on UI thread
@@ -379,21 +380,22 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private string GetVehicleName(int? vehicleId)
+        private string GetBusName(int? busId)
         {
-            if (!vehicleId.HasValue) return "Unassigned";
+            if (!busId.HasValue) return "Unassigned";
 
-            var vehicle = _vehicles.FirstOrDefault(v => v.Id == vehicleId.Value);
-            return vehicle?.VehicleNumber ?? "Unknown";
+            var bus = _buses.FirstOrDefault(b => b.BusId == busId.Value);
+            return bus?.BusNumber ?? "Unknown";
         }
 
-        private string GetDriverName(int? driverId)
+        private string GetDriverName(int? DriverId)
         {
-            if (!driverId.HasValue) return "Unassigned";
+            if (!DriverId.HasValue) return "Unassigned";
 
-            var driver = _drivers.FirstOrDefault(d => d.DriverID == driverId.Value);
-            return driver?.DriverName ?? "Unknown";
+            var driver = _drivers.FirstOrDefault(d => d.DriverId == DriverId.Value);
+            return driver?.Name ?? "Unknown";
         }
         #endregion
     }
 }
+

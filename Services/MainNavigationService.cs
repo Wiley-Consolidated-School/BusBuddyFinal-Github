@@ -17,7 +17,7 @@ namespace BusBuddy.Services
         }
 
         // Delegate all standard navigation to the UI service
-        public void ShowVehicleManagement() => _uiNavigationService.ShowVehicleManagement();
+        public void ShowBusManagement() => _uiNavigationService.ShowBusManagement();
         public void ShowDriverManagement() => _uiNavigationService.ShowDriverManagement();
         public void ShowRouteManagement() => _uiNavigationService.ShowRouteManagement();
         public void ShowActivityManagement() => _uiNavigationService.ShowActivityManagement();
@@ -55,3 +55,4 @@ namespace BusBuddy.Services
         public DialogResult ShowDialog<T>(params object[] parameters) where T : Form => _uiNavigationService.ShowDialog<T>(parameters);
     }
 }
+

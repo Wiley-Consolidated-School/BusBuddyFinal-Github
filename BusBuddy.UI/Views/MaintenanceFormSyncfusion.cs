@@ -14,13 +14,13 @@ namespace BusBuddy.UI.Views
     public partial class MaintenanceFormSyncfusion : SyncfusionBaseForm
     {
         private MaintenanceRepository _maintenanceRepository;
-        private VehicleRepository _vehicleRepository;
+        private BusRepository _busRepository;
         private Maintenance _maintenance;
         private bool _isEditMode;
 
         // Form controls
         private SfDateTimeEdit _dateEdit;
-        private ComboBox _vehicleComboBox;
+        private ComboBox _busComboBox;
         private SfNumericTextBox _odometerTextBox;
         private ComboBox _categoryComboBox;
         private TextBox _vendorTextBox;
@@ -33,7 +33,7 @@ namespace BusBuddy.UI.Views
         {
             InitializeComponent();
             _maintenanceRepository = new MaintenanceRepository();
-            _vehicleRepository = new VehicleRepository();
+            _busRepository = new BusRepository();
             _maintenance = new Maintenance();
             _isEditMode = false;
         }
@@ -72,25 +72,25 @@ namespace BusBuddy.UI.Views
             };
             Controls.Add(_dateEdit);
 
-            // Vehicle
+            // bus
             var vehicleLabel = new Label
             {
-                Text = "Vehicle:",
+                Text = "Bus:",
                 Location = new Point(20, 80),
                 Size = new Size(100, 23),
                 Font = new System.Drawing.Font("Segoe UI", 9F)
             };
             Controls.Add(vehicleLabel);
 
-            _vehicleComboBox = new ComboBox
+            _busComboBox = new ComboBox
             {
                 Location = new Point(130, 80),
                 Size = new Size(300, 30),
-                DisplayMember = "VehicleNumber",
-                ValueMember = "VehicleID",
+                DisplayMember = "BusNumber",
+                ValueMember = "BusId",
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
-            Controls.Add(_vehicleComboBox);
+            Controls.Add(_busComboBox);
 
             // Odometer Reading
             var odometerLabel = new Label
@@ -221,8 +221,8 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                var vehicles = _vehicleRepository.GetAllVehicles().ToList();
-                _vehicleComboBox.DataSource = vehicles;
+                var buses = _busRepository.GetAllBuses().ToList();
+                _busComboBox.DataSource = buses;
             }
             catch (Exception ex)
             {
@@ -235,7 +235,7 @@ namespace BusBuddy.UI.Views
             if (_maintenance != null)
             {
                 _dateEdit.Value = _maintenance.DateAsDateTime ?? DateTime.Today;
-                _vehicleComboBox.SelectedValue = _maintenance.VehicleID;
+                _busComboBox.SelectedValue = _maintenance.BusId;
                 _odometerTextBox.Value = (double?)_maintenance.OdometerReading;
                 _categoryComboBox.SelectedItem = _maintenance.MaintenanceCompleted;
                 _vendorTextBox.Text = _maintenance.Vendor ?? "";
@@ -249,15 +249,15 @@ namespace BusBuddy.UI.Views
             try
             {
                 // Validate required fields
-                if (_vehicleComboBox.SelectedValue == null)
+                if (_busComboBox.SelectedValue == null)
                 {
-                    MessageBox.Show("Please select a vehicle.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Please select a bus.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 // Update maintenance object
                 _maintenance.DateAsDateTime = _dateEdit.Value;
-                _maintenance.VehicleID = (int)_vehicleComboBox.SelectedValue;
+                _maintenance.BusId = (int)_busComboBox.SelectedValue;
                 _maintenance.OdometerReading = (decimal?)_odometerTextBox.Value;
                 _maintenance.MaintenanceCompleted = _categoryComboBox.SelectedItem?.ToString();
                 _maintenance.Vendor = _vendorTextBox.Text;
@@ -300,3 +300,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

@@ -52,14 +52,14 @@ namespace BusBuddy.Data
             }
         }
 
-        public List<Maintenance> GetMaintenanceByVehicle(int vehicleId)
+        public List<Maintenance> GetMaintenanceByBus(int busId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var maintenanceRecords = connection.Query<Maintenance>(
-                    "SELECT * FROM Maintenance WHERE VehicleID = @VehicleID",
-                    new { VehicleID = vehicleId }).AsList();
+                    "SELECT * FROM Maintenance WHERE BusId = @BusId",
+                    new { BusId = busId }).AsList();
                 return maintenanceRecords;
             }
         }
@@ -80,26 +80,26 @@ namespace BusBuddy.Data
             {
                 connection.Open();
 
-                // Validate foreign key constraint - ensure VehicleID exists
-                if (maintenance.VehicleID.HasValue)
+                // Validate foreign key constraint - ensure BusId exists
+                if (maintenance.BusId.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
-                        "SELECT COUNT(*) FROM Vehicles WHERE Id = @VehicleID",
-                        new { VehicleID = maintenance.VehicleID });
+                        "SELECT COUNT(*) FROM Vehicles WHERE Id = @BusId",
+                        new { BusId = maintenance.BusId });
 
                     if (vehicleExists == 0)
                     {
-                        throw new InvalidOperationException($"Vehicle with ID {maintenance.VehicleID} does not exist.");
+                        throw new InvalidOperationException($"Vehicle with ID {maintenance.BusId} does not exist.");
                     }
                 }
 
                 var sql = @"
                     INSERT INTO Maintenance (
-                        Date, VehicleID, OdometerReading,
+                        Date, BusId, OdometerReading,
                         MaintenanceCompleted, RepairCost, Notes
                     )
                     VALUES (
-                        @Date, @VehicleID, @OdometerReading,
+                        @Date, @BusId, @OdometerReading,
                         @MaintenanceCompleted, @RepairCost, @Notes
                     );
                     SELECT SCOPE_IDENTITY()";
@@ -114,16 +114,16 @@ namespace BusBuddy.Data
             {
                 connection.Open();
 
-                // Validate foreign key constraint - ensure VehicleID exists
-                if (maintenance.VehicleID.HasValue)
+                // Validate foreign key constraint - ensure BusId exists
+                if (maintenance.BusId.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
-                        "SELECT COUNT(*) FROM Vehicles WHERE Id = @VehicleID",
-                        new { VehicleID = maintenance.VehicleID });
+                        "SELECT COUNT(*) FROM Vehicles WHERE Id = @BusId",
+                        new { BusId = maintenance.BusId });
 
                     if (vehicleExists == 0)
                     {
-                        throw new InvalidOperationException($"Vehicle with ID {maintenance.VehicleID} does not exist.");
+                        throw new InvalidOperationException($"Vehicle with ID {maintenance.BusId} does not exist.");
                     }
                 }
 
@@ -141,7 +141,7 @@ namespace BusBuddy.Data
                     sql = @"
                         UPDATE Maintenance
                         SET Date = @Date,
-                            VehicleID = @VehicleID,
+                            BusId = @BusId,
                             OdometerReading = @OdometerReading,
                             MaintenanceCompleted = @MaintenanceCompleted,
                             Vendor = @Vendor,
@@ -155,7 +155,7 @@ namespace BusBuddy.Data
                     sql = @"
                         UPDATE Maintenance
                         SET Date = @Date,
-                            VehicleID = @VehicleID,
+                            BusId = @BusId,
                             OdometerReading = @OdometerReading,
                             MaintenanceCompleted = @MaintenanceCompleted,
                             RepairCost = @RepairCost,
@@ -194,3 +194,4 @@ namespace BusBuddy.Data
         }
     }
 }
+

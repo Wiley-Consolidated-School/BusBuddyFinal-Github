@@ -37,7 +37,7 @@ namespace BusBuddy.UI.Tests
                 // Add typical dashboard controls
                 var controls = new Control[]
                 {
-                    new Button { Text = "New Vehicle", TabIndex = 0, TabStop = true },
+                    new Button { Text = "New bus", TabIndex = 0, TabStop = true },
                     new Button { Text = "New Driver", TabIndex = 1, TabStop = true },
                     new Button { Text = "Route Analytics", TabIndex = 2, TabStop = true },
                     new TextBox { Text = "Search...", TabIndex = 3, TabStop = true },
@@ -96,7 +96,7 @@ namespace BusBuddy.UI.Tests
                 dataGrid.Dock = DockStyle.Fill;
 
                 // Add test columns
-                dataGrid.Columns.Add("VehicleNumber", "Vehicle Number");
+                dataGrid.Columns.Add("BusNumber", "Bus Number");
                 dataGrid.Columns.Add("Make", "Make");
                 dataGrid.Columns.Add("Status", "Status");
 
@@ -143,7 +143,7 @@ namespace BusBuddy.UI.Tests
 
                 // Create File menu with shortcuts
                 var fileMenu = new ToolStripMenuItem("&File");
-                var newVehicleItem = new ToolStripMenuItem("&New Vehicle", null, (s, e) => { });
+                var newVehicleItem = new ToolStripMenuItem("&New bus", null, (s, e) => { });
                 newVehicleItem.ShortcutKeys = Keys.Control | Keys.N;
                 fileMenu.DropDownItems.Add(newVehicleItem);
 
@@ -208,7 +208,7 @@ namespace BusBuddy.UI.Tests
                 // Add controls that should scale
                 var label = new Label
                 {
-                    Text = "Vehicle Information",
+                    Text = "Bus Information",
                     Location = new Point(10, 10),
                     Size = new Size(200, 20),
                     AutoSize = false
@@ -307,15 +307,15 @@ namespace BusBuddy.UI.Tests
                 // Create controls with proper accessibility information
                 var vehicleNumberLabel = new Label
                 {
-                    Text = "Vehicle Number:",
+                    Text = "Bus Number:",
                     Location = new Point(10, 10)
                 };
 
                 var vehicleNumberTextBox = new TextBox
                 {
                     Location = new Point(120, 10),
-                    AccessibleName = "Vehicle Number",
-                    AccessibleDescription = "Enter the vehicle identification number"
+                    AccessibleName = "Bus Number",
+                    AccessibleDescription = "Enter the Bus identification number"
                 };
 
                 var statusLabel = new Label
@@ -327,17 +327,17 @@ namespace BusBuddy.UI.Tests
                 var statusComboBox = new ComboBox
                 {
                     Location = new Point(120, 40),
-                    AccessibleName = "Vehicle Status",
-                    AccessibleDescription = "Select the current status of the vehicle"
+                    AccessibleName = "Bus Status",
+                    AccessibleDescription = "Select the current status of the bus"
                 };
                 statusComboBox.Items.AddRange(new[] { "Active", "Maintenance", "Inactive" });
 
                 var saveButton = new Button
                 {
-                    Text = "Save Vehicle",
+                    Text = "Save bus",
                     Location = new Point(10, 70),
-                    AccessibleName = "Save Vehicle Information",
-                    AccessibleDescription = "Save the vehicle information to the database"
+                    AccessibleName = "Save Bus Information",
+                    AccessibleDescription = "Save the Bus information to the database"
                 };
 
                 testForm.Controls.AddRange(new Control[]
@@ -384,14 +384,14 @@ namespace BusBuddy.UI.Tests
                 dataGrid.Dock = DockStyle.Fill;
 
                 // Configure for accessibility
-                dataGrid.AccessibleName = "Vehicle List";
+                dataGrid.AccessibleName = "Bus List";
                 dataGrid.AccessibleDescription = "List of all vehicles in the fleet";
 
                 // Add columns with accessible headers
                 dataGrid.Columns.Add(new DataGridViewTextBoxColumn
                 {
-                    Name = "VehicleNumber",
-                    HeaderText = "Vehicle Number",
+                    Name = "BusNumber",
+                    HeaderText = "Bus Number",
                     Width = 100
                 });
 
@@ -547,3 +547,4 @@ namespace BusBuddy.UI.Tests
         #endregion
     }
 }
+

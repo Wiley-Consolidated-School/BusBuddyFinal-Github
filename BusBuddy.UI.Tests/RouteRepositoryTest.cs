@@ -63,11 +63,11 @@ namespace BusBuddy.UI.Tests
             };
 
             // Act
-            var routeId = _repository.AddRoute(route);
-            _testRouteIds.Add(routeId);
+            var RouteId = _repository.AddRoute(route);
+            _testRouteIds.Add(RouteId);
 
             // Assert
-            Assert.True(routeId > 0);
+            Assert.True(RouteId > 0);
         }
 
         [Fact]
@@ -81,16 +81,17 @@ namespace BusBuddy.UI.Tests
                 AMBeginMiles = 0,
                 AMEndMiles = 12.3m
             };
-            var routeId = _repository.AddRoute(route);
-            _testRouteIds.Add(routeId);
+            var RouteId = _repository.AddRoute(route);
+            _testRouteIds.Add(RouteId);
 
             // Act
-            var retrievedRoute = _repository.GetRouteById(routeId);
+            var retrievedRoute = _repository.GetRouteById(RouteId);
 
             // Assert
             Assert.NotNull(retrievedRoute);
-            Assert.Equal(routeId, retrievedRoute.RouteID);
+            Assert.Equal(RouteId, retrievedRoute.RouteId);
             Assert.Equal("Test Route 2", retrievedRoute.RouteName);
         }
     }
 }
+

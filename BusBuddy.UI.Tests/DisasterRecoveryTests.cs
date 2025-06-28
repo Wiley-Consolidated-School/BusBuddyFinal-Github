@@ -38,32 +38,32 @@ namespace BusBuddy.UI.Tests
             var backupData = new
             {
                 BackupDate = DateTime.UtcNow,
-                VehicleData = VehicleRepository.GetAllVehicles()?.Where(v => v.VehicleNumber?.Contains("_BackupTest") == true).ToList(),
-                DriverData = DriverRepository.GetAllDrivers()?.Where(d => d.DriverName?.Contains("_BackupTest") == true).ToList(),
+                busData = BusRepository.GetAllBuses()?.Where(v => v.BusNumber?.Contains("_BackupTest") == true).ToList(),
+                DriverData = DriverRepository.GetAllDrivers()?.Where(d => d.Name?.Contains("_BackupTest") == true).ToList(),
                 RouteData = RouteRepository.GetAllRoutes()?.Where(r => r.RouteName?.Contains("_BackupTest") == true).ToList()
             };
 
             // Verify backup completeness
-            Assert.NotNull(backupData.VehicleData);
+            Assert.NotNull(backupData.busData);
             Assert.NotNull(backupData.DriverData);
             Assert.NotNull(backupData.RouteData);
 
-            Assert.True(backupData.VehicleData.Count >= testDataSet.VehicleCount,
+            Assert.True(backupData.busData.Count >= testDataSet.VehicleCount,
                 $"Backup should contain at least {testDataSet.VehicleCount} vehicles");
             Assert.True(backupData.DriverData.Count >= testDataSet.DriverCount,
                 $"Backup should contain at least {testDataSet.DriverCount} drivers");
 
             // Verify data integrity in backup
-            foreach (var vehicle in backupData.VehicleData)
+            foreach (var Bus in backupData.busData)
             {
-                Assert.False(string.IsNullOrEmpty(vehicle.VehicleNumber), "Vehicle number should be preserved");
-                Assert.False(string.IsNullOrEmpty(vehicle.Make), "Vehicle make should be preserved");
-                Assert.False(string.IsNullOrEmpty(vehicle.Status), "Vehicle status should be preserved");
+                Assert.False(string.IsNullOrEmpty(bus.BusNumber), "Bus number should be preserved");
+                Assert.False(string.IsNullOrEmpty(bus.Make), "Bus make should be preserved");
+                Assert.False(string.IsNullOrEmpty(bus.Status), "Bus status should be preserved");
             }
 
             foreach (var driver in backupData.DriverData)
             {
-                Assert.False(string.IsNullOrEmpty(driver.DriverName), "Driver name should be preserved");
+                Assert.False(string.IsNullOrEmpty(driver.Name), "Driver name should be preserved");
                 Assert.False(string.IsNullOrEmpty(driver.Status), "Driver status should be preserved");
             }
 
@@ -76,60 +76,60 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing data restore process...");
 
             // Create original data
-            var originalVehicle = CreateTestVehicle("_RestoreTest_Original");
+            var originalBus = CreateTestVehicle("_RestoreTest_Original");
             var originalDriver = CreateTestDriver("_RestoreTest_Original");
 
-            var originalVehicleId = VehicleRepository.AddVehicle(originalVehicle);
+            var originalbusId = BusRepository.AddBus(originalBus);
             var originalDriverId = DriverRepository.AddDriver(originalDriver);
 
-            TestVehicleIds.Add(originalVehicleId);
+            TestbusIds.Add(originalbusId);
             TestDriverIds.Add(originalDriverId);
 
             // Verify original data exists
-            var preRestoreVehicle = VehicleRepository.GetVehicleById(originalVehicleId);
+            var preRestoreBus = BusRepository.GetBusById(originalbusId);
             var preRestoreDriver = DriverRepository.GetDriverById(originalDriverId);
 
-            Assert.NotNull(preRestoreVehicle);
+            Assert.NotNull(preRestoreBus);
             Assert.NotNull(preRestoreDriver);
 
             // Simulate data corruption/loss by modifying data
-            preRestoreVehicle.Status = "CORRUPTED";
+            preRestoreBus.Status = "CORRUPTED";
             preRestoreDriver.Status = "CORRUPTED";
 
-            VehicleRepository.UpdateVehicle(preRestoreVehicle);
+            BusRepository.UpdateBus(preRestoreBus);
             DriverRepository.UpdateDriver(preRestoreDriver);
 
             // Verify corruption
-            var corruptedVehicle = VehicleRepository.GetVehicleById(originalVehicleId);
+            var corruptedBus = BusRepository.GetBusById(originalbusId);
             var corruptedDriver = DriverRepository.GetDriverById(originalDriverId);
 
-            Assert.NotNull(corruptedVehicle);
+            Assert.NotNull(corruptedBus);
             Assert.NotNull(corruptedDriver);
-            Assert.Equal("CORRUPTED", corruptedVehicle.Status);
+            Assert.Equal("CORRUPTED", corruptedBus.Status);
             Assert.Equal("CORRUPTED", corruptedDriver.Status);
 
             // Simulate restore process by reverting to original values
-            var restoredVehicle = originalVehicle;
-            restoredVehicle.VehicleID = originalVehicleId;
-            restoredVehicle.Status = "Active"; // Restore original status
+            var restoredBus = originalBus;
+            restoredBus.busId = originalbusId;
+            restoredBus.Status = "Active"; // Restore original status
 
             var restoredDriver = originalDriver;
-            restoredDriver.DriverID = originalDriverId;
+            restoredDriver.DriverId = originalDriverId;
             restoredDriver.Status = "Active"; // Restore original status
 
-            VehicleRepository.UpdateVehicle(restoredVehicle);
+            BusRepository.UpdateBus(restoredBus);
             DriverRepository.UpdateDriver(restoredDriver);
 
             // Verify restore success
-            var finalVehicle = VehicleRepository.GetVehicleById(originalVehicleId);
+            var finalBus = BusRepository.GetBusById(originalbusId);
             var finalDriver = DriverRepository.GetDriverById(originalDriverId);
 
-            Assert.NotNull(finalVehicle);
+            Assert.NotNull(finalBus);
             Assert.NotNull(finalDriver);
-            Assert.Equal("Active", finalVehicle.Status);
+            Assert.Equal("Active", finalBus.Status);
             Assert.Equal("Active", finalDriver.Status);
-            Assert.Equal(originalVehicle.VehicleNumber, finalVehicle.VehicleNumber);
-            Assert.Equal(originalDriver.DriverName, finalDriver.DriverName);
+            Assert.Equal(originalBus.BusNumber, finalBus.BusNumber);
+            Assert.Equal(originalDriver.Name, finalDriver.Name);
 
             _output.WriteLine("✅ Data restore process test PASSED");
         }
@@ -149,18 +149,18 @@ namespace BusBuddy.UI.Tests
             // Create initial data
             for (int i = 0; i < 5; i++)
             {
-                var vehicle = CreateTestVehicle($"_FailureTest_{i}");
-                var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                TestVehicleIds.Add(vehicleId);
-                preFailureData.Add(("Vehicle", vehicleId, $"Vehicle {vehicle.VehicleNumber}"));
+                var testBus = CreateTestVehicle($"_FailureTest_{i}");
+                var busId = BusRepository.AddBus(bus);
+                TestbusIds.Add(busId);
+                preFailureData.Add(("bus", busId, $"Bus {bus.BusNumber}"));
             }
 
             for (int i = 0; i < 3; i++)
             {
                 var driver = CreateTestDriver($"_FailureTest_{i}");
-                var driverId = DriverRepository.AddDriver(driver);
-                TestDriverIds.Add(driverId);
-                preFailureData.Add(("Driver", driverId, $"Driver {driver.DriverName}"));
+                var DriverId = DriverRepository.AddDriver(driver);
+                TestDriverIds.Add(DriverId);
+                preFailureData.Add(("Driver", DriverId, $"Driver {driver.Name}"));
             }
 
             _output.WriteLine($"Created {preFailureData.Count} records before simulated failure");
@@ -171,10 +171,10 @@ namespace BusBuddy.UI.Tests
             try
             {
                 // Attempt operations that might fail
-                var invalidVehicle = CreateTestVehicle("_Invalid");
-                invalidVehicle.VehicleNumber = null; // This might cause a failure
-                VehicleRepository.AddVehicle(invalidVehicle);
-                failureOperations.Add("Invalid vehicle creation attempted");
+                var invalidBus = CreateTestVehicle("_Invalid");
+                invalidBus.BusNumber = null; // This might cause a failure
+                BusRepository.AddBus(invalidBus);
+                failureOperations.Add("Invalid Bus creation attempted");
             }
             catch (Exception ex)
             {
@@ -184,10 +184,10 @@ namespace BusBuddy.UI.Tests
             try
             {
                 // Attempt to update non-existent record
-                var nonExistentVehicle = CreateTestVehicle("_NonExistent");
-                nonExistentVehicle.VehicleID = -999;
-                VehicleRepository.UpdateVehicle(nonExistentVehicle);
-                failureOperations.Add("Non-existent vehicle update attempted");
+                var nonExistentBus = CreateTestVehicle("_NonExistent");
+                nonExistentBus.busId = -999;
+                BusRepository.UpdateBus(nonExistentBus);
+                failureOperations.Add("Non-existent Bus update attempted");
             }
             catch (Exception ex)
             {
@@ -197,11 +197,11 @@ namespace BusBuddy.UI.Tests
             // Verify data consistency after simulated failures
             foreach (var (type, id, description) in preFailureData)
             {
-                if (type == "Vehicle")
+                if (type == "bus")
                 {
-                    var vehicle = VehicleRepository.GetVehicleById(id);
-                    Assert.NotNull(vehicle);
-                    Assert.Equal("Active", vehicle.Status); // Should remain unchanged
+                    var testBus = BusRepository.GetBusById(id);
+                    Assert.NotNull(bus);
+                    Assert.Equal("Active", bus.Status); // Should remain unchanged
                 }
                 else if (type == "Driver")
                 {
@@ -220,9 +220,9 @@ namespace BusBuddy.UI.Tests
         {
             _output.WriteLine("Testing concurrent failure recovery...");
 
-            var vehicle = CreateTestVehicle("_ConcurrentFailure");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var testBus = CreateTestVehicle("_ConcurrentFailure");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
             var tasks = new List<Task>();
             var results = new List<(bool Success, string Operation, Exception Error)>();
@@ -237,14 +237,14 @@ namespace BusBuddy.UI.Tests
                     try
                     {
                         // Each task attempts different operations
-                        if (operationId % 3 == 0)
+                        if (operationId % 3 == false)
                         {
-                            // Update vehicle status
-                            var v = VehicleRepository.GetVehicleById(vehicleId);
+                            // Update Bus status
+                            var v = BusRepository.GetBusById(busId);
                             if (v != null)
                             {
                                 v.Status = $"Updated_by_Op_{operationId}";
-                                VehicleRepository.UpdateVehicle(v);
+                                BusRepository.UpdateBus(v);
                             }
 
                             lock (lockObject)
@@ -252,10 +252,10 @@ namespace BusBuddy.UI.Tests
                                 results.Add((true, $"Update_{operationId}", null!));
                             }
                         }
-                        else if (operationId % 3 == 1)
+                        else if (operationId % 3 == true)
                         {
-                            // Read vehicle data
-                            var v = VehicleRepository.GetVehicleById(vehicleId);
+                            // Read Bus data
+                            var v = BusRepository.GetBusById(busId);
                             Assert.NotNull(v);
 
                             lock (lockObject)
@@ -266,7 +266,7 @@ namespace BusBuddy.UI.Tests
                         else
                         {
                             // Attempt invalid operation
-                            VehicleRepository.GetVehicleById(-999);
+                            BusRepository.GetBusById(-999);
 
                             lock (lockObject)
                             {
@@ -295,9 +295,9 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine($"Concurrent operations: {successCount} succeeded, {failureCount} failed");
 
             // Verify final data integrity
-            var finalVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(finalVehicle);
-            Assert.False(string.IsNullOrEmpty(finalVehicle.VehicleNumber));
+            var finalBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(finalBus);
+            Assert.False(string.IsNullOrEmpty(finalBus.BusNumber));
 
             // At least some operations should have succeeded
             Assert.True(successCount > 0, "Some operations should succeed even under concurrent stress");
@@ -317,11 +317,11 @@ namespace BusBuddy.UI.Tests
             // Define critical business operations that must always be available
             var criticalOperations = new Dictionary<string, Func<bool>>
             {
-                ["Vehicle Lookup"] = () =>
+                ["Bus Lookup"] = () =>
                 {
                     try
                     {
-                        var vehicles = VehicleRepository.GetAllVehicles();
+                        var vehicles = BusRepository.GetAllBuses();
                         return vehicles != null;
                     }
                     catch { return false; }
@@ -347,14 +347,14 @@ namespace BusBuddy.UI.Tests
                     catch { return false; }
                 },
 
-                ["Vehicle Status Check"] = () =>
+                ["Bus Status Check"] = () =>
                 {
                     try
                     {
-                        if (TestVehicleIds.Any())
+                        if (TestbusIds.Any())
                         {
-                            var vehicle = VehicleRepository.GetVehicleById(TestVehicleIds.First());
-                            return vehicle != null;
+                            var testBus = BusRepository.GetBusById(TestbusIds.First());
+                            return Bus != null;
                         }
                         return true; // No test data available, assume success
                     }
@@ -409,9 +409,9 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing graceful service degradation...");
 
             // Create test data
-            var vehicle = CreateTestVehicle("_ServiceDegradation");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var testBus = CreateTestVehicle("_ServiceDegradation");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
             // Test various degradation scenarios
             var degradationTests = new[]
@@ -420,24 +420,24 @@ namespace BusBuddy.UI.Tests
                 {
                     // Simulate slow response by adding delay
                     Task.Delay(100).Wait();
-                    var result = VehicleRepository.GetVehicleById(vehicleId);
+                    var result = BusRepository.GetBusById(busId);
                     return result != null;
                 })},
 
                 new { Name = "Limited Connectivity", Test = (Func<bool>)(() =>
                 {
                     // Test basic operations still work
-                    var vehicles = VehicleRepository.GetAllVehicles();
+                    var vehicles = BusRepository.GetAllBuses();
                     return vehicles != null && vehicles.Count > 0;
                 })},
 
                 new { Name = "High Load Conditions", Test = (Func<bool>)(() =>
                 {
                     // Perform multiple operations quickly
-                    var tasks = new List<Task<Vehicle?>>();
+                    var tasks = new List<Task<Bus?>>();
                     for (int i = 0; i < 5; i++)
                     {
-                        tasks.Add(Task.Run(() => VehicleRepository.GetVehicleById(vehicleId)));
+                        tasks.Add(Task.Run(() => BusRepository.GetBusById(busId)));
                     }
                     var results = Task.WhenAll(tasks).Result;
                     return results.All(r => r != null);
@@ -449,7 +449,7 @@ namespace BusBuddy.UI.Tests
                     try
                     {
                         // Attempt invalid operation
-                        VehicleRepository.GetVehicleById(-999);
+                        BusRepository.GetBusById(-999);
                     }
                     catch
                     {
@@ -457,8 +457,8 @@ namespace BusBuddy.UI.Tests
                     }
 
                     // Verify valid operations still work
-                    var validVehicle = VehicleRepository.GetVehicleById(vehicleId);
-                    return validVehicle != null;
+                    var validBus = BusRepository.GetBusById(busId);
+                    return validBus != null;
                 })}
             };
 
@@ -509,47 +509,47 @@ namespace BusBuddy.UI.Tests
                 CreateTestVehicle("_Integrity_3")
             };
 
-            var vehicleIds = new List<int>();
+            var busIds = new List<int>();
             var originalChecksums = new Dictionary<int, string>();
 
             // Store original data and calculate checksums
-            foreach (var vehicle in integrityTestData)
+            foreach (var Bus in integrityTestData)
             {
-                var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                vehicleIds.Add(vehicleId);
-                TestVehicleIds.Add(vehicleId);
+                var busId = BusRepository.AddBus(bus);
+                busIds.Add(busId);
+                TestbusIds.Add(busId);
 
-                var checksum = CalculateVehicleChecksum(vehicle);
-                originalChecksums[vehicleId] = checksum;
+                var checksum = CalculateVehicleChecksum(bus);
+                originalChecksums[busId] = checksum;
             }
 
             // Verify initial integrity
-            foreach (var vehicleId in vehicleIds)
+            foreach (var busId in busIds)
             {
-                var vehicle = VehicleRepository.GetVehicleById(vehicleId);
-                Assert.NotNull(vehicle);
-                var currentChecksum = CalculateVehicleChecksum(vehicle);
+                var testBus = BusRepository.GetBusById(busId);
+                Assert.NotNull(bus);
+                var currentChecksum = CalculateVehicleChecksum(bus);
 
-                Assert.Equal(originalChecksums[vehicleId], currentChecksum);
+                Assert.Equal(originalChecksums[busId], currentChecksum);
             }
 
             // Simulate data corruption
-            var corruptedVehicle = VehicleRepository.GetVehicleById(vehicleIds[0]);
-            Assert.NotNull(corruptedVehicle);
-            corruptedVehicle.VINNumber = "CORRUPTED_VIN";
-            VehicleRepository.UpdateVehicle(corruptedVehicle);
+            var corruptedBus = BusRepository.GetBusById(busIds[0]);
+            Assert.NotNull(corruptedBus);
+            corruptedTestBusVIN = "CORRUPTED_VIN";
+            BusRepository.UpdateBus(corruptedBus);
 
             // Detect corruption
-            var corruptedChecksum = CalculateVehicleChecksum(corruptedVehicle);
-            Assert.NotEqual(originalChecksums[vehicleIds[0]], corruptedChecksum);
+            var corruptedChecksum = CalculateVehicleChecksum(corruptedBus);
+            Assert.NotEqual(originalChecksums[busIds[0]], corruptedChecksum);
 
             // Verify other records remain intact
-            for (int i = 1; i < vehicleIds.Count; i++)
+            for (int i = 1; i < busIds.Count; i++)
             {
-                var vehicle = VehicleRepository.GetVehicleById(vehicleIds[i]);
-                Assert.NotNull(vehicle);
-                var checksum = CalculateVehicleChecksum(vehicle);
-                Assert.Equal(originalChecksums[vehicleIds[i]], checksum);
+                var testBus = BusRepository.GetBusById(busIds[i]);
+                Assert.NotNull(bus);
+                var checksum = CalculateVehicleChecksum(bus);
+                Assert.Equal(originalChecksums[busIds[i]], checksum);
             }
 
             _output.WriteLine("✅ Data integrity validation test PASSED");
@@ -568,9 +568,9 @@ namespace BusBuddy.UI.Tests
             // Create vehicles
             for (int i = 0; i < 10; i++)
             {
-                var vehicle = CreateTestVehicle($"_BackupTest_{i}");
-                var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                TestVehicleIds.Add(vehicleId);
+                var testBus = CreateTestVehicle($"_BackupTest_{i}");
+                var busId = BusRepository.AddBus(bus);
+                TestbusIds.Add(busId);
                 vehicleCount++;
             }
 
@@ -578,29 +578,31 @@ namespace BusBuddy.UI.Tests
             for (int i = 0; i < 8; i++)
             {
                 var driver = CreateTestDriver($"_BackupTest_{i}");
-                var driverId = DriverRepository.AddDriver(driver);
-                TestDriverIds.Add(driverId);
+                var DriverId = DriverRepository.AddDriver(driver);
+                TestDriverIds.Add(DriverId);
                 driverCount++;
             }
 
             // Create routes
             for (int i = 0; i < Math.Min(vehicleCount, driverCount); i++)
             {
-                var route = CreateTestRoute(TestVehicleIds[i], TestDriverIds[i], $"_BackupTest_{i}");
-                var routeId = RouteRepository.AddRoute(route);
-                TestRouteIds.Add(routeId);
+                var route = CreateTestRoute(TestbusIds[i], TestDriverIds[i], $"_BackupTest_{i}");
+                var RouteId = RouteRepository.AddRoute(route);
+                TestRouteIds.Add(RouteId);
                 routeCount++;
             }
 
             return (vehicleCount, driverCount, routeCount);
         }
 
-        private string CalculateVehicleChecksum(Vehicle vehicle)
+        private string CalculateVehicleChecksum(Bus bus)
         {
-            var data = $"{vehicle.VehicleNumber}|{vehicle.Make}|{vehicle.Model}|{vehicle.Year}|{vehicle.VINNumber}|{vehicle.Status}|{vehicle.SeatingCapacity}";
+            var data = $"{bus.BusNumber}|{bus.Make}|{bus.Model}|{bus.Year}|{bus.VIN}|{bus.Status}|{bus.SeatingCapacity}";
             return data.GetHashCode().ToString("X");
         }
 
         #endregion
     }
 }
+
+

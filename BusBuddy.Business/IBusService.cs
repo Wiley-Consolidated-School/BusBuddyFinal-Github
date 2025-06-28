@@ -37,3 +37,4 @@ namespace BusBuddy.Business
         string DiagnoseDataRetrieval();
     }
 }
+

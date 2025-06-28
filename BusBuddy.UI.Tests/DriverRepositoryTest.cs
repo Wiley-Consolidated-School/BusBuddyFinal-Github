@@ -63,11 +63,11 @@ namespace BusBuddy.UI.Tests
             };
 
             // Act
-            var driverId = _repository.AddDriver(driver);
-            _testDriverIds.Add(driverId);
+            var DriverId = _repository.AddDriver(driver);
+            _testDriverIds.Add(DriverId);
 
             // Assert
-            Assert.True(driverId > 0);
+            Assert.True(DriverId > 0);
         }
 
         [Fact]
@@ -81,16 +81,17 @@ namespace BusBuddy.UI.Tests
                 DriverEmail = "TEST456",
                 CDLExpirationDate = DateTime.Now.Date
             };
-            var driverId = _repository.AddDriver(driver);
-            _testDriverIds.Add(driverId);
+            var DriverId = _repository.AddDriver(driver);
+            _testDriverIds.Add(DriverId);
 
             // Act
-            var retrievedDriver = _repository.GetDriverById(driverId);
+            var retrievedDriver = _repository.GetDriverById(DriverId);
 
             // Assert
             Assert.NotNull(retrievedDriver);
-            Assert.Equal(driverId, retrievedDriver.DriverID);
+            Assert.Equal(DriverId, retrievedDriver.DriverId);
             Assert.Equal("Test", retrievedDriver.FirstName);
         }
     }
 }
+

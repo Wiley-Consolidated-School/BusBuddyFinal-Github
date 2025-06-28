@@ -29,7 +29,7 @@ namespace BusBuddy.UI.Tests
         [Fact]
         public async Task ConcurrentUsers_VehicleOperations_ShouldHandleLoad()
         {
-            _output.WriteLine("Testing concurrent vehicle operations with multiple users...");
+            _output.WriteLine("Testing concurrent Bus operations with multiple users...");
 
             const int userCount = 10;
             const int operationsPerUser = 5;
@@ -39,7 +39,7 @@ namespace BusBuddy.UI.Tests
 
             var stopwatch = Stopwatch.StartNew();
 
-            // Simulate multiple users performing vehicle operations simultaneously
+            // Simulate multiple users performing Bus operations simultaneously
             for (int userId = 0; userId < userCount; userId++)
             {
                 var currentUserId = userId;
@@ -50,22 +50,22 @@ namespace BusBuddy.UI.Tests
                     {
                         for (int op = 0; op < operationsPerUser; op++)
                         {
-                            // Create vehicle
-                            var vehicle = CreateTestVehicle($"_User{currentUserId}_Op{op}");
-                            var vehicleId = VehicleRepository.AddVehicle(vehicle);
+                            // Create bus
+                            var testBus = CreateTestVehicle($"_User{currentUserId}_Op{op}");
+                            var busId = BusRepository.AddBus(bus);
 
-                            lock (TestVehicleIds)
+                            lock (TestbusIds)
                             {
-                                TestVehicleIds.Add(vehicleId);
+                                TestbusIds.Add(busId);
                             }
 
-                            // Read vehicle
-                            var retrievedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-                            Assert.NotNull(retrievedVehicle);
+                            // Read bus
+                            var retrievedBus = BusRepository.GetBusById(busId);
+                            Assert.NotNull(retrievedBus);
 
-                            // Update vehicle
-                            retrievedVehicle.Status = $"Updated_by_User{currentUserId}";
-                            VehicleRepository.UpdateVehicle(retrievedVehicle);
+                            // Update bus
+                            retrievedBus.Status = $"Updated_by_User{currentUserId}";
+                            BusRepository.UpdateBus(retrievedBus);
 
                             // Small delay to simulate real user interaction
                             await Task.Delay(10);
@@ -104,7 +104,7 @@ namespace BusBuddy.UI.Tests
             var successRate = (double)successCount / userCount;
             Assert.True(successRate >= 0.8, $"Success rate {successRate:P} should be at least 80%");
 
-            _output.WriteLine("✅ Concurrent vehicle operations load test PASSED");
+            _output.WriteLine("✅ Concurrent Bus operations load test PASSED");
         }
 
         [Fact]
@@ -178,7 +178,7 @@ namespace BusBuddy.UI.Tests
         [Fact]
         public async Task LargeDataset_VehicleManagement_ShouldPerformWell()
         {
-            _output.WriteLine("Testing performance with large vehicle dataset...");
+            _output.WriteLine("Testing performance with large Bus dataset...");
 
             const int vehicleCount = 500;
             var stopwatch = Stopwatch.StartNew();
@@ -192,20 +192,20 @@ namespace BusBuddy.UI.Tests
                 var vehicleIndex = i;
                 creationTasks.Add(Task.Run(() =>
                 {
-                    var vehicle = CreateTestVehicle($"_Large_{vehicleIndex:D4}");
-                    return VehicleRepository.AddVehicle(vehicle);
+                    var testBus = CreateTestVehicle($"_Large_{vehicleIndex:D4}");
+                    return BusRepository.AddBus(bus);
                 }));
 
                 // Batch creation to avoid overwhelming the system
                 if (creationTasks.Count >= 50)
                 {
                     var batchResults = await Task.WhenAll(creationTasks);
-                    lock (TestVehicleIds)
+                    lock (TestbusIds)
                     {
-                        TestVehicleIds.AddRange(batchResults);
+                        TestbusIds.AddRange(batchResults);
                     }
                     creationTasks.Clear();
-                    _output.WriteLine($"Created batch, total so far: {TestVehicleIds.Count}");
+                    _output.WriteLine($"Created batch, total so far: {TestbusIds.Count}");
                 }
             }
 
@@ -213,18 +213,18 @@ namespace BusBuddy.UI.Tests
             if (creationTasks.Any())
             {
                 var finalResults = await Task.WhenAll(creationTasks);
-                lock (TestVehicleIds)
+                lock (TestbusIds)
                 {
-                    TestVehicleIds.AddRange(finalResults);
+                    TestbusIds.AddRange(finalResults);
                 }
             }
 
             var creationTime = stopwatch.Elapsed;
-            _output.WriteLine($"Created {TestVehicleIds.Count} vehicles in {creationTime.TotalSeconds:F2}s");
+            _output.WriteLine($"Created {TestbusIds.Count} vehicles in {creationTime.TotalSeconds:F2}s");
 
             // Test retrieval performance
             stopwatch.Restart();
-            var allVehicles = VehicleRepository.GetAllVehicles();
+            var allVehicles = BusRepository.GetAllBuses();
             var retrievalTime = stopwatch.Elapsed;
 
             Assert.NotNull(allVehicles);
@@ -244,7 +244,7 @@ namespace BusBuddy.UI.Tests
             Assert.True(retrievalTime.TotalSeconds < 10, $"Retrieval time {retrievalTime.TotalSeconds:F2}s should be under 10 seconds");
             Assert.True(searchTime.TotalMilliseconds < 1000, $"Search time {searchTime.TotalMilliseconds:F2}ms should be under 1 second");
 
-            _output.WriteLine("✅ Large dataset vehicle management test PASSED");
+            _output.WriteLine("✅ Large dataset Bus management test PASSED");
         }
 
         [Fact]
@@ -308,19 +308,19 @@ namespace BusBuddy.UI.Tests
                     try
                     {
                         // Perform database operation
-                        var vehicle = CreateTestVehicle($"_Contention_{operationId}");
-                        var vehicleId = VehicleRepository.AddVehicle(vehicle);
+                        var testBus = CreateTestVehicle($"_Contention_{operationId}");
+                        var busId = BusRepository.AddBus(bus);
 
-                        if (vehicleId > 0)
+                        if (busId > 0)
                         {
-                            lock (TestVehicleIds)
+                            lock (TestbusIds)
                             {
-                                TestVehicleIds.Add(vehicleId);
+                                TestbusIds.Add(busId);
                             }
 
                             // Verify the operation
-                            var retrievedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-                            var success = retrievedVehicle != null;
+                            var retrievedBus = BusRepository.GetBusById(busId);
+                            var success = retrievedBus != null;
 
                             stopwatch.Stop();
                             connectionResults.Add((success, stopwatch.Elapsed, null!));
@@ -329,7 +329,7 @@ namespace BusBuddy.UI.Tests
                         else
                         {
                             stopwatch.Stop();
-                            connectionResults.Add((false, stopwatch.Elapsed, "Failed to create vehicle"));
+                            connectionResults.Add((false, stopwatch.Elapsed, "Failed to create bus"));
                             return false;
                         }
                     }
@@ -396,27 +396,27 @@ namespace BusBuddy.UI.Tests
             for (int i = 0; i < iterations; i++)
             {
                 // Perform memory-intensive operations
-                var vehicles = new List<Vehicle>();
+                var vehicles = new List<Bus>();
                 for (int j = 0; j < 100; j++)
                 {
                     vehicles.Add(CreateTestVehicle($"_Memory_{i}_{j}"));
                 }
 
                 // Add to database (simulating real usage)
-                var vehicleIds = new List<int>();
-                foreach (var vehicle in vehicles)
+                var busIds = new List<int>();
+                foreach (var Bus in vehicles)
                 {
-                    var id = VehicleRepository.AddVehicle(vehicle);
-                    vehicleIds.Add(id);
+                    var id = BusRepository.AddBus(bus);
+                    busIds.Add(id);
                 }
 
-                lock (TestVehicleIds)
+                lock (TestbusIds)
                 {
-                    TestVehicleIds.AddRange(vehicleIds);
+                    TestbusIds.AddRange(busIds);
                 }
 
                 // Retrieve data (more memory usage)
-                var retrievedVehicles = VehicleRepository.GetAllVehicles();
+                var retrievedVehicles = BusRepository.GetAllBuses();
 
                 // Force garbage collection and measure
                 GC.Collect();
@@ -426,7 +426,7 @@ namespace BusBuddy.UI.Tests
                 var currentMemory = PerformanceTestHelpers.GetMemoryUsage();
                 memoryMeasurements.Add(currentMemory);
 
-                if (i % 5 == 0)
+                if (i % 5 == false)
                 {
                     _output.WriteLine($"Iteration {i}: Memory = {PerformanceTestHelpers.BytesToMB(currentMemory):F2}MB");
                 }
@@ -471,37 +471,37 @@ namespace BusBuddy.UI.Tests
 
                 tasks.Add(Task.Run(() =>
                 {
-                    var batchVehicleIds = new List<int>();
+                    var batchbusIds = new List<int>();
                     var batchDriverIds = new List<int>();
                     var batchRouteIds = new List<int>();
 
                     // Create vehicles and drivers for this batch
                     for (int i = batch; i < batchEnd; i++)
                     {
-                        var vehicle = CreateTestVehicle($"_Large_{i:D4}");
+                        var testBus = CreateTestVehicle($"_Large_{i:D4}");
                         var driver = CreateTestDriver($"_Large_{i:D4}");
 
-                        var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                        var driverId = DriverRepository.AddDriver(driver);
+                        var busId = BusRepository.AddBus(bus);
+                        var DriverId = DriverRepository.AddDriver(driver);
 
-                        batchVehicleIds.Add(vehicleId);
-                        batchDriverIds.Add(driverId);
+                        batchbusIds.Add(busId);
+                        batchDriverIds.Add(DriverId);
 
                         // Create historical routes
-                        for (int day = 0; day < Math.Min(daysOfData, 30); day++) // Limit to 30 days per vehicle to avoid excessive data
+                        for (int day = 0; day < Math.Min(daysOfData, 30); day++) // Limit to 30 days per Bus to avoid excessive data
                         {
-                            var route = CreateTestRoute(vehicleId, driverId, $"_D{day}");
+                            var route = CreateTestRoute(busId, DriverId, $"_D{day}");
                             route.Date = DateTime.Today.AddDays(-day).ToString("yyyy-MM-dd");
 
-                            var routeId = RouteRepository.AddRoute(route);
-                            batchRouteIds.Add(routeId);
+                            var RouteId = RouteRepository.AddRoute(route);
+                            batchRouteIds.Add(RouteId);
                         }
                     }
 
                     // Add to master lists thread-safely
-                    lock (TestVehicleIds)
+                    lock (TestbusIds)
                     {
-                        TestVehicleIds.AddRange(batchVehicleIds);
+                        TestbusIds.AddRange(batchbusIds);
                         TestDriverIds.AddRange(batchDriverIds);
                         TestRouteIds.AddRange(batchRouteIds);
                     }
@@ -512,7 +512,7 @@ namespace BusBuddy.UI.Tests
                 {
                     await Task.WhenAll(tasks);
                     tasks.Clear();
-                    _output.WriteLine($"Completed batch up to vehicle {batchEnd}...");
+                    _output.WriteLine($"Completed batch up to Bus {batchEnd}...");
                 }
             }
 
@@ -522,9 +522,11 @@ namespace BusBuddy.UI.Tests
                 await Task.WhenAll(tasks);
             }
 
-            _output.WriteLine($"✅ Created large dataset: {TestVehicleIds.Count} vehicles, {TestDriverIds.Count} drivers, {TestRouteIds.Count} routes");
+            _output.WriteLine($"✅ Created large dataset: {TestbusIds.Count} vehicles, {TestDriverIds.Count} drivers, {TestRouteIds.Count} routes");
         }
 
         #endregion
     }
 }
+
+

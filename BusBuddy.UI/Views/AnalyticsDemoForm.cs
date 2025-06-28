@@ -174,7 +174,7 @@ namespace BusBuddy.UI.Views
             _maintenancePredictionsGrid.AllowEditing = false;
 
             // Define only relevant columns for maintenance predictions
-            _maintenancePredictionsGrid.Columns.Add(new GridNumericColumn { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = 100 });
+            _maintenancePredictionsGrid.Columns.Add(new GridNumericColumn { MappingName = "BusNumber", HeaderText = "Vehicle #", Width = 100 });
             _maintenancePredictionsGrid.Columns.Add(new GridTextColumn { MappingName = "MaintenanceType", HeaderText = "Maintenance Type", Width = 140 });
             _maintenancePredictionsGrid.Columns.Add(new GridDateTimeColumn { MappingName = "PredictedDate", HeaderText = "Predicted Date", Width = 120 });
             _maintenancePredictionsGrid.Columns.Add(new GridNumericColumn { MappingName = "HealthScore", HeaderText = "Health Score", Width = 100 });
@@ -184,16 +184,16 @@ namespace BusBuddy.UI.Views
             predictionsGroup.Controls.Add(_maintenancePredictionsGrid);
             layout.Controls.Add(predictionsGroup, 0, 0);
 
-            // Vehicle Health Scores - Enhanced SfDataGrid with specific columns
+            // Bus Health Scores - Enhanced SfDataGrid with specific columns
             var healthGroup = new GroupBox();
-            healthGroup.Text = "🚗 Vehicle Health Scores";
+            healthGroup.Text = "🚗 Bus Health Scores";
             _vehicleHealthGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
             _vehicleHealthGrid.Dock = DockStyle.Fill;
             _vehicleHealthGrid.AutoGenerateColumns = false; // Fix excessive columns issue
             _vehicleHealthGrid.AllowEditing = false;
 
             // Define only relevant columns for vehicle health
-            _vehicleHealthGrid.Columns.Add(new GridNumericColumn { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = 100 });
+            _vehicleHealthGrid.Columns.Add(new GridNumericColumn { MappingName = "BusNumber", HeaderText = "Vehicle #", Width = 100 });
             _vehicleHealthGrid.Columns.Add(new GridTextColumn { MappingName = "Model", HeaderText = "Model", Width = 120 });
             _vehicleHealthGrid.Columns.Add(new GridNumericColumn { MappingName = "OverallHealthScore", HeaderText = "Health Score", Width = 100 });
             _vehicleHealthGrid.Columns.Add(new GridNumericColumn { MappingName = "Mileage", HeaderText = "Mileage", Width = 100 });
@@ -212,7 +212,7 @@ namespace BusBuddy.UI.Views
             _maintenanceAlertsGrid.AllowEditing = false;
 
             // Define only relevant columns for maintenance alerts
-            _maintenanceAlertsGrid.Columns.Add(new GridNumericColumn { MappingName = "VehicleNumber", HeaderText = "Vehicle #", Width = 100 });
+            _maintenanceAlertsGrid.Columns.Add(new GridNumericColumn { MappingName = "BusNumber", HeaderText = "Vehicle #", Width = 100 });
             _maintenanceAlertsGrid.Columns.Add(new GridTextColumn { MappingName = "AlertType", HeaderText = "Alert Type", Width = 120 });
             _maintenanceAlertsGrid.Columns.Add(new GridTextColumn { MappingName = "Description", HeaderText = "Description", Width = 200 });
             _maintenanceAlertsGrid.Columns.Add(new GridTextColumn { MappingName = "Severity", HeaderText = "Severity", Width = 80 });
@@ -310,38 +310,38 @@ namespace BusBuddy.UI.Views
             var alerts = await _predictiveMaintenanceService.GetMaintenanceAlertsAsync();
             _maintenanceAlertsGrid.DataSource = alerts;
 
-            // Load sample vehicle health data
-            var healthScores = new List<VehicleHealthScore>();
+            // Load sample bus health data
+            var healthScores = new List<BusHealthScore>();
             var sampleVehicleIds = new[] { 1, 2, 3, 4, 5 }; // Demo vehicle IDs
 
-            foreach (var vehicleId in sampleVehicleIds)
+            foreach (var BusId in sampleVehicleIds)
             {
                 try
                 {
-                    var healthScore = await _predictiveMaintenanceService.CalculateVehicleHealthScoreAsync(vehicleId);
+                    var healthScore = await _predictiveMaintenanceService.CalculateBusHealthScoreAsync(BusId);
                     healthScores.Add(healthScore);
                 }
                 catch
                 {
                     // Create demo data if vehicle doesn't exist
-                    healthScores.Add(CreateDemoHealthScore(vehicleId));
+                    healthScores.Add(CreateDemoHealthScore(BusId));
                 }
             }
             _vehicleHealthGrid.DataSource = healthScores;
 
             // Load sample maintenance predictions
             var predictions = new List<MaintenancePrediction>();
-            foreach (var vehicleId in sampleVehicleIds)
+            foreach (var BusId in sampleVehicleIds)
             {
                 try
                 {
-                    var vehiclePredictions = await _predictiveMaintenanceService.GetMaintenancePredictionsAsync(vehicleId);
+                    var vehiclePredictions = await _predictiveMaintenanceService.GetMaintenancePredictionsAsync(BusId);
                     predictions.AddRange(vehiclePredictions);
                 }
                 catch
                 {
                     // Create demo data if vehicle doesn't exist
-                    predictions.AddRange(CreateDemoPredictions(vehicleId));
+                    predictions.AddRange(CreateDemoPredictions(BusId));
                 }
             }
             _maintenancePredictionsGrid.DataSource = predictions.Take(15).ToList();
@@ -426,37 +426,37 @@ Period: {summary.PeriodStart:yyyy-MM-dd} to {summary.PeriodEnd:yyyy-MM-dd}
             return string.Join("\n", insights.Select(i => $"• {i}"));
         }
 
-        private VehicleHealthScore CreateDemoHealthScore(int vehicleId)
+        private BusHealthScore CreateDemoHealthScore(int BusId)
         {
-            var random = new Random(vehicleId); // Consistent demo data
-            return new VehicleHealthScore
+            var random = new Random(BusId); // Consistent demo data
+            return new BusHealthScore
             {
-                VehicleId = vehicleId,
-                VehicleNumber = $"BUS{vehicleId:000}",
+                BusId = BusId,
+                BusNumber = $"BUS{BusId:000}",
                 OverallScore = random.Next(60, 95),
                 MaintenanceComplianceScore = random.Next(70, 100),
                 AgeScore = random.Next(60, 90),
                 MileageScore = random.Next(50, 85),
                 ReliabilityScore = random.Next(70, 95),
                 CostEfficiencyScore = random.Next(65, 90),
-                HealthStatus = (VehicleHealthStatus)(vehicleId % 5),
+                HealthStatus = (BusHealthStatus)(BusId % 5),
                 CalculatedDate = DateTime.Now,
                 Recommendations = new List<string> { "Regular maintenance schedule", "Monitor tire wear" }
             };
         }
 
-        private List<MaintenancePrediction> CreateDemoPredictions(int vehicleId)
+        private List<MaintenancePrediction> CreateDemoPredictions(int BusId)
         {
             return new List<MaintenancePrediction>
             {
                 new MaintenancePrediction
                 {
-                    VehicleId = vehicleId,
+                    BusId = BusId,
                     MaintenanceType = "Oil Change",
-                    PredictedDate = DateTime.Now.AddDays(vehicleId * 5),
-                    Priority = (MaintenancePriority)(vehicleId % 3),
+                    PredictedDate = DateTime.Now.AddDays(BusId * 5),
+                    Priority = (MaintenancePriority)(BusId % 3),
                     EstimatedCost = 75m,
-                    Reason = $"Due based on mileage for BUS{vehicleId:000}",
+                    Reason = $"Due based on mileage for BUS{BusId:000}",
                     BasedOnMileage = true
                 }
             };
@@ -482,3 +482,4 @@ Period: {summary.PeriodStart:yyyy-MM-dd} to {summary.PeriodEnd:yyyy-MM-dd}
         }
     }
 }
+

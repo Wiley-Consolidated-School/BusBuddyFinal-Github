@@ -62,26 +62,26 @@ namespace BusBuddy.Data
             }
         }
 
-        public List<ActivitySchedule> GetScheduledActivitiesByDriver(int driverId)
+        public List<ActivitySchedule> GetScheduledActivitiesByDriver(int DriverId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var scheduledActivities = connection.Query<ActivitySchedule>(
-                    "SELECT * FROM ActivitySchedule WHERE ScheduledDriverID = @DriverID",
-                    new { DriverID = driverId }).AsList();
+                    "SELECT * FROM ActivitySchedule WHERE ScheduledDriverID = @DriverId",
+                    new { DriverId = DriverId }).AsList();
                 return scheduledActivities;
             }
         }
 
-        public List<ActivitySchedule> GetScheduledActivitiesByVehicle(int vehicleId)
+        public List<ActivitySchedule> GetScheduledActivitiesByBus(int busId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var scheduledActivities = connection.Query<ActivitySchedule>(
-                    "SELECT * FROM ActivitySchedule WHERE ScheduledVehicleID = @VehicleID",
-                    new { VehicleID = vehicleId }).AsList();
+                    "SELECT * FROM ActivitySchedule WHERE ScheduledVehicleID = @BusId",
+                    new { BusId = busId }).AsList();
                 return scheduledActivities;
             }
         }
@@ -154,3 +154,4 @@ namespace BusBuddy.Data
         }
     }
 }
+

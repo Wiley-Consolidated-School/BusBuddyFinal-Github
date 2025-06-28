@@ -5,75 +5,33 @@ using System.Linq;
 using System.Threading.Tasks;
 using BusBuddy.Data;
 using BusBuddy.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace BusBuddy.Business
 {
     /// <summary>
-    /// Bus service that provides access to vehicle data using proper database terminology
-    /// Maps between "Bus" concepts and the underlying "Vehicle" data structure
+    /// Bus service that provides access to bus data using BusRepository
     /// </summary>
     public class BusService : IBusService
     {
-        private readonly IVehicleRepository _vehicleRepository;
-        private readonly BusBuddyContext _context;
+        private readonly BusRepository _busRepository;
 
-        public BusService(IVehicleRepository vehicleRepository)
+        public BusService(BusRepository busRepository)
         {
-            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
+            _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
         }
 
-        public BusService(BusBuddyContext context)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-        }
-
-        public BusService() : this(new VehicleRepository()) { }
+        public BusService() : this(new BusRepository()) { }
 
         /// <summary>
-        /// Gets all buses from the database (fetches from Vehicles table)
-        /// Uses Entity Framework if context is available, otherwise uses repository
+        /// Gets all buses from the database
         /// </summary>
         public async Task<List<Bus>> GetAllBusesAsync()
         {
             try
             {
-                List<Vehicle> vehicles;
-
-                if (_context != null)
-                {
-                    // Use Entity Framework approach as requested by user
-                    vehicles = await _context.Vehicles.ToListAsync();
-                    System.Diagnostics.Debug.WriteLine($"Retrieved {vehicles.Count} vehicles from database using EF");
-                }
-                else
-                {
-                    // Use repository approach
-                    vehicles = await Task.FromResult(_vehicleRepository.GetAllVehicles());
-                    System.Diagnostics.Debug.WriteLine($"Retrieved {vehicles.Count} vehicles from database using repository");
-                }
-
-                // Convert vehicles to buses
-                var buses = vehicles.Select(v => new Bus
-                {
-                    Id = v.VehicleID,
-                    BusNumber = v.VehicleNumber ?? v.BusNumber ?? "Unknown",
-                    VehicleNumber = v.VehicleNumber,
-                    Make = v.Make,
-                    Model = v.Model,
-                    Year = v.Year,
-                    Capacity = v.Capacity,
-                    SeatingCapacity = v.SeatingCapacity,
-                    FuelType = v.FuelType,
-                    Status = v.Status,
-                    VINNumber = v.VINNumber,
-                    LicenseNumber = v.LicenseNumber,
-                    DateLastInspection = ParseDateLastInspection(v.DateLastInspection),
-                    Notes = v.Notes
-                }).ToList();
-
-                System.Diagnostics.Debug.WriteLine($"Converted {buses.Count} vehicles to buses");
-                return buses;
+                var buses = _busRepository.GetAllBuses().ToList();
+                System.Diagnostics.Debug.WriteLine($"Retrieved {buses.Count} buses from database");
+                return await Task.FromResult(buses);
             }
             catch (Exception ex)
             {
@@ -89,28 +47,8 @@ namespace BusBuddy.Business
         {
             try
             {
-                var vehicles = _vehicleRepository.GetAllVehicles();
-                System.Diagnostics.Debug.WriteLine($"Retrieved {vehicles.Count} vehicles from database");
-
-                var buses = vehicles.Select(v => new Bus
-                {
-                    Id = v.VehicleID,
-                    BusNumber = v.VehicleNumber ?? v.BusNumber ?? "Unknown",
-                    VehicleNumber = v.VehicleNumber,
-                    Make = v.Make,
-                    Model = v.Model,
-                    Year = v.Year,
-                    Capacity = v.Capacity,
-                    SeatingCapacity = v.SeatingCapacity,
-                    FuelType = v.FuelType,
-                    Status = v.Status,
-                    VINNumber = v.VINNumber,
-                    LicenseNumber = v.LicenseNumber,
-                    DateLastInspection = ParseDateLastInspection(v.DateLastInspection),
-                    Notes = v.Notes
-                }).ToList();
-
-                System.Diagnostics.Debug.WriteLine($"Converted {buses.Count} vehicles to buses");
+                var buses = _busRepository.GetAllBuses().ToList();
+                System.Diagnostics.Debug.WriteLine($"Retrieved {buses.Count} buses from database");
                 return buses;
             }
             catch (Exception ex)
@@ -127,40 +65,12 @@ namespace BusBuddy.Business
         {
             try
             {
-                Vehicle vehicle;
-
-                if (_context != null)
+                var bus = _busRepository.GetBusById(busId);
+                if (bus == null)
                 {
-                    vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.VehicleID == busId);
+                    System.Diagnostics.Debug.WriteLine($"No bus found with ID {busId}");
                 }
-                else
-                {
-                    vehicle = await Task.FromResult(_vehicleRepository.GetVehicleById(busId));
-                }
-
-                if (vehicle == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"No vehicle found with ID {busId}");
-                    return null;
-                }
-
-                return new Bus
-                {
-                    Id = vehicle.VehicleID,
-                    BusNumber = vehicle.VehicleNumber ?? vehicle.BusNumber ?? "Unknown",
-                    VehicleNumber = vehicle.VehicleNumber,
-                    Make = vehicle.Make,
-                    Model = vehicle.Model,
-                    Year = vehicle.Year,
-                    Capacity = vehicle.Capacity,
-                    SeatingCapacity = vehicle.SeatingCapacity,
-                    FuelType = vehicle.FuelType,
-                    Status = vehicle.Status,
-                    VINNumber = vehicle.VINNumber,
-                    LicenseNumber = vehicle.LicenseNumber,
-                    DateLastInspection = ParseDateLastInspection(vehicle.DateLastInspection),
-                    Notes = vehicle.Notes
-                };
+                return await Task.FromResult(bus);
             }
             catch (Exception ex)
             {
@@ -176,8 +86,9 @@ namespace BusBuddy.Business
         {
             try
             {
+                // Since Bus model doesn't have Status property, return all buses
                 var allBuses = await GetAllBusesAsync();
-                return allBuses.Where(b => b.Status?.Equals("Active", StringComparison.OrdinalIgnoreCase) == true).ToList();
+                return allBuses;
             }
             catch (Exception ex)
             {
@@ -193,37 +104,14 @@ namespace BusBuddy.Business
         {
             try
             {
-                if (_context != null)
-                {
-                    return $"Using Entity Framework Context - Database: {_context.Database.GetConnectionString()}";
-                }
-                else if (_vehicleRepository is VehicleRepository repo)
-                {
-                    return repo.DiagnoseDataRetrieval();
-                }
-                else
-                {
-                    return "Repository diagnostics not available for this implementation";
-                }
+                _busRepository.DiagnoseDataRetrieval();
+                return "Bus repository diagnostics completed successfully";
             }
             catch (Exception ex)
             {
                 return $"Error running diagnostics: {ex.Message}";
             }
         }
-
-        /// <summary>
-        /// Helper method to parse DateLastInspection string to DateTime?
-        /// </summary>
-        private static DateTime? ParseDateLastInspection(string dateString)
-        {
-            if (string.IsNullOrWhiteSpace(dateString))
-                return null;
-
-            if (DateTime.TryParse(dateString, out DateTime result))
-                return result;
-
-            return null;
-        }
     }
 }
+

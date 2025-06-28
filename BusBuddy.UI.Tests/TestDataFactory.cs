@@ -11,27 +11,26 @@ namespace BusBuddy.UI.Tests
     /// </summary>
     public static class TestDataFactory
     {
-        #region Vehicle Test Data
+        #region Bus Test Data
 
         /// <summary>
-        /// Creates a vehicle with maintenance history spanning the specified number of days.
+        /// Creates a Bus with maintenance history spanning the specified number of days.
         /// </summary>
         /// <param name="days">Number of days of maintenance history to create</param>
         /// <param name="suffix">Optional suffix for unique identification</param>
-        /// <returns>Vehicle with associated maintenance records</returns>
-        public static (Vehicle Vehicle, List<Maintenance> MaintenanceHistory) CreateVehicleWithHistory(int days, string suffix = "")
+        /// <returns>Bus with associated maintenance records</returns>
+        public static (Bus bus, List<Maintenance> MaintenanceHistory) CreateVehicleWithHistory(int days, string suffix = "")
         {
             var timestamp = DateTime.Now.Ticks;
-            var vehicle = new Vehicle
-            {
-                VehicleNumber = $"VH{timestamp}{suffix}",
+            var testBus = new Bus {
+                BusNumber = $"VH{timestamp}{suffix}",
                 Make = GetRandomVehicleMake(),
                 Model = GetRandomVehicleModel(),
                 Year = GetRandomVehicleYear(),
                 SeatingCapacity = GetRandomSeatingCapacity(),
                 FuelType = "Diesel",
                 Status = "Active",
-                VINNumber = GenerateVIN(),
+                VIN = GenerateVIN(),
                 LicenseNumber = GenerateLicenseNumber()
             };
 
@@ -46,45 +45,44 @@ namespace BusBuddy.UI.Tests
                     MaintenanceID = 0, // Will be set when saved
                     Date = maintenanceDate.ToString("yyyy-MM-dd"),
                     MaintenanceCompleted = GetRandomMaintenanceType(),
-                    Notes = $"Scheduled maintenance for {vehicle.VehicleNumber}",
+                    Notes = $"Scheduled maintenance for {bus.BusNumber}",
                     RepairCost = GetRandomMaintenanceCost(),
                     OdometerReading = 50000 + (i * 2000), // Increasing mileage
-                    VehicleID = vehicle.VehicleID
+                    busId = bus.busId
                 };
                 maintenanceHistory.Add(maintenance);
             }
 
-            return (vehicle, maintenanceHistory);
+            return (bus, maintenanceHistory);
         }
 
         /// <summary>
         /// Creates a fleet of vehicles with varying characteristics for load testing.
         /// </summary>
         /// <param name="count">Number of vehicles to create</param>
-        /// <param name="prefix">Prefix for vehicle identification</param>
+        /// <param name="prefix">Prefix for Bus identification</param>
         /// <returns>List of vehicles with diverse characteristics</returns>
-        public static List<Vehicle> CreateVehicleFleet(int count, string prefix = "FLEET")
+        public static List<Bus> CreateVehicleFleet(int count, string prefix = "FLEET")
         {
-            var vehicles = new List<Vehicle>();
+            var vehicles = new List<Bus>();
             var makes = new[] { "Ford", "Chevrolet", "International", "Blue Bird", "Thomas Built" };
             var models = new[] { "Transit", "Express", "3000", "Vision", "C2" };
             var statuses = new[] { "Active", "Maintenance", "Inactive" };
 
             for (int i = 0; i < count; i++)
             {
-                var vehicle = new Vehicle
-                {
-                    VehicleNumber = $"{prefix}{i:D4}",
+                var testBus = new Bus {
+                    BusNumber = $"{prefix}{i:D4}",
                     Make = makes[i % makes.Length],
                     Model = models[i % models.Length],
                     Year = 2015 + (i % 8), // Years 2015-2022
                     SeatingCapacity = 60 + (i % 20), // 60-79 seats
                     FuelType = i % 10 == 0 ? "Electric" : "Diesel", // 10% electric
                     Status = statuses[i % statuses.Length],
-                    VINNumber = GenerateVIN(),
+                    VIN = GenerateVIN(),
                     LicenseNumber = GenerateLicenseNumber()
                 };
-                vehicles.Add(vehicle);
+                vehicles.Add(bus);
             }
 
             return vehicles;
@@ -98,19 +96,19 @@ namespace BusBuddy.UI.Tests
         /// Creates a complex route with multiple stops and realistic timing.
         /// </summary>
         /// <param name="stops">Number of stops on the route</param>
-        /// <param name="vehicleId">ID of the assigned vehicle</param>
-        /// <param name="driverId">ID of the assigned driver</param>
+        /// <param name="busId">ID of the assigned bus</param>
+        /// <param name="DriverId">ID of the assigned driver</param>
         /// <param name="suffix">Optional suffix for unique identification</param>
         /// <returns>Route with detailed stop information</returns>
-        public static Route CreateComplexRoute(int stops, int? vehicleId = null, int? driverId = null, string suffix = "")
+        public static Route CreateComplexRoute(int stops, int? busId = null, int? DriverId = null, string suffix = "")
         {
             var timestamp = DateTime.Now.Ticks;
             var route = new Route
             {
                 RouteName = $"ComplexRoute{timestamp}{suffix}",
                 Date = DateTime.Today.ToString("yyyy-MM-dd"),
-                AMVehicleID = vehicleId,
-                AMDriverID = driverId,
+                AMbusId = busId,
+                AMDriverId = DriverId,
                 RouteType = "CDL",
 
                 // AM Route data
@@ -119,8 +117,8 @@ namespace BusBuddy.UI.Tests
                 AMRiders = GetRandomRiderCount(stops),
 
                 // PM Route data
-                PMVehicleID = vehicleId,
-                PMDriverID = driverId,
+                PMbusId = busId,
+                PMDriverId = DriverId,
                 PMBeginMiles = 0, // Will be set from AM end
                 PMEndMiles = 0, // Will be calculated
                 PMRiders = GetRandomRiderCount(stops),
@@ -140,12 +138,12 @@ namespace BusBuddy.UI.Tests
         /// <summary>
         /// Creates a set of routes covering a date range for analytics testing.
         /// </summary>
-        /// <param name="vehicleIds">Available vehicle IDs</param>
+        /// <param name="busIds">Available Bus IDs</param>
         /// <param name="driverIds">Available driver IDs</param>
         /// <param name="startDate">Start date for route coverage</param>
         /// <param name="endDate">End date for route coverage</param>
         /// <returns>List of routes covering the specified period</returns>
-        public static List<Route> CreateRouteHistory(List<int> vehicleIds, List<int> driverIds, DateTime startDate, DateTime endDate)
+        public static List<Route> CreateRouteHistory(List<int> busIds, List<int> driverIds, DateTime startDate, DateTime endDate)
         {
             var routes = new List<Route>();
             var currentDate = startDate;
@@ -156,16 +154,16 @@ namespace BusBuddy.UI.Tests
                 if (currentDate.DayOfWeek != DayOfWeek.Saturday && currentDate.DayOfWeek != DayOfWeek.Sunday)
                 {
                     // Create routes for available vehicles
-                    for (int i = 0; i < Math.Min(vehicleIds.Count, driverIds.Count); i++)
+                    for (int i = 0; i < Math.Min(busIds.Count, driverIds.Count); i++)
                     {
                         var route = new Route
                         {
                             RouteName = $"Route_{currentDate:yyyyMMdd}_{i}",
                             Date = currentDate.ToString("yyyy-MM-dd"),
-                            AMVehicleID = vehicleIds[i],
-                            AMDriverID = driverIds[i],
-                            PMVehicleID = vehicleIds[i],
-                            PMDriverID = driverIds[i],
+                            AMbusId = busIds[i],
+                            AMDriverId = driverIds[i],
+                            PMbusId = busIds[i],
+                            PMDriverId = driverIds[i],
                             RouteType = "CDL",
 
                             AMBeginMiles = 50000 + (i * 1000),
@@ -210,13 +208,13 @@ namespace BusBuddy.UI.Tests
                 {
                     FirstName = firstName,
                     LastName = $"{lastName}{i:D3}",
-                    DriverName = $"{firstName} {lastName}{i:D3}",
+                    Name = $"{firstName} {lastName}{i:D3}",
                     DriversLicenseType = "CDL",
                     Status = i % 10 == 0 ? "Training" : "Active", // 10% in training
                     DriverPhone = GeneratePhoneNumber(),
                     DriverEmail = $"{firstName.ToLower()}.{lastName.ToLower()}{i:D3}@school.edu",
                     CDLExpirationDate = DateTime.Today.AddMonths(6 + (i % 24)), // Expiration 6-30 months out
-                    TrainingComplete = i % 10 == 0 ? 0 : 1 // 10% not yet trained
+                    IsTrainingComplete = i % 10 == 0 ? 0 : 1 // 10% not yet trained
                 };
                 drivers.Add(driver);
             }
@@ -229,12 +227,12 @@ namespace BusBuddy.UI.Tests
         #region Fuel Test Data
 
         /// <summary>
-        /// Creates fuel records for a vehicle over the specified number of months.
+        /// Creates fuel records for a Bus over the specified number of months.
         /// </summary>
-        /// <param name="vehicleId">Vehicle ID for fuel records</param>
+        /// <param name="busId">Bus ID for fuel records</param>
         /// <param name="months">Number of months of fuel history</param>
         /// <returns>List of fuel records with realistic data</returns>
-        public static List<Fuel> CreateFuelHistory(int vehicleId, int months)
+        public static List<Fuel> CreateFuelHistory(int busId, int months)
         {
             var fuelRecords = new List<Fuel>();
             var fuelStations = new[] { "Shell Station", "Mobil Fuel", "BP Express", "Exxon Center", "Chevron Stop" };
@@ -252,7 +250,7 @@ namespace BusBuddy.UI.Tests
 
                     var fuelRecord = new Fuel
                     {
-                        VehicleFueledID = vehicleId,
+                        VehicleFueledID = busId,
                         FuelDate = fuelDate.ToString("yyyy-MM-dd"),
                         FuelLocation = fuelStations[fuel % fuelStations.Length],
                         FuelAmount = fuelAmount,
@@ -285,16 +283,16 @@ namespace BusBuddy.UI.Tests
             {
                 driver.DriversLicenseType = "CDL";
                 driver.CDLExpirationDate = DateTime.Today.AddYears(2);
-                driver.TrainingComplete = 1;
+                driver.IsTrainingComplete = true;
                 driver.Status = "Active";
             }
 
             // Ensure all vehicles meet DOT requirements
-            foreach (var vehicle in vehicles)
+            foreach (var Bus in vehicles)
             {
-                vehicle.Status = "Active";
-                vehicle.VINNumber = GenerateVIN();
-                vehicle.LicenseNumber = GenerateLicenseNumber();
+                bus.Status = "Active";
+                testBusVIN = GenerateVIN();
+                bus.LicenseNumber = GenerateLicenseNumber();
             }
 
             return new ComplianceTestDataSet
@@ -380,14 +378,16 @@ namespace BusBuddy.UI.Tests
     /// </summary>
     public class ComplianceTestDataSet
     {
-        public List<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+        public List<Bus> Vehicles { get; set; } = new List<Bus>();
         public List<Driver> Drivers { get; set; } = new List<Driver>();
         public DateTime CreatedDate { get; set; }
 
         public bool IsValid()
         {
-            return Vehicles.All(v => !string.IsNullOrEmpty(v.VINNumber) && !string.IsNullOrEmpty(v.LicenseNumber)) &&
-                   Drivers.All(d => d.CDLExpirationDate > DateTime.Today && d.TrainingComplete == 1);
+            return Vehicles.All(v => !string.IsNullOrEmpty(v.VIN) && !string.IsNullOrEmpty(v.LicenseNumber)) &&
+                   Drivers.All(d => d.CDLExpirationDate > DateTime.Today && d.IsTrainingComplete == true);
         }
     }
 }
+
+

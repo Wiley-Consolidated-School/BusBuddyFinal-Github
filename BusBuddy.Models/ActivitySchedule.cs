@@ -33,7 +33,8 @@ namespace BusBuddy.Models
         public string? Notes { get; set; }
 
         // Navigation properties
-        public Vehicle? ScheduledVehicle { get; set; }
+        public Bus? ScheduledVehicle { get; set; }
         public Driver? ScheduledDriver { get; set; }
     }
 }
+

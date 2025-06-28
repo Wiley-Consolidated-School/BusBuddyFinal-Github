@@ -28,7 +28,7 @@ namespace BusBuddy.Business
         /// <summary>
         /// Calculate driver performance metrics
         /// </summary>
-        Task<DriverPerformanceMetrics> CalculateDriverPerformanceAsync(int driverId, DateTime startDate, DateTime endDate);
+        Task<DriverPerformanceMetrics> CalculateDriverPerformanceAsync(int DriverId, DateTime startDate, DateTime endDate);
 
         /// <summary>
         /// Get fleet-wide analytics summary
@@ -41,3 +41,4 @@ namespace BusBuddy.Business
         Task<CostPerStudentMetrics> CalculateCostPerStudentMetricsAsync(DateTime startDate, DateTime endDate);
     }
 }
+

@@ -30,24 +30,24 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing FERPA compliance for student data privacy...");
 
             // Create route with student ridership data
-            var vehicle = CreateTestVehicle("_FERPA_Test");
+            var testBus = CreateTestVehicle("_FERPA_Test");
             var driver = CreateTestDriver("_FERPA_Test");
 
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            var driverId = DriverRepository.AddDriver(driver);
+            var busId = BusRepository.AddBus(bus);
+            var DriverId = DriverRepository.AddDriver(driver);
 
-            TestVehicleIds.Add(vehicleId);
-            TestDriverIds.Add(driverId);
+            TestbusIds.Add(busId);
+            TestDriverIds.Add(DriverId);
 
-            var route = CreateTestRoute(vehicleId, driverId, "_PrivacyTest");
+            var route = CreateTestRoute(busId, DriverId, "_PrivacyTest");
             route.AMRiders = 25; // Number of students
             route.PMRiders = 28;
 
-            var routeId = RouteRepository.AddRoute(route);
-            TestRouteIds.Add(routeId);
+            var RouteId = RouteRepository.AddRoute(route);
+            TestRouteIds.Add(RouteId);
 
             // Verify student count is stored but not individual student data
-            var retrievedRoute = RouteRepository.GetRouteById(routeId);
+            var retrievedRoute = RouteRepository.GetRouteById(RouteId);
             Assert.NotNull(retrievedRoute);
             Assert.True(retrievedRoute.AMRiders > 0, "Student count should be recorded");
 
@@ -68,11 +68,11 @@ namespace BusBuddy.UI.Tests
             driver.DriverPhone = "555-PRIVATE";
             driver.DriverEmail = "private@school.edu";
 
-            var driverId = DriverRepository.AddDriver(driver);
-            TestDriverIds.Add(driverId);
+            var DriverId = DriverRepository.AddDriver(driver);
+            TestDriverIds.Add(DriverId);
 
             // Access personal information - this should be logged in production
-            var retrievedDriver = DriverRepository.GetDriverById(driverId);
+            var retrievedDriver = DriverRepository.GetDriverById(DriverId);
             Assert.NotNull(retrievedDriver);
 
             // Verify sensitive fields are present
@@ -94,30 +94,30 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing data retention policy enforcement...");
 
             // Create old records that should be subject to retention policies
-            var oldVehicle = CreateTestVehicle("_OldRecord");
+            var oldBus = CreateTestVehicle("_OldRecord");
             var oldDriver = CreateTestDriver("_OldRecord");
 
-            var vehicleId = VehicleRepository.AddVehicle(oldVehicle);
-            var driverId = DriverRepository.AddDriver(oldDriver);
+            var busId = BusRepository.AddBus(oldBus);
+            var DriverId = DriverRepository.AddDriver(oldDriver);
 
-            TestVehicleIds.Add(vehicleId);
-            TestDriverIds.Add(driverId);
+            TestbusIds.Add(busId);
+            TestDriverIds.Add(DriverId);
 
             // Create old route data
-            var oldRoute = CreateTestRoute(vehicleId, driverId, "_OldRoute");
+            var oldRoute = CreateTestRoute(busId, DriverId, "_OldRoute");
             oldRoute.Date = DateTime.Today.AddYears(-5).ToString("yyyy-MM-dd"); // 5 years old
 
-            var routeId = RouteRepository.AddRoute(oldRoute);
-            TestRouteIds.Add(routeId);
+            var RouteId = RouteRepository.AddRoute(oldRoute);
+            TestRouteIds.Add(RouteId);
 
             // Verify the old record exists
-            var retrievedRoute = RouteRepository.GetRouteById(routeId);
+            var retrievedRoute = RouteRepository.GetRouteById(RouteId);
             Assert.NotNull(retrievedRoute);
 
             // In production, implement retention policy checks:
             // - Route data older than 7 years should be archived/purged
             // - Driver employment records should be retained per state requirements
-            // - Vehicle maintenance records should be retained per DOT requirements
+            // - Bus maintenance records should be retained per DOT requirements
             // - Financial records should be retained per IRS requirements
 
             var routeAge = DateTime.Today - DateTime.Parse(retrievedRoute.Date);
@@ -142,10 +142,10 @@ namespace BusBuddy.UI.Tests
             driver.DriverPhone = "555-123-4567";
             driver.DriverEmail = "secure@school.edu";
 
-            var driverId = DriverRepository.AddDriver(driver);
-            TestDriverIds.Add(driverId);
+            var DriverId = DriverRepository.AddDriver(driver);
+            TestDriverIds.Add(DriverId);
 
-            var retrievedDriver = DriverRepository.GetDriverById(driverId);
+            var retrievedDriver = DriverRepository.GetDriverById(DriverId);
             Assert.NotNull(retrievedDriver);
 
             // Verify sensitive data handling
@@ -175,21 +175,21 @@ namespace BusBuddy.UI.Tests
 
             for (int i = 0; i < 5; i++)
             {
-                var vehicle = CreateTestVehicle($"_Export_{i}");
+                var testBus = CreateTestVehicle($"_Export_{i}");
                 var driver = CreateTestDriver($"_Export_{i}");
 
-                var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                var driverId = DriverRepository.AddDriver(driver);
+                var busId = BusRepository.AddBus(bus);
+                var DriverId = DriverRepository.AddDriver(driver);
 
-                vehicles.Add(vehicleId);
-                drivers.Add(driverId);
+                vehicles.Add(busId);
+                drivers.Add(DriverId);
             }
 
-            TestVehicleIds.AddRange(vehicles);
+            TestbusIds.AddRange(vehicles);
             TestDriverIds.AddRange(drivers);
 
             // Simulate data export operations
-            var allVehicles = VehicleRepository.GetAllVehicles();
+            var allVehicles = BusRepository.GetAllBuses();
             var allDrivers = DriverRepository.GetAllDrivers();
 
             Assert.NotNull(allVehicles);
@@ -202,10 +202,10 @@ namespace BusBuddy.UI.Tests
             // - Apply data minimization principles
             // - Include only necessary fields
 
-            foreach (var driver in allDrivers.Where(d => d.DriverName?.Contains("_Export_") == true))
+            foreach (var driver in allDrivers.Where(d => d.Name?.Contains("_Export_") == true))
             {
                 // Verify sensitive data exists (for authorized exports)
-                Assert.False(string.IsNullOrEmpty(driver.DriverName));
+                Assert.False(string.IsNullOrEmpty(driver.Name));
 
                 // In production, mask/remove sensitive data for unauthorized users
                 // Example: driver.SSN = MaskSSN(driver.SSN);
@@ -226,17 +226,17 @@ namespace BusBuddy.UI.Tests
             var auditEvents = new List<string>();
 
             // Simulate various system operations that should be audited
-            var vehicle = CreateTestVehicle("_AuditTest");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
-            auditEvents.Add($"Vehicle Created: ID {vehicleId}");
+            var testBus = CreateTestVehicle("_AuditTest");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
+            auditEvents.Add($"Bus Created: ID {busId}");
 
-            var retrievedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            auditEvents.Add($"Vehicle Accessed: ID {vehicleId}");
+            var retrievedBus = BusRepository.GetBusById(busId);
+            auditEvents.Add($"Bus Accessed: ID {busId}");
 
-            vehicle.Status = "Maintenance";
-            VehicleRepository.UpdateVehicle(vehicle);
-            auditEvents.Add($"Vehicle Updated: ID {vehicleId}");
+            bus.Status = "Maintenance";
+            BusRepository.UpdateBus(bus);
+            auditEvents.Add($"Bus Updated: ID {busId}");
 
             // In production, audit trail should include:
             // - User authentication events
@@ -275,31 +275,31 @@ namespace BusBuddy.UI.Tests
         {
             _output.WriteLine("Testing data integrity auditing...");
 
-            var vehicle = CreateTestVehicle("_IntegrityTest");
-            var originalVIN = vehicle.VINNumber;
-            var originalStatus = vehicle.Status;
+            var testBus = CreateTestVehicle("_IntegrityTest");
+            var originalVIN = bus.VIN;
+            var originalStatus = bus.Status;
 
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
             // Record original state
-            var originalChecksum = CalculateSimpleChecksum(vehicle);
+            var originalChecksum = CalculateSimpleChecksum(bus);
 
-            // Modify the vehicle
-            vehicle.VehicleID = vehicleId;
-            vehicle.Status = "Maintenance";
-            vehicle.VINNumber = "MODIFIED_VIN_123";
+            // Modify the bus
+            bus.busId = busId;
+            bus.Status = "Maintenance";
+            testBusVIN = "MODIFIED_VIN_123";
 
-            VehicleRepository.UpdateVehicle(vehicle);
+            BusRepository.UpdateBus(bus);
 
-            var modifiedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(modifiedVehicle);
-            var modifiedChecksum = CalculateSimpleChecksum(modifiedVehicle);
+            var modifiedBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(modifiedBus);
+            var modifiedChecksum = CalculateSimpleChecksum(modifiedBus);
 
             // Verify changes are detected
             Assert.NotEqual(originalChecksum, modifiedChecksum);
-            Assert.NotEqual(originalStatus, modifiedVehicle.Status);
-            Assert.NotEqual(originalVIN, modifiedVehicle.VINNumber);
+            Assert.NotEqual(originalStatus, modifiedBus.Status);
+            Assert.NotEqual(originalVIN, modifiedBus.VIN);
 
             // In production, implement integrity checking:
             // - Checksums/hashes for critical records
@@ -319,32 +319,32 @@ namespace BusBuddy.UI.Tests
         [Fact]
         public void VehicleInspection_Records_ShouldMeetDOTRequirements()
         {
-            _output.WriteLine("Testing DOT vehicle inspection record compliance...");
+            _output.WriteLine("Testing DOT Bus inspection record compliance...");
 
-            var vehicle = CreateTestVehicle("_DOT_Compliance");
-            vehicle.VINNumber = "1HGCM82633A123456"; // Valid format
-            vehicle.LicenseNumber = "ABC123"; // Valid format
+            var testBus = CreateTestVehicle("_DOT_Compliance");
+            testBusVIN = "1HGCM82633A123456"; // Valid format
+            bus.LicenseNumber = "ABC123"; // Valid format
 
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
-            // DOT requires certain vehicle information to be maintained:
+            // DOT requires certain Bus information to be maintained:
             // - VIN number
             // - License plate number
             // - Inspection dates
             // - Maintenance records
             // - Driver assignment records
 
-            var retrievedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(retrievedVehicle);
-            Assert.False(string.IsNullOrEmpty(retrievedVehicle.VINNumber));
-            Assert.False(string.IsNullOrEmpty(retrievedVehicle.LicenseNumber));
+            var retrievedBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(retrievedBus);
+            Assert.False(string.IsNullOrEmpty(retrievedBus.VIN));
+            Assert.False(string.IsNullOrEmpty(retrievedBus.LicenseNumber));
 
             // Verify VIN format (simplified check)
-            Assert.True(retrievedVehicle.VINNumber.Length >= 17 || retrievedVehicle.VINNumber.Contains("TEST"),
+            Assert.True(retrievedBus.VIN.Length >= 17 || retrievedBus.VIN.Contains("TEST"),
                 "VIN should be valid format or test data");
 
-            _output.WriteLine("✅ DOT vehicle inspection record compliance test PASSED");
+            _output.WriteLine("✅ DOT Bus inspection record compliance test PASSED");
         }
 
         [Fact]
@@ -355,12 +355,12 @@ namespace BusBuddy.UI.Tests
             var driver = CreateTestDriver("_Certification");
             driver.DriversLicenseType = "CDL";
             driver.CDLExpirationDate = DateTime.Today.AddYears(2);
-            driver.TrainingComplete = 1;
+            driver.IsTrainingComplete = true;
 
-            var driverId = DriverRepository.AddDriver(driver);
-            TestDriverIds.Add(driverId);
+            var DriverId = DriverRepository.AddDriver(driver);
+            TestDriverIds.Add(DriverId);
 
-            var retrievedDriver = DriverRepository.GetDriverById(driverId);
+            var retrievedDriver = DriverRepository.GetDriverById(DriverId);
             Assert.NotNull(retrievedDriver);
 
             // Regulatory requirements for school bus drivers:
@@ -372,7 +372,7 @@ namespace BusBuddy.UI.Tests
 
             Assert.Equal("CDL", retrievedDriver.DriversLicenseType);
             Assert.True(retrievedDriver.CDLExpirationDate > DateTime.Today, "CDL should not be expired");
-            Assert.Equal(1, retrievedDriver.TrainingComplete);
+            Assert.Equal(1, retrievedDriver.IsTrainingComplete);
 
             // Check for upcoming expirations (compliance monitoring)
             if (retrievedDriver.CDLExpirationDate.HasValue)
@@ -393,13 +393,13 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing financial record retention compliance...");
 
             // Create fuel records (financial data)
-            var vehicle = CreateTestVehicle("_Financial");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var testBus = CreateTestVehicle("_Financial");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
             var fuelRecord = new Fuel
             {
-                VehicleFueledID = vehicleId,
+                VehicleFueledID = busId,
                 FuelDate = DateTime.Today.AddMonths(-6).ToString("yyyy-MM-dd"),
                 FuelLocation = "Test Station",
                 FuelAmount = 50.0m,
@@ -434,10 +434,10 @@ namespace BusBuddy.UI.Tests
 
         #region Helper Methods
 
-        private string CalculateSimpleChecksum(Vehicle vehicle)
+        private string CalculateSimpleChecksum(Bus bus)
         {
             // Simple checksum for data integrity testing
-            var data = $"{vehicle.VehicleNumber}{vehicle.Make}{vehicle.Model}{vehicle.Year}{vehicle.Status}{vehicle.VINNumber}";
+            var data = $"{bus.BusNumber}{bus.Make}{bus.Model}{bus.Year}{bus.Status}{bus.VIN}";
             return data.GetHashCode().ToString();
         }
 
@@ -460,3 +460,5 @@ namespace BusBuddy.UI.Tests
         #endregion
     }
 }
+
+

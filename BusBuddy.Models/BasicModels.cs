@@ -9,3 +9,4 @@ namespace BusBuddy.Models
     // Note: The primary models (Vehicle, Route, TimeCard, Driver, Activity)
     // are defined in their own files
 }
+

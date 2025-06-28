@@ -1,1 +1,0 @@
--- This file was replaced by schema changes in DatabaseScript.SqlServer.sql. No longer needed.

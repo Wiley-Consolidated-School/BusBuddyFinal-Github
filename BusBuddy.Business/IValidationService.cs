@@ -9,26 +9,27 @@ namespace BusBuddy.Business
     /// </summary>
     public interface IValidationService
     {
-        bool IsValidVehicleNumber(string vehicleNumber);
+        bool IsValidBusNumber(string busNumber);
         bool IsValidDriverLicense(string licenseNumber, string licenseType);
-        bool IsVehicleMaintenanceRequired(int vehicleId);
+        bool IsBusMaintenanceRequired(int busId);
         bool IsRouteFeasible(Route route);
-        bool IsDriverEligibleForRoute(int driverId, int routeId);
-        bool IsFuelLevelCritical(int vehicleId);
+        bool IsDriverEligibleForRoute(int DriverId, int RouteId);
+        bool IsFuelLevelCritical(int busId);
         bool IsMaintenanceOverdue(Maintenance maintenance);
         bool IsValidActivitySchedule(ActivitySchedule schedule);
-        bool IsVehicleAvailable(int vehicleId, DateTime startTime, DateTime endTime);
-        bool IsDriverAvailable(int driverId, DateTime startTime, DateTime endTime);
+        bool IsBusAvailable(int busId, DateTime startTime, DateTime endTime);
+        bool IsDriverAvailable(int DriverId, DateTime startTime, DateTime endTime);
         bool IsValidEmail(string email);
         bool IsValidPhoneNumber(string phoneNumber);
         bool IsStrongPassword(string password);
         bool IsValidZipCode(string zipCode);
-        ValidationResult ValidateVehicle(Vehicle vehicle);
+        ValidationResult ValidateBus(Bus bus);
         ValidationResult ValidateDriver(Driver driver);
         ValidationResult ValidateRoute(Route route);
         ValidationResult ValidateMaintenance(Maintenance maintenance);
         ValidationResult ValidateFuelRecord(Fuel fuelRecord);
-        ValidationResult ValidateVehicleAvailability(int vehicleId, DateTime date, string assignmentType = "general", int? currentRouteId = null);
-        ValidationResult ValidateDriverAvailability(int driverId, DateTime date, string assignmentType = "general", int? currentRouteId = null);
+        ValidationResult ValidateBusAvailability(int busId, DateTime date, string assignmentType = "general", int? currentRouteId = null);
+        ValidationResult ValidateDriverAvailability(int DriverId, DateTime date, string assignmentType = "general", int? currentRouteId = null);
     }
 }
+

@@ -27,7 +27,7 @@ namespace BusBuddy.UI.Views
     {
         #region Private Fields
         private readonly IActivityRepository _activityRepository;
-        private readonly IVehicleRepository _vehicleRepository;
+        private readonly BusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IMessageService _messageService;
 
@@ -44,7 +44,7 @@ namespace BusBuddy.UI.Views
         private DateTimePickerAdv _eventTimePicker;
         private DateTimePickerAdv _returnTimePicker;
         private SfNumericTextBox _ridersNumericBox;
-        private ComboBoxAdv _vehicleComboBox;
+        private ComboBoxAdv _busComboBox;
         private ComboBoxAdv _driverComboBox;
         private TextBoxExt _notesTextBox;
 
@@ -85,7 +85,7 @@ namespace BusBuddy.UI.Views
             // Initialize repositories through service container
             var serviceContainer = new ServiceContainer();
             _activityRepository = serviceContainer.GetService<IActivityRepository>();
-            _vehicleRepository = serviceContainer.GetService<IVehicleRepository>();
+            _busRepository = serviceContainer.GetService<BusRepository>();
             _driverRepository = serviceContainer.GetService<IDriverRepository>();
             _messageService = new MessageBoxService();
 
@@ -232,8 +232,8 @@ namespace BusBuddy.UI.Views
                 Size = new Size(80, 23)
             };
 
-            // Vehicle - ComboBoxAdv
-            _vehicleComboBox = new ComboBoxAdv
+            // bus - ComboBoxAdv
+            _busComboBox = new ComboBoxAdv
             {
                 Size = new Size(150, 23),
                 DropDownStyle = ComboBoxStyle.DropDownList
@@ -345,16 +345,16 @@ namespace BusBuddy.UI.Views
             });
 
             // Assignment Group Layout
-            var lblVehicle = new Label { Text = "Vehicle:", Location = new Point(12, 25), Size = new Size(60, 23) };
+            var lblBus = new Label { Text = "Bus:", Location = new Point(12, 25), Size = new Size(60, 23) };
             var lblDriver = new Label { Text = "Driver:", Location = new Point(200, 25), Size = new Size(50, 23) };
             var lblNotes = new Label { Text = "Notes:", Location = new Point(400, 25), Size = new Size(50, 23) };
 
-            _vehicleComboBox.Location = new Point(80, 22);
+            _busComboBox.Location = new Point(80, 22);
             _driverComboBox.Location = new Point(260, 22);
             _notesTextBox.Location = new Point(460, 22);
 
             _assignmentGroup.Controls.AddRange(new Control[] {
-                lblVehicle, _vehicleComboBox,
+                lblBus, _busComboBox,
                 lblDriver, _driverComboBox,
                 lblNotes, _notesTextBox
             });
@@ -434,25 +434,25 @@ namespace BusBuddy.UI.Views
                 _ridersNumericBox.Value = 0;
 
                 // Assignment
-                if (_activity.AssignedVehicleID.HasValue)
+                if (_activity.AssignedBusID.HasValue)
                 {
-                    for (int i = 0; i < _vehicleComboBox.Items.Count; i++)
+                    for (int i = 0; i < _busComboBox.Items.Count; i++)
                     {
-                        if (_vehicleComboBox.Items[i] is ComboBoxItem item &&
-                            item.Value.Equals(_activity.AssignedVehicleID.Value))
+                        if (_busComboBox.Items[i] is ComboBoxItem item &&
+                            item.Value.Equals(_activity.AssignedBusID.Value))
                         {
-                            _vehicleComboBox.SelectedIndex = i;
+                            _busComboBox.SelectedIndex = i;
                             break;
                         }
                     }
                 }
 
-                if (_activity.DriverID.HasValue)
+                if (_activity.DriverId.HasValue)
                 {
                     for (int i = 0; i < _driverComboBox.Items.Count; i++)
                     {
                         if (_driverComboBox.Items[i] is ComboBoxItem item &&
-                            item.Value.Equals(_activity.DriverID.Value))
+                            item.Value.Equals(_activity.DriverId.Value))
                         {
                             _driverComboBox.SelectedIndex = i;
                             break;
@@ -483,7 +483,7 @@ namespace BusBuddy.UI.Views
             _eventTimePicker.Enabled = false;
             _returnTimePicker.Enabled = false;
             _ridersNumericBox.Enabled = false;
-            _vehicleComboBox.Enabled = false;
+            _busComboBox.Enabled = false;
             _driverComboBox.Enabled = false;
             _notesTextBox.ReadOnly = true;
             _saveButton.Enabled = false;
@@ -506,17 +506,17 @@ namespace BusBuddy.UI.Views
                     "Transportation Service"
                 });
 
-                // Populate Vehicle ComboBox
-                _vehicleComboBox.Items.Clear();
-                if (_vehicleRepository != null)
+                // Bus ComboBox
+                _busComboBox.Items.Clear();
+                if (_busRepository != null)
                 {
-                    var vehicles = _vehicleRepository.GetAllVehicles();
-                    foreach (var vehicle in vehicles)
+                    var buses = _busRepository.GetAllBuses();
+                    foreach (var bus in buses)
                     {
-                        _vehicleComboBox.Items.Add(new ComboBoxItem
+                        _busComboBox.Items.Add(new ComboBoxItem
                         {
-                            Text = $"{vehicle.VehicleNumber} - {vehicle.Make} {vehicle.Model}",
-                            Value = vehicle.VehicleID
+                            Text = $"{bus.BusNumber} - {bus.Make} {bus.Model}",
+                            Value = bus.BusId
                         });
                     }
                 }
@@ -531,7 +531,7 @@ namespace BusBuddy.UI.Views
                         _driverComboBox.Items.Add(new ComboBoxItem
                         {
                             Text = $"{driver.FirstName} {driver.LastName}",
-                            Value = driver.DriverID
+                            Value = driver.DriverId
                         });
                     }
                 }
@@ -573,14 +573,14 @@ namespace BusBuddy.UI.Views
             activity.ReturnTimeSpan = _returnTimePicker.Value.TimeOfDay;
 
             // Assignment
-            if (_vehicleComboBox.SelectedItem is ComboBoxItem vehicleItem)
+            if (_busComboBox.SelectedItem is ComboBoxItem busItem)
             {
-                activity.AssignedVehicleID = (int)vehicleItem.Value;
+                activity.AssignedBusID = (int)busItem.Value;
             }
 
             if (_driverComboBox.SelectedItem is ComboBoxItem driverItem)
             {
-                activity.DriverID = (int)driverItem.Value;
+                activity.DriverId = (int)driverItem.Value;
             }
 
             // Additional fields
@@ -626,23 +626,23 @@ namespace BusBuddy.UI.Views
             if (_ridersNumericBox.Value < 0 || _ridersNumericBox.Value > 999)
                 validationErrors.Add("Number of riders must be between 0 and 999.");
 
-            // Validate vehicle capacity if vehicle is selected
-            if (_vehicleComboBox.SelectedIndex != -1 && _ridersNumericBox.Value > 0)
+            // Validate bus capacity if bus is selected
+            if (_busComboBox.SelectedIndex != -1 && _ridersNumericBox.Value > 0)
             {
-                if (_vehicleComboBox.SelectedItem is ComboBoxItem vehicleItem)
+                if (_busComboBox.SelectedItem is ComboBoxItem busItem)
                 {
                     try
                     {
-                        var vehicle = _vehicleRepository?.GetVehicleById((int)vehicleItem.Value);
-                        if (vehicle != null && _ridersNumericBox.Value > vehicle.Capacity)
+                        var bus = _busRepository?.GetBusById((int)busItem.Value);
+                        if (bus != null && _ridersNumericBox.Value > bus.Capacity)
                         {
-                            validationErrors.Add($"Number of riders ({_ridersNumericBox.Value}) exceeds vehicle capacity ({vehicle.Capacity}).");
+                            validationErrors.Add($"Number of riders ({_ridersNumericBox.Value}) exceeds bus capacity ({bus.Capacity}).");
                         }
                     }
                     catch
                     {
                         // If we can't validate capacity, just warn
-                        validationErrors.Add("Could not validate vehicle capacity. Please verify manually.");
+                        validationErrors.Add("Could not validate bus capacity. Please verify manually.");
                     }
                 }
             }
@@ -722,7 +722,7 @@ namespace BusBuddy.UI.Views
             _eventTimePicker.ValueChanged += OnFormDataChanged;
             _returnTimePicker.ValueChanged += OnFormDataChanged;
             _ridersNumericBox.ValueChanged += OnFormDataChanged;
-            _vehicleComboBox.SelectedIndexChanged += OnFormDataChanged;
+            _busComboBox.SelectedIndexChanged += OnFormDataChanged;
             _driverComboBox.SelectedIndexChanged += OnFormDataChanged;
             _notesTextBox.TextChanged += OnFormDataChanged;
         }
@@ -915,7 +915,7 @@ namespace BusBuddy.UI.Views
                 _eventTimePicker?.Dispose();
                 _returnTimePicker?.Dispose();
                 _ridersNumericBox?.Dispose();
-                _vehicleComboBox?.Dispose();
+                _busComboBox?.Dispose();
                 _driverComboBox?.Dispose();
                 _notesTextBox?.Dispose();
                 _saveButton?.Dispose();
@@ -932,3 +932,4 @@ namespace BusBuddy.UI.Views
         #endregion
     }
 }
+

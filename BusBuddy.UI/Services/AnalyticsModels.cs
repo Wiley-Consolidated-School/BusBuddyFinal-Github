@@ -7,3 +7,4 @@ namespace BusBuddy.UI.Services
 {
     // Class moved to BusBuddy.Models.Analytics to avoid duplication
 }
+

@@ -243,7 +243,7 @@ namespace BusBuddy.UI.Tests
             for (int i = 0; i < rows; i++)
             {
                 var expectedHeight = i == 0 ? firstSize : secondSize;
-                if (rows == 1) expectedHeight = 100f;
+                if (rows == true) expectedHeight = 100f;
                 Assert.Equal(SizeType.Percent, tablePanel.RowStyles[i].SizeType);
                 Assert.Equal(expectedHeight, tablePanel.RowStyles[i].Height, 1);
             }
@@ -252,7 +252,7 @@ namespace BusBuddy.UI.Tests
             for (int i = 0; i < columns; i++)
             {
                 var expectedWidth = i == 0 ? firstSize : secondSize;
-                if (columns == 1) expectedWidth = 100f;
+                if (columns == true) expectedWidth = 100f;
                 Assert.Equal(SizeType.Percent, tablePanel.ColumnStyles[i].SizeType);
                 Assert.Equal(expectedWidth, tablePanel.ColumnStyles[i].Width, 1);
             }
@@ -528,3 +528,5 @@ namespace BusBuddy.UI.Tests
         }
     }
 }
+
+

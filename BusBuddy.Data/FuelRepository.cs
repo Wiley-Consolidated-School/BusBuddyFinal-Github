@@ -49,17 +49,19 @@ namespace BusBuddy.Data
             }
         }
 
-        public List<Fuel> GetFuelRecordsByVehicle(int vehicleId)
+        public List<Fuel> GetFuelRecordsByBus(int busId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var fuelRecords = connection.Query<Fuel>(
-                    "SELECT * FROM Fuel WHERE VehicleFueledID = @VehicleID",
-                    new { VehicleID = vehicleId }).AsList();
+                    "SELECT * FROM Fuel WHERE VehicleFueledID = @BusId",
+                    new { BusId = busId }).AsList();
                 return fuelRecords;
             }
-        }        public int AddFuelRecord(Fuel fuelRecord)
+        }
+
+        public int AddFuelRecord(Fuel fuelRecord)
         {
             using (var connection = CreateConnection())
             {
@@ -69,8 +71,8 @@ namespace BusBuddy.Data
                 if (fuelRecord.VehicleFueledID.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
-                        "SELECT COUNT(*) FROM Vehicles WHERE Id = @VehicleID",
-                        new { VehicleID = fuelRecord.VehicleFueledID });
+                        "SELECT COUNT(*) FROM Vehicles WHERE Id = @BusId",
+                        new { BusId = fuelRecord.VehicleFueledID });
 
                     if (vehicleExists == 0)
                     {
@@ -103,8 +105,8 @@ namespace BusBuddy.Data
                 if (fuelRecord.VehicleFueledID.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
-                        "SELECT COUNT(*) FROM Vehicles WHERE VehicleID = @VehicleID",
-                        new { VehicleID = fuelRecord.VehicleFueledID });
+                        "SELECT COUNT(*) FROM Vehicles WHERE BusId = @BusId",
+                        new { BusId = fuelRecord.VehicleFueledID });
 
                     if (vehicleExists == 0)
                     {
@@ -141,3 +143,4 @@ namespace BusBuddy.Data
         }
     }
 }
+

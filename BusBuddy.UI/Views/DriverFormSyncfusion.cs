@@ -40,7 +40,7 @@ namespace BusBuddy.UI.Views
 
         private void InitializeComponent()
         {
-            this.Text = Driver.DriverID == 0 ? "Add Driver" : "Edit Driver";
+            this.Text = Driver.DriverId == 0 ? "Add Driver" : "Edit Driver";
             this.ClientSize = new Size(600, 650);
             this.StartPosition = FormStartPosition.CenterParent;
 
@@ -198,3 +198,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

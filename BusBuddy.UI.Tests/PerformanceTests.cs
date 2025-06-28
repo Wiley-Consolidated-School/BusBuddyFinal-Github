@@ -36,7 +36,7 @@ namespace BusBuddy.UI.Tests
             await PerformanceTestHelpers.AssertPerformanceAsync(async () =>
             {
                 // Simulate dashboard loading operations
-                var vehicles = VehicleRepository.GetAllVehicles();
+                var vehicles = BusRepository.GetAllBuses();
                 var drivers = DriverRepository.GetAllDrivers();
 
                 // Simulate analytics loading
@@ -112,20 +112,20 @@ namespace BusBuddy.UI.Tests
 
             var beforeMemory = PerformanceTestHelpers.GetMemoryUsage();
 
-            // Test bulk vehicle operations
+            // Test bulk Bus operations
             PerformanceTestHelpers.AssertPerformance(() =>
             {
                 // Create multiple vehicles quickly
                 for (int i = 0; i < 20; i++)
                 {
-                    var vehicle = CreateTestVehicle($"_Bulk_{i}");
-                    var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                    TestVehicleIds.Add(vehicleId);
+                    var testBus = CreateTestVehicle($"_Bulk_{i}");
+                    var busId = BusRepository.AddBus(bus);
+                    TestbusIds.Add(busId);
                 }
 
                 // Retrieve all vehicles
-                var allVehicles = VehicleRepository.GetAllVehicles();
-                _output.WriteLine($"Created and retrieved {TestVehicleIds.Count} vehicles");
+                var allVehicles = BusRepository.GetAllBuses();
+                _output.WriteLine($"Created and retrieved {TestbusIds.Count} vehicles");
 
             }, TimeSpan.FromSeconds(5), "Bulk repository operations");
 
@@ -142,14 +142,14 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing validation service performance under load...");
 
             // Create test data
-            var vehicle = CreateTestVehicle("_ValidationPerf");
+            var testBus = CreateTestVehicle("_ValidationPerf");
             var driver = CreateTestDriver("_ValidationPerf");
 
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            var driverId = DriverRepository.AddDriver(driver);
+            var busId = BusRepository.AddBus(bus);
+            var DriverId = DriverRepository.AddDriver(driver);
 
-            TestVehicleIds.Add(vehicleId);
-            TestDriverIds.Add(driverId);
+            TestbusIds.Add(busId);
+            TestDriverIds.Add(DriverId);
 
             // Test validation performance
             PerformanceTestHelpers.AssertPerformance(() =>
@@ -157,14 +157,14 @@ namespace BusBuddy.UI.Tests
                 // Perform many validation operations
                 for (int i = 0; i < 100; i++)
                 {
-                    ValidationService.ValidateVehicleAvailability(vehicleId, DateTime.Today.AddDays(i % 30));
-                    ValidationService.ValidateDriverAvailability(driverId, DateTime.Today.AddDays(i % 30));
+                    ValidationService.ValidateBusAvailability(busId, DateTime.Today.AddDays(i % 30));
+                    ValidationService.ValidateDriverAvailability(DriverId, DateTime.Today.AddDays(i % 30));
 
-                    if (i % 10 == 0)
+                    if (i % 10 == false)
                     {
                         var testFuel = new Fuel
                         {
-                            VehicleFueledID = vehicleId,
+                            VehicleFueledID = busId,
                             FuelDate = DateTime.Today.AddDays(-i).ToString("yyyy-MM-dd"),
                             FuelLocation = "Test Station",
                             FuelAmount = 50.0m,
@@ -197,25 +197,25 @@ namespace BusBuddy.UI.Tests
             PerformanceTestHelpers.AssertMemoryUsage(() =>
             {
                 // Create temporary data
-                var tempVehicleIds = new System.Collections.Generic.List<int>();
+                var tempbusIds = new System.Collections.Generic.List<int>();
 
                 for (int i = 0; i < 30; i++)
                 {
-                    var vehicle = CreateTestVehicle($"_MemTest_{i}");
-                    var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                    tempVehicleIds.Add(vehicleId);
+                    var testBus = CreateTestVehicle($"_MemTest_{i}");
+                    var busId = BusRepository.AddBus(bus);
+                    tempbusIds.Add(busId);
                 }
 
                 // Retrieve and process data
-                var vehicles = VehicleRepository.GetAllVehicles();
+                var vehicles = BusRepository.GetAllBuses();
 
                 // Cleanup temporary data
-                foreach (var id in tempVehicleIds)
+                foreach (var id in tempbusIds)
                 {
-                    try { VehicleRepository.DeleteVehicle(id); } catch { }
+                    try { BusRepository.DeleteBus(id); } catch { }
                 }
 
-                _output.WriteLine($"Processed {tempVehicleIds.Count} temporary vehicles");
+                _output.WriteLine($"Processed {tempbusIds.Count} temporary vehicles");
 
             }, 30, "Moderate data operations"); // 30MB limit
 
@@ -235,16 +235,16 @@ namespace BusBuddy.UI.Tests
 
             for (int i = 0; i < vehicleCount; i++)
             {
-                var vehicle = CreateTestVehicle($"_PerfTest_{i}");
+                var testBus = CreateTestVehicle($"_PerfTest_{i}");
                 var driver = CreateTestDriver($"_PerfTest_{i}");
 
-                var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                var driverId = DriverRepository.AddDriver(driver);
+                var busId = BusRepository.AddBus(bus);
+                var DriverId = DriverRepository.AddDriver(driver);
 
-                TestVehicleIds.Add(vehicleId);
-                TestDriverIds.Add(driverId);
+                TestbusIds.Add(busId);
+                TestDriverIds.Add(DriverId);
 
-                if (i % 10 == 0)
+                if (i % 10 == false)
                 {
                     _output.WriteLine($"Created {i + 1}/{vehicleCount} test records...");
                 }
@@ -261,16 +261,16 @@ namespace BusBuddy.UI.Tests
             var vehicleIndex = 0;
             var driverIndex = 0;
 
-            for (int i = 0; i < routeCount && vehicleIndex < TestVehicleIds.Count && driverIndex < TestDriverIds.Count; i++)
+            for (int i = 0; i < routeCount && vehicleIndex < TestbusIds.Count && driverIndex < TestDriverIds.Count; i++)
             {
-                var route = CreateTestRoute(TestVehicleIds[vehicleIndex], TestDriverIds[driverIndex], $"_PerfRoute_{i}");
+                var route = CreateTestRoute(TestbusIds[vehicleIndex], TestDriverIds[driverIndex], $"_PerfRoute_{i}");
                 route.Date = DateTime.Today.AddDays(-(i % 90)).ToString("yyyy-MM-dd"); // Spread over 90 days
 
-                var routeId = RouteRepository.AddRoute(route);
-                TestRouteIds.Add(routeId);
+                var RouteId = RouteRepository.AddRoute(route);
+                TestRouteIds.Add(RouteId);
 
                 // Cycle through available vehicles and drivers
-                vehicleIndex = (vehicleIndex + 1) % TestVehicleIds.Count;
+                vehicleIndex = (vehicleIndex + 1) % TestbusIds.Count;
                 driverIndex = (driverIndex + 1) % TestDriverIds.Count;
             }
 
@@ -290,39 +290,39 @@ namespace BusBuddy.UI.Tests
             var vehicles = TestDataFactory.CreateVehicleFleet(200, "PERF");
             var drivers = TestDataFactory.CreateDriverCohort(150, "PERF");
 
-            var vehicleIds = new List<int>();
+            var busIds = new List<int>();
             var driverIds = new List<int>();
 
             // Add vehicles in batches
-            foreach (var vehicle in vehicles.Take(200))
+            foreach (var Bus in vehicles.Take(200))
             {
-                var vehicleId = VehicleRepository.AddVehicle(vehicle);
-                vehicleIds.Add(vehicleId);
-                TestVehicleIds.Add(vehicleId);
+                var busId = BusRepository.AddBus(bus);
+                busIds.Add(busId);
+                TestbusIds.Add(busId);
             }
 
             // Add drivers in batches
             foreach (var driver in drivers.Take(150))
             {
-                var driverId = DriverRepository.AddDriver(driver);
-                driverIds.Add(driverId);
-                TestDriverIds.Add(driverId);
+                var DriverId = DriverRepository.AddDriver(driver);
+                driverIds.Add(DriverId);
+                TestDriverIds.Add(DriverId);
             }
 
             // Create historical routes
             var routeHistory = TestDataFactory.CreateRouteHistory(
-                vehicleIds.Take(50).ToList(),
+                busIds.Take(50).ToList(),
                 driverIds.Take(50).ToList(),
                 DateTime.Today.AddDays(-30),
                 DateTime.Today.AddDays(-1));
 
             foreach (var route in routeHistory)
             {
-                var routeId = RouteRepository.AddRoute(route);
-                TestRouteIds.Add(routeId);
+                var RouteId = RouteRepository.AddRoute(route);
+                TestRouteIds.Add(RouteId);
             }
 
-            _output.WriteLine($"Created large dataset: {vehicleIds.Count} vehicles, {driverIds.Count} drivers, {TestRouteIds.Count} routes");
+            _output.WriteLine($"Created large dataset: {busIds.Count} vehicles, {driverIds.Count} drivers, {TestRouteIds.Count} routes");
 
             var beforeMemory = PerformanceTestHelpers.GetMemoryUsage();
 
@@ -330,7 +330,7 @@ namespace BusBuddy.UI.Tests
             await PerformanceTestHelpers.AssertPerformanceAsync(async () =>
             {
                 // Simulate dashboard loading with large dataset
-                var allVehicles = VehicleRepository.GetAllVehicles();
+                var allVehicles = BusRepository.GetAllBuses();
                 var allDrivers = DriverRepository.GetAllDrivers();
                 var recentRoutes = RouteRepository.GetAllRoutes();
 
@@ -406,47 +406,49 @@ namespace BusBuddy.UI.Tests
             var vehicles = TestDataFactory.CreateVehicleFleet(vehicleCount, "ANALYTICS");
             var drivers = TestDataFactory.CreateDriverCohort(vehicleCount, "ANALYTICS");
 
-            var vehicleIds = new List<int>();
+            var busIds = new List<int>();
             var driverIds = new List<int>();
 
             // Batch create vehicles and drivers
             for (int i = 0; i < Math.Min(vehicles.Count, drivers.Count); i++)
             {
-                var vehicleId = VehicleRepository.AddVehicle(vehicles[i]);
-                var driverId = DriverRepository.AddDriver(drivers[i]);
+                var busId = BusRepository.AddBus(vehicles[i]);
+                var DriverId = DriverRepository.AddDriver(drivers[i]);
 
-                vehicleIds.Add(vehicleId);
-                driverIds.Add(driverId);
+                busIds.Add(busId);
+                driverIds.Add(DriverId);
 
-                TestVehicleIds.Add(vehicleId);
-                TestDriverIds.Add(driverId);
+                TestbusIds.Add(busId);
+                TestDriverIds.Add(DriverId);
             }
 
             // Create historical routes for analytics
             var routes = TestDataFactory.CreateRouteHistory(
-                vehicleIds, driverIds,
+                busIds, driverIds,
                 DateTime.Today.AddDays(-daysOfData),
                 DateTime.Today.AddDays(-1));
 
             foreach (var route in routes)
             {
-                var routeId = RouteRepository.AddRoute(route);
-                TestRouteIds.Add(routeId);
+                var RouteId = RouteRepository.AddRoute(route);
+                TestRouteIds.Add(RouteId);
             }
 
             // Create fuel history for cost analytics
-            foreach (var vehicleId in vehicleIds.Take(20)) // Limit fuel records for performance
+            foreach (var busId in busIds.Take(20)) // Limit fuel records for performance
             {
-                var fuelRecords = TestDataFactory.CreateFuelHistory(vehicleId, daysOfData / 30);
+                var fuelRecords = TestDataFactory.CreateFuelHistory(busId, daysOfData / 30);
                 foreach (var fuel in fuelRecords)
                 {
                     FuelRepository.AddFuelRecord(fuel);
                 }
             }
 
-            _output.WriteLine($"✅ Created analytics dataset: {vehicleIds.Count} vehicles, {TestRouteIds.Count} routes");
+            _output.WriteLine($"✅ Created analytics dataset: {busIds.Count} vehicles, {TestRouteIds.Count} routes");
         }
 
         #endregion
     }
 }
+
+

@@ -22,3 +22,4 @@ namespace BusBuddy.Data
         bool Delete(int id);
     }
 }
+

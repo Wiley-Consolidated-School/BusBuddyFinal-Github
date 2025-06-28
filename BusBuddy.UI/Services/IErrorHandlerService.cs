@@ -31,3 +31,4 @@ namespace BusBuddy.UI.Services
         void LogError(string message, string context);
     }
 }
+

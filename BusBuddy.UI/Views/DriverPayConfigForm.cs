@@ -292,3 +292,4 @@ namespace BusBuddy.UI.Views
         public string Description { get; set; } = string.Empty;
     }
 }
+

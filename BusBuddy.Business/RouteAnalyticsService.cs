@@ -13,20 +13,20 @@ namespace BusBuddy.Business
     public class RouteAnalyticsService : IRouteAnalyticsService
     {
         private readonly IRouteRepository _routeRepository;
-        private readonly IVehicleRepository _vehicleRepository;
+        private readonly BusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IFuelRepository _fuelRepository;
         private readonly IActivityRepository _activityRepository;
 
         public RouteAnalyticsService(
             IRouteRepository? routeRepository = null,
-            IVehicleRepository? vehicleRepository = null,
+            BusRepository? busRepository = null,
             IDriverRepository? driverRepository = null,
             IFuelRepository? fuelRepository = null,
             IActivityRepository? activityRepository = null)
         {
             _routeRepository = routeRepository ?? new RouteRepository();
-            _vehicleRepository = vehicleRepository ?? new VehicleRepository();
+            _busRepository = busRepository ?? new BusRepository();
             _driverRepository = driverRepository ?? new DriverRepository();
             _fuelRepository = fuelRepository ?? new FuelRepository();
             _activityRepository = activityRepository ?? new ActivityRepository();
@@ -44,12 +44,12 @@ namespace BusBuddy.Business
                     return null;
 
                 // Return null for routes with no meaningful data
-                if (route.RouteID <= 0 &&
+                if (route.RouteId <= 0 &&
                     string.IsNullOrWhiteSpace(route.RouteName) &&
-                    !route.AMVehicleID.HasValue &&
-                    !route.PMVehicleID.HasValue &&
-                    !route.AMDriverID.HasValue &&
-                    !route.PMDriverID.HasValue &&
+                    !route.AMBusId.HasValue &&
+                    !route.PMBusId.HasValue &&
+                    !route.AMDriverId.HasValue &&
+                    !route.PMDriverId.HasValue &&
                 (!route.AMBeginMiles.HasValue || !route.AMEndMiles.HasValue) &&
                 (!route.PMBeginMiles.HasValue || !route.PMEndMiles.HasValue))
             {
@@ -58,21 +58,21 @@ namespace BusBuddy.Business
 
             var metrics = new RouteEfficiencyMetrics
             {
-                RouteId = route.RouteID,
+                RouteId = route.RouteId,
                 RouteName = route.RouteName ?? "Unknown",
                 Date = route.DateAsDateTime,
 
                 // AM Period Metrics
                 AMTotalMiles = CalculatePeriodMiles(route.AMBeginMiles, route.AMEndMiles),
                 AMRiders = route.AMRiders ?? 0,
-                AMVehicleId = route.AMVehicleID,
-                AMDriverId = route.AMDriverID,
+                AMBusId = route.AMBusId,
+                AMDriverId = route.AMDriverId,
 
                 // PM Period Metrics
                 PMTotalMiles = CalculatePeriodMiles(route.PMBeginMiles, route.PMEndMiles),
                 PMRiders = route.PMRiders ?? 0,
-                PMVehicleId = route.PMVehicleID,
-                PMDriverId = route.PMDriverID
+                PMBusId = route.PMBusId,
+                PMDriverId = route.PMDriverId
             };
 
             // Calculate derived metrics
@@ -93,7 +93,7 @@ namespace BusBuddy.Business
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error calculating route efficiency for route {route?.RouteID}: {ex.Message}");
+                Console.WriteLine($"❌ Error calculating route efficiency for route {route?.RouteId}: {ex.Message}");
                 throw new ApplicationException($"Failed to calculate route efficiency: {ex.Message}", ex);
             }
         }
@@ -224,18 +224,18 @@ namespace BusBuddy.Business
         /// <summary>
         /// Calculate comprehensive driver performance metrics
         /// </summary>
-        public async Task<DriverPerformanceMetrics> CalculateDriverPerformanceAsync(int driverId, DateTime startDate, DateTime endDate)
+        public async Task<DriverPerformanceMetrics> CalculateDriverPerformanceAsync(int DriverId, DateTime startDate, DateTime endDate)
         {
             return await Task.Run(() =>
             {
-                var driver = _driverRepository.GetDriverById(driverId);
+                var driver = _driverRepository.GetDriverById(DriverId);
                 if (driver == null)
-                    throw new ArgumentException($"Driver with ID {driverId} not found");
+                    throw new ArgumentException($"Driver with ID {DriverId} not found");
 
                 var metrics = new DriverPerformanceMetrics
                 {
-                    DriverId = driverId,
-                    DriverName = driver.Name,
+                    DriverId = DriverId,
+                    Name = driver.Name,
                     PeriodStart = startDate,
                     PeriodEnd = endDate
                 };
@@ -249,7 +249,7 @@ namespace BusBuddy.Business
                 while (currentDate <= endDate.Date && iterations < maxIterations)
                 {
                     var dayRoutes = _routeRepository.GetRoutesByDate(currentDate)
-                        .Where(r => r.AMDriverID == driverId || r.PMDriverID == driverId);
+                        .Where(r => r.AMDriverId == DriverId || r.PMDriverId == DriverId);
                     allRoutes.AddRange(dayRoutes);
                     currentDate = currentDate.AddDays(1);
                     iterations++;
@@ -325,9 +325,9 @@ namespace BusBuddy.Business
                 }
 
                 // Vehicle utilization
-                var activeVehicles = allRoutes.SelectMany(r => new[] { r.AMVehicleID, r.PMVehicleID })
+                var activeVehicles = allRoutes.SelectMany(r => new[] { r.AMBusId, r.PMBusId })
                     .Where(id => id.HasValue).Distinct().Count();
-                var totalVehicles = _vehicleRepository.GetAllVehicles().Count;
+                var totalVehicles = _busRepository.GetAllBuses().Count();
                 summary.VehicleUtilizationRate = totalVehicles > 0 ?
                     Math.Round((double)activeVehicles / totalVehicles * 100, 1) : 0;
 
@@ -452,9 +452,9 @@ namespace BusBuddy.Business
         /// <summary>
         /// Gets the efficiency score for a route by its ID
         /// </summary>
-        public double GetRouteEfficiency(int routeId)
+        public double GetRouteEfficiency(int RouteId)
         {
-            var route = _routeRepository.GetRouteById(routeId);
+            var route = _routeRepository.GetRouteById(RouteId);
             var metrics = CalculateRouteEfficiency(route);
             return metrics?.EfficiencyScore ?? 0;
         }
@@ -519,10 +519,10 @@ namespace BusBuddy.Business
             var vehicleUsage = new Dictionary<int, int>();
             foreach (var route in routes)
             {
-                if (route.AMVehicleID.HasValue)
-                    vehicleUsage[route.AMVehicleID.Value] = vehicleUsage.GetValueOrDefault(route.AMVehicleID.Value) + 1;
-                if (route.PMVehicleID.HasValue && route.PMVehicleID != route.AMVehicleID)
-                    vehicleUsage[route.PMVehicleID.Value] = vehicleUsage.GetValueOrDefault(route.PMVehicleID.Value) + 1;
+                if (route.AMBusId.HasValue)
+                    vehicleUsage[route.AMBusId.Value] = vehicleUsage.GetValueOrDefault(route.AMBusId.Value) + 1;
+                if (route.PMBusId.HasValue && route.PMBusId != route.AMBusId)
+                    vehicleUsage[route.PMBusId.Value] = vehicleUsage.GetValueOrDefault(route.PMBusId.Value) + 1;
             }
 
             var underutilizedVehicles = vehicleUsage.Where(kv => kv.Value == 1).ToList();
@@ -554,3 +554,4 @@ namespace BusBuddy.Business
         #endregion
     }
 }
+

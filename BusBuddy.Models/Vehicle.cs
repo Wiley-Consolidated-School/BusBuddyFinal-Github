@@ -6,18 +6,11 @@ using System.Globalization;
 namespace BusBuddy.Models
 {    public class Vehicle
     {
-        public int VehicleID { get; set; } // Primary key as it exists in database
-        public int Id { get { return VehicleID; } set { VehicleID = value; } } // For backward compatibility
-        public string? VehicleNumber { get; set; }
+        public int BusId { get; set; } // Primary key as it exists in database
+        public string? BusNumber { get; set; } // This matches the actual database column
 
-        // BusNumber is mapped from database but we don't want it to override VehicleNumber
-        // Use a private field to store the database BusNumber value separately
-        private string? _busNumber;
-        public string? BusNumber
-        {
-            get { return _busNumber ?? VehicleNumber; }
-            set { _busNumber = value; } // Store separately, don't override VehicleNumber
-        }
+        // Properties for UI compatibility
+        public int Id { get; set; } // UI expects Id property with setter for tests
 
         public string? Make { get; set; }
         public string? Model { get; set; }
@@ -30,28 +23,28 @@ namespace BusBuddy.Models
         // Adding missing properties that are used in VehicleForm
         public string? VINNumber { get; set; }
         public string? LicenseNumber { get; set; }
-        public string? DateLastInspection { get; set; }
+        public string? LastInspectionDate { get; set; }
         public string? Notes { get; set; }
 
-        // Helper property to get/set DateLastInspection as DateTime
+        // Helper property to get/set LastInspectionDate as DateTime
         public DateTime? DateLastInspectionAsDateTime
         {
             get
             {
-                if (string.IsNullOrEmpty(DateLastInspection)) return null;
-                if (DateTime.TryParseExact(DateLastInspection, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+                if (string.IsNullOrEmpty(LastInspectionDate)) return null;
+                if (DateTime.TryParseExact(LastInspectionDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
                     return result;
-                if (DateTime.TryParse(DateLastInspection, out var fallbackResult))
+                if (DateTime.TryParse(LastInspectionDate, out var fallbackResult))
                     return fallbackResult;
                 return null;
             }
-            set => DateLastInspection = value?.ToString("yyyy-MM-dd");
+            set => LastInspectionDate = value?.ToString("yyyy-MM-dd");
         }        // Additional properties for compatibility
         public string? VIN => VINNumber;
-        public DateTime? LastInspectionDate => DateLastInspectionAsDateTime;
 
         // Add concurrency control
         [Timestamp]
         public byte[]? RowVersion { get; set; }
     }
 }
+

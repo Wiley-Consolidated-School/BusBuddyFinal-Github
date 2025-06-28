@@ -26,17 +26,17 @@ namespace BusBuddy.UI.Services
             try
             {
                 // Register repositories with error handling
-                RegisterSingleton<IVehicleRepository>(() => {
+                RegisterSingleton<IBusRepository>(() => {
                     try
                     {
-                        var repo = new VehicleRepository();
-                        Console.WriteLine("✅ VehicleRepository created successfully");
+                        var repo = new BusRepository();
+                        Console.WriteLine("✅ BusRepository created successfully");
                         return repo;
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"❌ Failed to create VehicleRepository: {ex.Message}");
-                        throw new InvalidOperationException($"Failed to initialize VehicleRepository: {ex.Message}", ex);
+                        Console.WriteLine($"❌ Failed to create BusRepository: {ex.Message}");
+                        throw new InvalidOperationException($"Failed to initialize BusRepository: {ex.Message}", ex);
                     }
                 });
 
@@ -62,7 +62,7 @@ namespace BusBuddy.UI.Services
                 RegisterSingleton<ISchoolCalendarRepository>(() => new SchoolCalendarRepository());
 
                 // Register services
-                RegisterSingleton<IVehicleService>(() => (IVehicleService)new VehicleService(GetService<IVehicleRepository>()));
+                RegisterSingleton<IBusService>(() => (IBusService)new BusService(GetService<BusRepository>()));
                 RegisterSingleton<IDatabaseHelperService>(() => UnifiedServiceManager.Instance.GetService<BusBuddy.Business.IDatabaseHelperService>());
                 RegisterSingleton<IRouteAnalyticsService>(() => new BusBuddy.Business.RouteAnalyticsService(GetService<IRouteRepository>()));
 
@@ -325,3 +325,4 @@ namespace BusBuddy.UI.Services
         }
     }
 }
+

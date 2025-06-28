@@ -15,13 +15,13 @@ namespace BusBuddy.Models
         // AM Period Data
         public double AMTotalMiles { get; set; }
         public int AMRiders { get; set; }
-        public int? AMVehicleId { get; set; }
+        public int? AMBusId { get; set; }
         public int? AMDriverId { get; set; }
 
         // PM Period Data
         public double PMTotalMiles { get; set; }
         public int PMRiders { get; set; }
-        public int? PMVehicleId { get; set; }
+        public int? PMBusId { get; set; }
         public int? PMDriverId { get; set; }
 
         // Calculated Metrics
@@ -51,7 +51,7 @@ namespace BusBuddy.Models
     public class DriverPerformanceMetrics
     {
         public int DriverId { get; set; }
-        public string DriverName { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public DateTime PeriodStart { get; set; }
         public DateTime PeriodEnd { get; set; }
 
@@ -119,11 +119,11 @@ namespace BusBuddy.Models
     }
 
     /// <summary>
-    /// Represents a maintenance prediction for a vehicle
+    /// Represents a maintenance prediction for a bus
     /// </summary>
     public class MaintenancePrediction
     {
-        public int VehicleId { get; set; }
+        public int BusId { get; set; }
         public string MaintenanceType { get; set; } = string.Empty;
         public DateTime PredictedDate { get; set; }
         public MaintenancePriority Priority { get; set; }
@@ -138,8 +138,8 @@ namespace BusBuddy.Models
     /// </summary>
     public class MaintenanceRecommendation
     {
-        public int VehicleId { get; set; }
-        public string VehicleNumber { get; set; } = string.Empty;
+        public int BusId { get; set; }
+        public string BusNumber { get; set; } = string.Empty;
         public string MaintenanceType { get; set; } = string.Empty;
         public DateTime RecommendedDate { get; set; }
         public MaintenancePriority Priority { get; set; }
@@ -149,12 +149,12 @@ namespace BusBuddy.Models
     }
 
     /// <summary>
-    /// Represents a comprehensive vehicle health score
+    /// Represents a comprehensive bus health score
     /// </summary>
-    public class VehicleHealthScore
+    public class BusHealthScore
     {
-        public int VehicleId { get; set; }
-        public string VehicleNumber { get; set; } = string.Empty;
+        public int BusId { get; set; }
+        public string BusNumber { get; set; } = string.Empty;
         public DateTime CalculatedDate { get; set; }
 
         // Component scores (0-100)
@@ -166,26 +166,24 @@ namespace BusBuddy.Models
 
         // Overall health
         public int OverallScore { get; set; }
-        public VehicleHealthStatus HealthStatus { get; set; }
+        public BusHealthStatus HealthStatus { get; set; }
         public List<string> Recommendations { get; set; } = new List<string>();
     }
 
     /// <summary>
-    /// Represents maintenance cost analysis for a vehicle
+    /// Represents maintenance cost analysis for a bus
     /// </summary>
     public class MaintenanceCostAnalysis
     {
-        public int VehicleId { get; set; }
-        public string VehicleNumber { get; set; } = string.Empty;
+        public int BusId { get; set; }
+        public string BusNumber { get; set; } = string.Empty;
         public DateTime PeriodStart { get; set; }
         public DateTime PeriodEnd { get; set; }
-
         public decimal TotalCost { get; set; }
         public decimal AverageCostPerService { get; set; }
         public int ServiceCount { get; set; }
         public Dictionary<string, decimal> CostByCategory { get; set; } = new Dictionary<string, decimal>();
         public Dictionary<string, decimal> MonthlyCosts { get; set; } = new Dictionary<string, decimal>();
-
         public decimal ProjectedAnnualCost { get; set; }
         public string CostTrend { get; set; } = string.Empty;
     }
@@ -195,8 +193,8 @@ namespace BusBuddy.Models
     /// </summary>
     public class MaintenanceAlert
     {
-        public int VehicleId { get; set; }
-        public string VehicleNumber { get; set; } = string.Empty;
+        public int BusId { get; set; }
+        public string BusNumber { get; set; } = string.Empty;
         public AlertType AlertType { get; set; }
         public string Message { get; set; } = string.Empty;
         public DateTime DueDate { get; set; }
@@ -215,9 +213,9 @@ namespace BusBuddy.Models
     }
 
     /// <summary>
-    /// Vehicle health status levels
+    /// Bus health status levels
     /// </summary>
-    public enum VehicleHealthStatus
+    public enum BusHealthStatus
     {
         Critical,
         Poor,
@@ -291,8 +289,8 @@ namespace BusBuddy.Models
     /// </summary>
     public class DriverPayReport
     {
-        public int DriverID { get; set; }
-        public string DriverName { get; set; } = string.Empty;
+        public int DriverId { get; set; }
+        public string Name { get; set; } = string.Empty;
         public string DriverType { get; set; } = string.Empty; // CDL, Small Bus, SPED
         public string LicenseType { get; set; } = string.Empty; // CDL or Small Bus
         public int TotalTrips { get; set; }
@@ -318,4 +316,72 @@ namespace BusBuddy.Models
         public Dictionary<string, decimal> KeyMetrics { get; set; } = new Dictionary<string, decimal>();
         public string AIInsights { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// Route safety analysis for rural district challenges
+    /// </summary>
+    public class RouteSafetyAnalysis
+    {
+        public int RouteId { get; set; }
+        public string RouteName { get; set; } = string.Empty;
+        public int StudentCount { get; set; }
+        public decimal TotalMiles { get; set; }
+        public TimeSpan EstimatedDuration { get; set; }
+
+        // Safety metrics
+        public int SafetyScore { get; set; }
+        public List<string> SafetyConcerns { get; set; } = new List<string>();
+        public List<string> WeatherRisks { get; set; } = new List<string>();
+        public bool HasBackupBus { get; set; }
+        public DateTime LastSafetyReview { get; set; }
+    }
+
+    /// <summary>
+    /// Driver safety and performance tracking
+    /// </summary>
+    public class DriverSafetyRecord
+    {
+        public int DriverId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int YearsExperience { get; set; }
+        public DateTime LastTraining { get; set; }
+        public DateTime LastPhysical { get; set; }
+
+        // Safety metrics
+        public int SafetyScore { get; set; }
+        public int IncidentCount { get; set; }
+        public List<string> Certifications { get; set; } = new List<string>();
+        public bool RequiresRetraining { get; set; }
+    }
+
+    /// <summary>
+    /// Emergency preparedness assessment model
+    /// </summary>
+    public class EmergencyReadiness
+    {
+        public DateTime AssessmentDate { get; set; }
+        public int BackupBusCount { get; set; }
+        public int QualifiedDriverCount { get; set; }
+        public string MaintenanceCapacity { get; set; } = string.Empty;
+        public List<string> EmergencySupplies { get; set; } = new List<string>();
+        public bool CommunicationSystems { get; set; }
+        public int ReadinessScore { get; set; }
+        public List<string> ImprovementActions { get; set; } = new List<string>();
+    }
+
+    /// <summary>
+    /// Safety dashboard overview
+    /// </summary>
+    public class SafetyDashboard
+    {
+        public DateTime AnalysisDate { get; set; }
+        public int OverallSafetyScore { get; set; }
+        public List<string> CriticalAlerts { get; set; } = new List<string>();
+        public string FleetStatus { get; set; } = string.Empty;
+        public List<string> RouteRisks { get; set; } = new List<string>();
+        public List<string> DriverAlerts { get; set; } = new List<string>();
+        public string WeatherPreparednes { get; set; } = string.Empty;
+        public List<string> MaintenanceUrgency { get; set; } = new List<string>();
+    }
 }
+

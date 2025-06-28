@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using BusBuddy.Business;
+using BusBuddy.Data;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
 using BusBuddy.UI.Views;
@@ -123,13 +124,13 @@ namespace BusBuddy
 
         /// <summary>
         /// Centralized test mode detection to avoid duplicated logic across the application.
-        /// 
+        ///
         /// Checks multiple indicators to determine if the application is running in test mode:
         /// - Environment variable BUSBUDDY_TEST_MODE set to "1"
         /// - xUnit test framework assemblies loaded
         /// - BusBuddyThemeManager test mode flag
         /// - ControlFactory test mode flag
-        /// 
+        ///
         /// This method improves code readability and maintainability by consolidating
         /// test mode detection logic that was previously scattered across multiple methods.
         /// </summary>
@@ -303,7 +304,7 @@ namespace BusBuddy
 
                 InitializeLicenseAndTheme();
                 ConfigureHighDpiSupport();
-                return await StartDashboardApplication(args);
+                return await StartRouteManagementFormApplication(args);
             }
             catch (Exception ex)
             {
@@ -431,16 +432,39 @@ namespace BusBuddy
         }
 
         /// <summary>
-        /// Start the dashboard application with service container initialization
+        /// Start the RouteManagementFormSyncfusion application with database check and service initialization
         /// </summary>
-        private static async Task<int> StartDashboardApplication(string[] args)
+        private static async Task<int> StartRouteManagementFormApplication(string[] args)
         {
+            // Check and fix database before launching the form
+            Console.WriteLine("🔍 Checking database status...");
+            bool databaseReady = await BusBuddy.Data.SimpleDatabaseCheck.CheckAndFixDatabaseAsync();
+
+            if (!databaseReady)
+            {
+                Console.WriteLine("❌ Database check failed. Cannot start application.");
+                MessageBox.Show("Database is not available. Please check your database connection.",
+                               "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 1;
+            }
+
+            Console.WriteLine("✅ Database is ready.");
+
             var serviceContainer = await InitializeServiceContainerAsync();
+
+            // Run database diagnostics to identify any issues
+            Console.WriteLine("🔍 Running database diagnostics...");
+            var diagnostics = await serviceContainer.DiagnoseDatabaseAsync();
+            Console.WriteLine(diagnostics);
+
             ValidateRequiredServices(serviceContainer);
             ProcessCommandLineArguments(args);
 
-            var dashboard = CreateDashboard();
-            RunApplication(dashboard);
+            // Create and launch RouteManagementFormSyncfusion instead of RouteFormSyncfusion
+            Console.WriteLine("🗺️ Launching RouteManagementFormSyncfusion...");
+            var routeMgmtForm = new BusBuddy.UI.Views.RouteManagementFormSyncfusion();
+
+            RunApplication(routeMgmtForm);
 
             return 0;
         }
@@ -1044,12 +1068,13 @@ namespace BusBuddy
                 CleanupTrackedChildProcesses();
 
                 // Second, use WMI to find actual child processes (more precise than before)
+                // ENHANCED (June 27, 2025): Simplified approach to avoid "No process is associated with this object" errors
                 try
                 {
                     var startInfo = new System.Diagnostics.ProcessStartInfo
                     {
                         FileName = "powershell",
-                        Arguments = $"-Command \"Get-CimInstance Win32_Process | Where-Object {{ $_.ParentProcessId -eq {currentProcessId} }} | ForEach-Object {{ $processId = $_.ProcessId; $processName = $_.Name; Write-Host ('Found child process: ' + $processName + ' (' + $processId + ')'); if ($processName -match '(dotnet|MSBuild|VBCSCompiler)') {{ Write-Host ('Terminating build-related child: ' + $processId); Try {{ Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue; Write-Host ('Successfully terminated: ' + $processId) }} Catch {{ Write-Host ('Could not terminate: ' + $processId + ' - ' + $_.Exception.Message) }} }} else {{ Write-Host ('Skipping non-build process: ' + $processName) }} }}\"",
+                        Arguments = $"-Command \"try {{ Get-CimInstance Win32_Process | Where-Object {{ $_.ParentProcessId -eq {currentProcessId} }} | ForEach-Object {{ $processId = $_.ProcessId; $processName = $_.Name; Write-Host ('Found child process: ' + $processName + ' (' + $processId + ')'); if ($processName -match '(dotnet|MSBuild|VBCSCompiler)') {{ Write-Host ('Terminating build-related child: ' + $processId); Try {{ Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue; Write-Host ('Successfully terminated: ' + $processId) }} Catch {{ Write-Host ('Could not terminate: ' + $processId + ' - Already exited or access denied') }} }} else {{ Write-Host ('Skipping non-build process: ' + $processName) }} }} }} catch {{ Write-Host 'Error querying child processes - some may have exited during detection' }}\"",
                         CreateNoWindow = true,
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
@@ -1073,7 +1098,16 @@ namespace BusBuddy
                             var error = process.StandardError.ReadToEnd();
                             if (!string.IsNullOrWhiteSpace(error))
                             {
-                                Console.WriteLine($"⚠️ PowerShell error: {error}");
+                                // Filter out expected errors from rapid process exit scenarios
+                                if (!error.Contains("No process is associated") &&
+                                    !error.Contains("some may have exited during detection"))
+                                {
+                                    Console.WriteLine($"⚠️ PowerShell error: {error}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("ℹ️ Some child processes exited during detection (normal behavior)");
+                                }
                             }
                         }
                         else
@@ -1279,47 +1313,69 @@ namespace BusBuddy
                 {
                     try
                     {
+                        // ENHANCED (June 27, 2025): Better error handling for process state checks
                         // Check if process object is valid before accessing properties
-                        if (process != null && !process.HasExited)
+                        if (process != null)
                         {
-                            Console.WriteLine($"🛑 Terminating tracked child process: {process.ProcessName} (ID: {process.Id})");
-
-                            // Try graceful shutdown first
+                            // Safely check if process has exited
+                            bool hasExited = false;
                             try
                             {
-                                if (!process.CloseMainWindow())
-                                {
-                                    // If graceful shutdown fails, force termination
-                                    process.Kill(false); // Don't kill descendants to avoid killing ourselves
-                                }
+                                hasExited = process.HasExited;
                             }
                             catch (InvalidOperationException)
                             {
-                                // Process might have exited between HasExited check and termination attempt
-                                Console.WriteLine($"⚠️ Process {process.Id} exited during termination attempt");
+                                // Process was never associated or already disposed
+                                Console.WriteLine($"ℹ️ Process object was never associated with a running process, skipping");
+                                continue;
                             }
 
-                            // Wait for exit with timeout and proper exception handling
-                            try
+                            if (!hasExited)
                             {
-                                if (!process.WaitForExit(3000))
+                                Console.WriteLine($"🛑 Terminating tracked child process: {process.ProcessName} (ID: {process.Id})");
+
+                                // Try graceful shutdown first
+                                try
                                 {
-                                    Console.WriteLine($"⚠️ Process {process.Id} didn't respond to termination request within 3 seconds");
+                                    if (!process.CloseMainWindow())
+                                    {
+                                        // If graceful shutdown fails, force termination
+                                        process.Kill(false); // Don't kill descendants to avoid killing ourselves
+                                    }
                                 }
-                                else
+                                catch (InvalidOperationException)
                                 {
-                                    Console.WriteLine($"✅ Process {process.Id} terminated successfully");
+                                    // Process might have exited between HasExited check and termination attempt
+                                    Console.WriteLine($"ℹ️ Process {process.Id} exited during termination attempt (expected behavior)");
+                                    continue;
+                                }
+
+                                // Wait for exit with timeout and proper exception handling
+                                try
+                                {
+                                    if (!process.WaitForExit(3000))
+                                    {
+                                        Console.WriteLine($"⚠️ Process {process.Id} didn't respond to termination request within 3 seconds");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"✅ Process {process.Id} terminated successfully");
+                                    }
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    // Process already exited or was disposed
+                                    Console.WriteLine($"ℹ️ Process {process.Id} was already disposed during wait (expected behavior)");
                                 }
                             }
-                            catch (InvalidOperationException)
+                            else
                             {
-                                // Process already exited or was disposed
-                                Console.WriteLine($"⚠️ Process {process.Id} was already disposed during wait");
+                                Console.WriteLine($"✅ Process {process.Id} already exited, skipping termination");
                             }
                         }
                         else
                         {
-                            Console.WriteLine($"✅ Process {process?.Id ?? -1} already exited, skipping termination");
+                            Console.WriteLine("ℹ️ Null process object encountered, skipping");
                         }
                     }
                     catch (InvalidOperationException)
@@ -1607,42 +1663,22 @@ namespace BusBuddy
         private static void CleanupDashboard()
         {
             Console.WriteLine("🗑️ Starting Dashboard-specific cleanup...");
-
             lock (_dashboardLock)
             {
                 if (_mainDashboard != null)
                 {
                     try
                     {
-                        // Check if the dashboard is still valid and not disposed
                         if (!_mainDashboard.IsDisposed)
                         {
                             Console.WriteLine("🗑️ Disposing Dashboard Syncfusion controls...");
-
-                            // Use reflection to call the private DisposeSyncfusionControlsSafely method
-                            // This maintains the existing cleanup logic without duplicating code
-                            var disposeMethod = _mainDashboard.GetType().GetMethod("DisposeSyncfusionControlsSafely",
-                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-                            if (disposeMethod != null)
-                            {
-                                disposeMethod.Invoke(_mainDashboard, null);
-                                Console.WriteLine("✅ Dashboard Syncfusion controls disposed successfully");
-                            }
-                            else
-                            {
-                                Console.WriteLine("⚠️ DisposeSyncfusionControlsSafely method not found - using standard disposal");
-                                _mainDashboard.Dispose();
-                            }
+                            _mainDashboard.DisposeSyncfusionControlsSafely();
+                            Console.WriteLine("✅ Dashboard Syncfusion controls disposed successfully");
                         }
                         else
                         {
                             Console.WriteLine("ℹ️ Dashboard already disposed, skipping disposal");
                         }
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        Console.WriteLine("ℹ️ Dashboard already disposed (ObjectDisposedException expected)");
                     }
                     catch (Exception ex)
                     {
@@ -1659,7 +1695,6 @@ namespace BusBuddy
                     Console.WriteLine("ℹ️ No Dashboard instance to clean up");
                 }
             }
-
             Console.WriteLine("✅ Dashboard-specific cleanup completed");
         }
 
@@ -1726,3 +1761,4 @@ namespace BusBuddy
         }
     }
 }
+

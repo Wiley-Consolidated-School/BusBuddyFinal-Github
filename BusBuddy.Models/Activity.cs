@@ -51,11 +51,13 @@ namespace BusBuddy.Models
 
         public string? RequestedBy { get; set; }
         public int? AssignedVehicleID { get; set; }
-        public int? DriverID { get; set; }
+        public int? AssignedBusID { get; set; }
+        public int? DriverId { get; set; }
         public string? Notes { get; set; }
 
         // Navigation properties
-        public Vehicle? AssignedVehicle { get; set; }
+        public Bus? AssignedVehicle { get; set; }
         public Driver? Driver { get; set; }
     }
 }
+

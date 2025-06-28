@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using BusBuddy.Business;
 using BusBuddy.Data;
 using BusBuddy.UI.Services;
+using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.SqlServer; // This provides EnableRetryOnFailure
 using Microsoft.Extensions.DependencyInjection;
+using System.Data.SqlClient;
 
 namespace BusBuddy.UI.Helpers
 {
@@ -60,7 +62,7 @@ namespace BusBuddy.UI.Helpers
         /// Synchronous service access for cases where async is not possible
         ///
         /// CENTRAL SERVICE RESOLUTION - Use this throughout the application:
-        /// UnifiedServiceManager.Instance.GetService<IVehicleRepository>()
+        /// UnifiedServiceManager.Instance.GetService<IBusRepository>()
         ///
         /// Replaces all other GetService calls from removed service containers:
         /// - ServiceContainerInstance.Instance.GetService<T>() - REMOVED
@@ -209,16 +211,16 @@ namespace BusBuddy.UI.Helpers
             services.AddScoped<BusBuddy.Business.IDatabaseHelperService, BusBuddy.Business.DatabaseHelperService>();
             services.AddScoped<BusBuddy.Business.IRouteAnalyticsService, BusBuddy.Business.RouteAnalyticsService>();
             services.AddScoped<BusBuddy.Business.IPredictiveMaintenanceService, BusBuddy.Business.PredictiveMaintenanceService>();
-            services.AddScoped<BusBuddy.Business.IVehicleService, BusBuddy.Business.VehicleService>();
+            services.AddScoped<BusBuddy.Business.IBusService, BusBuddy.Business.BusService>();
             services.AddScoped<BusBuddy.Business.IValidationService, BusBuddy.Business.ValidationService>();
 
-            // Register BusService for accessing vehicle data as buses
+            // Register BusService for accessing bus data as buses
             services.AddScoped<BusBuddy.Business.IBusService, BusBuddy.Business.BusService>();
         }
 
         private void RegisterDataServices(ServiceCollection services)
         {
-            services.AddScoped<IVehicleRepository, VehicleRepository>();
+            services.AddScoped<IBusRepository, BusRepository>();
             services.AddScoped<IDriverRepository, DriverRepository>();
             services.AddScoped<IRouteRepository, RouteRepository>();
             services.AddScoped<IFuelRepository, FuelRepository>();
@@ -253,6 +255,124 @@ namespace BusBuddy.UI.Helpers
         }
 
         /// <summary>
+        /// Runs diagnostics on the database to check table existence and data retrieval
+        /// </summary>
+        public async Task<string> DiagnoseDatabaseAsync()
+        {
+            var result = new System.Text.StringBuilder();
+            result.AppendLine($"=== Database Diagnostics: {DateTime.Now} ===");
+
+            try
+            {
+                await EnsureInitializedAsync();
+                using var scope = _serviceProvider.CreateScope();
+                var context = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<BusBuddyContext>(scope.ServiceProvider);
+
+                result.AppendLine("Testing EF Core database connection...");
+                bool canConnect = await context.Database.CanConnectAsync();
+                result.AppendLine($"✅ EF Core connection: {(canConnect ? "Successful" : "Failed")}");
+
+                // Test repositories
+                result.AppendLine("\nTesting BusRepository...");
+                try
+                {
+                    var busRepo = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<IBusRepository>(scope.ServiceProvider);
+                    if (busRepo is BusRepository br && br.GetType().GetMethod("DiagnoseDataRetrieval") != null)
+                    {
+                        // Use reflection to call DiagnoseDataRetrieval if it exists
+                        var diagnoseMethod = br.GetType().GetMethod("DiagnoseDataRetrieval");
+                        var diagResult = diagnoseMethod.Invoke(br, null) as string;
+                        result.AppendLine(diagResult ?? "No diagnostic data returned");
+                    }
+                    else
+                    {
+                        // Manual diagnostics
+                        using var connection = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString
+                            ?? "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;");
+                        connection.Open();
+                        var tableExists = connection.QueryFirstOrDefault<int>(
+                            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Buses'");
+                        result.AppendLine($"Buses table exists: {(tableExists > 0 ? "Yes" : "No")}");
+                        if (tableExists > 0)
+                        {
+                            var count = connection.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Buses");
+                            result.AppendLine($"Buses table has {count} records");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.AppendLine($"❌ Error accessing Buses table: {ex.Message} | Stack: {ex.StackTrace}");
+                }
+
+                result.AppendLine("\nTesting RouteRepository...");
+                try
+                {
+                    using var connection = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString
+                        ?? "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;");
+                    connection.Open();
+                    var tableExists = connection.QueryFirstOrDefault<int>(
+                        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Routes'");
+                    result.AppendLine($"Routes table exists: {(tableExists > 0 ? "Yes" : "No")}");
+                    if (tableExists > 0)
+                    {
+                        var count = connection.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Routes");
+                        result.AppendLine($"Routes table has {count} records");
+                        if (count > 0)
+                        {
+                            var sample = connection.Query<BusBuddy.Models.Route>("SELECT TOP 3 RouteId, RouteName, RouteDate FROM Routes").AsList();
+                            result.AppendLine("Sample route records:");
+                            foreach (var route in sample)
+                            {
+                                result.AppendLine($"  ID: {route.RouteId}, Name: {route.RouteName}, Date: {route.RouteDate:yyyy-MM-dd}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.AppendLine($"❌ Error accessing Routes table: {ex.Message} | Stack: {ex.StackTrace}");
+                }
+
+                result.AppendLine("\nTesting ActivityRepository...");
+                try
+                {
+                    using var connection = new System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString
+                        ?? "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;");
+                    connection.Open();
+                    var tableExists = connection.QueryFirstOrDefault<int>(
+                        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Activities'");
+                    result.AppendLine($"Activities table exists: {(tableExists > 0 ? "Yes" : "No")}");
+                    if (tableExists > 0)
+                    {
+                        var count = connection.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Activities");
+                        result.AppendLine($"Activities table has {count} records");
+                        if (count > 0)
+                        {
+                            var sample = connection.Query<BusBuddy.Models.Activity>("SELECT TOP 3 ActivityID, ActivityType, ActivityDate as Date FROM Activities").AsList();
+                            result.AppendLine("Sample activity records:");
+                            foreach (var activity in sample)
+                            {
+                                result.AppendLine($"  ID: {activity.ActivityID}, Type: {activity.ActivityType}, Date: {activity.Date}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.AppendLine($"❌ Error accessing Activities table: {ex.Message} | Stack: {ex.StackTrace}");
+                }
+
+                return result.ToString();
+            }
+            catch (Exception ex)
+            {
+                result.AppendLine($"❌ Error in database diagnostics: {ex.Message} | Stack: {ex.StackTrace}");
+                return result.ToString();
+            }
+        }
+
+        /// <summary>
         /// Dispose resources
         /// </summary>
         public void Dispose()
@@ -271,3 +391,4 @@ namespace BusBuddy.UI.Helpers
         }
     }
 }
+

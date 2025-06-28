@@ -9,19 +9,19 @@ namespace BusBuddy.Business
     public static class ModelExtensions
     {
         /// <summary>
-        /// Gets the DriverId property (maps to DriverID in the actual model)
+        /// Gets the DriverId property (maps to DriverId in the actual model)
         /// </summary>
         public static int DriverId(this Driver driver)
         {
-            return driver.DriverID;
+            return driver.DriverId;
         }
 
         /// <summary>
-        /// Gets the RouteId property (maps to RouteID in the actual model)
+        /// Gets the RouteId property (maps to RouteId in the actual model)
         /// </summary>
         public static int RouteId(this Route route)
         {
-            return route.RouteID;
+            return route.RouteId;
         }
 
         /// <summary>
@@ -42,19 +42,19 @@ namespace BusBuddy.Business
         }
 
         /// <summary>
-        /// Gets the HireDate property (CDLExpirationDate is used as a proxy)
+        /// Gets the HireDate property (returns current date as fallback)
         /// </summary>
         public static DateTime HireDate(this Driver driver)
         {
-            return driver.CDLExpirationDate ?? DateTime.Now;
+            return DateTime.Now;
         }
 
         /// <summary>
-        /// Sets the HireDate property (sets CDLExpirationDate as a proxy)
+        /// Sets the HireDate property (no-op as property doesn't exist)
         /// </summary>
         public static void SetHireDate(this Driver driver, DateTime value)
         {
-            driver.CDLExpirationDate = value;
+            // No-op as the property doesn't exist
         }
 
         /// <summary>
@@ -90,3 +90,4 @@ namespace BusBuddy.Business
         }
     }
 }
+

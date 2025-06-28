@@ -27,7 +27,7 @@ namespace BusBuddy.UI.Views
     {
         #region Private Fields
         private readonly IActivityScheduleRepository _activityScheduleRepository;
-        private readonly IVehicleRepository _vehicleRepository;
+        private readonly BusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IMessageService _messageService;
 
@@ -39,7 +39,7 @@ namespace BusBuddy.UI.Views
         private TextBoxExt _scheduleIdTextBox;
         private SfDateTimeEdit _scheduleDatePicker;
         private ComboBoxAdv _tripTypeComboBox;
-        private ComboBoxAdv _vehicleComboBox;
+        private ComboBoxAdv _busComboBox;
         private TextBoxExt _destinationTextBox;
         private DateTimePickerAdv _leaveTimePicker;
         private DateTimePickerAdv _eventTimePicker;
@@ -87,7 +87,7 @@ namespace BusBuddy.UI.Views
             // Initialize repositories through service container
             var serviceContainer = new ServiceContainer();
             _activityScheduleRepository = serviceContainer.GetService<IActivityScheduleRepository>();
-            _vehicleRepository = serviceContainer.GetService<IVehicleRepository>();
+            _busRepository = serviceContainer.GetService<BusRepository>();
             _driverRepository = serviceContainer.GetService<IDriverRepository>();
             _messageService = new MessageBoxService();
 
@@ -215,7 +215,7 @@ namespace BusBuddy.UI.Views
             };
 
             // Vehicle - ComboBoxAdv
-            _vehicleComboBox = new ComboBoxAdv
+            _busComboBox = new ComboBoxAdv
             {
                 Size = new Size(150, 23),
                 DropDownStyle = ComboBoxStyle.DropDownList
@@ -412,7 +412,7 @@ namespace BusBuddy.UI.Views
                 _scheduleIdTextBox?.Dispose();
                 _scheduleDatePicker?.Dispose();
                 _tripTypeComboBox?.Dispose();
-                _vehicleComboBox?.Dispose();
+                _busComboBox?.Dispose();
                 _destinationTextBox?.Dispose();
                 _leaveTimePicker?.Dispose();
                 _eventTimePicker?.Dispose();
@@ -436,3 +436,4 @@ namespace BusBuddy.UI.Views
         #endregion
     }
 }
+

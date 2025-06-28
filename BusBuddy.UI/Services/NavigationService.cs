@@ -31,8 +31,8 @@ namespace BusBuddy.UI.Services
             _navigationMap = new Dictionary<string, Func<DialogResult>>(StringComparer.OrdinalIgnoreCase)
             {
                 // Core transportation modules
-                { "vehicle", () => { ShowVehicleManagement(); return DialogResult.OK; } },
-                { "vehicles", () => { ShowVehicleManagement(); return DialogResult.OK; } },
+                { "bus", () => { ShowBusManagement(); return DialogResult.OK; } },
+                { "buses", () => { ShowBusManagement(); return DialogResult.OK; } },
                 { "driver", () => { ShowDriverManagement(); return DialogResult.OK; } },
                 { "drivers", () => { ShowDriverManagement(); return DialogResult.OK; } },
                 { "route", () => { ShowRouteManagement(); return DialogResult.OK; } },
@@ -71,8 +71,8 @@ namespace BusBuddy.UI.Services
             _moduleAvailability = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
             {
                 // Core transportation modules
-                { "vehicle", true },
-                { "vehicles", true },
+                { "bus", true },
+                { "buses", true },
                 { "driver", true },
                 { "drivers", true },
                 { "route", true },
@@ -195,30 +195,30 @@ namespace BusBuddy.UI.Services
             return _navigationMap.ContainsKey(moduleName);
         }
 
-        public void ShowVehicleManagement()
+        public void ShowBusManagement()
         {
-            Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowVehicleManagement() called");
+            Console.WriteLine("🔍 BREADCRUMB: NavigationService.ShowBusManagement() called");
             try
             {
                 // Try to get repository from unified service container
-                var vehicleRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IVehicleRepository>();
-                if (vehicleRepository != null)
+                var busRepository = BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IBusRepository>();
+                if (busRepository != null)
                 {
                     // Test database connection with repository from DI container
-                    EnsureRepositoryInitializedWithDI(() => vehicleRepository.GetAllVehicles());
+                    EnsureRepositoryInitializedWithDI(() => busRepository.GetAllBuses());
                 }
                 else
                 {
-                    Console.WriteLine("⚠️ VehicleRepository not found in service container, using fallback");
+                    Console.WriteLine("⚠️ BusRepository not found in service container, using fallback");
                     // Fallback to direct instantiation for backward compatibility
-                    EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
+                    EnsureRepositoryInitialized(() => new BusRepository().GetAllBuses());
                 }
-                ShowFormDialog<VehicleManagementFormSyncfusion>();
+                ShowFormDialog<RouteManagementFormSyncfusion>(); // Using RouteManagementForm since it handles bus management
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in ShowVehicleManagement: {ex.Message}");
-                MessageBox.Show($"Unable to open Vehicle Management: {ex.Message}", "Navigation Error",
+                Console.WriteLine($"❌ Error in ShowBusManagement: {ex.Message}");
+                MessageBox.Show($"Unable to open Bus Management: {ex.Message}", "Navigation Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -421,7 +421,7 @@ namespace BusBuddy.UI.Services
         public void ShowReportsManagement()
         {
             // Initialize all repositories for comprehensive reports
-            EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
+            EnsureRepositoryInitialized(() => new BusRepository().GetAllBuses());
             EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
             EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
             ShowFormDialog<AnalyticsDemoFormSyncfusion>(); // Use Analytics as comprehensive reports
@@ -436,7 +436,7 @@ namespace BusBuddy.UI.Services
         public void ShowAnalyticsDemo()
         {
             // Initialize all repositories for analytics
-            EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
+            EnsureRepositoryInitialized(() => new BusRepository().GetAllBuses());
             EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
             EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
             ShowFormDialog<AnalyticsDemoFormSyncfusion>();
@@ -445,7 +445,7 @@ namespace BusBuddy.UI.Services
         public void ShowReports()
         {
             // Initialize all repositories for reports
-            EnsureRepositoryInitialized(() => new VehicleRepository().GetAllVehicles());
+            EnsureRepositoryInitialized(() => new BusRepository().GetAllBuses());
             EnsureRepositoryInitialized(() => new DriverRepository().GetAllDrivers());
             EnsureRepositoryInitialized(() => new RouteRepository().GetAllRoutes());
             ShowFormDialog<AnalyticsDemoFormSyncfusion>(); // Use Analytics as reports for now
@@ -544,3 +544,4 @@ namespace BusBuddy.UI.Services
         }
     }
 }
+

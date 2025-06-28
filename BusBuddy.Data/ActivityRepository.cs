@@ -128,26 +128,26 @@ namespace BusBuddy.Data
             }
         }
 
-        public List<Activity> GetActivitiesByDriver(int driverId)
+        public List<Activity> GetActivitiesByDriver(int DriverId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var activities = connection.Query<Activity>(
-                    "SELECT * FROM Activities WHERE DriverID = @DriverID",
-                    new { DriverID = driverId }).AsList();
+                    "SELECT * FROM Activities WHERE DriverId = @DriverId",
+                    new { DriverId = DriverId }).AsList();
                 return activities;
             }
         }
 
-        public List<Activity> GetActivitiesByVehicle(int vehicleId)
+        public List<Activity> GetActivitiesByBus(int busId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
                 var activities = connection.Query<Activity>(
-                    "SELECT * FROM Activities WHERE AssignedVehicleID = @VehicleID",
-                    new { VehicleID = vehicleId }).AsList();
+                    "SELECT * FROM Activities WHERE AssignedVehicleID = @BusId",
+                    new { BusId = busId }).AsList();
                 return activities;
             }
         }        public int AddActivity(Activity activity)
@@ -162,12 +162,12 @@ namespace BusBuddy.Data
                     INSERT INTO Activities (
                         Date, ActivityType, Destination,
                         LeaveTime, EventTime, RequestedBy,
-                        AssignedVehicleID, DriverID
+                        AssignedVehicleID, DriverId
                     )
                     VALUES (
                         @Date, @ActivityType, @Destination,
                         @LeaveTime, @EventTime, @RequestedBy,
-                        @AssignedVehicleID, @DriverID
+                        @AssignedVehicleID, @DriverId
                     );
                     SELECT SCOPE_IDENTITY()";
 
@@ -192,7 +192,7 @@ namespace BusBuddy.Data
                         EventTime = @EventTime,
                         RequestedBy = @RequestedBy,
                         AssignedVehicleID = @AssignedVehicleID,
-                        DriverID = @DriverID
+                        DriverId = @DriverId
                     WHERE ActivityID = @ActivityID";
 
                 var rowsAffected = connection.Execute(sql, activity);
@@ -212,3 +212,4 @@ namespace BusBuddy.Data
         }
     }
 }
+

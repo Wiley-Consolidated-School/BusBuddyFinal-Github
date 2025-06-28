@@ -27,7 +27,7 @@ namespace BusBuddy.UI.Tests
             _routeRepository = new RouteRepository();
             _analyticsService = new RouteAnalyticsService(
                 _routeRepository,
-                new VehicleRepository(),
+                new BusRepository(),
                 new DriverRepository(),
                 new FuelRepository(),
                 new ActivityRepository());
@@ -64,7 +64,7 @@ namespace BusBuddy.UI.Tests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(testRoute.RouteID, result.RouteId);
+            Assert.Equal(testRoute.RouteId, result.RouteId);
             Assert.Equal(testRoute.RouteName, result.RouteName);
             Assert.True(result.TotalMiles >= 0);
             Assert.True(result.TotalRiders >= 0);
@@ -217,18 +217,18 @@ namespace BusBuddy.UI.Tests
         public async Task CalculateDriverPerformanceAsync_WithValidDriver_ShouldReturnMetrics()
         {
             // Arrange
-            var driverId = 1; // Assuming driver with ID 1 exists
+            var DriverId = 1; // Assuming driver with ID 1 exists
             var startDate = DateTime.Today.AddDays(-30);
             var endDate = DateTime.Today;
 
             try
             {
                 // Act
-                var result = await _analyticsService.CalculateDriverPerformanceAsync(driverId, startDate, endDate);
+                var result = await _analyticsService.CalculateDriverPerformanceAsync(DriverId, startDate, endDate);
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(driverId, result.DriverId);
+                Assert.Equal(DriverId, result.DriverId);
                 Assert.True(result.TotalRoutes >= 0);
                 Assert.True(result.TotalMiles >= 0);
                 Assert.True(result.TotalRiders >= 0);
@@ -286,12 +286,11 @@ namespace BusBuddy.UI.Tests
         public void GetRouteEfficiency_WithValidRouteId_ShouldReturnScore()
         {
             // Arrange - Create test data with proper references
-            var vehicleRepo = new VehicleRepository();
+            var vehicleRepo = new BusRepository();
             var driverRepo = new DriverRepository();
 
-            var testVehicle = new Vehicle
-            {
-                VehicleNumber = $"TEST{DateTime.Now.Ticks}",
+            var testBus = new Bus {
+                BusNumber = $"TEST{DateTime.Now.Ticks}",
                 Make = "Test",
                 Model = "Test",
                 Year = 2020,
@@ -299,25 +298,25 @@ namespace BusBuddy.UI.Tests
                 FuelType = "Diesel",
                 Status = "Active"
             };
-            var vehicleId = vehicleRepo.AddVehicle(testVehicle);
+            var busId = vehicleRepo.AddBus(testBus);
 
             var testDriver = new Driver
             {
-                DriverName = $"Test Driver{DateTime.Now.Ticks}",
+                Name = $"Test Driver{DateTime.Now.Ticks}",
                 FirstName = "Test",
                 LastName = "Driver",
                 DriversLicenseType = "CDL",
-                TrainingComplete = 1,
+                IsTrainingComplete = true,
                 Status = "Active"
             };
-            var driverId = driverRepo.AddDriver(testDriver);
+            var DriverId = driverRepo.AddDriver(testDriver);
 
-            var testRoute = CreateTestRoute(vehicleId, driverId);
-            var routeId = _routeRepository.AddRoute(testRoute);
-            _testRouteIds.Add(routeId);
+            var testRoute = CreateTestRoute(busId, DriverId);
+            var RouteId = _routeRepository.AddRoute(testRoute);
+            _testRouteIds.Add(RouteId);
 
             // Act
-            var result = _analyticsService.GetRouteEfficiency(routeId);
+            var result = _analyticsService.GetRouteEfficiency(RouteId);
 
             // Assert
             Assert.True(result >= 0);
@@ -357,7 +356,7 @@ namespace BusBuddy.UI.Tests
             var result = _analyticsService.CalculateRouteEfficiency(testRoute);
 
             // Assert
-            if (totalMiles == 0 && totalRiders == 0)
+            if (totalMiles == 0 && totalRiders == false)
             {
                 // Service should handle edge cases gracefully - may return result with zero efficiency
                 Assert.NotNull(result);
@@ -375,27 +374,29 @@ namespace BusBuddy.UI.Tests
 
         #region Helper Methods
 
-        private Route CreateTestRoute(int vehicleId = 0, int driverId = 0)
+        private Route CreateTestRoute(int busId = 0, int DriverId = 0)
         {
             var timestamp = DateTime.Now.Ticks;
             return new Route
             {
-                RouteID = 0, // Will be set by database
+                RouteId = 0, // Will be set by database
                 RouteName = $"Test Route {timestamp}",
                 Date = DateTime.Today.ToString("yyyy-MM-dd"),
                 AMBeginMiles = 100,
                 AMEndMiles = 125,
                 AMRiders = 30,
-                AMVehicleID = vehicleId > 0 ? vehicleId : 1,
-                AMDriverID = driverId > 0 ? driverId : 1,
+                AMbusId = busId > 0 ? busId : 1,
+                AMDriverId = DriverId > 0 ? DriverId : 1,
                 PMBeginMiles = 125,
                 PMEndMiles = 150,
                 PMRiders = 25,
-                PMVehicleID = vehicleId > 0 ? vehicleId : 1,
-                PMDriverID = driverId > 0 ? driverId : 1
+                PMbusId = busId > 0 ? busId : 1,
+                PMDriverId = DriverId > 0 ? DriverId : 1
             };
         }
 
         #endregion
     }
 }
+
+

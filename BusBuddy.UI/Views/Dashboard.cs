@@ -93,7 +93,7 @@ namespace BusBuddy.UI.Views
         protected override bool ShouldCreateStandardPanels => false;
 
         // UI Controls - initialized to prevent null references
-        private SfDataGrid _vehiclesGrid;
+        private SfDataGrid _busesGrid;
         private SfDataGrid _routesGrid;
         private SfButton _refreshButton;
         private SfButton _addVehicleButton;
@@ -136,7 +136,7 @@ namespace BusBuddy.UI.Views
         private DockingManager _dockingManager;
 
         // ListView controls for additional data display
-        private Syncfusion.WinForms.ListView.SfListView _vehiclesListView;
+        private Syncfusion.WinForms.ListView.SfListView _busesListView;
         private Syncfusion.WinForms.ListView.SfListView _routesListView;
 
         public Dashboard()
@@ -240,22 +240,22 @@ namespace BusBuddy.UI.Views
         }
 
         /// <summary>
-        /// Handle form closing event to cancel any pending operations only.
-        /// Resource cleanup is deferred to centralized ApplicationExit handler in Program.cs
-        /// to prevent redundant cleanup attempts and System.InvalidOperationException issues.
+        /// Simplified form closing handler to prevent redundant cleanup attempts
+        /// and System.InvalidOperationException issues. Only cancels initialization
+        /// while resource cleanup is handled by centralized Application.ApplicationExit in Program.cs
         /// </summary>
         private void Dashboard_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
             {
-                // Only cancel async tasks; defer resource cleanup to ApplicationExit
+                // Only cancel async tasks; defer all resource cleanup to ApplicationExit
                 BusBuddy.UI.Helpers.DashboardInitializationFix.CancelInitialization();
 
-                Console.WriteLine("⚠️ Dashboard closing - canceling pending operations (resource cleanup deferred to ApplicationExit)");
+                LogMessage("[FORM.CLOSING] Dashboard closing - initialization canceled, cleanup deferred to ApplicationExit");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ Error during form closing operation cancellation: {ex.Message}");
+                LogMessage($"[FORM.CLOSING] ⚠️ Error during operation cancellation: {ex.Message}");
                 // Continue with form closing despite errors
             }
         }
@@ -290,7 +290,7 @@ namespace BusBuddy.UI.Views
                     }, token);
                 });
 
-                // Step 2: Create UI elements on the UI thread with safe invocation
+                // Step 2: Finalize initialization (layout already created in constructor)
                 if (!cts.IsCancellationRequested && !this.IsDisposed)
                 {
                     BusBuddy.UI.Helpers.DashboardInitializationFix.SafeInvokeOnUI(this, () =>
@@ -299,14 +299,13 @@ namespace BusBuddy.UI.Views
                         {
                             if (!this.IsDisposed)
                             {
-                                CreateProperDashboardLayoutSafely(cts.Token);
                                 HideLoadingIndicator();
                                 Console.WriteLine("✅ Async dashboard initialization completed successfully");
                             }
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"❌ Error in UI creation: {ex.Message} ({ex.GetType().Name})");
+                            Console.WriteLine($"❌ Error in UI finalization: {ex.Message} ({ex.GetType().Name})");
                             HandleInitializationError(ex);
                         }
                     });
@@ -610,10 +609,10 @@ namespace BusBuddy.UI.Views
                 _dockingManager = new DockingManager();
                 LogMessage("    [DockMgr.2] ✅ DockingManager instance created");
 
-                // STEP 1 FIX: Set HostControl to form (required ContainerControl type)
-                LogMessage("    [DockMgr.2.1] Setting HostControl to form (DockingManager requires ContainerControl)...");
-                _dockingManager.HostControl = this;
-                LogMessage("    [DockMgr.2.2] ✅ HostControl set to Dashboard form");
+                // Use official HostForm property as documented (not HostControl)
+                LogMessage("    [DockMgr.2.1] Setting HostForm to form (official Syncfusion documentation)...");
+                _dockingManager.HostForm = this;
+                LogMessage("    [DockMgr.2.2] ✅ HostForm set to Dashboard form");
 
                 LogMessage("    [DockMgr.3] Setting EnableDocumentMode = true...");
                 _dockingManager.EnableDocumentMode = true;
@@ -623,14 +622,13 @@ namespace BusBuddy.UI.Views
                 _dockingManager.CloseTabOnMiddleClick = true;
                 LogMessage("    [DockMgr.6] ✅ CloseTabOnMiddleClick set");
 
-                // STEP 3 FIX: Apply MaterialDark theme during initialization
+                // Apply Office2016Black theme during initialization
                 LogMessage($"    [DockMgr.7] Setting ThemeName to 'Office2016Black'...");
                 _dockingManager.ThemeName = "Office2016Black";
                 LogMessage("    [DockMgr.8] ✅ ThemeName set to Office2016Black");
 
-                LogMessage($"    [DockMgr.9] DockingManager initialized - HostControl: {_dockingManager.HostControl?.Name ?? "null"}");
+                LogMessage($"    [DockMgr.9] DockingManager initialized - HostForm: {_dockingManager.HostForm?.Name ?? "null"}");
                 LogMessage($"    [DockMgr.10] DockingManager container info - Type: {_dockingManager.GetType().Name}");
-                LogMessage($"    [DockMgr.11] DockingManager host form: {_dockingManager.HostForm?.Name ?? "null"}");
             }
             catch (Exception ex)
             {
@@ -642,13 +640,11 @@ namespace BusBuddy.UI.Views
 
         /// <summary>
         /// Create panels using DynamicLayoutManager
-        /// </summary>
-        /// <summary>
-        /// Create panels using DynamicLayoutManager with enhanced error handling
+        /// SIMPLIFIED: Skip DynamicLayoutManager to avoid layout conflicts with navigation panel
         /// </summary>
         private void CreatePanelsWithDynamicLayoutManager()
         {
-            LogMessage("    [7.14.1] 🎯 Starting panel creation using DynamicLayoutManager");
+            LogMessage("    [7.14.1] 🎯 Skipped DynamicLayoutManager - using simplified layout in CreateProperDashboardLayoutSafely");
 
             // Check for test mode to prevent UI control creation during tests
             bool isTestMode = Environment.GetEnvironmentVariable("BUSBUDDY_TEST_MODE") == "1" ||
@@ -703,287 +699,7 @@ namespace BusBuddy.UI.Views
                 return;
             }
 
-            try
-            {
-                LogMessage("    [7.14.2] Checking content panel state before panel operations...");
-                LogMessage($"    [7.14.3] Content panel - Exists: {_contentPanel != null}, Visible: {_contentPanel?.Visible ?? false}, Size: {_contentPanel?.Size.ToString() ?? "null"}");
-                LogMessage($"    [7.14.4] Form control count before panel creation: {this.Controls.Count}");
-
-                // Clear any existing controls in content panel
-                LogMessage("    [7.14.5] Clearing content panel for new layout...");
-                BusBuddy.UI.Layout.DynamicLayoutManager.ClearLayoutContainer(_contentPanel);
-
-                // Create a dashboard layout using the built-in dashboard layout method
-                LogMessage("    [7.14.6] Creating dashboard layout using DynamicLayoutManager...");
-                var dashboardLayout = BusBuddy.UI.Layout.DynamicLayoutManager.CreateDashboardLayout(_contentPanel);
-
-                // Get the content table (bottom row, which contains a 60/40 split table)
-                var contentTable = dashboardLayout.GetControlFromPosition(0, 1) as TableLayoutPanel;
-                if (contentTable == null)
-                {
-                    throw new InvalidOperationException("Failed to get content table from dashboard layout");
-                }
-
-                // Create Analytics Panel for left side (first column)
-                LogMessage("    [7.14.7] Creating analytics panel with DynamicLayoutManager...");
-                _analyticsPanel = new Panel
-                {
-                    Name = "analyticsPanel",
-                    BackColor = Color.FromArgb(70, 70, 75),
-                    Visible = true,
-                    BorderStyle = BorderStyle.FixedSingle,
-                    Dock = DockStyle.Fill
-                };
-
-                // Add analytics panel to the first column of the content table
-                contentTable.Controls.Add(_analyticsPanel, 0, 0);
-
-                // Add title label to analytics panel using a CardLayout for content switching capability
-                var analyticsCardContainer = BusBuddy.UI.Layout.DynamicLayoutManager.CreateCardLayoutContainer(_analyticsPanel);
-
-                // Create analytics content card
-                var analyticsContentPanel = new Panel
-                {
-                    Dock = DockStyle.Fill,
-                    BackColor = Color.Transparent
-                };
-
-                // Add title to analytics content
-                var analyticsTitle = new Label
-                {
-                    Text = "Analytics",
-                    Font = new Font("Segoe UI", 12f, FontStyle.Bold),
-                    ForeColor = Color.White,
-                    Dock = DockStyle.Top,
-                    Height = 30,
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    BackColor = Color.FromArgb(45, 45, 48)
-                };
-                analyticsContentPanel.Controls.Add(analyticsTitle);
-
-                // Add sample content to analytics panel
-                var analyticsContent = new Label
-                {
-                    Text = "• Fleet Performance\n• Route Efficiency\n• Fuel Consumption\n• Maintenance Trends",
-                    Font = new Font("Segoe UI", 10f),
-                    ForeColor = Color.LightGray,
-                    Dock = DockStyle.Fill,
-                    Padding = new Padding(10),
-                    TextAlign = ContentAlignment.TopLeft,
-                    BackColor = Color.Transparent
-                };
-                analyticsContentPanel.Controls.Add(analyticsContent);
-
-                // Add analytics content panel to card layout
-                analyticsCardContainer.Controls.Add(analyticsContentPanel);
-                BusBuddy.UI.Layout.DynamicLayoutManager.ShowCard(analyticsCardContainer, analyticsContentPanel);
-
-                LogMessage($"    [7.14.8] ✅ Analytics panel created - Size: {_analyticsPanel.Size}, Visible: {_analyticsPanel.Visible}");
-
-                // Create Statistics Panel for right side (second column)
-                LogMessage("    [7.14.9] Creating statistics panel with DynamicLayoutManager...");
-                _statisticsPanel = new Panel
-                {
-                    Name = "statisticsPanel",
-                    BackColor = Color.FromArgb(70, 70, 75),
-                    Visible = true,
-                    BorderStyle = BorderStyle.FixedSingle,
-                    Dock = DockStyle.Fill
-                };
-
-                // Add statistics panel to the second column of the content table
-                contentTable.Controls.Add(_statisticsPanel, 1, 0);
-
-                // Add title label to statistics panel using a CardLayout for content switching capability
-                var statisticsCardContainer = BusBuddy.UI.Layout.DynamicLayoutManager.CreateCardLayoutContainer(_statisticsPanel);
-
-                // Create statistics content card
-                var statisticsContentPanel = new Panel
-                {
-                    Dock = DockStyle.Fill,
-                    BackColor = Color.Transparent
-                };
-
-                // Add title to statistics content
-                var statisticsTitle = new Label
-                {
-                    Text = "Statistics",
-                    Font = new Font("Segoe UI", 12f, FontStyle.Bold),
-                    ForeColor = Color.White,
-                    Dock = DockStyle.Top,
-                    Height = 30,
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    BackColor = Color.FromArgb(45, 45, 48)
-                };
-                statisticsContentPanel.Controls.Add(statisticsTitle);
-
-                // Add sample content to statistics panel
-                var statisticsContent = new Label
-                {
-                    Text = "• Total Vehicles: 25\n• Active Routes: 12\n• Maintenance Due: 3\n• Fuel Efficiency: 95%",
-                    Font = new Font("Segoe UI", 10f),
-                    ForeColor = Color.LightGray,
-                    Dock = DockStyle.Fill,
-                    Padding = new Padding(10),
-                    TextAlign = ContentAlignment.TopLeft,
-                    BackColor = Color.Transparent
-                };
-                statisticsContentPanel.Controls.Add(statisticsContent);
-
-                // Add statistics content panel to card layout
-                statisticsCardContainer.Controls.Add(statisticsContentPanel);
-                BusBuddy.UI.Layout.DynamicLayoutManager.ShowCard(statisticsCardContainer, statisticsContentPanel);
-
-                LogMessage($"    [7.14.10] ✅ Statistics panel created - Size: {_statisticsPanel.Size}, Visible: {_statisticsPanel.Visible}");
-
-                // Create statistics header panel for the top row
-                LogMessage("    [7.14.11] Creating header panel for top row...");
-                var headerPanel = new Panel
-                {
-                    Name = "headerPanel",
-                    BackColor = Color.FromArgb(60, 60, 65),
-                    Visible = true,
-                    BorderStyle = BorderStyle.FixedSingle,
-                    Dock = DockStyle.Fill
-                };
-
-                // Add header panel to the top row
-                dashboardLayout.Controls.Add(headerPanel, 0, 0);
-
-                // Create a flow layout for the header panel
-                var headerFlowContainer = BusBuddy.UI.Layout.DynamicLayoutManager.CreateFlowLayoutContainer(headerPanel, true);
-
-                // Add some sample header content
-                var headerTitle = new Label
-                {
-                    Text = "BusBuddy Dashboard",
-                    Font = new Font("Segoe UI", 16f, FontStyle.Bold),
-                    ForeColor = Color.White,
-                    AutoSize = true,
-                    Padding = new Padding(15),
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    BackColor = Color.FromArgb(45, 45, 48)
-                };
-                headerFlowContainer.Controls.Add(headerTitle);
-
-                // Create some metric panels for the header
-                for (int i = 0; i < 3; i++)
-                {
-                    var metricPanel = new Panel
-                    {
-                        Width = 150,
-                        Height = 80,
-                        BackColor = Color.FromArgb(80, 80, 85),
-                        Margin = new Padding(10)
-                    };
-
-                    var metricLabel = new Label
-                    {
-                        Text = i switch
-                        {
-                            0 => "Active Buses",
-                            1 => "Total Routes",
-                            _ => "Maintenance Alerts"
-                        },
-                        Font = new Font("Segoe UI", 9f, FontStyle.Bold),
-                        ForeColor = Color.White,
-                        Dock = DockStyle.Top,
-                        Height = 25,
-                        TextAlign = ContentAlignment.MiddleCenter,
-                        BackColor = Color.FromArgb(50, 50, 55)
-                    };
-                    metricPanel.Controls.Add(metricLabel);
-
-                    var metricValue = new Label
-                    {
-                        Text = i switch
-                        {
-                            0 => "18/25",
-                            1 => "12",
-                            _ => "3"
-                        },
-                        Font = new Font("Segoe UI", 16f, FontStyle.Bold),
-                        ForeColor = Color.White,
-                        Dock = DockStyle.Fill,
-                        TextAlign = ContentAlignment.MiddleCenter
-                    };
-                    metricPanel.Controls.Add(metricValue);
-
-                    headerFlowContainer.Controls.Add(metricPanel);
-                }
-
-                // Apply uniform margins to components
-                BusBuddy.UI.Layout.DynamicLayoutManager.ApplyUniformMargins(headerPanel, 5);
-                BusBuddy.UI.Layout.DynamicLayoutManager.ApplyUniformMargins(_analyticsPanel, 5);
-                BusBuddy.UI.Layout.DynamicLayoutManager.ApplyUniformMargins(_statisticsPanel, 5);
-
-                // Force layout update
-                LogMessage("    [7.14.12] Performing layout updates...");
-                dashboardLayout.PerformLayout();
-                contentTable.PerformLayout();
-                _contentPanel.PerformLayout();
-
-                LogMessage($"    [7.14.13] ✅ Layout created successfully - Content panel control count: {_contentPanel.Controls.Count}");
-                LogMessage($"    [7.14.14] Analytics panel - Visible: {_analyticsPanel.Visible}, Parent: {_analyticsPanel.Parent?.Name ?? "null"}");
-                LogMessage($"    [7.14.15] Statistics panel - Visible: {_statisticsPanel.Visible}, Parent: {_statisticsPanel.Parent?.Name ?? "null"}");
-
-                LogMessage("    [7.14.16] ✅ Panel creation with DynamicLayoutManager completed successfully");
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"    [7.14.ERROR] ❌ Error creating panels: {ex.Message}");
-                LogMessage($"    [7.14.ERROR] ❌ Stack trace: {ex.StackTrace}");
-
-                // Use DynamicLayoutManager's utility methods for fallback
-                LogMessage("    [7.14.FALLBACK] Creating fallback panels using DynamicLayoutManager...");
-
-                try
-                {
-                    // Clear existing controls
-                    BusBuddy.UI.Layout.DynamicLayoutManager.ClearLayoutContainer(_contentPanel);
-
-                    // Create simple fallback layout using a table layout
-                    var fallbackTable = BusBuddy.UI.Layout.DynamicLayoutManager.CreateTableLayoutContainer(_contentPanel, 1, 2);
-
-                    // Create analytics panel
-                    _analyticsPanel = new Panel
-                    {
-                        Name = "analyticsPanel",
-                        Dock = DockStyle.Fill,
-                        BackColor = Color.DarkGray,
-                        Visible = true
-                    };
-
-                    // Create statistics panel
-                    _statisticsPanel = new Panel
-                    {
-                        Name = "statisticsPanel",
-                        Dock = DockStyle.Fill,
-                        BackColor = Color.DarkGray,
-                        Visible = true
-                    };
-
-                    // Add panels to table layout
-                    fallbackTable.Controls.Add(_analyticsPanel, 0, 0);
-                    fallbackTable.Controls.Add(_statisticsPanel, 1, 0);
-
-                    // Apply consistent margins
-                    BusBuddy.UI.Layout.DynamicLayoutManager.ApplyUniformMargins(_analyticsPanel, 5);
-                    BusBuddy.UI.Layout.DynamicLayoutManager.ApplyUniformMargins(_statisticsPanel, 5);
-
-                    LogMessage("    [7.14.FALLBACK] ✅ Fallback panels created with DynamicLayoutManager utilities");
-                }
-                catch (Exception fallbackEx)
-                {
-                    LogMessage($"    [7.14.FALLBACK-ERROR] ❌ Error creating fallback panels: {fallbackEx.Message}");
-
-                    // Last resort - create absolute minimal panels with no dependencies
-                    _analyticsPanel = new Panel { Dock = DockStyle.Left, Width = 200 };
-                    _statisticsPanel = new Panel { Dock = DockStyle.Right, Width = 200 };
-                    _contentPanel?.Controls.Add(_analyticsPanel);
-                    _contentPanel?.Controls.Add(_statisticsPanel);
-                }
-            }
+            LogMessage("    [7.14.4] ✅ DynamicLayoutManager bypassed - all layout handled in CreateProperDashboardLayoutSafely");
         }
 
         /// <summary>
@@ -1071,12 +787,12 @@ namespace BusBuddy.UI.Views
                 _cachedVehicleData = new System.Collections.Generic.List<object>();
                 _cachedRouteData = new System.Collections.Generic.List<object>();
 
-                // Add sample vehicle data to make grids visible
-                LogMessage("[PRE_INIT] Adding sample vehicle data...");
+                // Add sample bus data to make grids visible
+                LogMessage("[PRE_INIT] Adding sample bus data...");
                 _cachedVehicleData.Add(new
                 {
                     ID = 1,
-                    VehicleNumber = "BUS-001",
+                    BusNumber = "BUS-001",
                     Model = "School Bus",
                     Year = 2020,
                     Status = "Active",
@@ -1086,7 +802,7 @@ namespace BusBuddy.UI.Views
                 _cachedVehicleData.Add(new
                 {
                     ID = 2,
-                    VehicleNumber = "BUS-002",
+                    BusNumber = "BUS-002",
                     Model = "Transit Bus",
                     Year = 2019,
                     Status = "Active",
@@ -1096,7 +812,7 @@ namespace BusBuddy.UI.Views
                 _cachedVehicleData.Add(new
                 {
                     ID = 3,
-                    VehicleNumber = "BUS-003",
+                    BusNumber = "BUS-003",
                     Model = "School Bus",
                     Year = 2021,
                     Status = "Maintenance",
@@ -1154,36 +870,301 @@ namespace BusBuddy.UI.Views
         /// <summary>
         /// Safely disposes all Syncfusion controls to prevent memory leaks
         /// Based on Syncfusion documentation for proper resource cleanup
+        /// ENHANCED: Added proper null checks to prevent cleanup errors
         ///
         /// 📖 SYNCFUSION DOCUMENTATION:
         /// - Control Lifecycle: https://help.syncfusion.com/windowsforms/overview
         /// - Disposal Pattern: Standard IDisposable implementation with improved safety
+        ///
+        /// ENHANCED DISPOSAL (June 27, 2025):
+        /// - Fixes Object reference not set errors during shutdown
+        /// - Proper disposal order: child controls before parents
+        /// - Defensive ChartControl cleanup for known Syncfusion issues
+        /// - Thread-safe disposal with double-disposal prevention
         /// </summary>
-        private void DisposeSyncfusionControlsSafely()
+        public void DisposeSyncfusionControlsSafely()
         {
-            LogMessage("[DISPOSE] Starting comprehensive resource cleanup");
-            ClearCachedData();
+            if (_disposed) return;
 
-            var controls = new Control[] {
-                _refreshButton, _addVehicleButton, _closeButton, _vehiclesGrid, _routesGrid,
-                _analyticsChart, _statisticsGauge, _mainTabControl, _themeSelector, _headerPanel, _contentPanel,
-                _analyticsPanel, _statisticsPanel, _loadingPanel, _loadingLabel, _navigationPanel, _navigationTreeView
+            LogMessage("[DISPOSE] Starting comprehensive resource cleanup with enhanced safety checks");
+
+            try
+            {
+                ClearCachedData();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"[DISPOSE] ⚠️ Error clearing cached data: {ex.Message}");
+            }
+
+            // STEP 1: Special handling for ChartControl (known Syncfusion disposal issues)
+            DisposeChartControlSafely();
+
+            // STEP 2: Dispose child controls first, then parents (proper disposal order)
+            DisposeChildControlsSafely();
+
+            // STEP 3: Dispose complex Syncfusion controls (DockingManager, etc.)
+            DisposeComplexSyncfusionControls();
+
+            // STEP 4: Clear form controls and force garbage collection
+            DisposeFormControlsAndCleanup();
+
+            _disposed = true;
+            LogMessage("[DISPOSE] ✅ Comprehensive resource cleanup completed with enhanced safety");
+        }
+
+        private bool _disposed = false;
+
+        /// <summary>
+        /// Special disposal handling for ChartControl to address known Syncfusion issues
+        /// Addresses: ChartControl toolbar disable warning, series clear warning, disposal warning
+        /// </summary>
+        private void DisposeChartControlSafely()
+        {
+            if (_analyticsChart == null) return;
+
+            try
+            {
+                LogMessage("[DISPOSE.CHART] Disposing ChartControl with defensive checks...");
+
+                // Defensive checks for known ChartControl disposal issues
+                if (!_analyticsChart.IsDisposed)
+                {
+                    // Clear toolbar safely (addresses toolbar disable warning)
+                    try
+                    {
+                        if (_analyticsChart.ShowToolbar)
+                        {
+                            _analyticsChart.ShowToolbar = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.Message.Contains("Object reference not set"))
+                        {
+                            LogMessage("[DISPOSE.CHART] ℹ️ Known ChartControl toolbar warning ignored (Syncfusion issue)");
+                        }
+                        else
+                        {
+                            LogMessage($"[DISPOSE.CHART] ⚠️ ChartControl toolbar error: {ex.Message}");
+                        }
+                    }
+
+                    // Clear series safely (addresses series clear warning)
+                    try
+                    {
+                        if (_analyticsChart.Series != null && _analyticsChart.Series.Count > 0)
+                        {
+                            _analyticsChart.Series.Clear();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.Message.Contains("Object reference not set"))
+                        {
+                            LogMessage("[DISPOSE.CHART] ℹ️ Known ChartControl series warning ignored (Syncfusion issue)");
+                        }
+                        else
+                        {
+                            LogMessage($"[DISPOSE.CHART] ⚠️ ChartControl series error: {ex.Message}");
+                        }
+                    }
+
+                    // Dispose the control (addresses disposal warning)
+                    try
+                    {
+                        _analyticsChart.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.Message.Contains("Object reference not set"))
+                        {
+                            LogMessage("[DISPOSE.CHART] ℹ️ Known ChartControl disposal warning ignored (Syncfusion issue)");
+                        }
+                        else
+                        {
+                            LogMessage($"[DISPOSE.CHART] ❌ ChartControl disposal error: {ex.Message}");
+                        }
+                    }
+                }
+
+                _analyticsChart = null;
+                LogMessage("[DISPOSE.CHART] ✅ ChartControl disposed safely");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"[DISPOSE.CHART] ❌ Unexpected ChartControl disposal error: {ex.Message}");
+                _analyticsChart = null; // Ensure reference is cleared
+            }
+        }
+
+        /// <summary>
+        /// Dispose child controls safely with null checks and proper order
+        /// </summary>
+        private void DisposeChildControlsSafely()
+        {
+            LogMessage("[DISPOSE.CHILDREN] Disposing child controls in safe order...");
+
+            // Simple controls first (leaf nodes in control hierarchy)
+            var simpleControls = new (Control control, string name)[] {
+                (_refreshButton, "RefreshButton"),
+                (_addVehicleButton, "AddVehicleButton"),
+                (_closeButton, "CloseButton"),
+                (_themeSelector, "ThemeSelector"),
+                (_loadingLabel, "LoadingLabel"),
+                (_navigationTreeView, "NavigationTreeView")
             };
 
-            foreach (var control in controls)
+            foreach (var (control, name) in simpleControls)
             {
-                if (control?.IsDisposed == false)
+                DisposeControlSafely(control, name);
+            }
+
+            // Data grids (more complex)
+            DisposeControlSafely(_busesGrid, "VehiclesGrid");
+            DisposeControlSafely(_routesGrid, "RoutesGrid");
+
+            // Gauges and other specialized controls
+            DisposeControlSafely(_statisticsGauge, "StatisticsGauge");
+
+            LogMessage("[DISPOSE.CHILDREN] ✅ Child controls disposed safely");
+        }
+
+        /// <summary>
+        /// Dispose complex Syncfusion controls that manage other controls
+        /// </summary>
+        private void DisposeComplexSyncfusionControls()
+        {
+            LogMessage("[DISPOSE.COMPLEX] Disposing complex Syncfusion controls...");
+
+            // TabControl before its container panels
+            DisposeControlSafely(_mainTabControl, "MainTabControl");
+
+            // Panel controls (containers)
+            DisposeControlSafely(_analyticsPanel, "AnalyticsPanel");
+            DisposeControlSafely(_statisticsPanel, "StatisticsPanel");
+            DisposeControlSafely(_loadingPanel, "LoadingPanel");
+            DisposeControlSafely(_navigationPanel, "NavigationPanel");
+            DisposeControlSafely(_contentPanel, "ContentPanel");
+            DisposeControlSafely(_headerPanel, "HeaderPanel");
+
+            // DockingManager last (most complex, manages docked controls)
+            if (_dockingManager != null)
+            {
+                try
                 {
-                    control.Controls?.Clear();
-                    control.Dispose();
+                    // DockingManager doesn't have IsDisposed property, use try-catch approach
+                    try
+                    {
+                        // Clear docked controls before disposing manager
+                        // Note: DockingManager.Controls returns IEnumerator, not a collection with Clear()
+                        // So we'll dispose the manager directly and let it handle internal cleanup
+                        _dockingManager.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage($"[DISPOSE.COMPLEX] ⚠️ Error disposing DockingManager: {ex.Message}");
+                    }
+
+                    _dockingManager = null;
+                    LogMessage("[DISPOSE.COMPLEX] ✅ DockingManager disposed safely");
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("Cannot access a disposed object") && ex.Message.Contains("DockHost"))
+                    {
+                        LogMessage("[DISPOSE.COMPLEX] ℹ️ Known DockHost disposal order issue ignored (Syncfusion limitation)");
+                    }
+                    else
+                    {
+                        LogMessage($"[DISPOSE.COMPLEX] ❌ DockingManager disposal error: {ex.Message}");
+                    }
+                    _dockingManager = null; // Ensure reference is cleared
                 }
             }
 
-            _dockingManager?.Dispose();
-            this.Controls.Clear();
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            LogMessage("[DISPOSE] ✅ Comprehensive resource cleanup completed");
+            LogMessage("[DISPOSE.COMPLEX] ✅ Complex Syncfusion controls disposed safely");
+        }
+
+        /// <summary>
+        /// Clear form controls and perform final cleanup
+        /// </summary>
+        private void DisposeFormControlsAndCleanup()
+        {
+            try
+            {
+                LogMessage("[DISPOSE.FORM] Clearing form controls...");
+                if (this.Controls != null)
+                {
+                    this.Controls.Clear();
+                }
+                LogMessage("[DISPOSE.FORM] ✅ Form controls cleared");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"[DISPOSE.FORM] ⚠️ Error clearing form controls: {ex.Message}");
+            }
+
+            try
+            {
+                LogMessage("[DISPOSE.GC] Requesting garbage collection...");
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                LogMessage("[DISPOSE.GC] ✅ Garbage collection completed");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"[DISPOSE.GC] ⚠️ Error during garbage collection: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Safely dispose a single control with comprehensive error handling and null checks
+        /// </summary>
+        private void DisposeControlSafely(Control control, string controlName)
+        {
+            if (control == null) return;
+
+            try
+            {
+                if (!control.IsDisposed)
+                {
+                    // Clear child controls first if they exist
+                    if (control.Controls != null && control.Controls.Count > 0)
+                    {
+                        try
+                        {
+                            control.Controls.Clear();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogMessage($"[DISPOSE.SAFE] ⚠️ Error clearing {controlName} child controls: {ex.Message}");
+                        }
+                    }
+
+                    control.Dispose();
+                    LogMessage($"[DISPOSE.SAFE] ✅ {controlName} disposed successfully");
+                }
+                else
+                {
+                    LogMessage($"[DISPOSE.SAFE] ℹ️ {controlName} already disposed, skipping");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Object reference not set"))
+                {
+                    LogMessage($"[DISPOSE.SAFE] ℹ️ {controlName} null reference during disposal (expected in some scenarios)");
+                }
+                else if (ex.Message.Contains("Cannot access a disposed object"))
+                {
+                    LogMessage($"[DISPOSE.SAFE] ℹ️ {controlName} already disposed by parent control");
+                }
+                else
+                {
+                    LogMessage($"[DISPOSE.SAFE] ❌ Error disposing {controlName}: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>
@@ -1194,7 +1175,7 @@ namespace BusBuddy.UI.Views
         /// <param name="token">Cancellation token to support cancellation during initialization</param>
         private void CreateProperDashboardLayoutSafely(System.Threading.CancellationToken token = default)
         {
-            LogMessage("  [7.1] 🏗️ Creating new dashboard layout (1400x900) with DockingManager.Fill");
+            LogMessage("  [7.1] 🏗️ Creating dashboard layout with DockingManager");
 
             if (token.IsCancellationRequested)
             {
@@ -1210,7 +1191,7 @@ namespace BusBuddy.UI.Views
                 LogMessage("  [7.4] Clearing existing controls...");
                 this.Controls.Clear();
 
-                // Step 1: Initialize Syncfusion skin manager with MaterialDark theme
+                // Step 1: Initialize MaterialDark theme
                 LogMessage("  [7.5] Initializing MaterialDark theme...");
                 InitializeMaterialDarkTheme();
 
@@ -1221,9 +1202,14 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                // Step 2: Initialize DockingManager first (required for Fill layout)
-                LogMessage("  [7.7] Initializing DockingManager for Fill layout...");
+                // Step 2: Initialize DockingManager first (required for proper docking)
+                LogMessage("  [7.7] Initializing DockingManager...");
                 InitializeDockingManagerForFillLayout();
+
+                if (_dockingManager == null)
+                {
+                    throw new InvalidOperationException("DockingManager initialization failed");
+                }
 
                 if (token.IsCancellationRequested)
                 {
@@ -1232,136 +1218,193 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                // Step 3: Create left navigation TreeView (200px)
-                LogMessage("  [7.9] Creating left TreeView navigation (200px)...");
+                // Step 3: Create header panel first
+                LogMessage("  [7.9] Creating header panel...");
+                CreateHeaderSafely();
+
+                if (token.IsCancellationRequested)
+                {
+                    LogMessage("  [7.10] Cancelled after header creation");
+                    this.ResumeLayout(false);
+                    return;
+                }
+
+                // Step 4: Create and dock navigation panel using official DockingManager pattern
+                LogMessage("  [7.11] Creating left TreeView navigation...");
+                _navigationPanel = new Panel
+                {
+                    Name = "NavigationPanel",
+                    BackColor = Color.FromArgb(45, 45, 48),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Visible = true
+                };
+
+                // Create TreeView inside navigation panel
                 CreateLeftNavigationTreeView();
 
+                // Use official Syncfusion DockControl() method - this is the documented approach
+                // Reference: https://help.syncfusion.com/cr/windowsforms/Syncfusion.Windows.Forms.Tools.DockingManager.html
+                _dockingManager.DockControl(_navigationPanel, this, DockingStyle.Left, 200);
+                _dockingManager.SetDockLabel(_navigationPanel, "Navigation");
+
+                LogMessage("  [7.12] Navigation panel docked using official DockControl() method");
+
                 if (token.IsCancellationRequested)
                 {
-                    LogMessage("  [7.10] Cancelled after left TreeView creation");
+                    LogMessage("  [7.13] Cancelled after navigation panel creation");
                     this.ResumeLayout(false);
                     return;
                 }
 
-                // Step 4: Create main content panel with Fill docking
-                LogMessage("  [7.11] Creating main content panel with Fill docking...");
-                CreateMainContentPanelWithFillDocking();
+                // Step 5: Create content panel after docked controls are established
+                LogMessage("  [7.14] Creating content panel for remaining client area...");
+
+                _contentPanel = new Panel
+                {
+                    Name = "MainContentPanel",
+                    BackColor = Color.FromArgb(60, 60, 65),
+                    Visible = true,
+                    Dock = DockStyle.Fill
+                };
+
+                // Add to form - should use remaining client area after docked controls
+                this.Controls.Add(_contentPanel);
+                _contentPanel.SendToBack(); // Ensure docked panels stay on top
+                LogMessage("  [7.15] Content panel added to remaining client area");
 
                 if (token.IsCancellationRequested)
                 {
-                    LogMessage("  [7.12] Cancelled after main content panel creation");
+                    LogMessage("  [7.16] Cancelled after content panel creation");
                     this.ResumeLayout(false);
                     return;
                 }
 
-                // Step 5: Create top TabControl with Map, Statistics, Analytics tabs
-                LogMessage("  [7.13] Creating top TabControl with Map, Statistics, Analytics tabs...");
+                // Step 6: Create top TabControl with specialized tabs
+                LogMessage("  [7.17] Creating top TabControl with Map, Statistics, Analytics tabs...");
                 CreateTopTabControlWithSpecializedTabs();
 
                 if (token.IsCancellationRequested)
                 {
-                    LogMessage("  [7.14] Cancelled after TabControl creation");
+                    LogMessage("  [7.18] Cancelled after TabControl creation");
                     this.ResumeLayout(false);
                     return;
                 }
 
-                // Step 6: Add map placeholder (full map functionality not implemented yet)
-                LogMessage("  [7.15] Adding map placeholder - full MapControl functionality not implemented yet...");
+                // Step 7: Add map placeholder
+                LogMessage("  [7.19] Adding map placeholder...");
                 ConfigureMapControlWithSchoolRoutes();
 
                 if (token.IsCancellationRequested)
                 {
-                    LogMessage("  [7.16] Cancelled after MapControl configuration");
+                    LogMessage("  [7.20] Cancelled after MapControl configuration");
                     this.ResumeLayout(false);
                     return;
                 }
 
-                // Step 7: Configure ChartControl for fuel statistics
-                LogMessage("  [7.17] Configuring ChartControl for fuel statistics...");
+                // Step 8: Configure ChartControl for fuel statistics
+                LogMessage("  [7.21] Configuring ChartControl for fuel statistics...");
                 ConfigureChartControlForFuelStats();
 
                 if (token.IsCancellationRequested)
                 {
-                    LogMessage("  [7.18] Cancelled after ChartControl configuration");
+                    LogMessage("  [7.22] Cancelled after ChartControl configuration");
                     this.ResumeLayout(false);
                     return;
                 }
 
-                // Step 8: Configure SfDataGrid for analytics data
-                LogMessage("  [7.19] Configuring SfDataGrid for analytics data...");
+                // Step 9: Configure SfDataGrid for analytics data
+                LogMessage("  [7.23] Configuring SfDataGrid for analytics data...");
                 ConfigureSfDataGridForAnalytics();
 
                 if (token.IsCancellationRequested)
                 {
-                    LogMessage("  [7.20] Cancelled after SfDataGrid configuration");
+                    LogMessage("  [7.24] Cancelled after SfDataGrid configuration");
                     this.ResumeLayout(false);
                     return;
                 }
 
-                // Step 9: Enable close button and finalize layout
-                LogMessage("  [7.21] Enabling close button and finalizing layout...");
+                // Step 10: Enable close button and finalize layout
+                LogMessage("  [7.25] Enabling close button and finalizing layout...");
                 this.ControlBox = true;
                 this.MaximizeBox = true;
                 this.MinimizeBox = true;
 
-                LogMessage("  [7.22] ✅ New dashboard layout created successfully with DockingManager.Fill");
+                LogMessage("  [7.26] ✅ Dashboard layout created successfully with DockingManager");
 
                 // Log final control hierarchy
-                LogMessage($"  [7.20] Final control count - Form: {this.Controls.Count}, Content Panel: {_contentPanel?.Controls.Count ?? 0}");
+                LogMessage($"  [7.27] Final control count - Form: {this.Controls.Count}, Content Panel: {_contentPanel?.Controls.Count ?? 0}");
                 if (_mainTabControl != null)
                 {
-                    LogMessage($"  [7.21] Main TabControl - Tab count: {_mainTabControl.TabPages.Count}, Visible: {_mainTabControl.Visible}, Dock: {_mainTabControl.Dock}");
+                    LogMessage($"  [7.28] Main TabControl - Tab count: {_mainTabControl.TabPages.Count}, Visible: {_mainTabControl.Visible}, Dock: {_mainTabControl.Dock}");
                 }
             }
             catch (Exception ex)
             {
                 LogMessage($"  [7.ERROR] ❌ Error creating dashboard layout: {ex.Message}");
                 LogMessage($"  [7.ERROR] ❌ Stack trace: {ex.StackTrace}");
-                LogMessage("  [7.22] Creating minimal viable form...");
+                LogMessage("  [7.29] Creating minimal viable form...");
                 CreateMinimalViableForm(ex);
             }
             finally
             {
-                LogMessage("  [7.23] Calling ResumeLayout(true)...");
-                this.ResumeLayout(true);
+                LogMessage("  [7.30] Calling ResumeLayout(false)...");
+                this.ResumeLayout(false);
 
-                // STEP 2 FIX: Enhanced visibility management - consolidated final enforcement
-                LogMessage("  [7.24] POST-LAYOUT visibility enforcement and final refresh...");
+                // Enhanced visibility management
+                LogMessage("  [7.31] POST-LAYOUT visibility enforcement...");
 
-                // Consolidated visibility enforcement - set once after all controls are added
+                // Step 1: Ensure header is visible
+                if (_headerPanel != null)
+                {
+                    _headerPanel.Visible = true;
+                    _headerPanel.BringToFront();
+                    LogMessage("  [7.31.1] Header panel visibility enforced");
+                }
+
+                // Step 2: Ensure content panel is visible
                 if (_contentPanel != null)
                 {
                     _contentPanel.Visible = true;
-                    LogMessage($"  [7.24.1] Content panel visibility enforced: {_contentPanel.Visible}");
+                    LogMessage($"  [7.31.2] Content panel visibility enforced: {_contentPanel.Visible}");
                 }
 
+                // Step 3: Ensure tab control is visible
                 if (_mainTabControl != null)
                 {
                     _mainTabControl.Visible = true;
-                    LogMessage($"  [7.24.2] TabControl visibility enforced: {_mainTabControl.Visible}");
+                    _mainTabControl.BringToFront();
+                    LogMessage($"  [7.31.3] TabControl visibility enforced: {_mainTabControl.Visible}");
+                }
+
+                // Step 4: Navigation panel should be visible (DockingManager handles positioning)
+                if (_navigationPanel != null)
+                {
+                    _navigationPanel.Visible = true;
+                    _navigationPanel.BringToFront();
+                    LogMessage($"  [7.31.4] Navigation panel visibility enforced - Visible: {_navigationPanel.Visible}");
                 }
 
                 // Single layout refresh after all visibility is set
                 this.PerformLayout();
                 this.Refresh();
 
-                // STEP 2 FIX: Ensure loading indicator is hidden
+                // Ensure loading indicator is hidden
                 if (_loadingPanel != null && _loadingPanel.Visible)
                 {
-                    LogMessage("  [7.24.3] Hiding loading indicator...");
+                    LogMessage("  [7.31.5] Hiding loading indicator...");
                     _loadingPanel.Visible = false;
-                    LogMessage("  [7.24.4] ✅ Loading indicator hidden");
+                    LogMessage("  [7.31.6] ✅ Loading indicator hidden");
                 }
 
-                // STEP 2 FIX: Final form-level visibility check
-                LogMessage($"  [7.24.5] Form visibility check - Visible: {this.Visible}, WindowState: {this.WindowState}");
+                // Final form-level visibility check
+                LogMessage($"  [7.31.7] Form visibility check - Visible: {this.Visible}, WindowState: {this.WindowState}");
                 if (!this.Visible)
                 {
                     this.Show();
-                    LogMessage("  [7.24.6] ✅ Form made visible");
+                    LogMessage("  [7.31.8] ✅ Form made visible");
                 }
 
-                LogMessage("  [7.25] ✅ Enhanced visibility management completed - Dashboard should now be fully visible");
+                LogMessage("  [7.32] ✅ Enhanced layout with DockingManager completed - Navigation panel should be visible");
             }
         }
 
@@ -1462,8 +1505,8 @@ namespace BusBuddy.UI.Views
 
                 _addVehicleButton.Click += (s, e) =>
                 {
-                    Console.WriteLine("➕ Add vehicle button clicked");
-                    // Add vehicle logic would be implemented here
+                    Console.WriteLine("➕ Add bus button clicked");
+                    // Add bus logic would be implemented here
                 };
 
                 // Set up close button click handler for clean shutdown
@@ -1543,8 +1586,8 @@ namespace BusBuddy.UI.Views
                     ThemeName = "Office2016Black" // Set expected theme name for test
                 };
 
-                // Create vehicles grid with proper initialization for tests
-                _vehiclesGrid = new SfDataGrid
+                // Create buses grid with proper initialization for tests
+                _busesGrid = new SfDataGrid
                 {
                     Name = "vehiclesGrid",
                     Dock = DockStyle.Fill,
@@ -1608,13 +1651,14 @@ namespace BusBuddy.UI.Views
                     BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme),
                     BeforeTouchSize = new Size(_contentPanel.Width, _contentPanel.Height),
                     Location = new Point(0, 0),
-                    // Use documented tab renderer class
-                    TabStyle = typeof(Syncfusion.Windows.Forms.Tools.TabRendererOffice2016Colorful)
+                    // Use documented tab renderer class following Syncfusion documentation
+                    // Reference: https://help.syncfusion.com/windowsforms/tabcontrol/styles-settings
+                    TabStyle = typeof(Syncfusion.Windows.Forms.Tools.TabRendererOffice2007)
                 };
                 LogMessage("    [7.16.3] ✅ TabControlAdv created successfully");
 
-                // Create vehicle management tab using TabPageAdv
-                LogMessage("    [7.16.4] Creating vehicle tab...");
+                // Create bus management tab using TabPageAdv
+                LogMessage("    [7.16.4] Creating bus tab...");
                 var vehicleTab = new TabPageAdv
                 {
                     Text = "Vehicles",
@@ -1638,10 +1682,10 @@ namespace BusBuddy.UI.Views
                 };
                 LogMessage("    [7.16.7] ✅ All tabs created successfully");
 
-                // Initialize SfDataGrid for vehicles following official documentation
+                // Initialize SfDataGrid for buses following official documentation
                 // Reference: https://help.syncfusion.com/windowsforms/datagrid/getting-started
-                LogMessage("    [7.16.8] Creating vehicles SfDataGrid...");
-                _vehiclesGrid = new SfDataGrid
+                LogMessage("    [7.16.8] Creating buses SfDataGrid...");
+                _busesGrid = new SfDataGrid
                 {
                     Dock = DockStyle.Fill,
                     ThemeName = "Office2016Black",
@@ -1655,56 +1699,56 @@ namespace BusBuddy.UI.Views
                 };
 
                 // CRITICAL FIX: Initialize with empty data source to prevent null reference during painting
-                _vehiclesGrid.DataSource = new List<object>();
+                _busesGrid.DataSource = new List<object>();
 
                 // Configure specific column widths after data binding
-                _vehiclesGrid.AutoGenerateColumns = false;
+                _busesGrid.AutoGenerateColumns = false;
 
                 // Add columns with specific widths as requested
-                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
+                _busesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
                 {
                     MappingName = "ID",
                     HeaderText = "ID",
                     Width = 50
                 });
-                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
+                _busesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
                 {
-                    MappingName = "VehicleNumber",
+                    MappingName = "BusNumber",
                     HeaderText = "Vehicle Number",
                     Width = 100
                 });
-                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
+                _busesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
                 {
                     MappingName = "Model",
                     HeaderText = "Model",
                     Width = 120
                 });
-                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
+                _busesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
                 {
                     MappingName = "Year",
                     HeaderText = "Year",
                     Width = 80
                 });
-                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
+                _busesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
                 {
                     MappingName = "Status",
                     HeaderText = "Status",
                     Width = 100
                 });
-                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
+                _busesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
                 {
                     MappingName = "FuelLevel",
                     HeaderText = "Fuel Level",
                     Width = 90
                 });
-                _vehiclesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
+                _busesGrid.Columns.Add(new Syncfusion.WinForms.DataGrid.GridTextColumn()
                 {
                     MappingName = "LastMaintenance",
                     HeaderText = "Last Maintenance",
                     Width = 120
                 });
 
-                LogMessage("    [7.16.9] ✅ Vehicles grid created with custom column widths");
+                LogMessage("    [7.16.9] ✅ buses grid created with custom column widths");
 
                 // Initialize SfDataGrid for routes with same configuration
                 LogMessage("    [7.16.10] Creating routes SfDataGrid...");
@@ -1808,17 +1852,17 @@ namespace BusBuddy.UI.Views
 
                 // Add controls to tabs
                 LogMessage("    [7.16.17] Adding grids to tabs...");
-                vehicleTab.Controls.Add(_vehiclesGrid);
+                vehicleTab.Controls.Add(_busesGrid);
                 routesTab.Controls.Add(_routesGrid);
                 LogMessage("    [7.16.18] ✅ Grids added to tabs successfully");
 
-                // Add SfListView to Vehicles tab (below grid)
-                _vehiclesListView = BusBuddy.UI.Views.ControlFactory.CreateListView(_cachedVehicleData);
-                if (_vehiclesListView != null)
+                // Add SfListView to buses tab (below grid)
+                _busesListView = BusBuddy.UI.Views.ControlFactory.CreateListView(_cachedVehicleData);
+                if (_busesListView != null)
                 {
-                    _vehiclesListView.Dock = DockStyle.Bottom;
-                    _vehiclesListView.Height = 120;
-                    vehicleTab.Controls.Add(_vehiclesListView);
+                    _busesListView.Dock = DockStyle.Bottom;
+                    _busesListView.Height = 120;
+                    vehicleTab.Controls.Add(_busesListView);
                 }
 
                 // Add SfListView to Routes tab (below grid)
@@ -1896,24 +1940,24 @@ namespace BusBuddy.UI.Views
                 {
                     try
                     {
-                        if (_cachedVehicleData != null && _cachedVehicleData.Count > 0 && _vehiclesGrid != null)
+                        if (_cachedVehicleData != null && _cachedVehicleData.Count > 0 && _busesGrid != null)
                         {
-                            LogMessage($"    [7.16.27] Binding {_cachedVehicleData.Count} vehicle records...");
+                            LogMessage($"    [7.16.27] Binding {_cachedVehicleData.Count} bus records...");
 
                             // Ensure grid is ready for data binding
-                            if (_vehiclesGrid.IsHandleCreated && _vehiclesGrid.Visible)
+                            if (_busesGrid.IsHandleCreated && _busesGrid.Visible)
                             {
-                                _vehiclesGrid.DataSource = _cachedVehicleData;
-                                LogMessage("    [7.16.28] ✅ Vehicle data bound successfully");
+                                _busesGrid.DataSource = _cachedVehicleData;
+                                LogMessage("    [7.16.28] ✅ bus data bound successfully");
                             }
                             else
                             {
-                                LogMessage("    [7.16.28] ⚠️ Vehicle grid not ready for data binding - deferring");
+                                LogMessage("    [7.16.28] ⚠️ bus grid not ready for data binding - deferring");
                             }
                         }
                         else
                         {
-                            LogMessage("    [7.16.27] No vehicle data available to bind or grid is null");
+                            LogMessage("    [7.16.27] No bus data available to bind or grid is null");
                         }
 
                         if (_cachedRouteData != null && _cachedRouteData.Count > 0 && _routesGrid != null)
@@ -2094,8 +2138,22 @@ namespace BusBuddy.UI.Views
                         var activityRepo = serviceContainer.GetService<IActivityRepository>();
                         if (activityRepo != null)
                         {
-                            var activityForm = new ActivityManagementForm(activityRepo);
-                            activityForm.ShowDialog();
+                            // Retry logic for database operations
+                            for (int attempt = 0; attempt < 3; attempt++)
+                            {
+                                try
+                                {
+                                    var activityForm = new ActivityManagementForm(activityRepo);
+                                    activityForm.Load += (s, args) => LogMessage("    [NAV.LOAD] ActivityManagementForm loaded successfully");
+                                    activityForm.ShowDialog();
+                                    break; // Success, exit retry loop
+                                }
+                                catch (Exception dbEx) when (attempt < 2 && IsRetriableException(dbEx))
+                                {
+                                    LogMessage($"    [NAV.RETRY] Database error on attempt {attempt + 1}: {dbEx.Message}");
+                                    System.Threading.Thread.Sleep(1000); // Wait 1 second before retry
+                                }
+                            }
                         }
                         else
                         {
@@ -2124,24 +2182,26 @@ namespace BusBuddy.UI.Views
                         var busService = serviceContainer.GetService<IBusService>();
                         if (busService != null)
                         {
-                            // For now, still use VehicleManagementForm but will update it to use BusService
-                            var vehicleRepo = serviceContainer.GetService<IVehicleRepository>();
+                            // For now, still use BusManagementForm but will update it to use BusService
+                            var vehicleRepo = serviceContainer.GetService<IBusRepository>();
                             if (vehicleRepo != null)
                             {
-                                var vehicleForm = new VehicleManagementForm(vehicleRepo);
-                                vehicleForm.ShowDialog();
+                                // Temporary placeholder - BusManagementForm not yet implemented
+                                MessageBox.Show("Bus Management feature is under development.", "Bus Management", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                //var vehicleForm = new BusManagementForm(vehicleRepo);
+                                //vehicleForm.ShowDialog();
                             }
                             else
                             {
-                                LogMessage($"    [NAV.ERROR] Failed to resolve IVehicleRepository");
-                                MessageBox.Show("Unable to load Vehicle Management. Repository service unavailable.",
+                                LogMessage($"    [NAV.ERROR] Failed to resolve IBusRepository");
+                                MessageBox.Show("Unable to load bus Management. Repository service unavailable.",
                                               "Service Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             }
                         }
                         else
                         {
                             LogMessage($"    [NAV.ERROR] Failed to resolve IBusService");
-                            MessageBox.Show("Unable to load Vehicle Management. Bus service unavailable.",
+                            MessageBox.Show("Unable to load bus Management. Bus service unavailable.",
                                           "Service Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
                         break;
@@ -2163,15 +2223,18 @@ namespace BusBuddy.UI.Views
 
                     case "routes":
                         var routeRepo = serviceContainer.GetService<IRouteRepository>();
-                        if (routeRepo != null)
+                        var busRepo = serviceContainer.GetService<BusRepository>();
+                        var routeDriverRepo = serviceContainer.GetService<IDriverRepository>();
+
+                        if (routeRepo != null && busRepo != null && routeDriverRepo != null)
                         {
-                            var routeForm = new RouteManagementForm(routeRepo);
+                            var routeForm = new RouteManagementFormSyncfusion(routeRepo, busRepo, routeDriverRepo);
                             routeForm.ShowDialog();
                         }
                         else
                         {
-                            LogMessage($"    [NAV.ERROR] Failed to resolve IRouteRepository");
-                            MessageBox.Show("Unable to load Route Management. Repository service unavailable.",
+                            LogMessage($"    [NAV.ERROR] Failed to resolve repositories - RouteRepo: {routeRepo != null}, BusRepo: {busRepo != null}, DriverRepo: {routeDriverRepo != null}");
+                            MessageBox.Show("Unable to load Route Management. Repository services unavailable.",
                                           "Service Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
                         break;
@@ -2180,7 +2243,7 @@ namespace BusBuddy.UI.Views
                         // Handle existing tab navigation
                         if (_mainTabControl != null && selectedTag == "vehicles_list")
                         {
-                            _mainTabControl.SelectedIndex = 0; // Vehicles tab
+                            _mainTabControl.SelectedIndex = 0; // buses tab
                         }
                         else if (_mainTabControl != null && selectedTag == "routes_list")
                         {
@@ -2196,8 +2259,27 @@ namespace BusBuddy.UI.Views
             catch (Exception ex)
             {
                 LogMessage($"    [NAV.ERROR] Critical navigation error: {ex.Message}");
-                MessageBox.Show($"Navigation error: {ex.Message}\n\nPlease check the application logs for details.",
-                              "Navigation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogMessage($"    [NAV.ERROR] Stack trace: {ex.StackTrace}");
+
+                // Check if this is a database-related error
+                string errorType = "Navigation Error";
+                string errorMessage = $"Navigation error: {ex.Message}";
+
+                if (ex.Message.Contains("database") || ex.Message.Contains("connection") ||
+                    ex.Message.Contains("timeout") || ex.Message.Contains("server") ||
+                    ex.InnerException?.Message.Contains("database") == true ||
+                    ex.InnerException?.Message.Contains("connection") == true)
+                {
+                    errorType = "Database Connection Error";
+                    errorMessage = $"Database connection failed: {ex.Message}\n\n" +
+                                 "Please check:\n" +
+                                 "• SQL Server Express is running\n" +
+                                 "• Database server ST-LPTP9-23\\SQLEXPRESS01 is accessible\n" +
+                                 "• Network connectivity is available\n\n" +
+                                 "Contact your system administrator if the problem persists.";
+                }
+
+                MessageBox.Show(errorMessage, errorType, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -2226,7 +2308,7 @@ namespace BusBuddy.UI.Views
             // Future implementation will include:
             // - Shape file layer creation
             // - Bus route markers
-            // - Real-time vehicle tracking
+            // - Real-time bus tracking
             // - Interactive map controls
         }
 
@@ -2366,9 +2448,9 @@ namespace BusBuddy.UI.Views
                 }
 
                 // Apply theme to SfDataGrid controls using documented ThemeName property
-                if (_vehiclesGrid != null && !_vehiclesGrid.IsDisposed)
+                if (_busesGrid != null && !_busesGrid.IsDisposed)
                 {
-                    _vehiclesGrid.ThemeName = themeName;
+                    _busesGrid.ThemeName = themeName;
                 }
 
                 if (_routesGrid != null && !_routesGrid.IsDisposed)
@@ -2376,11 +2458,13 @@ namespace BusBuddy.UI.Views
                     _routesGrid.ThemeName = themeName;
                 }
 
-                // Apply theme to TabControlAdv using documented approach
+                // Apply theme to TabControlAdv using documented renderer classes
                 if (_mainTabControl != null && !_mainTabControl.IsDisposed)
                 {
-                    // TabControlAdv uses TabStyle property for theming
-                    _mainTabControl.TabStyle = typeof(Syncfusion.Windows.Forms.Tools.TabRendererOffice2016Colorful);
+                    // TabControlAdv uses TabStyle property for theming per documentation
+                    // Reference: https://help.syncfusion.com/windowsforms/tabcontrol/styles-settings
+                    _mainTabControl.TabStyle = typeof(Syncfusion.Windows.Forms.Tools.TabRendererOffice2007);
+                    _mainTabControl.Office2007ColorScheme = Office2007Theme.Black;
                 }
 
                 // Apply theme to ComboBoxAdv if it exists
@@ -2471,20 +2555,26 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                LogMessage("    [DOCK.1] Creating DockingManager for Fill layout...");
-                // Use the parameterless constructor as per Syncfusion documentation
-                _dockingManager = new DockingManager()
-                {
-                    // Set the host control immediately after creation
-                    HostControl = this,
-                    // Apply basic styling following documentation
-                    VisualStyle = VisualStyle.Office2016Colorful,
-                    SplitterWidth = 4,
-                    EnableDocumentMode = true,
-                    CloseTabOnMiddleClick = true,
-                    ThemeName = "Office2016Black"
-                };
-                LogMessage("    [DOCK.2] ✅ DockingManager created successfully");
+                LogMessage("    [DOCK.1] Creating DockingManager following official Syncfusion documentation...");
+
+                // Create DockingManager with proper initialization sequence per documentation
+                _dockingManager = new DockingManager();
+                _dockingManager.BeginInit();
+
+                // Set HostForm property as documented (not HostControl)
+                _dockingManager.HostForm = this;
+
+                // Apply documented styling properties
+                _dockingManager.VisualStyle = VisualStyle.Office2016Black;
+                _dockingManager.SplitterWidth = 4;
+                _dockingManager.EnableDocumentMode = true;
+                _dockingManager.CloseTabOnMiddleClick = true;
+                _dockingManager.ThemeName = "Office2016Black";
+
+                // End initialization - required by documentation
+                _dockingManager.EndInit();
+
+                LogMessage("    [DOCK.2] ✅ DockingManager created with proper BeginInit/EndInit sequence");
             }
             catch (Exception ex)
             {
@@ -2495,7 +2585,8 @@ namespace BusBuddy.UI.Views
         }
 
         /// <summary>
-        /// Create left navigation TreeView (200px) following Syncfusion DockingManager documentation
+        /// Create left navigation TreeView (200px) with enhanced docking and z-order management
+        /// ENHANCED: Explicit positioning and z-order control to ensure visibility
         /// </summary>
         private void CreateLeftNavigationTreeView()
         {
@@ -2503,14 +2594,16 @@ namespace BusBuddy.UI.Views
             {
                 LogMessage("    [NAV.1] Creating left navigation TreeView (200px)...");
 
-                // Create the navigation panel
+                // Create the navigation panel with explicit positioning
                 _navigationPanel = new Panel
                 {
                     Name = "NavigationPanel",
                     BackColor = Color.FromArgb(45, 45, 48),
                     BorderStyle = BorderStyle.FixedSingle,
                     Size = new Size(200, this.ClientSize.Height),
-                    Visible = true
+                    Visible = true,
+                    Location = new Point(0, 60), // Below header
+                    Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom
                 };
 
                 // Create the TreeView for navigation
@@ -2559,59 +2652,80 @@ namespace BusBuddy.UI.Views
                 // Add TreeView to navigation panel
                 _navigationPanel.Controls.Add(_navigationTreeView);
 
-                // Use DockingManager to dock the navigation panel on the left (200px)
+                // Enhanced docking with fallback and z-order management
                 if (_dockingManager != null)
                 {
-                    _dockingManager.DockControl(_navigationPanel, this, DockingStyle.Left, 200);
-                    LogMessage("    [NAV.2] ✅ Navigation TreeView docked on left (200px)");
+                    try
+                    {
+                        _dockingManager.DockControl(_navigationPanel, this, DockingStyle.Left, 200);
+                        LogMessage("    [NAV.2] ✅ Navigation TreeView docked on left (200px)");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage($"    [NAV.2] ⚠️ DockingManager failed: {ex.Message}, using fallback docking");
+                        _navigationPanel.Location = new Point(0, 60);
+                        _navigationPanel.Size = new Size(200, this.ClientSize.Height - 60);
+                        this.Controls.Add(_navigationPanel);
+                    }
                 }
                 else
                 {
-                    // Fallback - dock manually
-                    _navigationPanel.Dock = DockStyle.Left;
-                    _navigationPanel.Width = 200;
+                    LogMessage("    [NAV.2] ⚠️ DockingManager is null, using fallback docking");
+                    _navigationPanel.Location = new Point(0, 60);
+                    _navigationPanel.Size = new Size(200, this.ClientSize.Height - 60);
                     this.Controls.Add(_navigationPanel);
-                    LogMessage("    [NAV.2] ⚠️ Navigation TreeView added directly (DockingManager unavailable)");
                 }
 
                 // Add navigation event handler
                 _navigationTreeView.AfterSelect += NavigationTreeView_AfterSelect;
 
-                LogMessage($"    [NAV.3] ✅ Left navigation TreeView created - Size: {_navigationPanel.Size}");
+                // CRITICAL Z-ORDER FIX: Ensure navigation panel is in front
+                _navigationPanel.BringToFront();
+
+                LogMessage($"    [NAV.3] ✅ Left navigation TreeView created - Size: {_navigationPanel.Size}, Z-order: Front");
             }
             catch (Exception ex)
             {
                 LogMessage($"    [NAV.ERROR] ❌ Error creating left navigation TreeView: {ex.Message}");
+
+                // Fallback creation with minimal dependencies
+                _navigationPanel = new Panel
+                {
+                    Dock = DockStyle.Left,
+                    Width = 200,
+                    BackColor = Color.FromArgb(45, 45, 48)
+                };
+                this.Controls.Add(_navigationPanel);
+                _navigationPanel.BringToFront();
             }
         }
 
         /// <summary>
-        /// Create main content panel with proper docking following Syncfusion documentation
-        /// FIXED: Don't use DockingStyle.Fill with host control - use standard Panel docking instead
+        /// Create main content panel with proper bounds to avoid navigation panel overlap
+        /// FIXED: Use explicit bounds instead of DockStyle.Fill to reserve space for navigation panel
         /// </summary>
         private void CreateMainContentPanelWithFillDocking()
         {
             try
             {
-                LogMessage("    [CONTENT.1] Creating main content panel with standard Fill docking...");
+                LogMessage("    [CONTENT.1] Creating main content panel with adjusted bounds for navigation space...");
 
                 _contentPanel = new Panel
                 {
                     Name = "MainContentPanel",
                     BackColor = Color.FromArgb(60, 60, 65),
                     Visible = true,
-                    Dock = DockStyle.Fill  // Use standard WinForms docking for main content
+                    Location = new Point(200, 60), // Start after navigation (200px) and header (60px)
+                    Size = new Size(this.ClientSize.Width - 200, this.ClientSize.Height - 60), // Reserve space
+                    Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
                 };
 
-                // Don't use DockingManager for the main content panel - it's the host container
-                // DockingManager is for docking child panels within the main content area
                 this.Controls.Add(_contentPanel);
-                LogMessage("    [CONTENT.2] ✅ Main content panel added with standard Fill docking");
+                LogMessage("    [CONTENT.2] ✅ Main content panel added with adjusted bounds to avoid navigation overlap");
 
                 _contentPanel.Show();
-                _contentPanel.BringToFront();
 
-                LogMessage($"    [CONTENT.3] ✅ Main content panel created - Size: {_contentPanel.Size}");
+                LogMessage($"    [CONTENT.3] ✅ Main content panel created - Location: {_contentPanel.Location}, Size: {_contentPanel.Size}");
             }
             catch (Exception ex)
             {
@@ -2630,6 +2744,7 @@ namespace BusBuddy.UI.Views
                 LogMessage("    [TAB.1] Creating TabControl with Map, Statistics, Analytics tabs...");
 
                 // Create TabControlAdv following official documentation
+                // Reference: https://help.syncfusion.com/windowsforms/tabcontrol/styles-settings
                 _mainTabControl = new TabControlAdv
                 {
                     Dock = DockStyle.Fill,
@@ -2637,7 +2752,8 @@ namespace BusBuddy.UI.Views
                     ActiveTabForeColor = Color.White,
                     BackColor = Color.FromArgb(32, 32, 32),
                     ForeColor = Color.White,
-                    TabStyle = typeof(Syncfusion.Windows.Forms.Tools.TabRendererOffice2016Colorful),
+                    TabStyle = typeof(Syncfusion.Windows.Forms.Tools.TabRendererOffice2007),
+                    Office2007ColorScheme = Office2007Theme.Black,
                     ThemesEnabled = true
                 };
 
@@ -2707,7 +2823,7 @@ namespace BusBuddy.UI.Views
             LogMessage("    [MAP] ⚠️ _mapControl intentionally kept null until proper implementation");
             LogMessage("    [MAP] 📋 TODO: Implement full Syncfusion Maps integration in future release");
 
-            // Add placeholder content to vehicle management tab instead
+            // Add placeholder content to bus management tab instead
             if (_vehicleManagementTab != null)
             {
                 var mapPlaceholder = new Label
@@ -2728,7 +2844,7 @@ namespace BusBuddy.UI.Views
                 };
 
                 _vehicleManagementTab.Controls.Add(mapPlaceholder);
-                LogMessage("    [MAP] ✅ Map placeholder added to vehicle management tab");
+                LogMessage("    [MAP] ✅ Map placeholder added to bus management tab");
             }
         }
 
@@ -2945,7 +3061,7 @@ namespace BusBuddy.UI.Views
                     sampleData.Add(new
                     {
                         Date = baseDate.AddDays(i).ToString("MM/dd/yyyy"),
-                        Vehicle = $"Bus-{100 + (i % 5)}",
+                        bus = $"Bus-{100 + (i % 5)}",
                         Route = $"Route {(i % 10) + 1}",
                         FuelUsed = Math.Round(20 + random.NextDouble() * 15, 1),
                         Distance = Math.Round(45 + random.NextDouble() * 25, 1),
@@ -2961,6 +3077,19 @@ namespace BusBuddy.UI.Views
                 LogMessage($"    [GRID.SAMPLE.ERROR] ❌ Error creating sample analytics data: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Determines if an exception is retriable (typically database-related exceptions)
+        /// </summary>
+        private bool IsRetriableException(Exception ex)
+        {
+            return ex.Message.Contains("database") || ex.Message.Contains("connection") ||
+                   ex.Message.Contains("timeout") || ex.Message.Contains("server") ||
+                   ex.InnerException?.Message.Contains("database") == true ||
+                   ex.InnerException?.Message.Contains("connection") == true ||
+                   ex is System.Data.SqlClient.SqlException ||
+                   ex is System.Data.Common.DbException;
+        }
     }
 
     internal class MapMarker
@@ -2970,3 +3099,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

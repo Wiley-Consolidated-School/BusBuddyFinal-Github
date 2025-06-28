@@ -7,7 +7,7 @@ namespace BusBuddy.Models
     {
         public int MaintenanceID { get; set; }
         public string? Date { get; set; }
-        public int? VehicleID { get; set; }
+        public int? BusId { get; set; }
 
         // Helper property to get/set Date as DateTime
         public DateTime? DateAsDateTime
@@ -30,13 +30,14 @@ namespace BusBuddy.Models
         public string? Notes { get; set; }
 
         // Additional properties for form compatibility
-        public string? VehicleNumber { get; set; }
+        public string? BusNumber { get; set; }
         public decimal? Odometer => OdometerReading;
         public string? Category => MaintenanceCompleted;
         public decimal? Cost => RepairCost;
         public string? Description => Notes;
 
         // Navigation property
-        public Vehicle? Vehicle { get; set; }
+        public Bus? Vehicle { get; set; }
     }
 }
+

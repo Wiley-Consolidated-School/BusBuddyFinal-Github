@@ -26,24 +26,24 @@ namespace BusBuddy.UI.Tests
         [Fact]
         public void VehicleRepository_SqlInjection_ShouldBePreventedInSearch()
         {
-            _output.WriteLine("Testing SQL injection prevention in vehicle search...");
+            _output.WriteLine("Testing SQL injection prevention in Bus search...");
 
-            // Create a legitimate test vehicle first
-            var vehicle = CreateTestVehicle("_SecurityTest");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            // Create a legitimate test Bus first
+            var testBus = CreateTestVehicle("_SecurityTest");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
             // Test common SQL injection patterns
             var maliciousInputs = new[]
             {
-                "'; DROP TABLE Vehicle; --",
+                "'; DROP TABLE bus; --",
                 "' OR '1'='1",
                 "' UNION SELECT * FROM Driver --",
-                "'; DELETE FROM Vehicle WHERE 1=1; --",
+                "'; DELETE FROM Bus WHERE 1=1; --",
                 "' OR 1=1 --",
                 "admin'--",
                 "' OR 'x'='x",
-                "1'; UPDATE Vehicle SET Status='Inactive' WHERE 1=1; --"
+                "1'; UPDATE Bus SET Status='Inactive' WHERE 1=1; --"
             };
 
             foreach (var maliciousInput in maliciousInputs)
@@ -51,12 +51,12 @@ namespace BusBuddy.UI.Tests
                 try
                 {
                     // Test search functionality with malicious input
-                    var vehicles = VehicleRepository.GetAllVehicles();
+                    var vehicles = BusRepository.GetAllBuses();
 
-                    // Verify our test vehicle still exists (no data corruption)
-                    var testVehicle = VehicleRepository.GetVehicleById(vehicleId);
-                    Assert.NotNull(testVehicle);
-                    Assert.Equal("Active", testVehicle.Status);
+                    // Verify our test Bus still exists (no data corruption)
+                    var testBus = BusRepository.GetBusById(busId);
+                    Assert.NotNull(testBus);
+                    Assert.Equal("Active", testBus.Status);
 
                     _output.WriteLine($"✅ SQL injection attempt blocked: {maliciousInput.Substring(0, Math.Min(20, maliciousInput.Length))}...");
                 }
@@ -82,8 +82,8 @@ namespace BusBuddy.UI.Tests
 
             // Create test driver
             var driver = CreateTestDriver("_SecurityTest");
-            var driverId = DriverRepository.AddDriver(driver);
-            TestDriverIds.Add(driverId);
+            var DriverId = DriverRepository.AddDriver(driver);
+            TestDriverIds.Add(DriverId);
 
             // Test malicious update attempts
             var maliciousNames = new[]
@@ -100,13 +100,13 @@ namespace BusBuddy.UI.Tests
                     // Attempt to update driver with malicious data
                     var updatedDriver = driver;
                     updatedDriver.FirstName = maliciousName;
-                    updatedDriver.DriverID = driverId;
+                    updatedDriver.DriverId = DriverId;
 
                     // This should either fail safely or sanitize the input
                     DriverRepository.UpdateDriver(updatedDriver);
 
                     // Verify data integrity
-                    var retrievedDriver = DriverRepository.GetDriverById(driverId);
+                    var retrievedDriver = DriverRepository.GetDriverById(DriverId);
                     Assert.NotNull(retrievedDriver);
                     Assert.Equal("Active", retrievedDriver.Status);
 
@@ -135,10 +135,10 @@ namespace BusBuddy.UI.Tests
             driver.DriverPhone = "555-123-4567";
             driver.DriverEmail = "sensitive@school.edu";
 
-            var driverId = DriverRepository.AddDriver(driver);
-            TestDriverIds.Add(driverId);
+            var DriverId = DriverRepository.AddDriver(driver);
+            TestDriverIds.Add(DriverId);
 
-            var retrievedDriver = DriverRepository.GetDriverById(driverId);
+            var retrievedDriver = DriverRepository.GetDriverById(DriverId);
             Assert.NotNull(retrievedDriver);
 
             // Verify sensitive data is stored (in production, this might be encrypted)
@@ -166,25 +166,25 @@ namespace BusBuddy.UI.Tests
         [Fact]
         public void VehicleData_AccessControl_ShouldRestrictUnauthorizedAccess()
         {
-            _output.WriteLine("Testing vehicle data access control...");
+            _output.WriteLine("Testing Bus data access control...");
 
-            var vehicle = CreateTestVehicle("_AccessControl");
-            vehicle.VINNumber = "CONFIDENTIAL123456789";
+            var testBus = CreateTestVehicle("_AccessControl");
+            testBusVIN = "CONFIDENTIAL123456789";
 
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
             // Test normal access works
-            var retrievedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(retrievedVehicle);
-            Assert.Equal(vehicle.VINNumber, retrievedVehicle.VINNumber);
+            var retrievedBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(retrievedBus);
+            Assert.Equal(bus.VIN, retrievedBus.VIN);
 
             // Test invalid access patterns
             try
             {
                 // Attempt to access with malformed ID
-                var invalidVehicle = VehicleRepository.GetVehicleById(-1);
-                Assert.Null(invalidVehicle);
+                var invalidBus = BusRepository.GetBusById(-1);
+                Assert.Null(invalidBus);
             }
             catch (Exception ex)
             {
@@ -192,7 +192,7 @@ namespace BusBuddy.UI.Tests
                 Assert.DoesNotContain("CONFIDENTIAL123456789", ex.Message);
             }
 
-            _output.WriteLine("✅ Vehicle data access control test PASSED");
+            _output.WriteLine("✅ Bus data access control test PASSED");
         }
 
         #endregion
@@ -204,27 +204,27 @@ namespace BusBuddy.UI.Tests
         {
             _output.WriteLine("Testing audit trail functionality...");
 
-            // Create initial vehicle
-            var vehicle = CreateTestVehicle("_AuditTest");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            // Create initial bus
+            var testBus = CreateTestVehicle("_AuditTest");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
-            var originalStatus = vehicle.Status;
+            var originalStatus = bus.Status;
 
-            // Update vehicle status
-            vehicle.VehicleID = vehicleId;
-            vehicle.Status = "Maintenance";
-            VehicleRepository.UpdateVehicle(vehicle);
+            // Update Bus status
+            bus.busId = busId;
+            bus.Status = "Maintenance";
+            BusRepository.UpdateBus(bus);
 
             // Verify update was applied
-            var updatedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(updatedVehicle);
-            Assert.Equal("Maintenance", updatedVehicle.Status);
+            var updatedBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(updatedBus);
+            Assert.Equal("Maintenance", updatedBus.Status);
 
             // In a full implementation, we would check audit logs here
             // For now, verify data integrity after modification
-            Assert.NotNull(updatedVehicle);
-            Assert.Equal(vehicle.VehicleNumber, updatedVehicle.VehicleNumber);
+            Assert.NotNull(updatedBus);
+            Assert.Equal(bus.BusNumber, updatedBus.BusNumber);
 
             _output.WriteLine("✅ Data modification audit trail test PASSED");
         }
@@ -237,22 +237,22 @@ namespace BusBuddy.UI.Tests
             // Operations that should be logged in production:
             // 1. Driver record access
             var driver = CreateTestDriver("_AccessLog");
-            var driverId = DriverRepository.AddDriver(driver);
-            TestDriverIds.Add(driverId);
+            var DriverId = DriverRepository.AddDriver(driver);
+            TestDriverIds.Add(DriverId);
 
-            var accessedDriver = DriverRepository.GetDriverById(driverId);
+            var accessedDriver = DriverRepository.GetDriverById(DriverId);
             Assert.NotNull(accessedDriver);
 
-            // 2. Vehicle maintenance record access
-            var vehicle = CreateTestVehicle("_AccessLog");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            // 2. Bus maintenance record access
+            var testBus = CreateTestVehicle("_AccessLog");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
-            var accessedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(accessedVehicle);
+            var accessedBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(accessedBus);
 
             // 3. Bulk data operations
-            var allVehicles = VehicleRepository.GetAllVehicles();
+            var allVehicles = BusRepository.GetAllBuses();
             var allDrivers = DriverRepository.GetAllDrivers();
 
             Assert.NotNull(allVehicles);
@@ -277,13 +277,13 @@ namespace BusBuddy.UI.Tests
         {
             _output.WriteLine("Testing data integrity under concurrent modifications...");
 
-            var vehicle = CreateTestVehicle("_ConcurrencyTest");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
+            var testBus = CreateTestVehicle("_ConcurrencyTest");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
 
             // Simulate concurrent updates
-            var vehicle1 = VehicleRepository.GetVehicleById(vehicleId);
-            var vehicle2 = VehicleRepository.GetVehicleById(vehicleId);
+            var vehicle1 = BusRepository.GetBusById(busId);
+            var vehicle2 = BusRepository.GetBusById(busId);
 
             Assert.NotNull(vehicle1);
             Assert.NotNull(vehicle2);
@@ -293,15 +293,15 @@ namespace BusBuddy.UI.Tests
             vehicle2.SeatingCapacity = 80;
 
             // Apply updates
-            VehicleRepository.UpdateVehicle(vehicle1);
-            VehicleRepository.UpdateVehicle(vehicle2);
+            BusRepository.UpdateBus(vehicle1);
+            BusRepository.UpdateBus(vehicle2);
 
             // Verify final state
-            var finalVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(finalVehicle);
+            var finalBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(finalBus);
 
             // At least one update should have been applied successfully
-            Assert.True(finalVehicle.Status == "Maintenance" || finalVehicle.SeatingCapacity == 80);
+            Assert.True(finalBus.Status == "Maintenance" || finalBus.SeatingCapacity == 80);
 
             _output.WriteLine("✅ Concurrent modification data integrity test PASSED");
         }
@@ -312,25 +312,25 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Testing invalid data input validation...");
 
             // Test extremely long strings
-            var vehicle = CreateTestVehicle("_ValidationTest");
-            vehicle.VehicleNumber = new string('A', 1000); // Very long string
-            vehicle.Make = ""; // Empty string
-            vehicle.Model = null; // Null value
+            var testBus = CreateTestVehicle("_ValidationTest");
+            bus.BusNumber = new string('A', 1000); // Very long string
+            bus.Make = ""; // Empty string
+            bus.Model = null; // Null value
 
             try
             {
-                var vehicleId = VehicleRepository.AddVehicle(vehicle);
+                var busId = BusRepository.AddBus(bus);
 
-                if (vehicleId > 0)
+                if (busId > 0)
                 {
-                    TestVehicleIds.Add(vehicleId);
+                    TestbusIds.Add(busId);
 
                     // If accepted, verify it was sanitized properly
-                    var retrievedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-                    Assert.NotNull(retrievedVehicle);
+                    var retrievedBus = BusRepository.GetBusById(busId);
+                    Assert.NotNull(retrievedBus);
 
                     // Verify data wasn't corrupted
-                    Assert.False(string.IsNullOrEmpty(retrievedVehicle.VehicleNumber));
+                    Assert.False(string.IsNullOrEmpty(retrievedBus.BusNumber));
                 }
             }
             catch (Exception ex)
@@ -345,3 +345,5 @@ namespace BusBuddy.UI.Tests
         #endregion
     }
 }
+
+

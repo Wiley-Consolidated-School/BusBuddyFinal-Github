@@ -236,3 +236,4 @@ namespace BusBuddy.UI.Tests
         // ICollectionFixture<> interfaces.
     }
 }
+

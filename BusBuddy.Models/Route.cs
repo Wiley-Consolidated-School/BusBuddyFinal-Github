@@ -5,29 +5,22 @@ namespace BusBuddy.Models
 {
     public class Route
     {
-        public int RouteID { get; set; }
-        public string Date { get; set; } = string.Empty;
+        public int RouteId { get; set; }
+        public DateTime RouteDate { get; set; } // Primary date property that matches the database column
         public string? RouteName { get; set; }  // Truck Plaza, East Route, West Route, SPED
 
-        // Helper property to get/set Date as DateTime
+        // Date property for backward compatibility - maps to RouteDate
+        public string Date
+        {
+            get => RouteDate.ToString("yyyy-MM-dd");
+            set => RouteDate = DateTime.TryParse(value, out var result) ? result : DateTime.Today;
+        }
+
+        // Helper property to get/set Date as DateTime (same as RouteDate)
         public DateTime DateAsDateTime
         {
-            get
-            {
-                if (string.IsNullOrEmpty(Date)) return DateTime.Today;
-                // Try ISO format first (preserves time)
-                if (DateTime.TryParseExact(Date, "yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var isoResult))
-                    return EnsureSqlServerCompatible(isoResult);
-                if (DateTime.TryParseExact(Date, "yyyy-MM-ddTHH:mm:ss.fffffff", CultureInfo.InvariantCulture, DateTimeStyles.None, out var isoResult2))
-                    return EnsureSqlServerCompatible(isoResult2);
-                // Try date-only format
-                if (DateTime.TryParseExact(Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
-                    return EnsureSqlServerCompatible(result);
-                if (DateTime.TryParse(Date, out var fallbackResult))
-                    return EnsureSqlServerCompatible(fallbackResult);
-                return DateTime.Today;
-            }
-            set => Date = EnsureSqlServerCompatible(value).ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+            get => RouteDate;
+            set => RouteDate = EnsureSqlServerCompatible(value);
         }
 
         // Helper method to ensure DateTime values are within SQL Server's valid range
@@ -43,33 +36,40 @@ namespace BusBuddy.Models
                 return maxSqlDate;
             return dateTime;
         }
-        public int? AMVehicleID { get; set; }
-        public decimal? AMBeginMiles { get; set; }
-        public decimal? AMEndMiles { get; set; }
-        public int? AMRiders { get; set; }
-        public int? AMDriverID { get; set; }
-        public int? PMVehicleID { get; set; }
-        public decimal? PMBeginMiles { get; set; }
-        public decimal? PMEndMiles { get; set; }
-        public int? PMRiders { get; set; }
-        public int? PMDriverID { get; set; }
-        public string? Notes { get; set; }
 
-        // Task 6.5: Added for driver pay calculations
+        // AM Route Data
+        public int? AMBusId { get; set; }
+        public int? AMBeginMiles { get; set; }
+        public int? AMEndMiles { get; set; }
+        public int? AMRiders { get; set; }
+        public int? AMDriverId { get; set; }
+
+        // PM Route Data
+        public int? PMBusId { get; set; }
+        public int? PMBeginMiles { get; set; }
+        public int? PMEndMiles { get; set; }
+        public int? PMRiders { get; set; }
+        public int? PMDriverId { get; set; }
+
+        // Additional Properties
+        public string? Notes { get; set; }
         public string? RouteType { get; set; } = "CDL"; // CDL, SmallBus, SPED
 
         // Navigation properties
-        public Vehicle? AMVehicle { get; set; }
+        public Bus? AMBus { get; set; }
         public Driver? AMDriver { get; set; }
-        public Vehicle? PMVehicle { get; set; }
-        public Driver? PMDriver { get; set; }        // Computed properties for form compatibility
-        public string? AMVehicleNumber => AMVehicle?.VehicleNumber;
+        public Bus? PMBus { get; set; }
+        public Driver? PMDriver { get; set; }
+
+        // Computed properties for form compatibility
+        public string? AMBusNumber => AMBus?.BusNumber;
         public string? AMDriverName => AMDriver?.Name;
-        public string? PMVehicleNumber => PMVehicle?.VehicleNumber;
+        public string? PMBusNumber => PMBus?.BusNumber;
         public string? PMDriverName => PMDriver?.Name;
 
         // Computed mileage properties for backward compatibility
-        public decimal? AMMiles => AMEndMiles.HasValue && AMBeginMiles.HasValue ? AMEndMiles - AMBeginMiles : null;
-        public decimal? PMMiles => PMEndMiles.HasValue && PMBeginMiles.HasValue ? PMEndMiles - PMBeginMiles : null;
+        public int? AMMiles => AMEndMiles.HasValue && AMBeginMiles.HasValue ? AMEndMiles - AMBeginMiles : null;
+        public int? PMMiles => PMEndMiles.HasValue && PMBeginMiles.HasValue ? PMEndMiles - PMBeginMiles : null;
     }
 }
+

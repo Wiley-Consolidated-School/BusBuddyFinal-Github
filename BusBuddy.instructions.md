@@ -71,6 +71,60 @@ When creating temporary files:
 - Archive old documentation rather than keeping in active project
 - Prefer PowerShell scripts over batch files for consistency
 
+#### 🚌 **Vehicle-to-Bus Deprecation Methodology**
+
+**CRITICAL RULE: "Vehicle" methods are deprecated - use "Bus" methods only**
+
+**Deprecation Strategy:**
+- **Method signatures**: All methods with "Vehicle" in their name must be replaced with "Bus" equivalents
+- **Interface contracts**: Update all interfaces to use Bus terminology (e.g., `GetBusById` not `GetVehicleById`)
+- **Repository methods**: Use Bus-based method names throughout the data layer
+- **Business logic**: Service classes must use Bus terminology in all public methods
+
+**What to Replace:**
+- ✅ **Method names**: `GetVehicleById()` → `GetBusById()`
+- ✅ **Parameter names**: `vehicleId` → `busId` (in method signatures)
+- ✅ **Type references**: `Vehicle` → `Bus` (in method parameters and return types)
+- ✅ **Interface definitions**: Update all contract methods to use Bus terminology
+
+**What to Keep (for compatibility):**
+- ❌ **Database columns**: Keep `VehicleID`, `VehicleNumber` for data compatibility
+- ❌ **Comments and documentation**: "vehicle" terminology is domain-appropriate
+- ❌ **Variable names**: Internal variables may use "vehicle" if needed
+- ❌ **Legacy data structures**: Keep existing database schema intact
+
+**Implementation Requirements:**
+1. **Mark deprecated methods** with `[Obsolete("Use Bus equivalent method")]`
+2. **Create Bus method aliases** for all Vehicle methods in repositories
+3. **Update business services** to use Bus terminology exclusively
+4. **Maintain backward compatibility** during transition period
+5. **Remove deprecated methods** after migration completion
+
+**Example Patterns:**
+```csharp
+// ❌ Deprecated - Mark with [Obsolete]
+[Obsolete("Use GetBusById instead")]
+public Vehicle GetVehicleById(int id) => GetBusById(id);
+
+// ✅ Current standard
+public Bus GetBusById(int id) { ... }
+
+// ✅ Interface contracts use Bus terminology
+public interface IBusService
+{
+    Task<Bus> GetBusAsync(int busId);
+    Task<List<Bus>> GetAllBusesAsync();
+}
+```
+
+**Enforcement Checklist:**
+- [ ] All new methods use Bus terminology
+- [ ] Legacy Vehicle methods marked `[Obsolete]`
+- [ ] Business services updated to Bus methods
+- [ ] Interface contracts use Bus terminology
+- [ ] Database compatibility maintained
+- [ ] Migration path documented for consumers
+
 #### 🧹 **Codebase Cleanup (Unneeded Code Review)**
 
 **Purpose**: Identify and remove or refactor obsolete/redundant code files due to project evolution, retaining useful code (e.g., 10% still relevant).

@@ -26,34 +26,34 @@ namespace BusBuddy.UI.Tests
         {
             _output.WriteLine("Starting complete route management workflow test...");
 
-            // 1. Create new vehicle
-            var vehicle = CreateTestVehicle("_RouteWorkflow");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
-            Assert.True(vehicleId > 0, "Vehicle creation should succeed");
-            _output.WriteLine($"✅ Created vehicle with ID: {vehicleId}");
+            // 1. Create new bus
+            var testBus = CreateTestVehicle("_RouteWorkflow");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
+            Assert.True(busId > 0, "Bus creation should succeed");
+            _output.WriteLine($"✅ Created Bus with ID: {busId}");
 
             // 2. Create new driver
             var driver = CreateTestDriver("_RouteWorkflow");
-            var driverId = DriverRepository.AddDriver(driver);
-            TestDriverIds.Add(driverId);
-            Assert.True(driverId > 0, "Driver creation should succeed");
-            _output.WriteLine($"✅ Created driver with ID: {driverId}");
+            var DriverId = DriverRepository.AddDriver(driver);
+            TestDriverIds.Add(DriverId);
+            Assert.True(DriverId > 0, "Driver creation should succeed");
+            _output.WriteLine($"✅ Created driver with ID: {DriverId}");
 
-            // 3. Validate vehicle and driver availability
-            var vehicleValidation = ValidationService.ValidateVehicleAvailability(vehicleId, DateTime.Today);
-            var driverValidation = ValidationService.ValidateDriverAvailability(driverId, DateTime.Today);
+            // 3. Validate Bus and driver availability
+            var vehicleValidation = ValidationService.ValidateBusAvailability(busId, DateTime.Today);
+            var driverValidation = ValidationService.ValidateDriverAvailability(DriverId, DateTime.Today);
 
-            Assert.True(vehicleValidation.IsValid, $"Vehicle should be available: {vehicleValidation.GetErrorMessage()}");
+            Assert.True(vehicleValidation.IsValid, $"Bus should be available: {vehicleValidation.GetErrorMessage()}");
             Assert.True(driverValidation.IsValid, $"Driver should be available: {driverValidation.GetErrorMessage()}");
-            _output.WriteLine("✅ Vehicle and driver availability validated");
+            _output.WriteLine("✅ Bus and driver availability validated");
 
             // 4. Create and assign route
-            var route = CreateTestRoute(vehicleId, driverId, "_RouteWorkflow");
-            var routeId = RouteRepository.AddRoute(route);
-            TestRouteIds.Add(routeId);
-            Assert.True(routeId > 0, "Route creation should succeed");
-            _output.WriteLine($"✅ Created route with ID: {routeId}");
+            var route = CreateTestRoute(busId, DriverId, "_RouteWorkflow");
+            var RouteId = RouteRepository.AddRoute(route);
+            TestRouteIds.Add(RouteId);
+            Assert.True(RouteId > 0, "Route creation should succeed");
+            _output.WriteLine($"✅ Created route with ID: {RouteId}");
 
             // 5. Validate route assignment
             var routeValidation = ValidationService.ValidateRouteAssignment(route);
@@ -69,15 +69,15 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("✅ Analytics report generated successfully");
 
             // 7. Validate data consistency
-            var retrievedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            var retrievedDriver = DriverRepository.GetDriverById(driverId);
-            var retrievedRoute = RouteRepository.GetRouteById(routeId);
+            var retrievedBus = BusRepository.GetBusById(busId);
+            var retrievedDriver = DriverRepository.GetDriverById(DriverId);
+            var retrievedRoute = RouteRepository.GetRouteById(RouteId);
 
-            Assert.NotNull(retrievedVehicle);
+            Assert.NotNull(retrievedBus);
             Assert.NotNull(retrievedDriver);
             Assert.NotNull(retrievedRoute);
-            Assert.Equal(vehicleId, retrievedRoute.AMVehicleID);
-            Assert.Equal(driverId, retrievedRoute.AMDriverID);
+            Assert.Equal(busId, retrievedRoute.AMbusId);
+            Assert.Equal(DriverId, retrievedRoute.AMDriverId);
 
             _output.WriteLine("✅ Data consistency validated");
             _output.WriteLine("🎉 Complete route management workflow test PASSED");
@@ -88,24 +88,24 @@ namespace BusBuddy.UI.Tests
         {
             _output.WriteLine("Starting maintenance scheduling workflow test...");
 
-            // 1. Create test vehicle
-            var vehicle = CreateTestVehicle("_MaintenanceWorkflow");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
-            _output.WriteLine($"✅ Created vehicle with ID: {vehicleId}");
+            // 1. Create test bus
+            var testBus = CreateTestVehicle("_MaintenanceWorkflow");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
+            _output.WriteLine($"✅ Created Bus with ID: {busId}");
 
-            // 2. Vehicle health monitoring (simulate by checking availability)
-            var healthCheck = ValidationService.ValidateVehicleAvailability(vehicleId, DateTime.Today);
-            Assert.True(healthCheck.IsValid, "Vehicle should be healthy and available");
-            _output.WriteLine("✅ Vehicle health check passed");
+            // 2. Bus health monitoring (simulate by checking availability)
+            var healthCheck = ValidationService.ValidateBusAvailability(busId, DateTime.Today);
+            Assert.True(healthCheck.IsValid, "Bus should be healthy and available");
+            _output.WriteLine("✅ Bus health check passed");
 
             // 3. Create maintenance record (scheduled)
             var maintenance = new Maintenance
             {
-                VehicleID = vehicleId,
+                busId = busId,
                 Date = DateTime.Today.AddDays(7).ToString("yyyy-MM-dd"),
                 MaintenanceCompleted = "SCHEDULED - Oil change and inspection",
-                Notes = "SCHEDULED maintenance for vehicle health",
+                Notes = "SCHEDULED maintenance for Bus health",
                 RepairCost = 150.00m,
                 OdometerReading = 50000
             };
@@ -120,14 +120,14 @@ namespace BusBuddy.UI.Tests
             Assert.True(maintenanceValidation.IsValid, $"Maintenance record should be valid: {maintenanceValidation.GetErrorMessage()}");
             _output.WriteLine("✅ Maintenance record validated");
 
-            // 5. Check vehicle availability during maintenance period
+            // 5. Check Bus availability during maintenance period
             var maintenanceDate = DateTime.Today.AddDays(7);
-            var availabilityCheck = ValidationService.ValidateVehicleAvailability(vehicleId, maintenanceDate);
+            var availabilityCheck = ValidationService.ValidateBusAvailability(busId, maintenanceDate);
 
             // Should fail due to scheduled maintenance
-            Assert.False(availabilityCheck.IsValid, "Vehicle should not be available during scheduled maintenance");
+            Assert.False(availabilityCheck.IsValid, "Bus should not be available during scheduled maintenance");
             Assert.Contains("scheduled maintenance", availabilityCheck.GetErrorMessage().ToLower());
-            _output.WriteLine("✅ Vehicle unavailability during maintenance validated");
+            _output.WriteLine("✅ Bus unavailability during maintenance validated");
 
             // 6. Complete work order (update maintenance record)
             maintenance.MaintenanceCompleted = "COMPLETED - Oil changed, inspection passed";
@@ -136,11 +136,11 @@ namespace BusBuddy.UI.Tests
             Assert.True(updateResult, "Maintenance completion update should succeed");
             _output.WriteLine("✅ Maintenance work order completed");
 
-            // 7. Update vehicle status (if needed)
-            var updatedVehicle = VehicleRepository.GetVehicleById(vehicleId);
-            Assert.NotNull(updatedVehicle);
-            Assert.Equal("Active", updatedVehicle.Status);
-            _output.WriteLine("✅ Vehicle status confirmed as active");
+            // 7. Update Bus status (if needed)
+            var updatedBus = BusRepository.GetBusById(busId);
+            Assert.NotNull(updatedBus);
+            Assert.Equal("Active", updatedBus.Status);
+            _output.WriteLine("✅ Bus status confirmed as active");
 
             _output.WriteLine("🎉 Maintenance scheduling workflow test PASSED");
         }
@@ -156,28 +156,28 @@ namespace BusBuddy.UI.Tests
 
             // 1. Create test driver
             var driver = CreateTestDriver("_PerformanceWorkflow");
-            var driverId = DriverRepository.AddDriver(driver);
-            TestDriverIds.Add(driverId);
-            _output.WriteLine($"✅ Created driver with ID: {driverId}");
+            var DriverId = DriverRepository.AddDriver(driver);
+            TestDriverIds.Add(DriverId);
+            _output.WriteLine($"✅ Created driver with ID: {DriverId}");
 
-            // 2. Create test vehicle
-            var vehicle = CreateTestVehicle("_PerformanceWorkflow");
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            TestVehicleIds.Add(vehicleId);
-            _output.WriteLine($"✅ Created vehicle with ID: {vehicleId}");
+            // 2. Create test bus
+            var testBus = CreateTestVehicle("_PerformanceWorkflow");
+            var busId = BusRepository.AddBus(bus);
+            TestbusIds.Add(busId);
+            _output.WriteLine($"✅ Created Bus with ID: {busId}");
 
             // 3. Create multiple routes for performance analysis
             for (int i = 0; i < 3; i++)
             {
-                var route = CreateTestRoute(vehicleId, driverId, $"_Performance_{i}");
+                var route = CreateTestRoute(busId, DriverId, $"_Performance_{i}");
                 route.Date = DateTime.Today.AddDays(-i).ToString("yyyy-MM-dd");
                 route.AMBeginMiles = 1000 + (i * 50);
                 route.AMEndMiles = 1050 + (i * 50);
                 route.AMRiders = 20 + i;
 
-                var routeId = RouteRepository.AddRoute(route);
-                TestRouteIds.Add(routeId);
-                _output.WriteLine($"✅ Created performance route {i + 1} with ID: {routeId}");
+                var RouteId = RouteRepository.AddRoute(route);
+                TestRouteIds.Add(RouteId);
+                _output.WriteLine($"✅ Created performance route {i + 1} with ID: {RouteId}");
             }
 
             // 4. Generate driver performance metrics
@@ -186,11 +186,11 @@ namespace BusBuddy.UI.Tests
 
             try
             {
-                var performance = await AnalyticsService.CalculateDriverPerformanceAsync(driverId, startDate, endDate);
+                var performance = await AnalyticsService.CalculateDriverPerformanceAsync(DriverId, startDate, endDate);
 
                 if (performance != null)
                 {
-                    Assert.Equal(driverId, performance.DriverId);
+                    Assert.Equal(DriverId, performance.DriverId);
                     Assert.True(performance.TotalRoutes >= 0);
                     Assert.True(performance.TotalMiles >= 0);
                     _output.WriteLine($"✅ Driver performance calculated: {performance.TotalRoutes} routes, {performance.TotalMiles} miles");
@@ -206,9 +206,9 @@ namespace BusBuddy.UI.Tests
             }
 
             // 5. Validate driver data consistency
-            var retrievedDriver = DriverRepository.GetDriverById(driverId);
+            var retrievedDriver = DriverRepository.GetDriverById(DriverId);
             Assert.NotNull(retrievedDriver);
-            Assert.Equal(driver.DriverName, retrievedDriver.DriverName);
+            Assert.Equal(driver.Name, retrievedDriver.Name);
             Assert.Equal("Active", retrievedDriver.Status);
 
             _output.WriteLine("✅ Driver data consistency validated");
@@ -225,20 +225,20 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("Starting data integrity across operations test...");
 
             // 1. Create baseline data
-            var vehicle = CreateTestVehicle("_IntegrityTest");
+            var testBus = CreateTestVehicle("_IntegrityTest");
             var driver = CreateTestDriver("_IntegrityTest");
 
-            var vehicleId = VehicleRepository.AddVehicle(vehicle);
-            var driverId = DriverRepository.AddDriver(driver);
+            var busId = BusRepository.AddBus(bus);
+            var DriverId = DriverRepository.AddDriver(driver);
 
-            TestVehicleIds.Add(vehicleId);
-            TestDriverIds.Add(driverId);
+            TestbusIds.Add(busId);
+            TestDriverIds.Add(DriverId);
 
-            _output.WriteLine($"✅ Created baseline data: Vehicle {vehicleId}, Driver {driverId}");
+            _output.WriteLine($"✅ Created baseline data: Bus {busId}, Driver {DriverId}");
 
             // 2. Perform multiple operations
-            var route1 = CreateTestRoute(vehicleId, driverId, "_Integrity1");
-            var route2 = CreateTestRoute(vehicleId, driverId, "_Integrity2");
+            var route1 = CreateTestRoute(busId, DriverId, "_Integrity1");
+            var route2 = CreateTestRoute(busId, DriverId, "_Integrity2");
             route2.Date = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
 
             var routeId1 = RouteRepository.AddRoute(route1);
@@ -255,10 +255,10 @@ namespace BusBuddy.UI.Tests
 
             Assert.NotNull(retrievedRoute1);
             Assert.NotNull(retrievedRoute2);
-            Assert.Equal(vehicleId, retrievedRoute1.AMVehicleID);
-            Assert.Equal(vehicleId, retrievedRoute2.AMVehicleID);
-            Assert.Equal(driverId, retrievedRoute1.AMDriverID);
-            Assert.Equal(driverId, retrievedRoute2.AMDriverID);
+            Assert.Equal(busId, retrievedRoute1.AMbusId);
+            Assert.Equal(busId, retrievedRoute2.AMbusId);
+            Assert.Equal(DriverId, retrievedRoute1.AMDriverId);
+            Assert.Equal(DriverId, retrievedRoute2.AMDriverId);
 
             _output.WriteLine("✅ Referential integrity validated");
 
@@ -272,13 +272,13 @@ namespace BusBuddy.UI.Tests
             _output.WriteLine("✅ Cascading validation passed");
 
             // 5. Update operations and revalidate
-            vehicle.Status = "Out of Service";
-            var updateResult = VehicleRepository.UpdateVehicle(vehicle);
-            Assert.True(updateResult, "Vehicle update should succeed");
+            bus.Status = "Out of Service";
+            var updateResult = BusRepository.UpdateBus(bus);
+            Assert.True(updateResult, "Bus update should succeed");
 
-            // Vehicle should now be unavailable for new assignments
-            var availabilityCheck = ValidationService.ValidateVehicleAvailability(vehicleId, DateTime.Today);
-            Assert.False(availabilityCheck.IsValid, "Vehicle out of service should be unavailable");
+            // Bus should now be unavailable for new assignments
+            var availabilityCheck = ValidationService.ValidateBusAvailability(busId, DateTime.Today);
+            Assert.False(availabilityCheck.IsValid, "Bus out of service should be unavailable");
 
             _output.WriteLine("✅ Update operations and validation consistency verified");
             _output.WriteLine("🎉 Data integrity across operations test PASSED");
@@ -287,3 +287,5 @@ namespace BusBuddy.UI.Tests
         #endregion
     }
 }
+
+

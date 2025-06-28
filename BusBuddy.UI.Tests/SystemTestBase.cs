@@ -14,7 +14,7 @@ namespace BusBuddy.UI.Tests
     /// </summary>
     public abstract class SystemTestBase : IDisposable
     {
-        protected readonly IVehicleRepository VehicleRepository;
+        protected readonly BusRepository busRepository;
         protected readonly IDriverRepository DriverRepository;
         protected readonly IRouteRepository RouteRepository;
         protected readonly IMaintenanceRepository MaintenanceRepository;
@@ -22,25 +22,24 @@ namespace BusBuddy.UI.Tests
         protected readonly ValidationService ValidationService;
         protected readonly RouteAnalyticsService AnalyticsService;
 
-        protected readonly List<int> TestVehicleIds;
+        protected readonly List<int> TestbusIds;
         protected readonly List<int> TestDriverIds;
         protected readonly List<int> TestRouteIds;
 
         protected SystemTestBase()
         {
             // Initialize test database before creating repositories
-            TestDatabaseInitializer.EnsureTestDatabaseExists();
+            SimpleDatabaseCheck.CheckAndFixDatabaseAsync().GetAwaiter().GetResult();
 
             // Initialize repositories with proper test database context
-            VehicleRepository = new VehicleRepository();
+            BusRepository = new BusRepository();
             DriverRepository = new DriverRepository();
             RouteRepository = new RouteRepository();
             MaintenanceRepository = new MaintenanceRepository();
             FuelRepository = new FuelRepository();
 
             // Initialize services
-            ValidationService = new ValidationService(
-                VehicleRepository,
+            ValidationService = new ValidationService(busRepository,
                 DriverRepository,
                 RouteRepository,
                 MaintenanceRepository,
@@ -48,28 +47,27 @@ namespace BusBuddy.UI.Tests
 
             AnalyticsService = new RouteAnalyticsService(
                 RouteRepository,
-                VehicleRepository,
+                BusRepository,
                 DriverRepository);
 
             // Track test data for cleanup
-            TestVehicleIds = new List<int>();
+            TestbusIds = new List<int>();
             TestDriverIds = new List<int>();
             TestRouteIds = new List<int>();
         }
 
-        protected Vehicle CreateTestVehicle(string suffix = "")
+        protected Bus CreateTestVehicle(string suffix = "")
         {
             var timestamp = DateTime.Now.Ticks;
-            return new Vehicle
-            {
-                VehicleNumber = $"TEST{timestamp}{suffix}",
+            return new Bus {
+                BusNumber = $"TEST{timestamp}{suffix}",
                 Make = "Test Make",
                 Model = "Test Model",
                 Year = 2020,
                 SeatingCapacity = 72,
                 FuelType = "Diesel",
                 Status = "Active",
-                VINNumber = $"VIN{timestamp}",
+                VIN = $"VIN{timestamp}",
                 LicenseNumber = $"LIC{timestamp}"
             };
         }
@@ -81,25 +79,25 @@ namespace BusBuddy.UI.Tests
             {
                 FirstName = "Test",
                 LastName = $"Driver{timestamp}{suffix}",
-                DriverName = $"Test Driver{timestamp}{suffix}",
+                Name = $"Test Driver{timestamp}{suffix}",
                 DriversLicenseType = "CDL",
                 Status = "Active",
                 DriverPhone = "555-0123",
                 DriverEmail = $"test{timestamp}@example.com",
                 CDLExpirationDate = DateTime.Today.AddYears(2),
-                TrainingComplete = 1
+                IsTrainingComplete = true
             };
         }
 
-        protected Route CreateTestRoute(int? vehicleId = null, int? driverId = null, string suffix = "")
+        protected Route CreateTestRoute(int? busId = null, int? DriverId = null, string suffix = "")
         {
             var timestamp = DateTime.Now.Ticks;
             return new Route
             {
                 RouteName = $"TestRoute{timestamp}{suffix}",
                 Date = DateTime.Today.ToString("yyyy-MM-dd"),
-                AMVehicleID = vehicleId,
-                AMDriverID = driverId,
+                AMbusId = busId,
+                AMDriverId = DriverId,
                 AMBeginMiles = 1000,
                 AMEndMiles = 1050,
                 AMRiders = 25,
@@ -115,9 +113,9 @@ namespace BusBuddy.UI.Tests
                 try { RouteRepository.DeleteRoute(id); } catch { }
             }
 
-            foreach (var id in TestVehicleIds)
+            foreach (var id in TestbusIds)
             {
-                try { VehicleRepository.DeleteVehicle(id); } catch { }
+                try { BusRepository.DeleteBus(id); } catch { }
             }
 
             foreach (var id in TestDriverIds)
@@ -127,3 +125,5 @@ namespace BusBuddy.UI.Tests
         }
     }
 }
+
+

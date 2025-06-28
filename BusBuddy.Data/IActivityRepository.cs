@@ -9,10 +9,11 @@ namespace BusBuddy.Data
         List<Activity> GetAllActivities();
         Activity GetActivityById(int id);
         List<Activity> GetActivitiesByDate(DateTime date);
-        List<Activity> GetActivitiesByDriver(int driverId);
-        List<Activity> GetActivitiesByVehicle(int vehicleId);
+        List<Activity> GetActivitiesByDriver(int DriverId);
+        List<Activity> GetActivitiesByBus(int busId);
         int AddActivity(Activity activity);
         bool UpdateActivity(Activity activity);
         bool DeleteActivity(int id);
     }
 }
+

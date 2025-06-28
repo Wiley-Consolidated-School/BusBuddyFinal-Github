@@ -145,3 +145,4 @@ namespace BusBuddy.UI.Services
         public decimal Rate { get; set; }
     }
 }
+

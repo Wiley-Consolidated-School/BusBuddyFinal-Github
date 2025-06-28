@@ -161,7 +161,7 @@ namespace BusBuddy.Data
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Vehicles' AND xtype='U')
                 CREATE TABLE Vehicles (
                     Id int IDENTITY(1,1) PRIMARY KEY,
-                    VehicleNumber nvarchar(50) NOT NULL,
+                    BusNumber nvarchar(50) NOT NULL,
                     Make nvarchar(50),
                     Model nvarchar(50),
                     Year int,
@@ -170,13 +170,13 @@ namespace BusBuddy.Data
                     Status nvarchar(20),
                     VINNumber nvarchar(50),
                     LicenseNumber nvarchar(20),
-                    DateLastInspection datetime
+                    LastInspectionDate datetime
                 );
 
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Drivers' AND xtype='U')
                 CREATE TABLE Drivers (
-                    DriverID int IDENTITY(1,1) PRIMARY KEY,
-                    DriverName nvarchar(100),
+                    DriverId int IDENTITY(1,1) PRIMARY KEY,
+                    Name nvarchar(100),
                     DriverPhone nvarchar(20),
                     DriverEmail nvarchar(100),
                     Address nvarchar(200),
@@ -184,7 +184,7 @@ namespace BusBuddy.Data
                     State nvarchar(2),
                     Zip nvarchar(10),
                     DriversLicenseType nvarchar(10),
-                    TrainingComplete int NOT NULL DEFAULT 0,
+                    IsTrainingComplete int NOT NULL DEFAULT 0,
                     Notes nvarchar(max),
                     Status nvarchar(50),
                     FirstName nvarchar(100),
@@ -202,12 +202,12 @@ namespace BusBuddy.Data
                     EventTime nvarchar(10),
                     RequestedBy nvarchar(100),
                     AssignedVehicleID int,
-                    DriverID int
+                    DriverId int
                 );
 
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Routes' AND xtype='U')
                 CREATE TABLE Routes (
-                    RouteID int IDENTITY(1,1) PRIMARY KEY,
+                    RouteId int IDENTITY(1,1) PRIMARY KEY,
                     RouteName nvarchar(100),
                     StartLocation nvarchar(200),
                     EndLocation nvarchar(200),
@@ -233,7 +233,7 @@ namespace BusBuddy.Data
                 CREATE TABLE Maintenance (
                     MaintenanceID int IDENTITY(1,1) PRIMARY KEY,
                     Date datetime,
-                    VehicleID int,
+                    BusId int,
                     OdometerReading float,
                     MaintenanceCompleted nvarchar(max),
                     Vendor nvarchar(100),
@@ -288,3 +288,4 @@ namespace BusBuddy.Data
         }
     }
 }
+

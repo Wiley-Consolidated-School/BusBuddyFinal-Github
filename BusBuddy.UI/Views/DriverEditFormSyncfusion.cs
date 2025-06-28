@@ -221,7 +221,7 @@ namespace BusBuddy.UI.Views
         {
             return new Driver
             {
-                DriverID = Driver?.DriverID ?? 0,
+                DriverId = Driver?.DriverId ?? 0,
                 FirstName = _firstNameTextBox.Text.Trim(),
                 LastName = _lastNameTextBox.Text.Trim(),
                 DriverPhone = _phoneTextBox.Text.Trim(),
@@ -274,3 +274,4 @@ namespace BusBuddy.UI.Views
         #endregion
     }
 }
+

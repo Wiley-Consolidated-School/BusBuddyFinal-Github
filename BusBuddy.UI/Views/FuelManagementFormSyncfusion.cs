@@ -4,13 +4,13 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using Syncfusion.WinForms.DataGrid;
-using Syncfusion.WinForms.DataGrid.Events;
 using Syncfusion.WinForms.DataGrid.Enums;
+using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
 {
@@ -22,19 +22,19 @@ namespace BusBuddy.UI.Views
     public class FuelManagementFormSyncfusion : BaseManagementForm<Fuel>
     {
         private readonly FuelRepository _fuelRepository;
-        private readonly VehicleRepository _vehicleRepository;
-        private List<Vehicle> _vehicles = new();
+        private readonly BusRepository _busRepository;
+        private List<Bus> _buses = new();
         #region Properties Override
         protected override string FormTitle => "⛽ Fuel Management";
         protected override string SearchPlaceholder => "Search fuels...";
         protected override string EntityName => "Fuel";
         #region Constructors
-        public FuelManagementFormSyncfusion() : this(new FuelRepository(), new VehicleRepository()) { }
+        public FuelManagementFormSyncfusion() : this(new FuelRepository(), new BusRepository()) { }
 
-        public FuelManagementFormSyncfusion(FuelRepository fuelRepository, VehicleRepository vehicleRepository)
+        public FuelManagementFormSyncfusion(FuelRepository fuelRepository, BusRepository busRepository)
         {
             _fuelRepository = fuelRepository ?? throw new ArgumentNullException(nameof(fuelRepository));
-            _vehicleRepository = vehicleRepository ?? throw new ArgumentNullException(nameof(vehicleRepository));
+            _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
             // NOTE: LoadData() and LoadVehicles() are called by the base class after all controls are initialized
         }
         #region Base Implementation Override
@@ -42,7 +42,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                // Load vehicles first for dropdowns/lookups
+                // Load buses first for dropdowns/lookups
                 LoadVehicles();
 
                 var fuelRecords = _fuelRepository.GetAllFuelRecords();
@@ -201,7 +201,7 @@ namespace BusBuddy.UI.Views
                 new { Name = "FuelID", Header = "ID", Width = 60, Visible = false },
                 new { Name = "FuelDate", Header = "📅 Date", Width = 120, Visible = true },
                 new { Name = "FuelLocation", Header = "📍 Location", Width = 150, Visible = true },
-                new { Name = "VehicleNumber", Header = "🚐 Vehicle", Width = 120, Visible = true },
+                new { Name = "BusNumber", Header = "🚐 Vehicle", Width = 120, Visible = true },
                 new { Name = "GallonsPurchased", Header = "⛽ Gallons", Width = 100, Visible = true },
                 new { Name = "FuelCost", Header = "💰 Cost", Width = 100, Visible = true },
                 new { Name = "OdometerReading", Header = "📊 Odometer", Width = 120, Visible = true },
@@ -227,14 +227,14 @@ namespace BusBuddy.UI.Views
             try
             {
                 // Defensive programming: Handle null repository results
-                var vehicles = _vehicleRepository.GetAllVehicles();
-                _vehicles = vehicles?.ToList() ?? new List<Vehicle>();
-                Console.WriteLine($"✅ Loaded {_vehicles.Count} vehicles for fuel management");
+                var buses = _busRepository.GetAllBuses();
+                _buses = buses?.ToList() ?? new List<Bus>();
+                Console.WriteLine($"✅ Loaded {_buses.Count} buses for fuel management");
             }
             catch (Exception ex)
             {
                 // Ensure collection is never null even on error
-                _vehicles = new List<Vehicle>();
+                _buses = new List<Bus>();
                 HandleError($"Error loading vehicles: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
@@ -256,7 +256,7 @@ namespace BusBuddy.UI.Views
                     FuelID = f.FuelID,
                     FuelDate = f.FuelDate?.ToString() ?? "Unknown",
                     FuelLocation = f.FuelLocation ?? "Unknown",
-                    VehicleNumber = GetVehicleNumber(f.VehicleFueledID),
+                    BusNumber = GetVehicleNumber(f.VehicleFueledID),
                     GallonsPurchased = f.FuelAmount?.ToString("F2") ?? "0.00",
                     FuelCost = f.FuelCost?.ToString("C") ?? "$0.00",
                     OdometerReading = f.VehicleOdometerReading?.ToString("N0") ?? "0",
@@ -271,20 +271,22 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private string GetVehicleNumber(int? vehicleId)
+        private string GetVehicleNumber(int? BusId)
         {
-            if (!vehicleId.HasValue) return "Unknown";
+            if (!BusId.HasValue) return "Unknown";
 
-            var vehicle = _vehicles.FirstOrDefault(v => v.Id == vehicleId.Value);
-            return vehicle?.VehicleNumber?.ToString() ?? "Unknown";        }
+            var bus = _buses.FirstOrDefault(v => v.BusId == BusId.Value);
+            return bus?.BusNumber?.ToString() ?? "Unknown";
+        }
 
     }
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 }
+

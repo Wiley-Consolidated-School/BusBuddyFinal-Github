@@ -86,8 +86,8 @@ namespace BusBuddy.UI.Views
             // Return mock data for testing to avoid database calls
             return new List<Driver>
             {
-                new Driver { DriverID = 1, FirstName = "Test", LastName = "Driver1", DriverName = "Test Driver1" },
-                new Driver { DriverID = 2, FirstName = "Test", LastName = "Driver2", DriverName = "Test Driver2" }
+                new Driver { DriverId = 1, FirstName = "Test", LastName = "Driver1", Name = "Test Driver1" },
+                new Driver { DriverId = 2, FirstName = "Test", LastName = "Driver2", Name = "Test Driver2" }
             };
         }
 
@@ -143,7 +143,7 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                _driverRepository.DeleteDriver(selectedDriver.DriverID);
+                _driverRepository.DeleteDriver(selectedDriver.DriverId);
                 RefreshGrid();
                 ShowInfo("Driver deleted successfully.");
             }
@@ -165,8 +165,8 @@ namespace BusBuddy.UI.Views
             try
             {
                 var details = $"Driver Details:\n\n" +
-                            $"ID: {selectedDriver.DriverID}\n" +
-                            $"Name: {selectedDriver.DriverName}\n" +
+                            $"ID: {selectedDriver.DriverId}\n" +
+                            $"Name: {selectedDriver.Name}\n" +
                             $"Phone: {selectedDriver.DriverPhone}\n" +
                             $"Email: {selectedDriver.DriverEmail}\n" +
                             $"Address: {selectedDriver.Address}\n" +
@@ -203,7 +203,7 @@ namespace BusBuddy.UI.Views
                 }
 
                 var filteredDrivers = _entities.Where(d =>
-                    (d.DriverName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+                    (d.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (d.DriverPhone?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (d.DriverEmail?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (d.DriversLicenseType?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
@@ -225,14 +225,14 @@ namespace BusBuddy.UI.Views
             _dataGrid.AutoGenerateColumns = false;
             _dataGrid.Columns.Clear();
 
-            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "DriverID", HeaderText = "ID", Visible = false });
-            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "DriverName", HeaderText = "Name", Width = GetDpiAwareWidth(150) });
+            _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "DriverId", HeaderText = "ID", Visible = false });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Name", HeaderText = "Name", Width = GetDpiAwareWidth(150) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "DriverPhone", HeaderText = "Phone", Width = GetDpiAwareWidth(120) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "DriverEmail", HeaderText = "Email", Width = GetDpiAwareWidth(180) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "City", HeaderText = "City", Width = GetDpiAwareWidth(100) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "State", HeaderText = "State", Width = GetDpiAwareWidth(80) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "DriversLicenseType", HeaderText = "License Type", Width = GetDpiAwareWidth(120) });
-            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "TrainingComplete", HeaderText = "Training", Width = GetDpiAwareWidth(100) });
+            _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "IsTrainingComplete", HeaderText = "Training", Width = GetDpiAwareWidth(100) });
 
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
@@ -251,14 +251,14 @@ namespace BusBuddy.UI.Views
 
                 var driverData = _entities.Select(d => new
                 {
-                    DriverID = d.DriverID,
-                    DriverName = d.DriverName ?? "Unknown",
+                    DriverId = d.DriverId,
+                    Name = d.Name ?? "Unknown",
                     DriverPhone = d.DriverPhone ?? "Unknown",
                     DriverEmail = d.DriverEmail ?? "Unknown",
                     City = d.City ?? "Unknown",
                     State = d.State ?? "Unknown",
                     DriversLicenseType = d.DriversLicenseType ?? "Unknown",
-                    TrainingComplete = d.IsTrainingComplete ? "Yes" : "No"
+                    IsTrainingComplete = d.IsTrainingComplete ? "Yes" : "No"
                 }).ToList();
 
                 _dataGrid.DataSource = driverData;
@@ -276,3 +276,4 @@ namespace BusBuddy.UI.Views
 
         #endregion
 }
+

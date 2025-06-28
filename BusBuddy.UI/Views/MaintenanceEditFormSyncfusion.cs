@@ -31,7 +31,7 @@ namespace BusBuddy.UI.Views
             Maintenance = maintenance != null ? new Maintenance
             {
                 MaintenanceID = maintenance.MaintenanceID,
-                VehicleID = maintenance.VehicleID,
+                BusId = maintenance.BusId,
                 MaintenanceCompleted = maintenance.MaintenanceCompleted,
                 Date = maintenance.Date,
                 Vendor = maintenance.Vendor,
@@ -66,9 +66,9 @@ namespace BusBuddy.UI.Views
             int controlX = 150;
             int spacing = 60;
             int controlWidth = 280;            // Vehicle
-            var lblVehicle = ControlFactory.CreateLabel("🚌 Vehicle:");
-            lblVehicle.Location = new Point(labelX, y);
-            this.Controls.Add(lblVehicle);
+            var lblBus = ControlFactory.CreateLabel("🚌 Vehicle:");
+            lblBus.Location = new Point(labelX, y);
+            this.Controls.Add(lblBus);
             cboVehicle = ControlFactory.CreateComboBox();
             cboVehicle.Location = new Point(controlX, y);
             cboVehicle.Size = new Size(controlWidth, 30);
@@ -186,10 +186,10 @@ namespace BusBuddy.UI.Views
                 cboVehicle.Items.Add("Vehicle 4 - Bus #004");
                 cboVehicle.Items.Add("Vehicle 5 - Bus #005");
 
-                // For demonstration, map VehicleID to display text
-                if (Maintenance.VehicleID.HasValue)
+                // For demonstration, map BusId to display text
+                if (Maintenance.BusId.HasValue)
                 {
-                    var vehicleIndex = Maintenance.VehicleID.Value - 1;
+                    var vehicleIndex = Maintenance.BusId.Value - 1;
                     if (vehicleIndex >= 0 && vehicleIndex < cboVehicle.Items.Count)
                     {
                         cboVehicle.SelectedIndex = vehicleIndex;
@@ -223,7 +223,7 @@ namespace BusBuddy.UI.Views
 
             // Extract vehicle ID from selection (in real implementation,
             // this would get the actual vehicle ID)
-            Maintenance.VehicleID = cboVehicle.SelectedIndex + 1;
+            Maintenance.BusId = cboVehicle.SelectedIndex + 1;
             Maintenance.MaintenanceCompleted = txtMaintenanceCompleted.Text.Trim();
             Maintenance.DateAsDateTime = dtpDate.Value;
             Maintenance.Vendor = txtVendor.Text.Trim();
@@ -299,3 +299,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

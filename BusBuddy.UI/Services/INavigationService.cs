@@ -11,7 +11,7 @@ namespace BusBuddy.UI.Services
     /// </summary>
     public interface INavigationService
     {
-        void ShowVehicleManagement();
+        void ShowBusManagement();
         void ShowDriverManagement();
         void ShowRouteManagement();
         void ShowActivityManagement();
@@ -47,3 +47,4 @@ namespace BusBuddy.UI.Services
         DialogResult ShowDialog<T>(params object[] parameters) where T : Form;
     }
 }
+
