@@ -2,6 +2,7 @@ using System;
 using System.Data.Common;
 using BusBuddy.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace BusBuddy.Data
 {
@@ -9,6 +10,7 @@ namespace BusBuddy.Data
     public class BusBuddyContext : DbContext, IDisposable
     {
         private readonly DbConnection? _connection;
+        private static bool _hasAttemptedRepair = false;
 
         // Parameterless constructor for EF Core
         public BusBuddyContext() : base()
@@ -46,7 +48,13 @@ namespace BusBuddy.Data
                     var provider = DatabaseConfiguration.DatabaseProvider;
                     if (provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
                     {
-                        optionsBuilder.UseSqlServer(_connection);
+                        optionsBuilder.UseSqlServer(_connection, options =>
+                        {
+                            options.EnableRetryOnFailure(
+                                maxRetryCount: 5,
+                                maxRetryDelay: TimeSpan.FromSeconds(5),
+                                errorNumbersToAdd: null);
+                        });
                     }
                     else
                     {
@@ -64,17 +72,65 @@ namespace BusBuddy.Data
                         // Always use SQL Server
                         if (provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
                         {
-                            optionsBuilder.UseSqlServer(connectionString);
+                            optionsBuilder.UseSqlServer(connectionString, options =>
+                            {
+                                options.EnableRetryOnFailure(
+                                    maxRetryCount: 5,
+                                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                                    errorNumbersToAdd: null);
+                            });
                         }
                         else
                         {
                             throw new NotSupportedException($"Database provider '{provider}' is not supported. Only SqlServer is supported.");
                         }
-                    }                    catch
+                    }
+                    catch (Exception ex)
                     {
-                        // Fallback to SQL Server Express with correct server name and database
-                        var defaultConnectionString = "Server=ST-LPTP9-23\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;";
-                        optionsBuilder.UseSqlServer(defaultConnectionString);
+                        Console.WriteLine($"Error configuring database: {ex.Message}");
+
+                        // Check if the error indicates a database offline issue
+                        bool isDatabaseOffline = ex.Message.Contains("offline") ||
+                                               ex.Message.Contains("database is not accessible") ||
+                                               ex.Message.Contains("Cannot open database");
+
+                        if (isDatabaseOffline && !_hasAttemptedRepair)
+                        {
+                            _hasAttemptedRepair = true;
+                            Console.WriteLine("Database appears to be offline. Attempting to repair...");
+
+                            try
+                            {
+                                // Run repair asynchronously but wait for it to complete before continuing
+                                Task.Run(async () => await DatabaseRepair.RepairDatabaseAsync()).Wait();
+
+                                // Try again with the original connection string
+                                var connectionString = DatabaseConfiguration.GetConnectionString();
+                                Console.WriteLine($"Retry with connection string after repair: {connectionString}");
+                                optionsBuilder.UseSqlServer(connectionString, options =>
+                                {
+                                    options.EnableRetryOnFailure(
+                                        maxRetryCount: 3,
+                                        maxRetryDelay: TimeSpan.FromSeconds(2),
+                                        errorNumbersToAdd: null);
+                                });
+                            }
+                            catch (Exception repairEx)
+                            {
+                                Console.WriteLine($"Database repair failed: {repairEx.Message}");
+                                // Fall back to default connection
+                                var defaultConnectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=30;Integrated Security=True;";
+                                Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
+                                optionsBuilder.UseSqlServer(defaultConnectionString);
+                            }
+                        }
+                        else
+                        {
+                            // Fallback to SQL Server Express with local server name and database
+                            var defaultConnectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=30;Integrated Security=True;";
+                            Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
+                            optionsBuilder.UseSqlServer(defaultConnectionString);
+                        }
                     }
                 }
             }
@@ -97,70 +153,76 @@ namespace BusBuddy.Data
             modelBuilder.Entity<Route>().HasKey(r => r.RouteID);
             modelBuilder.Entity<Activity>().HasKey(a => a.ActivityID);
 
-            // Configure Vehicle entity mappings
-            modelBuilder.Entity<Vehicle>()
-                .Property(v => v.Capacity)
-                .HasColumnName("SeatingCapacity");
-
-            // Configure concurrency token
-            modelBuilder.Entity<Vehicle>()
-                .Property(v => v.RowVersion)
-                .IsRowVersion();
-
-            // Ignore computed properties that are just wrappers
-            modelBuilder.Entity<Vehicle>()
-                .Ignore(v => v.SeatingCapacity);
-
-            modelBuilder.Entity<Vehicle>()
-                .Ignore(v => v.Id);
-
-            // Map the BusNumber property - it's stored separately but can fall back to VehicleNumber
-            modelBuilder.Entity<Vehicle>()
-                .Property(v => v.BusNumber)
-                .HasColumnName("BusNumber");
-
-            // Configure foreign key relationship for Fuel entity
-            modelBuilder.Entity<Fuel>()
-                .HasOne(f => f.VehicleFueled)
+            // Configure relationships between entities
+            modelBuilder.Entity<Route>()
+                .HasOne<Vehicle>()
                 .WithMany()
-                .HasForeignKey(f => f.VehicleFueledID);
-
-            // Ignore computed DateTime helper properties that shouldn't be mapped to database columns
-            modelBuilder.Entity<Activity>()
-                .Ignore(a => a.DateAsDateTime)
-                .Ignore(a => a.LeaveTimeSpan)
-                .Ignore(a => a.EventTimeSpan)
-                .Ignore(a => a.ReturnTimeSpan);
-
-            modelBuilder.Entity<ActivitySchedule>()
-                .Ignore(a => a.DateAsDateTime);
+                .HasForeignKey(r => r.AMVehicleID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Route>()
-                .Ignore(r => r.DateAsDateTime);
+                .HasOne<Vehicle>()
+                .WithMany()
+                .HasForeignKey(r => r.PMVehicleID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Fuel>()
-                .Ignore(f => f.FuelDateAsDateTime);
+            modelBuilder.Entity<Route>()
+                .HasOne<Driver>()
+                .WithMany()
+                .HasForeignKey(r => r.AMDriverID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Route>()
+                .HasOne<Driver>()
+                .WithMany()
+                .HasForeignKey(r => r.PMDriverID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Maintenance>()
-                .Ignore(m => m.DateAsDateTime);
+                .HasOne<Vehicle>()
+                .WithMany()
+                .HasForeignKey(m => m.VehicleID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<SchoolCalendar>()
-                .Ignore(s => s.DateAsDateTime)
-                .Ignore(s => s.EndDateAsDateTime);
+            modelBuilder.Entity<Fuel>()
+                .HasOne<Vehicle>()
+                .WithMany()
+                .HasForeignKey(f => f.VehicleFueledID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Vehicle>()
-                .Ignore(v => v.DateLastInspectionAsDateTime);
+            modelBuilder.Entity<ActivitySchedule>()
+                .HasOne<Vehicle>()
+                .WithMany()
+                .HasForeignKey(a => a.ScheduledVehicleID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure Driver computed property
-            modelBuilder.Entity<Driver>()
-                .Ignore(d => d.Name)
-                .Ignore(d => d.IsTrainingComplete);
-        }
+            modelBuilder.Entity<ActivitySchedule>()
+                .HasOne<Driver>()
+                .WithMany()
+                .HasForeignKey(a => a.ScheduledDriverID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
-        public new void Dispose()
-        {
-            _connection?.Dispose();
-            base.Dispose();
+            modelBuilder.Entity<Activity>()
+                .HasOne<Vehicle>()
+                .WithMany()
+                .HasForeignKey(a => a.AssignedVehicleID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Activity>()
+                .HasOne<Driver>()
+                .WithMany()
+                .HasForeignKey(a => a.DriverID)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

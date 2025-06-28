@@ -67,11 +67,14 @@ namespace BusBuddy.Data
             var builder = new DbContextOptionsBuilder<BusBuddyContext>();
             var connectionString = GetConnectionString();
 
-            // Configure for SQL Server
+            // Configure for SQL Server with enhanced connection settings
             builder.UseSqlServer(connectionString, options =>
             {
-                options.CommandTimeout(30);
-                options.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+                options.CommandTimeout(60); // Increased from 30 seconds to 60 seconds
+                options.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
+                // Configure connection resiliency
+                options.MinBatchSize(5);
+                options.MaxBatchSize(100);
             });
 
             // Enable logging for test environment
