@@ -1,3 +1,4 @@
+// Reconstructed and auto-formatted DynamicLayoutManager.cs
 using System;
 using System.Collections.Generic;
 using System.Drawing;

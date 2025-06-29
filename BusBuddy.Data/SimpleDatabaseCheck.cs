@@ -26,7 +26,6 @@ namespace BusBuddy.Data
                 // Get connection string from configuration
                 string connectionString = DatabaseConfiguration.GetConnectionString();
                 string databaseName = DatabaseConfiguration.GetDatabaseName();
-
                 Console.WriteLine($"Checking database: {databaseName}");
 
                 // First, check if database exists
@@ -63,11 +62,9 @@ namespace BusBuddy.Data
             {
                 // Connect to master database to check if target database exists
                 var masterConnectionString = GetMasterConnectionString(connectionString);
-                
                 using (var connection = new SqlConnection(masterConnectionString))
                 {
                     await connection.OpenAsync();
-                    
                     using (var command = new SqlCommand($"SELECT COUNT(*) FROM sys.databases WHERE name = '{databaseName}'", connection))
                     {
                         var result = await command.ExecuteScalarAsync();
@@ -92,7 +89,6 @@ namespace BusBuddy.Data
                 using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
-                    
                     using (var command = new SqlCommand("SELECT 1", connection))
                     {
                         await command.ExecuteScalarAsync();
@@ -108,7 +104,6 @@ namespace BusBuddy.Data
                     Console.WriteLine($"Database is offline (SQL Error {ex.Number}): {ex.Message}");
                     return false;
                 }
-                
                 Console.WriteLine($"Database connection error: {ex.Message}");
                 return false;
             }
@@ -127,18 +122,15 @@ namespace BusBuddy.Data
             try
             {
                 var masterConnectionString = GetMasterConnectionString(connectionString);
-                
                 using (var connection = new SqlConnection(masterConnectionString))
                 {
                     await connection.OpenAsync();
-                    
                     // Set database to online
                     using (var command = new SqlCommand($"ALTER DATABASE [{databaseName}] SET ONLINE", connection))
                     {
                         await command.ExecuteNonQueryAsync();
                         Console.WriteLine("✅ Database brought online successfully");
                     }
-                    
                     // Verify it's now accessible
                     return await IsDatabaseOnlineAsync(connectionString);
                 }
@@ -162,17 +154,13 @@ namespace BusBuddy.Data
                     Console.WriteLine($"❌ Database script not found at: {DatabaseScriptPath}");
                     return false;
                 }
-
                 string scriptContent = await File.ReadAllTextAsync(DatabaseScriptPath);
                 var masterConnectionString = GetMasterConnectionString(connectionString);
-
                 using (var connection = new SqlConnection(masterConnectionString))
                 {
                     await connection.OpenAsync();
-                    
                     // Split script by GO statements and execute each batch
                     string[] batches = scriptContent.Split(new string[] { "\nGO", "\r\nGO" }, StringSplitOptions.RemoveEmptyEntries);
-                    
                     foreach (string batch in batches)
                     {
                         string trimmedBatch = batch.Trim();
@@ -186,9 +174,7 @@ namespace BusBuddy.Data
                         }
                     }
                 }
-
                 Console.WriteLine("✅ Database created successfully from script");
-                
                 // Verify the new database is accessible
                 return await IsDatabaseOnlineAsync(connectionString);
             }

@@ -40,10 +40,8 @@ namespace BusBuddy.Debug
             {
                 // Set up global exception handlers
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-
                 Application.ThreadException += OnThreadException;
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-
                 Console.WriteLine("✅ ExceptionCapture: Global exception handlers registered");
                 LogException("ExceptionCapture system initialized", "INFO");
             }
@@ -60,13 +58,10 @@ namespace BusBuddy.Debug
         {
             var exceptionInfo = CaptureExceptionDetails(e.Exception, "UI_THREAD");
             _capturedExceptions.Add(exceptionInfo);
-
             LogException($"UI THREAD EXCEPTION: {e.Exception.Message}", "ERROR");
             LogException($"Stack Trace: {e.Exception.StackTrace}", "ERROR");
-
             // Save detailed report
             SaveExceptionReport(exceptionInfo);
-
             // Show custom dialog instead of default
             ShowCustomExceptionDialog(exceptionInfo);
         }
@@ -80,14 +75,11 @@ namespace BusBuddy.Debug
             {
                 var exceptionInfo = CaptureExceptionDetails(ex, "APP_DOMAIN");
                 _capturedExceptions.Add(exceptionInfo);
-
                 LogException($"UNHANDLED DOMAIN EXCEPTION: {ex.Message}", "FATAL");
                 LogException($"Stack Trace: {ex.StackTrace}", "FATAL");
                 LogException($"Is Terminating: {e.IsTerminating}", "FATAL");
-
                 // Save detailed report
                 SaveExceptionReport(exceptionInfo);
-
                 if (!e.IsTerminating)
                 {
                     ShowCustomExceptionDialog(exceptionInfo);
@@ -109,7 +101,6 @@ namespace BusBuddy.Debug
                 ThreadInfo = $"Thread ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}, " +
                            $"Is Background: {System.Threading.Thread.CurrentThread.IsBackground}"
             };
-
             // Extract source method and file info from stack trace
             try
             {
@@ -123,13 +114,11 @@ namespace BusBuddy.Debug
                 }
             }
             catch { /* Ignore stack trace parsing errors */ }
-
             // Add context information
             info.Context["CaptureContext"] = context;
             info.Context["ProcessId"] = Process.GetCurrentProcess().Id;
             info.Context["WorkingSet"] = Environment.WorkingSet;
             info.Context["TotalMemory"] = GC.GetTotalMemory(false);
-
             return info;
         }
 
@@ -143,7 +132,6 @@ namespace BusBuddy.Debug
                 var reportPath = $"logs\\exception_report_{DateTime.Now:yyyyMMdd_HHmmss}.json";
                 var json = JsonSerializer.Serialize(info, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(reportPath, json);
-
                 Console.WriteLine($"📄 Exception report saved: {reportPath}");
             }
             catch (Exception saveEx)
@@ -166,15 +154,12 @@ namespace BusBuddy.Debug
                              $"Source: {info.SourceMethod} in {Path.GetFileName(info.SourceFile)}:{info.SourceLine}\\n\\n" +
                              $"This exception has been logged for analysis.\\n" +
                              $"Check logs\\exception_*.log for details.";
-
                 var result = MessageBox.Show(
                     message,
                     "BusBuddy - Exception Captured",
                     MessageBoxButtons.AbortRetryIgnore,
                     MessageBoxIcon.Error);
-
                 LogException($"User action: {result}", "INFO");
-
                 if (result == DialogResult.Abort)
                 {
                     Environment.Exit(1);
@@ -195,9 +180,7 @@ namespace BusBuddy.Debug
             {
                 var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
                 var logEntry = $"[{timestamp}] [{level}] {message}";
-
                 Console.WriteLine(logEntry);
-
                 Directory.CreateDirectory("logs");
                 File.AppendAllText(_logPath, logEntry + Environment.NewLine);
             }

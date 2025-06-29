@@ -22,7 +22,6 @@ namespace BusBuddy.UI.Views
         private readonly IDriverRepository _driverRepository;
         private List<Bus> _buses = new List<Bus>();
         private List<Driver> _drivers = new List<Driver>();
-
         protected override string FormTitle => "🗺️ Route Management";
         protected override string SearchPlaceholder => "Search routes...";
         protected override string EntityName => "Route";
@@ -45,7 +44,6 @@ namespace BusBuddy.UI.Views
                     _entities = new List<Route>();
                     return;
                 }
-
                 if (IsTestMode())
                 {
                     Console.WriteLine("🧪 Test mode: Loading mock route data");
@@ -77,7 +75,6 @@ namespace BusBuddy.UI.Views
                     _entities = new List<Route>();
                     return;
                 }
-
                 if (IsTestMode())
                 {
                     Console.WriteLine("🧪 Test mode: Loading mock route data");
@@ -140,7 +137,6 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a route to edit.");
                 return;
             }
-
             try
             {
                 var logger = (ILogger<RouteFormSyncfusion>)_serviceProvider.GetService(typeof(ILogger<RouteFormSyncfusion>));
@@ -165,9 +161,7 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a route to delete.");
                 return;
             }
-
             if (!ConfirmDelete("route")) return;
-
             try
             {
                 _routeRepository.DeleteRoute(selectedRoute.RouteId);
@@ -189,20 +183,19 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a route to view details.");
                 return;
             }
-
             try
             {
                 var details = $"Route Details:\n\n" +
-                            $"ID: {selectedRoute.RouteId}\n" +
-                            $"Name: {selectedRoute.RouteName}\n" +
-                            $"AM Miles: {selectedRoute.AMMiles}\n" +
-                            $"AM Riders: {selectedRoute.AMRiders}\n" +
-                            $"PM Miles: {selectedRoute.PMMiles}\n" +
-                            $"PM Riders: {selectedRoute.PMRiders}\n" +
-                            $"AM Vehicle: {GetBusName(selectedRoute.AMBusId)}\n" +
-                            $"PM Vehicle: {GetBusName(selectedRoute.PMBusId)}\n" +
-                            $"AM Driver: {GetDriverName(selectedRoute.AMDriverId)}\n" +
-                            $"PM Driver: {GetDriverName(selectedRoute.PMDriverId)}";
+                              $"ID: {selectedRoute.RouteId}\n" +
+                              $"Name: {selectedRoute.RouteName}\n" +
+                              $"AM Miles: {selectedRoute.AMMiles}\n" +
+                              $"AM Riders: {selectedRoute.AMRiders}\n" +
+                              $"PM Miles: {selectedRoute.PMMiles}\n" +
+                              $"PM Riders: {selectedRoute.PMRiders}\n" +
+                              $"AM Vehicle: {GetBusName(selectedRoute.AMBusId)}\n" +
+                              $"PM Vehicle: {GetBusName(selectedRoute.PMBusId)}\n" +
+                              $"AM Driver: {GetDriverName(selectedRoute.AMDriverId)}\n" +
+                              $"PM Driver: {GetDriverName(selectedRoute.PMDriverId)}";
                 ShowInfo(details, "Route Details");
                 BusBuddyLogger.Info("UI", $"Viewed details for route {selectedRoute.RouteId}");
             }
@@ -215,7 +208,6 @@ namespace BusBuddy.UI.Views
         protected override void SearchEntities()
         {
             if (_searchBox?.Text == null) return;
-
             try
             {
                 var searchTerm = _searchBox.Text.Trim();
@@ -224,12 +216,10 @@ namespace BusBuddy.UI.Views
                     LoadData();
                     return;
                 }
-
                 if (_entities == null)
                 {
                     _entities = new List<Route>();
                 }
-
                 var filteredRoutes = _entities.Where(r =>
                     (r.RouteName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (GetBusName(r.AMBusId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
@@ -237,7 +227,6 @@ namespace BusBuddy.UI.Views
                     (GetDriverName(r.AMDriverId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
                     (GetDriverName(r.PMDriverId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
-
                 _entities = filteredRoutes;
                 PopulateRouteGrid();
                 BusBuddyLogger.Info("UI", $"Searched for '{searchTerm}', found {filteredRoutes.Count} routes");
@@ -255,13 +244,10 @@ namespace BusBuddy.UI.Views
                 Console.WriteLine("🧪 RouteManagementForm: Skipping column setup - test mode or null grid");
                 return;
             }
-
             _dataGrid.AutoGenerateColumns = false;
             _dataGrid.Columns.Clear();
-
             _dataGrid.Columns.Add(new GridNumericColumn { MappingName = "RouteId", HeaderText = "ID", Visible = false });
             _dataGrid.Columns.Add(new GridTextColumn { MappingName = "RouteName", HeaderText = "Route Name", Width = GetDpiAwareWidth(150) });
-
             var routeTypeColumn = new GridComboBoxColumn
             {
                 MappingName = "RouteType",
@@ -271,16 +257,14 @@ namespace BusBuddy.UI.Views
                 AllowEditing = true
             };
             _dataGrid.Columns.Add(routeTypeColumn);
-
             _dataGrid.Columns.Add(new GridNumericColumn { MappingName = "AMMiles", HeaderText = "AM Miles", Width = GetDpiAwareWidth(100) });
             _dataGrid.Columns.Add(new GridNumericColumn { MappingName = "AMRiders", HeaderText = "AM Riders", Width = GetDpiAwareWidth(100) });
             _dataGrid.Columns.Add(new GridNumericColumn { MappingName = "PMMiles", HeaderText = "PM Miles", Width = GetDpiAwareWidth(100) });
             _dataGrid.Columns.Add(new GridNumericColumn { MappingName = "PMRiders", HeaderText = "PM Riders", Width = GetDpiAwareWidth(100) });
-            _dataGrid.Columns.Add(new GridTextColumn { MappingName = "AMVehicleName", HeaderText = "AM Vehicle", Width = GetDpiAwareWidth(120) });
-            _dataGrid.Columns.Add(new GridTextColumn { MappingName = "PMVehicleName", HeaderText = "PM Vehicle", Width = GetDpiAwareWidth(120) });
+            _dataGrid.Columns.Add(new GridTextColumn { MappingName = "AMBusNumber", HeaderText = "AM Vehicle", Width = GetDpiAwareWidth(120) });
+            _dataGrid.Columns.Add(new GridTextColumn { MappingName = "PMBusNumber", HeaderText = "PM Vehicle", Width = GetDpiAwareWidth(120) });
             _dataGrid.Columns.Add(new GridTextColumn { MappingName = "AMDriverName", HeaderText = "AM Driver", Width = GetDpiAwareWidth(120) });
             _dataGrid.Columns.Add(new GridTextColumn { MappingName = "PMDriverName", HeaderText = "PM Driver", Width = GetDpiAwareWidth(120) });
-
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
 
@@ -290,10 +274,8 @@ namespace BusBuddy.UI.Views
             {
                 var buses = _busRepository.GetAllBuses();
                 _buses = buses?.ToList() ?? new List<Bus>();
-
                 var drivers = _driverRepository.GetAllDrivers();
                 _drivers = drivers?.ToList() ?? new List<Driver>();
-
                 BusBuddyLogger.Info("UI", $"Loaded {_buses.Count} buses and {_drivers.Count} drivers for route management");
             }
             catch (Exception ex)
@@ -319,7 +301,20 @@ namespace BusBuddy.UI.Views
         // STUB: PopulateRouteGrid for build unblock
         private void PopulateRouteGrid()
         {
-            // TODO: Implement grid population logic
+            try
+            {
+                if (_dataGrid == null)
+                    return;
+                _dataGrid.DataSource = null;
+                _dataGrid.DataSource = _entities;
+                _dataGrid.Refresh();
+                BusBuddyLogger.Info("UI", $"Route grid populated with {_entities?.Count ?? 0} routes");
+            }
+            catch (Exception ex)
+            {
+                HandleError($"Error populating route grid: {ex.Message}", $"{EntityName} Error", ex);
+            }
         }
     }
 }
+

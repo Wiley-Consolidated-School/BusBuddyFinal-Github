@@ -43,12 +43,10 @@ namespace BusBuddy.UI.Helpers
         public void RegisterChildProcess(Process process)
         {
             if (process == null) return;
-
             lock (_processLock)
             {
                 // Configure process for proper event handling
                 process.EnableRaisingEvents = true;
-
                 // Remove from tracking when it exits naturally
                 process.Exited += (sender, e) =>
                 {
@@ -58,7 +56,6 @@ namespace BusBuddy.UI.Helpers
                         Console.WriteLine($"🔄 Child process {process.Id} exited naturally and removed from tracking");
                     }
                 };
-
                 // Add to our tracking list
                 _childProcesses.Add(process);
                 Console.WriteLine($"📝 ProcessManager registered child process: {process.ProcessName} (ID: {process.Id})");
@@ -77,7 +74,6 @@ namespace BusBuddy.UI.Helpers
                 StartInfo = startInfo,
                 EnableRaisingEvents = true
             };
-
             // Set up automatic removal when process exits
             process.Exited += (sender, e) =>
             {
@@ -87,7 +83,6 @@ namespace BusBuddy.UI.Helpers
                     Console.WriteLine($"🔄 Tracked process {process.Id} exited naturally and removed from tracking");
                 }
             };
-
             return process;
         }
 
@@ -99,14 +94,12 @@ namespace BusBuddy.UI.Helpers
         public Process StartChildProcess(ProcessStartInfo startInfo)
         {
             var process = CreateTrackedProcess(startInfo);
-
             lock (_processLock)
             {
                 _childProcesses.Add(process);
                 process.Start();
                 Console.WriteLine($"🚀 ProcessManager started and registered child process: {process.ProcessName} (ID: {process.Id})");
             }
-
             return process;
         }
 
@@ -179,12 +172,10 @@ namespace BusBuddy.UI.Helpers
         private void PerformCleanup()
         {
             Console.WriteLine("🧹 ProcessManager cleaning up tracked child processes...");
-
             lock (_processLock)
             {
                 // Create a copy to avoid modification issues during iteration
                 var processesToCleanup = _childProcesses.ToList();
-
                 foreach (var process in processesToCleanup)
                 {
                     try
@@ -193,7 +184,6 @@ namespace BusBuddy.UI.Helpers
                         if (process != null && !process.HasExited)
                         {
                             Console.WriteLine($"🛑 ProcessManager terminating tracked process: {process.ProcessName} (ID: {process.Id})");
-
                             // Attempt graceful shutdown first
                             try
                             {
@@ -208,7 +198,6 @@ namespace BusBuddy.UI.Helpers
                                 // Process might have exited between HasExited check and termination attempt
                                 Console.WriteLine($"⚠️ Process {process.Id} exited during termination attempt");
                             }
-
                             // Wait for exit with timeout and proper exception handling
                             try
                             {
@@ -255,7 +244,6 @@ namespace BusBuddy.UI.Helpers
                         }
                     }
                 }
-
                 // Reset the list after cleanup
                 _childProcesses.Clear();
                 Console.WriteLine("✅ ProcessManager child process cleanup completed - process list cleared");

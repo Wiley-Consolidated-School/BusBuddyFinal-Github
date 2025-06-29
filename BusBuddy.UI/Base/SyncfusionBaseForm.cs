@@ -919,4 +919,5 @@ namespace BusBuddy.UI.Base
         #endregion
     }
 }
+// Reconstructed and auto-formatted SyncfusionBaseForm.cs
 

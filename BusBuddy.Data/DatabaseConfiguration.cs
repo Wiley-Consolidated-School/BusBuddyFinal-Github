@@ -11,7 +11,6 @@ namespace BusBuddy.Data
     {
         public static string Environment => ConfigurationManager.AppSettings["Environment"] ?? "Production";
         public static string DatabaseProvider => ConfigurationManager.AppSettings["DatabaseProvider"] ?? "SqlServer";
-
         public static bool IsTestEnvironment => Environment.Equals("Test", StringComparison.OrdinalIgnoreCase);
         public static bool IsProductionEnvironment => Environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
 
@@ -21,20 +20,16 @@ namespace BusBuddy.Data
         public static string GetConnectionString()
         {
             string connectionName = IsTestEnvironment ? "TestConnection" : "DefaultConnection";
-
             var connectionString = ConfigurationManager.ConnectionStrings[connectionName]?.ConnectionString;
-
             if (string.IsNullOrEmpty(connectionString))
             {
                 // Fallback to DefaultConnection if specific environment connection not found
                 connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString;
             }
-
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new InvalidOperationException($"No connection string found for environment: {Environment}");
             }
-
             return connectionString;
         }
 
@@ -44,7 +39,6 @@ namespace BusBuddy.Data
         public static string GetDatabaseName()
         {
             var connectionString = GetConnectionString();
-
             // Extract database name from SQL Server connection string
             if (connectionString.Contains("Initial Catalog="))
             {
@@ -53,9 +47,6 @@ namespace BusBuddy.Data
                 if (end == -1) end = connectionString.Length;
                 return connectionString.Substring(start, end - start);
             }
-
-
-
             return "BusBuddyDB";
         }
 
@@ -66,7 +57,6 @@ namespace BusBuddy.Data
         {
             var builder = new DbContextOptionsBuilder<BusBuddyContext>();
             var connectionString = GetConnectionString();
-
             // Configure for SQL Server with enhanced connection settings
             builder.UseSqlServer(connectionString, options =>
             {
@@ -76,14 +66,12 @@ namespace BusBuddy.Data
                 options.MinBatchSize(5);
                 options.MaxBatchSize(100);
             });
-
             // Enable logging for test environment
             if (IsTestEnvironment)
             {
                 builder.EnableSensitiveDataLogging();
                 builder.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
             }
-
             return builder.Options;
         }
 
@@ -96,5 +84,4 @@ namespace BusBuddy.Data
         }
     }
 }
-
 

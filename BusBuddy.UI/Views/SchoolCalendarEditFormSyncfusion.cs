@@ -45,14 +45,11 @@ namespace BusBuddy.UI.Views
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-
             CreateControls();
             LayoutControls();
             SetupEventHandlers();
-
             // Apply final theming
             BusBuddyThemeManager.ApplyTheme(this, BusBuddyThemeManager.SupportedThemes.Office2016White);
-
             Console.WriteLine($"🎨 SYNCFUSION FORM: {this.Text} initialized with Syncfusion controls");
         }
 
@@ -61,7 +58,6 @@ namespace BusBuddy.UI.Views
             // Create text boxes
             _descriptionTextBox = CreateTextBox("Enter description");
             _notesTextBox = CreateTextBox("Enter notes", true);
-
             // Make notes textbox multiline
             if (_notesTextBox is TextBox notesTextBox)
             {
@@ -69,16 +65,13 @@ namespace BusBuddy.UI.Views
                 notesTextBox.Height = 80;
                 notesTextBox.ScrollBars = ScrollBars.Vertical;
             }
-
             // Create combo box for category
             _categoryComboBox = CreateComboBox("Select category", 20, 120, 200);
             _categoryComboBox.Items.AddRange(new[] {
                 "Academic", "Holiday", "Professional Development", "Event", "Other"
             });
-
             // Create checkbox
             _routeNeededCheckBox = CreateCheckBox("Route Transportation Needed", 250, 120);
-
             // Create date pickers
             _startDatePicker = new DateTimePicker
             {
@@ -88,7 +81,6 @@ namespace BusBuddy.UI.Views
             };
             BusBuddyThemeManager.ApplyTheme(_startDatePicker, BusBuddyThemeManager.SupportedThemes.Office2016White);
             _mainPanel.Controls.Add(_startDatePicker);
-
             _endDatePicker = new DateTimePicker
             {
                 Location = new Point(GetDpiAwareX(260), GetDpiAwareY(180)),
@@ -97,27 +89,22 @@ namespace BusBuddy.UI.Views
             };
             BusBuddyThemeManager.ApplyTheme(_endDatePicker, BusBuddyThemeManager.SupportedThemes.Office2016White);
             _mainPanel.Controls.Add(_endDatePicker);
-
             // Create buttons
             _saveButton = new Button { Text = "Save" } /* CreateStyledButton method removed */;
             _cancelButton = new Button { Text = "Cancel" } /* CreateStyledButton method removed */;
-
             // Configure buttons
             _saveButton.Size = GetDpiAwareSize(new Size(100, 35));
             _saveButton.Location = new Point(GetDpiAwareX(280), GetDpiAwareY(10));
             _saveButton.Click += SaveButton_Click;
-
             _cancelButton.Size = GetDpiAwareSize(new Size(100, 35));
             _cancelButton.Location = new Point(GetDpiAwareX(390), GetDpiAwareY(10));
             _cancelButton.Click += CancelButton_Click;
-
             // Style cancel button differently
             if (_cancelButton is Button cancelBtn)
             {
                 cancelBtn.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
                 cancelBtn.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
             }
-
             _buttonPanel.Controls.Add(_saveButton);
             _buttonPanel.Controls.Add(_cancelButton);
         }
@@ -130,7 +117,6 @@ namespace BusBuddy.UI.Views
             CreateLabel("Start Date:");
             CreateLabel("End Date:");
             CreateLabel("Notes:");
-
             // Set placeholder text
             SetPlaceholderText(_descriptionTextBox, "Enter event description");
             SetPlaceholderText(_notesTextBox, "Additional notes (optional)");
@@ -140,8 +126,8 @@ namespace BusBuddy.UI.Views
         {
             // Event handlers are set up in CreateControls
         }
-        #region Control Creation Helpers
 
+        #region Control Creation Helpers
         public new ComboBox CreateComboBox(string name, int width, int x, int y)
         {
             var comboBox = new ComboBox
@@ -150,16 +136,13 @@ namespace BusBuddy.UI.Views
                 Size = GetDpiAwareSize(new Size(width, 35)),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
-
             // Apply Material theming
             comboBox.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
             comboBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
             comboBox.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-
             _mainPanel.Controls.Add(comboBox);
             return comboBox;
         }
-
         public new CheckBox CreateCheckBox(string name, int x, int y)
         {
             var checkBox = new CheckBox
@@ -168,23 +151,19 @@ namespace BusBuddy.UI.Views
                 Location = new Point(GetDpiAwareX(x), GetDpiAwareY(y)),
                 AutoSize = true
             };
-
             // Apply Material theming
             checkBox.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
             checkBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
             checkBox.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-
             _mainPanel.Controls.Add(checkBox);
             return checkBox;
         }
-
         private void SetPlaceholderText(Control? textBox, string placeholder)
         {
             if (textBox is TextBox tb)
             {
                 tb.Text = placeholder;
                 tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
-
                 tb.GotFocus += (s, e) =>
                 {
                     if (tb.Text == placeholder)
@@ -193,7 +172,6 @@ namespace BusBuddy.UI.Views
                         tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                     }
                 };
-
                 tb.LostFocus += (s, e) =>
                 {
                     if (string.IsNullOrEmpty(tb.Text))
@@ -207,7 +185,6 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Data Handling
-
         private void PopulateFields(SchoolCalendar schoolCalendar)
         {
             try
@@ -217,21 +194,19 @@ namespace BusBuddy.UI.Views
                     descriptionTb.Text = schoolCalendar.Description ?? string.Empty;
                     descriptionTb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                 }
-
                 if (_notesTextBox is TextBox notesTb)
                 {
                     notesTb.Text = schoolCalendar.Notes ?? string.Empty;
                     notesTb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
                 }
-
                 if (_categoryComboBox != null && !string.IsNullOrEmpty(schoolCalendar.Category))
-                    _categoryComboBox.SelectedItem = schoolCalendar.Category; if (_routeNeededCheckBox != null)
-                    _routeNeededCheckBox.Checked = schoolCalendar.IsRouteNeeded; if (_startDatePicker != null && schoolCalendar.DateAsDateTime.HasValue)
+                    _categoryComboBox.SelectedItem = schoolCalendar.Category;
+                if (_routeNeededCheckBox != null)
+                    _routeNeededCheckBox.Checked = schoolCalendar.IsRouteNeeded;
+                if (_startDatePicker != null && schoolCalendar.DateAsDateTime.HasValue)
                     _startDatePicker.Value = schoolCalendar.DateAsDateTime.Value;
-
                 if (_endDatePicker != null && schoolCalendar.EndDateAsDateTime.HasValue)
                     _endDatePicker.Value = schoolCalendar.EndDateAsDateTime.Value;
-
                 Console.WriteLine($"📋 SYNCFUSION FORM: Populated fields for calendar event: {schoolCalendar.Description}");
             }
             catch (Exception ex)
@@ -244,36 +219,30 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Event Handlers
-
         private void SaveButton_Click(object? sender, EventArgs e)
         {
             try
             {
                 if (!ValidateInput())
                     return;
-
                 // Create or update school calendar object
                 if (SchoolCalendar == null)
                     SchoolCalendar = new SchoolCalendar();
-
                 // Get values from controls
                 if (_descriptionTextBox is TextBox descriptionTb)
                     SchoolCalendar.Description = descriptionTb.Text.Trim();
-
                 if (_notesTextBox is TextBox notesTb)
                     SchoolCalendar.Notes = notesTb.Text.Trim();
-
                 if (_categoryComboBox?.SelectedItem != null)
-                    SchoolCalendar.Category = _categoryComboBox.SelectedItem.ToString(); if (_routeNeededCheckBox != null)
-                    SchoolCalendar.IsRouteNeeded = _routeNeededCheckBox.Checked; if (_startDatePicker != null)
+                    SchoolCalendar.Category = _categoryComboBox.SelectedItem.ToString();
+                if (_routeNeededCheckBox != null)
+                    SchoolCalendar.IsRouteNeeded = _routeNeededCheckBox.Checked;
+                if (_startDatePicker != null)
                     SchoolCalendar.DateAsDateTime = _startDatePicker.Value;
-
                 if (_endDatePicker != null)
                     SchoolCalendar.EndDateAsDateTime = _endDatePicker.Value;
-
                 DialogResult = DialogResult.OK;
                 Close();
-
                 Console.WriteLine($"💾 SYNCFUSION FORM: Saved school calendar event: {SchoolCalendar.Description}");
             }
             catch (Exception ex)
@@ -283,7 +252,6 @@ namespace BusBuddy.UI.Views
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void CancelButton_Click(object? sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
@@ -292,11 +260,9 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Validation
-
         private bool ValidateInput()
         {
             ClearAllValidationErrors();
-
             // Validate description
             if (_descriptionTextBox is TextBox descriptionTb &&
                 (string.IsNullOrWhiteSpace(descriptionTb.Text) ||
@@ -306,7 +272,6 @@ namespace BusBuddy.UI.Views
                 ShowErrorMessage("Description is required.");
                 return false;
             }
-
             // Validate category
             if (_categoryComboBox?.SelectedIndex < 0)
             {
@@ -314,7 +279,6 @@ namespace BusBuddy.UI.Views
                 ShowErrorMessage("Please select a category.");
                 return false;
             }
-
             // Validate date range
             if (_startDatePicker != null && _endDatePicker != null &&
                 _startDatePicker.Value > _endDatePicker.Value)
@@ -323,20 +287,18 @@ namespace BusBuddy.UI.Views
                 ShowErrorMessage("End date must be after start date.");
                 return false;
             }
-
             return true;
-        }        // Helper methods for validation and form management
+        }
+        // Helper methods for validation and form management
         protected override void ClearAllValidationErrors()
         {
             _errorProvider.Clear();
         }
-
         protected override void SetValidationError(Control control, string message)
         {
             if (control != null)
                 _errorProvider.SetError(control, message);
         }
-
         protected new void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);

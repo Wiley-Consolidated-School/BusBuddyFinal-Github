@@ -66,20 +66,17 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-
                 // Validate foreign key constraint - ensure VehicleFueledID exists
                 if (fuelRecord.VehicleFueledID.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
                         "SELECT COUNT(*) FROM Vehicles WHERE Id = @BusId",
                         new { BusId = fuelRecord.VehicleFueledID });
-
                     if (vehicleExists == 0)
                     {
                         throw new InvalidOperationException($"Vehicle with ID {fuelRecord.VehicleFueledID} does not exist.");
                     }
                 }
-
                 var sql = @"
                     INSERT INTO Fuel (
                         FuelDate, FuelLocation, VehicleFueledID,
@@ -92,28 +89,26 @@ namespace BusBuddy.Data
                         @FuelCost, @Notes
                     );
                     SELECT SCOPE_IDENTITY()";
-
                 return connection.QuerySingle<int>(sql, fuelRecord);
             }
-        }        public bool UpdateFuelRecord(Fuel fuelRecord)
+        }
+
+        public bool UpdateFuelRecord(Fuel fuelRecord)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
-
                 // Validate foreign key constraint - ensure VehicleFueledID exists
                 if (fuelRecord.VehicleFueledID.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
                         "SELECT COUNT(*) FROM Vehicles WHERE BusId = @BusId",
                         new { BusId = fuelRecord.VehicleFueledID });
-
                     if (vehicleExists == 0)
                     {
                         throw new InvalidOperationException($"Vehicle with ID {fuelRecord.VehicleFueledID} does not exist.");
                     }
                 }
-
                 var sql = @"
                     UPDATE Fuel
                     SET FuelDate = @FuelDate,
@@ -125,7 +120,6 @@ namespace BusBuddy.Data
                         FuelCost = @FuelCost,
                         Notes = @Notes
                     WHERE FuelID = @FuelID";
-
                 var rowsAffected = connection.Execute(sql, fuelRecord);
                 return rowsAffected > 0;
             }

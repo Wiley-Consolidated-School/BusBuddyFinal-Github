@@ -16,7 +16,9 @@ namespace BusBuddy.Data
         /// <summary>
         /// Gets whether the database connection is available
         /// </summary>
-        public bool IsDatabaseAvailable => _isDatabaseAvailable; protected BaseRepository()
+        public bool IsDatabaseAvailable => _isDatabaseAvailable;
+
+        protected BaseRepository()
         {
             // Check if we're in a test environment first
             if (IsTestEnvironment())
@@ -61,14 +63,13 @@ namespace BusBuddy.Data
             // Test the connection but don't initialize database on every repository creation
             TestConnection();
         }
+
         private void TestConnection()
         {
             int retryCount = 5; // Increased from 3 to 5
             int currentRetry = 0;
             bool connected = false;
-
             Console.WriteLine($"Testing database connection to {_connectionString}");
-
             while (!connected && currentRetry < retryCount)
             {
                 try
@@ -91,7 +92,6 @@ namespace BusBuddy.Data
                     {
                         Console.WriteLine($"  Connection param: {part}");
                     }
-
                     if (currentRetry >= retryCount)
                     {
                         Console.WriteLine("⚠️ Database unavailable - application will run in offline mode with sample data");
@@ -99,6 +99,7 @@ namespace BusBuddy.Data
                         Console.WriteLine("1. SQL Server Express is installed and running (service MSSQL$SQLEXPRESS01)");
                         Console.WriteLine("2. The BusBuddy database exists");
                         Console.WriteLine("3. Your Windows account has permissions to access the database");
+
                         // GRACEFUL DEGRADATION: Log warning instead of throwing exception
                         // This allows the application to continue with sample/mock data
                         _isDatabaseAvailable = false;
@@ -117,7 +118,6 @@ namespace BusBuddy.Data
             // Check multiple indicators for test environment - exclude debugger check for main app
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().FullName;
-
             return baseDirectory.Contains("test", StringComparison.OrdinalIgnoreCase) ||
                    baseDirectory.Contains("Test") ||
                    (assemblyName?.Contains("Test") ?? false) ||
@@ -147,7 +147,6 @@ namespace BusBuddy.Data
             {
                 // First try normal connection
                 var connection = CreateConnection();
-
                 try
                 {
                     // Try to open the connection
@@ -165,10 +164,10 @@ namespace BusBuddy.Data
 
                     // Attempt database recovery
                     var recovered = SimpleDatabaseCheck.CheckAndFixDatabaseAsync().GetAwaiter().GetResult();
-
                     if (recovered)
                     {
                         Console.WriteLine("Database recovery successful! Reconnecting...");
+
                         // Try connection again after recovery
                         connection = CreateConnection();
                         connection.Open();

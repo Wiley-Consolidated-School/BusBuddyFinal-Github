@@ -46,12 +46,9 @@ namespace BusBuddy.UI.Helpers
                 LogLevel.Debug => "🔍",
                 _ => "📝"
             };
-
             var logMessage = $"[{timestamp}] {levelIcon} [{category}] {message}";
-
             // Write to console (for development)
             Console.WriteLine(logMessage);
-
             // Write to file (for production)
             try
             {

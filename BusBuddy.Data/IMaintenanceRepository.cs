@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using BusBuddy.Models;
 
 namespace BusBuddy.Data
-{    public interface IMaintenanceRepository
+{
+    public interface IMaintenanceRepository
     {
         List<Maintenance> GetAllMaintenanceRecords();
         List<Maintenance> GetAllMaintenances(); // Alias for compatibility

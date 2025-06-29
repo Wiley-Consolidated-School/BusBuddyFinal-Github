@@ -23,16 +23,19 @@ namespace BusBuddy.UI.Views
     public class SchoolCalendarManagementFormSyncfusion : BaseManagementForm<SchoolCalendar>
     {
         private readonly ISchoolCalendarRepository _schoolCalendarRepository;
-
         // Additional Syncfusion Calendar Control
         private SfCalendar? _sfCalendar;
         private Panel? _calendarPanel;
         private Splitter? _splitter;
+
         #region Properties Override
+
         protected override string FormTitle => "📅 School Calendar Management";
         protected override string SearchPlaceholder => "Search calendar events...";
         protected override string EntityName => "SchoolCalendar";
+
         #region Constructors
+
         public SchoolCalendarManagementFormSyncfusion(System.IServiceProvider serviceProvider, ISchoolCalendarRepository schoolCalendarRepository, IMessageService messageService)
             : base(serviceProvider, messageService)
         {
@@ -45,6 +48,7 @@ namespace BusBuddy.UI.Views
         }
 
         #region Base Implementation Override
+
         protected override void LoadData()
         {
             try
@@ -55,6 +59,7 @@ namespace BusBuddy.UI.Views
                     _entities = new List<SchoolCalendar>();
                     return;
                 }
+
                 var calendarEvents = _schoolCalendarRepository.GetAllCalendarEvents();
                 _entities = calendarEvents?.ToList() ?? new List<SchoolCalendar>();
                 PopulateCalendarGrid();
@@ -73,6 +78,7 @@ namespace BusBuddy.UI.Views
         }
 
         #region Enhanced Calendar Layout
+
         private void CreateEnhancedCalendarLayout()
         {
             try
@@ -310,15 +316,15 @@ namespace BusBuddy.UI.Views
             try
             {
                 var details = $"School Calendar Event Details:\n\n" +
-                            $"ID: {selectedEvent.CalendarID}\n" +
-                            $"Event: {selectedEvent.EventName}\n" +
-                            $"Date: {selectedEvent.EventDate}\n" +
-                            $"Type: {selectedEvent.EventType}\n" +
-                            $"Description: {selectedEvent.EventDescription}\n" +
-                            $"Location: {selectedEvent.EventLocation}\n" +
-                            $"All Day: {(selectedEvent.IsAllDay ? "Yes" : "No")}\n" +
-                            $"Start Time: {selectedEvent.StartTime}\n" +
-                            $"End Time: {selectedEvent.EndTime}";
+                              $"ID: {selectedEvent.CalendarID}\n" +
+                              $"Event: {selectedEvent.EventName}\n" +
+                              $"Date: {selectedEvent.EventDate}\n" +
+                              $"Type: {selectedEvent.EventType}\n" +
+                              $"Description: {selectedEvent.EventDescription}\n" +
+                              $"Location: {selectedEvent.EventLocation}\n" +
+                              $"All Day: {(selectedEvent.IsAllDay ? "Yes" : "No")}\n" +
+                              $"Start Time: {selectedEvent.StartTime}\n" +
+                              $"End Time: {selectedEvent.EndTime}";
 
                 ShowInfo(details, "Calendar Event Details");
             }
@@ -335,7 +341,6 @@ namespace BusBuddy.UI.Views
             try
             {
                 var searchTerm = _searchBox.Text.Trim();
-
                 if (string.IsNullOrEmpty(searchTerm) || searchTerm == SearchPlaceholder)
                 {
                     LoadData();
@@ -371,7 +376,6 @@ namespace BusBuddy.UI.Views
 
             _dataGrid.AutoGenerateColumns = false;
             _dataGrid.Columns.Clear();
-
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "CalendarID", HeaderText = "ID", Visible = false });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "EventName", HeaderText = "Event Name", Width = GetDpiAwareWidth(180) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "EventDate", HeaderText = "Date", Width = GetDpiAwareWidth(120) });
@@ -393,6 +397,7 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Helper Methods
+
         private void RefreshGridAndCalendar()
         {
             LoadData(); // This will refresh both grid and calendar
@@ -435,7 +440,6 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Disposal
-
         /// <summary>
         /// Clean up any resources being used.
         /// Ensures proper disposal of Syncfusion controls
@@ -458,11 +462,9 @@ namespace BusBuddy.UI.Views
                     System.Diagnostics.Debug.WriteLine($"Error during SchoolCalendarManagementForm disposal: {ex.Message}");
                 }
             }
-
             base.Dispose(disposing);
         }
-
-        #endregion
     }
+    #endregion // Disposal
 }
 

@@ -38,7 +38,6 @@ namespace BusBuddy.Models
         public string? Zip { get; set; } // Matches SQL Zip
         public string? DriversLicenseType { get; set; } // Matches SQL DriversLicenseType
         public bool TrainingComplete { get; set; } // Matches SQL TrainingComplete
-
         // Computed property for UI compatibility
         public string DisplayName => $"{DriverName} ({DriversLicenseType})";
     }

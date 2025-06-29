@@ -1,19 +1,2 @@
-using System;
-using System.Collections.Generic;
-using BusBuddy.Models;
-
-namespace BusBuddy.Data
-{
-    public interface IActivityRepository
-    {
-        List<Activity> GetAllActivities();
-        Activity GetActivityById(int id);
-        List<Activity> GetActivitiesByDate(DateTime date);
-        List<Activity> GetActivitiesByDriver(int DriverId);
-        List<Activity> GetActivitiesByBus(int busId);
-        int AddActivity(Activity activity);
-        bool UpdateActivity(Activity activity);
-        bool DeleteActivity(int id);
-    }
-}
+using System;using System.Collections.Generic;using BusBuddy.Models;namespace BusBuddy.Data{    public interface IActivityRepository    {        List<Activity> GetAllActivities();        Activity GetActivityById(int id);        List<Activity> GetActivitiesByDate(DateTime date);        List<Activity> GetActivitiesByDriver(int DriverId);        List<Activity> GetActivitiesByBus(int busId);        int AddActivity(Activity activity);        bool UpdateActivity(Activity activity);        bool DeleteActivity(int id);    }}
 

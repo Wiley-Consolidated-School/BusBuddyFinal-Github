@@ -19,13 +19,7 @@ namespace BusBuddy.Data
                 using (var connection = CreateConnection())
                 {
                     connection.Open();
-                    const string sql = @"
-                        SELECT RouteId, RouteDate, RouteName,
-                               AMBusId, AMBeginMiles, AMEndMiles, AMRiders, AMDriverId,
-                               PMBusId, PMBeginMiles, PMEndMiles, PMRiders, PMDriverId,
-                               Notes, RouteType
-                        FROM Routes
-                        ORDER BY RouteDate DESC, RouteName";
+                    const string sql = @"                        SELECT RouteId, RouteDate, RouteName,                               AMBusId, AMBeginMiles, AMEndMiles, AMRiders, AMDriverId,                               PMBusId, PMBeginMiles, PMEndMiles, PMRiders, PMDriverId,                               Notes, RouteType                        FROM Routes                        ORDER BY RouteDate DESC, RouteName";
                     var routes = connection.Query<Route>(sql).AsList();
                     return routes;
                 }
@@ -55,13 +49,7 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                const string sql = @"
-                    SELECT RouteId, RouteDate, RouteName,
-                           AMBusId, AMBeginMiles, AMEndMiles, AMRiders, AMDriverId,
-                           PMBusId, PMBeginMiles, PMEndMiles, PMRiders, PMDriverId,
-                           Notes, RouteType
-                    FROM Routes
-                    WHERE RouteId = @RouteId";
+                const string sql = @"                    SELECT RouteId, RouteDate, RouteName,                           AMBusId, AMBeginMiles, AMEndMiles, AMRiders, AMDriverId,                           PMBusId, PMBeginMiles, PMEndMiles, PMRiders, PMDriverId,                           Notes, RouteType                    FROM Routes                    WHERE RouteId = @RouteId";
                 return connection.QuerySingleOrDefault<Route>(sql, new { RouteId = id });
             }
         }
@@ -95,6 +83,7 @@ namespace BusBuddy.Data
                         {
                             var allRoutes = connection.Query<Route>("SELECT TOP 10 RouteId, RouteDate, RouteName, AMBusId, AMBeginMiles, AMEndMiles, AMRiders, AMDriverId, PMBusId, PMBeginMiles, PMEndMiles, PMRiders, PMDriverId, Notes, RouteType FROM Routes").AsList();
                             Console.WriteLine($"🔍 Found {allRoutes.Count} routes in total (without date filter)");
+
                             if (allRoutes.Count > 0)
                             {
                                 Console.WriteLine($"⚠️ Routes table has data but date filtering isn't working. Sample route date: {allRoutes[0].RouteDate:yyyy-MM-dd}");
@@ -204,20 +193,7 @@ namespace BusBuddy.Data
                     try
                     {
                         ValidateAMRouteReferences(connection, route, transaction);
-                        var sql = @"
-                            INSERT INTO Routes (
-                                RouteDate, RouteName,
-                                AMBusId, AMBeginMiles, AMEndMiles, AMRiders, AMDriverId,
-                                PMBusId, PMBeginMiles, PMEndMiles, PMRiders, PMDriverId,
-                                Notes, RouteType
-                            )
-                            VALUES (
-                                @RouteDate, @RouteName,
-                                @AMBusId, @AMBeginMiles, @AMEndMiles, @AMRiders, @AMDriverId,
-                                @PMBusId, @PMBeginMiles, @PMEndMiles, @PMRiders, @PMDriverId,
-                                @Notes, @RouteType
-                            );
-                            SELECT SCOPE_IDENTITY()";
+                        var sql = @"                            INSERT INTO Routes (                                RouteDate, RouteName,                                AMBusId, AMBeginMiles, AMEndMiles, AMRiders, AMDriverId,                                PMBusId, PMBeginMiles, PMEndMiles, PMRiders, PMDriverId,                                Notes, RouteType                            )                            VALUES (                                @RouteDate, @RouteName,                                @AMBusId, @AMBeginMiles, @AMEndMiles, @AMRiders, @AMDriverId,                                @PMBusId, @PMBeginMiles, @PMEndMiles, @PMRiders, @PMDriverId,                                @Notes, @RouteType                            );                            SELECT SCOPE_IDENTITY()";
                         var parameters = new
                         {
                             RouteDate = route.DateAsDateTime.Date,
@@ -262,23 +238,7 @@ namespace BusBuddy.Data
                     try
                     {
                         ValidateAMRouteReferences(connection, route, transaction);
-                        var sql = @"
-                            UPDATE Routes
-                            SET RouteDate = @RouteDate,
-                                RouteName = @RouteName,
-                                AMBusId = @AMBusId,
-                                AMBeginMiles = @AMBeginMiles,
-                                AMEndMiles = @AMEndMiles,
-                                AMRiders = @AMRiders,
-                                AMDriverId = @AMDriverId,
-                                PMBusId = @PMBusId,
-                                PMBeginMiles = @PMBeginMiles,
-                                PMEndMiles = @PMEndMiles,
-                                PMRiders = @PMRiders,
-                                PMDriverId = @PMDriverId,
-                                Notes = @Notes,
-                                RouteType = @RouteType
-                            WHERE RouteId = @RouteId";
+                        var sql = @"                            UPDATE Routes                            SET RouteDate = @RouteDate,                                RouteName = @RouteName,                                AMBusId = @AMBusId,                                AMBeginMiles = @AMBeginMiles,                                AMEndMiles = @AMEndMiles,                                AMRiders = @AMRiders,                                AMDriverId = @AMDriverId,                                PMBusId = @PMBusId,                                PMBeginMiles = @PMBeginMiles,                                PMEndMiles = @PMEndMiles,                                PMRiders = @PMRiders,                                PMDriverId = @PMDriverId,                                Notes = @Notes,                                RouteType = @RouteType                            WHERE RouteId = @RouteId";
                         var parameters = new
                         {
                             route.RouteId,

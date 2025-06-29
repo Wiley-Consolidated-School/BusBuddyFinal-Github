@@ -9,7 +9,6 @@ namespace BusBuddy.UI.Services
     public class TestMessageService : IMessageService
     {
         private readonly List<MessageRecord> _messages = new List<MessageRecord>();
-
         public IReadOnlyList<MessageRecord> Messages => _messages.AsReadOnly();
 
         public void ShowError(string message, string title = "Error")

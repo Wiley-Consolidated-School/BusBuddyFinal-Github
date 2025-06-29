@@ -20,7 +20,6 @@ namespace BusBuddy.UI.Services
         private const string MUTEX_NAME = "Global\\BusBuddy_SingleInstance_Mutex_{0}";
         private const string PIPE_NAME = "BusBuddy_Communication_Pipe_{0}";
         private const int PIPE_TIMEOUT_MS = 5000;
-
         private readonly string _uniqueId;
         private readonly string _mutexName;
         private readonly string _pipeName;
@@ -29,7 +28,6 @@ namespace BusBuddy.UI.Services
         private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed = false;
         private bool _ownsMutex = false;
-
         public event EventHandler<string[]> SecondInstanceDetected;
 
         /// <summary>
@@ -53,11 +51,9 @@ namespace BusBuddy.UI.Services
             try
             {
                 Console.WriteLine($"🔒 Attempting to acquire single instance lock: {_mutexName}");
-
                 // Create or open the named mutex
                 _applicationMutex = new Mutex(true, _mutexName, out bool createdNew);
                 _ownsMutex = createdNew;
-
                 if (createdNew)
                 {
                     Console.WriteLine("✅ Single instance lock acquired - this is the primary instance");
@@ -96,19 +92,14 @@ namespace BusBuddy.UI.Services
             try
             {
                 Console.WriteLine($"📤 Sending arguments to existing instance via pipe: {_pipeName}");
-
                 using var pipeClient = new NamedPipeClientStream(".", _pipeName, PipeDirection.Out);
-
                 // Try to connect to the existing instance
                 await pipeClient.ConnectAsync(PIPE_TIMEOUT_MS);
-
                 // Send the arguments as JSON
                 var argsJson = System.Text.Json.JsonSerializer.Serialize(args);
                 var buffer = Encoding.UTF8.GetBytes(argsJson);
-
                 await pipeClient.WriteAsync(buffer, 0, buffer.Length);
                 await pipeClient.FlushAsync();
-
                 Console.WriteLine("✅ Successfully sent arguments to existing instance");
                 return true;
             }
@@ -138,21 +129,17 @@ namespace BusBuddy.UI.Services
                     if (process.Id != Process.GetCurrentProcess().Id && process.MainWindowHandle != IntPtr.Zero)
                     {
                         Console.WriteLine($"🔍 Found existing instance with PID: {process.Id}");
-
                         // Restore window if minimized
                         if (IsIconic(process.MainWindowHandle))
                         {
                             ShowWindow(process.MainWindowHandle, SW_RESTORE);
                         }
-
                         // Bring to foreground
                         SetForegroundWindow(process.MainWindowHandle);
-
                         Console.WriteLine("✅ Brought existing instance to foreground");
                         return true;
                     }
                 }
-
                 Console.WriteLine("⚠️ Could not find main window of existing instance");
                 return false;
             }
@@ -172,10 +159,8 @@ namespace BusBuddy.UI.Services
             try
             {
                 Console.WriteLine("🧹 Cleaning up orphaned BusBuddy processes...");
-
                 var currentProcessId = Process.GetCurrentProcess().Id;
                 var processes = Process.GetProcessesByName("BusBuddy");
-
                 foreach (var process in processes)
                 {
                     if (process.Id != currentProcessId)
@@ -188,10 +173,8 @@ namespace BusBuddy.UI.Services
                                 Console.WriteLine("⚠️ Process already exited or null, skipping");
                                 continue;
                             }
-
                             Console.WriteLine($"🗑️ Terminating orphaned process PID: {process.Id}");
                             process.Kill();
-
                             // Wait with proper validation
                             if (!process.WaitForExit(3000)) // Wait up to 3 seconds
                             {
@@ -209,7 +192,6 @@ namespace BusBuddy.UI.Services
                         }
                     }
                 }
-
                 // Also cleanup any dotnet processes that might be running BusBuddy
                 var dotnetProcesses = Process.GetProcessesByName("dotnet");
                 foreach (var process in dotnetProcesses)
@@ -230,7 +212,6 @@ namespace BusBuddy.UI.Services
                         Console.WriteLine($"⚠️ Could not check/terminate dotnet process {process.Id}: {ex.Message}");
                     }
                 }
-
                 Console.WriteLine("✅ Cleanup completed");
             }
             catch (Exception ex)
@@ -251,29 +232,21 @@ namespace BusBuddy.UI.Services
                     try
                     {
                         _pipeServer = new NamedPipeServerStream(_pipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-
                         Console.WriteLine($"🔗 Named pipe server listening: {_pipeName}");
-
                         // Wait for client connection
                         await _pipeServer.WaitForConnectionAsync(_cancellationTokenSource.Token);
-
                         Console.WriteLine("📥 Received connection from secondary instance");
-
                         // Read the data
                         var buffer = new byte[4096];
                         int bytesRead = await _pipeServer.ReadAsync(buffer, 0, buffer.Length, _cancellationTokenSource.Token);
-
                         if (bytesRead > 0)
                         {
                             var argsJson = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                             var args = System.Text.Json.JsonSerializer.Deserialize<string[]>(argsJson);
-
                             Console.WriteLine($"📨 Received arguments from secondary instance: [{string.Join(", ", args)}]");
-
                             // Notify the main application
                             SecondInstanceDetected?.Invoke(this, args);
                         }
-
                         _pipeServer.Disconnect();
                         _pipeServer.Dispose();
                     }
@@ -297,11 +270,9 @@ namespace BusBuddy.UI.Services
         public void Dispose()
         {
             if (_disposed) return;
-
             try
             {
                 Console.WriteLine("🔓 Releasing single instance lock");
-
                 _cancellationTokenSource?.Cancel();
                 _pipeServer?.Dispose();
                 if (_ownsMutex)
@@ -310,7 +281,6 @@ namespace BusBuddy.UI.Services
                 }
                 _applicationMutex?.Dispose();
                 _cancellationTokenSource?.Dispose();
-
                 Console.WriteLine("✅ Single instance lock released");
             }
             catch (Exception ex)
@@ -326,13 +296,10 @@ namespace BusBuddy.UI.Services
         #region Win32 API Imports
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
-
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
         [DllImport("user32.dll")]
         private static extern bool IsIconic(IntPtr hWnd);
-
         private const int SW_RESTORE = 9;
         #endregion
     }

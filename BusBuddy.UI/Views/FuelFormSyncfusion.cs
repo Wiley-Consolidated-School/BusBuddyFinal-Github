@@ -22,7 +22,6 @@ namespace BusBuddy.UI.Views
         private TextBoxExt _notesTextBox;
         private SfButton _saveButton;
         private SfButton _cancelButton;
-
         public Fuel Fuel { get; private set; }
 
         public FuelFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
@@ -36,7 +35,6 @@ namespace BusBuddy.UI.Views
             this.Text = Fuel.FuelID == 0 ? "Add Fuel Record" : "Edit Fuel Record";
             this.ClientSize = new Size(600, 650);
             this.StartPosition = FormStartPosition.CenterParent;
-
             CreateControls();
             LayoutControls();
             SetupEventHandlers();
@@ -52,66 +50,19 @@ namespace BusBuddy.UI.Views
             var fuelTypeLabel = new Label { Text = "Fuel Type:", Location = new Point(300, 165), Size = new Size(100, 20) };
             var locationLabel = new Label { Text = "Location:", Location = new Point(20, 235), Size = new Size(100, 20) };
             var notesLabel = new Label { Text = "Notes:", Location = new Point(20, 305), Size = new Size(100, 20) };
-
             _mainPanel.Controls.AddRange(new Control[] {
                 vehicleLabel, fillupDateLabel, gallonsLabel, costLabel,
                 odometerLabel, fuelTypeLabel, locationLabel, notesLabel
             });
-
-            _busComboBox = new ComboBoxAdv
-            {
-                Location = new Point(20, 50),
-                Size = new Size(250, 25)
-            };
-
-            _fillupDatePicker = new SfDateTimeEdit
-            {
-                Location = new Point(300, 50),
-                Size = new Size(250, 25),
-                Value = DateTime.Now
-            };
-
-            _gallonsNumericTextBox = new SfNumericTextBox
-            {
-                Location = new Point(20, 120),
-                Size = new Size(250, 25),
-                Value = 0
-            };
-
-            _costNumericTextBox = new SfNumericTextBox
-            {
-                Location = new Point(300, 120),
-                Size = new Size(250, 25),
-                Value = 0
-            };
-
-            _odometerNumericTextBox = new SfNumericTextBox
-            {
-                Location = new Point(20, 190),
-                Size = new Size(250, 25),
-                Value = 0
-            };
-
-            _fuelTypeComboBox = new ComboBoxAdv
-            {
-                Location = new Point(300, 190),
-                Size = new Size(250, 25)
-            };
+            _busComboBox = new ComboBoxAdv { Location = new Point(20, 50), Size = new Size(250, 25) };
+            _fillupDatePicker = new SfDateTimeEdit { Location = new Point(300, 50), Size = new Size(250, 25), Value = DateTime.Now };
+            _gallonsNumericTextBox = new SfNumericTextBox { Location = new Point(20, 120), Size = new Size(250, 25), Value = 0 };
+            _costNumericTextBox = new SfNumericTextBox { Location = new Point(300, 120), Size = new Size(250, 25), Value = 0 };
+            _odometerNumericTextBox = new SfNumericTextBox { Location = new Point(20, 190), Size = new Size(250, 25), Value = 0 };
+            _fuelTypeComboBox = new ComboBoxAdv { Location = new Point(300, 190), Size = new Size(250, 25) };
             _fuelTypeComboBox.Items.AddRange(new[] { "Diesel", "Gasoline", "CNG", "Electric" });
-
-            _locationTextBox = new TextBoxExt
-            {
-                Location = new Point(20, 260),
-                Size = new Size(530, 25)
-            };
-
-            _notesTextBox = new TextBoxExt
-            {
-                Location = new Point(20, 330),
-                Size = new Size(530, 100),
-                Multiline = true
-            };
-
+            _locationTextBox = new TextBoxExt { Location = new Point(20, 260), Size = new Size(530, 25) };
+            _notesTextBox = new TextBoxExt { Location = new Point(20, 330), Size = new Size(530, 100), Multiline = true };
             _mainPanel.Controls.AddRange(new Control[] {
                 _busComboBox, _fillupDatePicker, _gallonsNumericTextBox, _costNumericTextBox,
                 _odometerNumericTextBox, _fuelTypeComboBox, _locationTextBox, _notesTextBox
@@ -120,26 +71,9 @@ namespace BusBuddy.UI.Views
 
         private void LayoutControls()
         {
-            var buttonPanel = new Panel
-            {
-                Dock = DockStyle.Bottom,
-                Height = 60
-            };
-
-            _saveButton = new SfButton
-            {
-                Text = "Save",
-                Location = new Point(375, 15),
-                Size = new Size(80, 30)
-            };
-
-            _cancelButton = new SfButton
-            {
-                Text = "Cancel",
-                Location = new Point(470, 15),
-                Size = new Size(80, 30)
-            };
-
+            var buttonPanel = new Panel { Dock = DockStyle.Bottom, Height = 60 };
+            _saveButton = new SfButton { Text = "Save", Location = new Point(375, 15), Size = new Size(80, 30) };
+            _cancelButton = new SfButton { Text = "Cancel", Location = new Point(470, 15), Size = new Size(80, 30) };
             buttonPanel.Controls.AddRange(new Control[] { _saveButton, _cancelButton });
             this.Controls.Add(buttonPanel);
         }
@@ -176,7 +110,6 @@ namespace BusBuddy.UI.Views
                 Fuel.FuelType = _fuelTypeComboBox.Text;
                 Fuel.FuelLocation = _locationTextBox.Text;
                 Fuel.Notes = _notesTextBox.Text;
-
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }

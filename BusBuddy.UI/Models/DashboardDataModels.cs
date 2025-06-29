@@ -19,7 +19,6 @@ namespace BusBuddy.UI.Models
         public string MaintenanceStatus { get; set; } = string.Empty;
         public DateTime? LastInspection { get; set; }
         public DateTime? NextServiceDue { get; set; }
-
         // Create from Bus model
         public static VehicleData FromBus(Bus bus)
         {
@@ -36,29 +35,23 @@ namespace BusBuddy.UI.Models
                 NextServiceDue = DetermineNextServiceDate(bus)
             };
         }
-
         private static string DetermineMaintenanceStatus(Bus bus)
         {
             if (bus.Status?.Equals("Maintenance", StringComparison.OrdinalIgnoreCase) == true)
                 return "In Maintenance";
-
             if (bus.LastInspectionDate.HasValue &&
                 (DateTime.Now - bus.LastInspectionDate.Value).TotalDays > 180)
                 return "Inspection Due";
-
             return "OK";
         }
-
         private static DateTime? DetermineNextServiceDate(Bus bus)
         {
             if (!bus.LastInspectionDate.HasValue)
                 return null;
-
             // Next service due 6 months after last inspection
             return bus.LastInspectionDate.Value.AddMonths(6);
         }
     }
-
     /// <summary>
     /// Represents route data for dashboard display
     /// </summary>
@@ -77,26 +70,21 @@ namespace BusBuddy.UI.Models
         public int? PMRiders { get; set; }
         public string RouteType { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
-
         // Create from Route model
         public static RouteData FromRoute(Route route, List<Bus> buses, List<Driver> drivers)
         {
             var amVehicle = route.AMBusId.HasValue
                 ? buses.FirstOrDefault(v => v.BusId == route.AMBusId)
                 : null;
-
             var pmVehicle = route.PMBusId.HasValue
                 ? buses.FirstOrDefault(v => v.BusId == route.PMBusId)
                 : null;
-
             var amDriver = route.AMDriverId.HasValue
                 ? drivers.FirstOrDefault(d => d.DriverId == route.AMDriverId)
                 : null;
-
             var pmDriver = route.PMDriverId.HasValue
                 ? drivers.FirstOrDefault(d => d.DriverId == route.PMDriverId)
                 : null;
-
             return new RouteData
             {
                 RouteId = route.RouteId,
@@ -114,16 +102,13 @@ namespace BusBuddy.UI.Models
                 Notes = route.Notes ?? string.Empty
             };
         }
-
         private static string GetDriverFullName(Driver? driver)
         {
             if (driver == null)
                 return string.Empty;
-
             return $"{driver.FirstName} {driver.LastName}".Trim();
         }
     }
-
     /// <summary>
     /// Represents activity data for dashboard display
     /// </summary>
@@ -143,18 +128,15 @@ namespace BusBuddy.UI.Models
         public int? ScheduledRiders { get; set; }
         public double Distance { get; set; }
         public string bus { get; set; } = string.Empty;
-
         // Create from Activity model
         public static ActivityData FromActivity(Activity activity, List<Bus> buses, List<Driver> drivers)
         {
             var bus = activity.AssignedBusID.HasValue
                 ? buses.FirstOrDefault(v => v.BusId == activity.AssignedBusID)
                 : null;
-
             var driver = activity.DriverId.HasValue
                 ? drivers.FirstOrDefault(d => d.DriverId == activity.DriverId)
                 : null;
-
             return new ActivityData
             {
                 ActivityID = activity.ActivityID,
@@ -171,27 +153,21 @@ namespace BusBuddy.UI.Models
                 Distance = 0 // Default value since it's not in the model
             };
         }
-
         private static TimeSpan? ParseTimeSpan(string? timeString)
         {
             if (string.IsNullOrEmpty(timeString))
                 return null;
-
             if (TimeSpan.TryParse(timeString, out var result))
                 return result;
-
             return null;
         }
-
         private static string GetDriverFullName(Driver? driver)
         {
             if (driver == null)
                 return string.Empty;
-
             return $"{driver.FirstName} {driver.LastName}".Trim();
         }
     }
-
     /// <summary>
     /// Represents a data point for charting
     /// </summary>
@@ -201,7 +177,6 @@ namespace BusBuddy.UI.Models
         public double Value { get; set; }
         public string Label { get; set; } = string.Empty;
         public DateTime? Date { get; set; }
-
         // Optional properties for different chart types
         public double? SecondaryValue { get; set; }
         public string Series { get; set; } = string.Empty;

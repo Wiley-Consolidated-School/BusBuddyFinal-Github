@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using BusBuddy.Models;
 
 namespace BusBuddy.Data
-{    public interface ISchoolCalendarRepository
+{
+    public interface ISchoolCalendarRepository
     {
         List<SchoolCalendar> GetAllCalendarEntries();
         List<SchoolCalendar> GetAllCalendarEvents(); // Alias for compatibility

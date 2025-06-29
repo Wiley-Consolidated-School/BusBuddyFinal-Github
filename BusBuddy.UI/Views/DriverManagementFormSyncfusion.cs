@@ -22,18 +22,24 @@ namespace BusBuddy.UI.Views
     {
         private readonly IDriverRepository _driverRepository;
         private new readonly System.IServiceProvider _serviceProvider;
+
         #region Properties Override
+
         protected override string FormTitle => "\ud83d\udc68\u200d\u2708\ufe0f Driver Management";
         protected override string SearchPlaceholder => "Search drivers...";
         protected override string EntityName => "Driver";
+
         #region Constructors
+
         public DriverManagementFormSyncfusion(System.IServiceProvider serviceProvider, IDriverRepository driverRepository, IMessageService messageService)
             : base(serviceProvider, messageService)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
         }
+
         #region Base Implementation Override
+
         protected override void LoadData()
         {
             try
@@ -117,7 +123,6 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a driver to edit.");
                 return;
             }
-
             try
             {
                 var driverForm = new DriverEditFormSyncfusion(_serviceProvider);
@@ -141,9 +146,7 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a driver to delete.");
                 return;
             }
-
             if (!ConfirmDelete("driver")) return;
-
             try
             {
                 _driverRepository.DeleteDriver(selectedDriver.DriverId);
@@ -164,19 +167,17 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a driver to view details.");
                 return;
             }
-
             try
             {
                 var details = $"Driver Details:\n\n" +
-                            $"ID: {selectedDriver.DriverId}\n" +
-                            $"Name: {selectedDriver.Name}\n" +
-                            $"Phone: {selectedDriver.DriverPhone}\n" +
-                            $"Email: {selectedDriver.DriverEmail}\n" +
-                            $"Address: {selectedDriver.Address}\n" +
-                            $"City: {selectedDriver.City}, {selectedDriver.State} {selectedDriver.Zip}\n" +
-                            $"License Type: {selectedDriver.DriversLicenseType}\n" +
-                            $"Training Complete: {(selectedDriver.IsTrainingComplete ? "Yes" : "No")}";
-
+                              $"ID: {selectedDriver.DriverId}\n" +
+                              $"Name: {selectedDriver.Name}\n" +
+                              $"Phone: {selectedDriver.DriverPhone}\n" +
+                              $"Email: {selectedDriver.DriverEmail}\n" +
+                              $"Address: {selectedDriver.Address}\n" +
+                              $"City: {selectedDriver.City}, {selectedDriver.State} {selectedDriver.Zip}\n" +
+                              $"License Type: {selectedDriver.DriversLicenseType}\n" +
+                              $"Training Complete: {(selectedDriver.IsTrainingComplete ? "Yes" : "No")}";
                 ShowInfo(details, "Driver Details");
             }
             catch (Exception ex)
@@ -188,11 +189,9 @@ namespace BusBuddy.UI.Views
         protected override void SearchEntities()
         {
             if (_searchBox?.Text == null) return;
-
             try
             {
                 var searchTerm = _searchBox.Text.Trim();
-
                 if (string.IsNullOrEmpty(searchTerm) || searchTerm == SearchPlaceholder)
                 {
                     LoadData();
@@ -204,14 +203,12 @@ namespace BusBuddy.UI.Views
                 {
                     _entities = new List<Driver>();
                 }
-
                 var filteredDrivers = _entities.Where(d =>
                     (d.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (d.DriverPhone?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (d.DriverEmail?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (d.DriversLicenseType?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
                 ).ToList();
-
                 _entities = filteredDrivers;
                 PopulateDriverGrid();
             }
@@ -224,10 +221,8 @@ namespace BusBuddy.UI.Views
         protected override void SetupDataGridColumns()
         {
             if (_dataGrid == null) return;
-
             _dataGrid.AutoGenerateColumns = false;
             _dataGrid.Columns.Clear();
-
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "DriverId", HeaderText = "ID", Visible = false });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Name", HeaderText = "Name", Width = GetDpiAwareWidth(150) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "DriverPhone", HeaderText = "Phone", Width = GetDpiAwareWidth(120) });
@@ -236,14 +231,14 @@ namespace BusBuddy.UI.Views
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "State", HeaderText = "State", Width = GetDpiAwareWidth(80) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "DriversLicenseType", HeaderText = "License Type", Width = GetDpiAwareWidth(120) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "IsTrainingComplete", HeaderText = "Training", Width = GetDpiAwareWidth(100) });
-
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
+
         #region Helper Methods
+
         private void PopulateDriverGrid()
         {
             if (_dataGrid == null) return;
-
             try
             {
                 // Ensure _entities is never null
@@ -251,7 +246,6 @@ namespace BusBuddy.UI.Views
                 {
                     _entities = new List<Driver>();
                 }
-
                 var driverData = _entities.Select(d => new
                 {
                     DriverId = d.DriverId,
@@ -263,7 +257,6 @@ namespace BusBuddy.UI.Views
                     DriversLicenseType = d.DriversLicenseType ?? "Unknown",
                     IsTrainingComplete = d.IsTrainingComplete ? "Yes" : "No"
                 }).ToList();
-
                 _dataGrid.DataSource = driverData;
             }
             catch (Exception ex)
@@ -272,13 +265,9 @@ namespace BusBuddy.UI.Views
             }
         }
     }
-
-    #endregion
-
-    #endregion
-
-    #endregion
-
-    #endregion
+    #endregion // Helper Methods
+    #endregion // Base Implementation Override
+    #endregion // Constructors
+    #endregion // Properties Override
 }
 

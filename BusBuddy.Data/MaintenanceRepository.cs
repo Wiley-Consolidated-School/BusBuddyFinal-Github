@@ -44,7 +44,6 @@ namespace BusBuddy.Data
                 connection.Open();
                 // Format the date as a string in ISO format to match storage format
                 string formattedDate = date.ToString("yyyy-MM-dd");
-
                 var maintenanceRecords = connection.Query<Maintenance>(
                     "SELECT * FROM Maintenance WHERE Date = @Date",
                     new { Date = formattedDate }).AsList();
@@ -74,25 +73,24 @@ namespace BusBuddy.Data
                     new { MaintenanceType = maintenanceType }).AsList();
                 return maintenanceRecords;
             }
-        }        public int AddMaintenance(Maintenance maintenance)
+        }
+
+        public int AddMaintenance(Maintenance maintenance)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
-
                 // Validate foreign key constraint - ensure BusId exists
                 if (maintenance.BusId.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
                         "SELECT COUNT(*) FROM Vehicles WHERE Id = @BusId",
                         new { BusId = maintenance.BusId });
-
                     if (vehicleExists == 0)
                     {
                         throw new InvalidOperationException($"Vehicle with ID {maintenance.BusId} does not exist.");
                     }
                 }
-
                 var sql = @"
                     INSERT INTO Maintenance (
                         Date, BusId, OdometerReading,
@@ -103,7 +101,6 @@ namespace BusBuddy.Data
                         @MaintenanceCompleted, @RepairCost, @Notes
                     );
                     SELECT SCOPE_IDENTITY()";
-
                 return connection.QuerySingle<int>(sql, maintenance);
             }
         }
@@ -113,28 +110,23 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-
                 // Validate foreign key constraint - ensure BusId exists
                 if (maintenance.BusId.HasValue)
                 {
                     var vehicleExists = connection.QuerySingleOrDefault<int>(
                         "SELECT COUNT(*) FROM Vehicles WHERE Id = @BusId",
                         new { BusId = maintenance.BusId });
-
                     if (vehicleExists == 0)
                     {
                         throw new InvalidOperationException($"Vehicle with ID {maintenance.BusId} does not exist.");
                     }
                 }
-
                 // Check if Vendor column exists before trying to update it
                 var checkColumnSql = @"
                     SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.COLUMNS
                     WHERE TABLE_NAME = 'Maintenance' AND COLUMN_NAME = 'Vendor'";
-
                 var vendorColumnExists = connection.QuerySingleOrDefault<int>(checkColumnSql);
-
                 string sql;
                 if (vendorColumnExists > 0)
                 {
@@ -162,7 +154,6 @@ namespace BusBuddy.Data
                             Notes = @Notes
                         WHERE MaintenanceID = @MaintenanceID";
                 }
-
                 var rowsAffected = connection.Execute(sql, maintenance);
                 return rowsAffected > 0;
             }
@@ -177,7 +168,9 @@ namespace BusBuddy.Data
                 var rowsAffected = connection.Execute(sql, new { MaintenanceID = id });
                 return rowsAffected > 0;
             }
-        }        // Additional methods for compatibility
+        }
+
+        // Additional methods for compatibility
         public List<Maintenance> GetAllMaintenances()
         {
             return GetAllMaintenanceRecords();

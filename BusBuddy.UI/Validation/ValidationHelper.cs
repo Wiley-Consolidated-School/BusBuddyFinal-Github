@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using System.Drawing;
 using BusBuddy.UI.Helpers;
 
 namespace BusBuddy.UI.Validation
@@ -20,14 +20,11 @@ namespace BusBuddy.UI.Validation
         {
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(model);
-
             bool isValid = Validator.TryValidateObject(model, validationContext, validationResults, true);
-
             if (!isValid)
             {
                 ShowValidationErrors(validationResults, parentControl);
             }
-
             return isValid;
         }
 
@@ -37,7 +34,6 @@ namespace BusBuddy.UI.Validation
         private static void ShowValidationErrors(List<ValidationResult> validationResults, Control parentControl)
         {
             var errorMessage = string.Join("\n", validationResults.Select(r => r.ErrorMessage));
-
             // Create Material Design error dialog
             var errorDialog = new Form
             {
@@ -49,7 +45,6 @@ namespace BusBuddy.UI.Validation
                 MinimizeBox = false,
                 BackColor = BusBuddyThemeManager.DarkTheme.Surface
             };
-
             var errorLabel = new Label
             {
                 Text = errorMessage,
@@ -57,7 +52,8 @@ namespace BusBuddy.UI.Validation
                 ForeColor = BusBuddyThemeManager.DarkTheme.Error,
                 Font = BusBuddyThemeManager.Typography.GetBodyMedium(),
                 Padding = new Padding(16)
-            };            var okButton = new Button
+            };
+            var okButton = new Button
             {
                 Text = "OK",
                 BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
@@ -67,11 +63,8 @@ namespace BusBuddy.UI.Validation
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
                 Location = new Point(280, 220)
             };
-
             okButton.FlatAppearance.BorderSize = 0;
-
             okButton.Click += (s, e) => errorDialog.Close();
-
             errorDialog.Controls.Add(errorLabel);
             errorDialog.Controls.Add(okButton);
             errorDialog.ShowDialog(parentControl.FindForm());
@@ -83,7 +76,6 @@ namespace BusBuddy.UI.Validation
         public static bool ValidateControl(Control control, Func<string, bool> validator, string errorMessage)
         {
             var isValid = true;
-
             if (control is TextBox textBox)
             {
                 isValid = validator(textBox.Text);
@@ -92,7 +84,6 @@ namespace BusBuddy.UI.Validation
                     // Add error styling to TextBox
                     textBox.BackColor = BusBuddyThemeManager.DarkTheme.ErrorContainer;
                     textBox.ForeColor = BusBuddyThemeManager.DarkTheme.OnErrorContainer;
-
                     // Show tooltip with error
                     var toolTip = new ToolTip();
                     toolTip.SetToolTip(textBox, errorMessage);
@@ -104,7 +95,6 @@ namespace BusBuddy.UI.Validation
                     textBox.ForeColor = BusBuddyThemeManager.DarkTheme.OnSurface;
                 }
             }
-
             return isValid;
         }
 
@@ -123,7 +113,6 @@ namespace BusBuddy.UI.Validation
                 MinimizeBox = false,
                 BackColor = BusBuddyThemeManager.DarkTheme.Surface
             };
-
             var successLabel = new Label
             {
                 Text = message,
@@ -131,7 +120,8 @@ namespace BusBuddy.UI.Validation
                 ForeColor = BusBuddyThemeManager.DarkTheme.Success,
                 Font = BusBuddyThemeManager.Typography.GetBodyMedium(),
                 Padding = new Padding(16)
-            };            var okButton = new Button
+            };
+            var okButton = new Button
             {
                 Text = "OK",
                 BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
@@ -141,11 +131,8 @@ namespace BusBuddy.UI.Validation
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
                 Location = new Point(230, 120)
             };
-
             okButton.FlatAppearance.BorderSize = 0;
-
             okButton.Click += (s, e) => successDialog.Close();
-
             successDialog.Controls.Add(successLabel);
             successDialog.Controls.Add(okButton);
             successDialog.ShowDialog(parentControl.FindForm());

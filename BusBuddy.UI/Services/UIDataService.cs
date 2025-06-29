@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using BusBuddy.Data;
 using BusBuddy.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusBuddy.UI.Services
 {
@@ -57,7 +57,6 @@ namespace BusBuddy.UI.Services
         {
             // Create a DataTable to hold the results
             var dataTable = new System.Data.DataTable();
-
             try
             {
                 // This is just a stub implementation for the tests
@@ -71,14 +70,12 @@ namespace BusBuddy.UI.Services
             {
                 // Log the exception
                 Console.WriteLine($"Error executing query: {ex.Message}");
-
                 // Add error information to the DataTable
                 dataTable.Columns.Add("Error", typeof(string));
                 var row = dataTable.NewRow();
                 row["Error"] = ex.Message;
                 dataTable.Rows.Add(row);
             }
-
             return dataTable;
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using BusBuddy.Models;
 
 namespace BusBuddy.Models
 {
@@ -23,6 +24,7 @@ namespace BusBuddy.Models
             }
             set => FuelDate = value?.ToString("yyyy-MM-dd");
         }
+
         public int? VehicleFueledID { get; set; }
         public decimal? VehicleOdometerReading { get; set; }
         public string? FuelType { get; set; }  // Gasoline, Diesel

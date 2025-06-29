@@ -50,7 +50,8 @@ namespace BusBuddy.UI.Views
             int labelX = 30;
             int controlX = 150;
             int spacing = 60;
-            int controlWidth = 280;            // Vehicle
+            int controlWidth = 280;
+            // Vehicle
             var lblBus = CreateLabel("🚌 Vehicle:");
             lblBus.Location = new Point(labelX, y);
             this.Controls.Add(lblBus);
@@ -59,7 +60,6 @@ namespace BusBuddy.UI.Views
             cboVehicle.Size = new Size(controlWidth, 30);
             this.Controls.Add(cboVehicle);
             y += spacing;
-
             // Maintenance Type
             var lblMaintenanceType = CreateLabel("🔧 Type:");
             lblMaintenanceType.Location = new Point(labelX, y);
@@ -73,7 +73,6 @@ namespace BusBuddy.UI.Views
             });
             this.Controls.Add(cboMaintenanceType);
             y += spacing;
-
             // Maintenance Completed
             var lblMaintenanceCompleted = CreateLabel("📋 Description:");
             lblMaintenanceCompleted.Location = new Point(labelX, y);
@@ -83,7 +82,6 @@ namespace BusBuddy.UI.Views
             txtMaintenanceCompleted.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtMaintenanceCompleted);
             y += 80;
-
             // Date
             var lblDate = CreateLabel("📅 Date:");
             lblDate.Location = new Point(labelX, y);
@@ -96,7 +94,6 @@ namespace BusBuddy.UI.Views
             };
             this.Controls.Add(dtpDate);
             y += spacing;
-
             // Vendor
             var lblVendor = CreateLabel("🏢 Vendor:");
             lblVendor.Location = new Point(labelX, y);
@@ -106,7 +103,6 @@ namespace BusBuddy.UI.Views
             txtVendor.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtVendor);
             y += spacing;
-
             // Cost
             var lblCost = CreateLabel("💰 Cost:");
             lblCost.Location = new Point(labelX, y);
@@ -116,7 +112,6 @@ namespace BusBuddy.UI.Views
             txtCost.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtCost);
             y += spacing;
-
             // Notes
             var lblNotes = CreateLabel("📝 Notes:");
             lblNotes.Location = new Point(labelX, y);
@@ -125,18 +120,17 @@ namespace BusBuddy.UI.Views
             txtNotes.Location = new Point(controlX, y);
             txtNotes.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtNotes);
-            y += 80;            // Buttons
+            y += 80;
+            // Buttons
             btnSave = CreatePrimaryButton("💾 Save", btnSave_Click);
             btnSave.Location = new Point(controlX, y);
             btnSave.Size = new Size(120, 36);
             this.Controls.Add(btnSave);
-
             btnCancel = CreateSecondaryButton("❌ Cancel", btnCancel_Click);
             btnCancel.Location = new Point(controlX + 140, y);
             btnCancel.Size = new Size(120, 36);
             this.Controls.Add(btnCancel);
             btnCancel.Size = new Size(120, 36);
-
             // Apply Material Design styling
             ApplyMaterialStyling();
         }
@@ -146,7 +140,6 @@ namespace BusBuddy.UI.Views
             // Configure date picker for Material Design
             dtpDate.Font = new Font("Roboto", 10F);
             dtpDate.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
-
             // Style all labels
             foreach (Control control in this.Controls)
             {
@@ -170,7 +163,6 @@ namespace BusBuddy.UI.Views
                 cboVehicle.Items.Add("Vehicle 3 - Bus #003");
                 cboVehicle.Items.Add("Vehicle 4 - Bus #004");
                 cboVehicle.Items.Add("Vehicle 5 - Bus #005");
-
                 // For demonstration, map BusId to display text
                 if (Maintenance.BusId.HasValue)
                 {
@@ -194,7 +186,6 @@ namespace BusBuddy.UI.Views
             dtpDate.Value = Maintenance.DateAsDateTime ?? DateTime.Today;
             txtVendor.Text = Maintenance.Vendor ?? string.Empty;
             txtNotes.Text = Maintenance.Notes ?? string.Empty;
-
             // Set default maintenance type if adding new
             if (Maintenance.MaintenanceID == 0)
             {
@@ -206,7 +197,6 @@ namespace BusBuddy.UI.Views
         {
             if (!ValidateMaintenance())
                 return;
-
             // Extract vehicle ID from selection (in real implementation,
             // this would get the actual vehicle ID)
             Maintenance.BusId = cboVehicle.SelectedIndex + 1;
@@ -214,7 +204,6 @@ namespace BusBuddy.UI.Views
             Maintenance.DateAsDateTime = dtpDate.Value;
             Maintenance.Vendor = txtVendor.Text.Trim();
             Maintenance.Notes = txtNotes.Text.Trim();
-
             BusBuddyLogger.Info("MaintenanceEditForm", "Maintenance record saved.");
             DialogResult = DialogResult.OK;
             Close();
@@ -223,35 +212,30 @@ namespace BusBuddy.UI.Views
         private bool ValidateMaintenance()
         {
             ClearAllValidationErrors();
-
             if (cboVehicle.SelectedIndex < 0)
             {
                 SetValidationError(cboVehicle, "Please select a vehicle.");
                 ShowErrorMessage("Please select a vehicle.");
                 return false;
             }
-
             if (cboMaintenanceType.SelectedIndex < 0)
             {
                 SetValidationError(cboMaintenanceType, "Please select a maintenance type.");
                 ShowErrorMessage("Please select a maintenance type.");
                 return false;
             }
-
             if (string.IsNullOrWhiteSpace(txtMaintenanceCompleted.Text))
             {
                 SetValidationError(txtMaintenanceCompleted, "Please describe the maintenance performed.");
                 ShowErrorMessage("Please describe the maintenance performed.");
                 return false;
             }
-
             if (dtpDate.Value > DateTime.Today)
             {
                 SetValidationError(dtpDate, "Maintenance date cannot be in the future.");
                 ShowErrorMessage("Maintenance date cannot be in the future.");
                 return false;
             }
-
             if (!string.IsNullOrWhiteSpace(txtCost.Text))
             {
                 if (!decimal.TryParse(txtCost.Text, out decimal cost) || cost < 0)
@@ -261,7 +245,6 @@ namespace BusBuddy.UI.Views
                     return false;
                 }
             }
-
             return true;
         }
 
@@ -270,7 +253,9 @@ namespace BusBuddy.UI.Views
             BusBuddyLogger.Info("MaintenanceEditForm", "Maintenance edit cancelled.");
             DialogResult = DialogResult.Cancel;
             Close();
-        }        // Helper methods for validation and form management
+        }
+
+        // Helper methods for validation and form management
         protected void ClearAllValidationErrors()
         {
             _errorProvider.Clear();

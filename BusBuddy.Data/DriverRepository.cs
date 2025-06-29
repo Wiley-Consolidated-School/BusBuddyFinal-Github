@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using BusBuddy.Models;
 using Dapper;
 
@@ -8,11 +7,13 @@ namespace BusBuddy.Data
 {
     public class DriverRepository : BaseRepository, IDriverRepository
     {
-        public DriverRepository() : base()
+        public DriverRepository()
+            : base()
         {
         }
 
-        public DriverRepository(string connectionString, string providerName) : base(connectionString, providerName)
+        public DriverRepository(string connectionString, string providerName)
+            : base(connectionString, providerName)
         {
         }
 
@@ -23,11 +24,7 @@ namespace BusBuddy.Data
                 using (var connection = CreateConnection())
                 {
                     connection.Open();
-                    const string sql = @"
-                        SELECT DriverID, DriverName, DriverPhone, DriverEmail, Address, City, State, Zip,
-                               DriversLicenseType, TrainingComplete
-                        FROM Drivers
-                        ORDER BY DriverName";
+                    const string sql = @"                        SELECT DriverID, DriverName, DriverPhone, DriverEmail, Address, City, State, Zip,                               DriversLicenseType, TrainingComplete                        FROM Drivers                        ORDER BY DriverName";
                     var drivers = connection.Query<Driver>(sql).AsList();
                     return drivers;
                 }
@@ -52,7 +49,6 @@ namespace BusBuddy.Data
                 Console.WriteLine($"WARNING: Invalid driver ID {id} requested");
                 return null;
             }
-
             try
             {
                 using (var connection = CreateConnection())
@@ -61,7 +57,6 @@ namespace BusBuddy.Data
                     var driver = connection.QuerySingleOrDefault<Driver>(
                         "SELECT * FROM Drivers WHERE DriverId = @DriverId",
                         new { DriverId = id });
-
                     if (driver == null)
                     {
                         Console.WriteLine($"WARNING: Driver with ID {id} not found in database");
@@ -70,7 +65,6 @@ namespace BusBuddy.Data
                     {
                         Console.WriteLine($"Driver found: ID={driver.DriverId}, Name={driver.DriverName}");
                     }
-
                     return driver;
                 }
             }
@@ -80,6 +74,7 @@ namespace BusBuddy.Data
                 return null;
             }
         }
+
         public List<Driver> GetDriversByLicenseType(string licenseType)
         {
             using (var connection = CreateConnection())
@@ -91,49 +86,27 @@ namespace BusBuddy.Data
                 return drivers;
             }
         }
+
         public int AddDriver(Driver driver)
         {
             if (driver == null)
                 throw new ArgumentNullException(nameof(driver));
-
             using (var connection = CreateConnection())
             {
-                connection.Open(); var sql = @"
-                    INSERT INTO Drivers (
-                        DriverName, DriverPhone, DriverEmail,
-                        Address, City, State, Zip,
-                        DriversLicenseType, TrainingComplete
-                    )
-                    VALUES (
-                        @DriverName, @DriverPhone, @DriverEmail,
-                        @Address, @City, @State, @Zip,
-                        @DriversLicenseType, @TrainingComplete
-                    );
-                    SELECT SCOPE_IDENTITY()";
-
+                connection.Open();
+                var sql = @"                    INSERT INTO Drivers (                        DriverName, DriverPhone, DriverEmail,                        Address, City, State, Zip,                        DriversLicenseType, TrainingComplete                    )                    VALUES (                        @DriverName, @DriverPhone, @DriverEmail,                        @Address, @City, @State, @Zip,                        @DriversLicenseType, @TrainingComplete                    );                    SELECT SCOPE_IDENTITY()";
                 return connection.QuerySingle<int>(sql, driver);
             }
         }
+
         public bool UpdateDriver(Driver driver)
         {
             if (driver == null)
                 throw new ArgumentNullException(nameof(driver));
-
             using (var connection = CreateConnection())
             {
-                connection.Open(); var sql = @"
-                    UPDATE Drivers
-                    SET DriverName = @DriverName,
-                        DriverPhone = @DriverPhone,
-                        DriverEmail = @DriverEmail,
-                        Address = @Address,
-                        City = @City,
-                        State = @State,
-                        Zip = @Zip,
-                        DriversLicenseType = @DriversLicenseType,
-                        TrainingComplete = @TrainingComplete
-                    WHERE DriverID = @DriverId";
-
+                connection.Open();
+                var sql = @"                    UPDATE Drivers                    SET DriverName = @DriverName,                        DriverPhone = @DriverPhone,                        DriverEmail = @DriverEmail,                        Address = @Address,                        City = @City,                        State = @State,                        Zip = @Zip,                        DriversLicenseType = @DriversLicenseType,                        TrainingComplete = @TrainingComplete                    WHERE DriverID = @DriverId";
                 var rowsAffected = connection.Execute(sql, driver);
                 return rowsAffected > 0;
             }

@@ -24,11 +24,15 @@ namespace BusBuddy.UI.Views
         private readonly BusRepository _busRepository;
         private List<Bus> _buses = new List<Bus>();
         private new System.IServiceProvider _serviceProvider;
+
         #region Properties Override
+
         protected override string FormTitle => "🔧 Maintenance Management";
         protected override string SearchPlaceholder => "Search maintenance...";
         protected override string EntityName => "Maintenance";
+
         #region Constructors
+
         public MaintenanceManagementFormSyncfusion(System.IServiceProvider serviceProvider, IMaintenanceRepository maintenanceRepository, BusRepository busRepository, IMessageService messageService)
             : base(serviceProvider, messageService)
         {
@@ -36,7 +40,9 @@ namespace BusBuddy.UI.Views
             _maintenanceRepository = maintenanceRepository ?? throw new ArgumentNullException(nameof(maintenanceRepository));
             _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
         }
+
         #region Base Implementation Override
+
         protected override void LoadData()
         {
             try
@@ -49,7 +55,6 @@ namespace BusBuddy.UI.Views
                 }
                 // Load buses first for dropdowns/lookups
                 LoadBuses();
-
                 var maintenanceRecords = _maintenanceRepository.GetAllMaintenanceRecords();
                 _entities = maintenanceRecords?.ToList() ?? new List<Maintenance>();
                 PopulateMaintenanceGrid();
@@ -90,7 +95,6 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a maintenance record to edit.");
                 return;
             }
-
             try
             {
                 var maintenanceForm = new MaintenanceEditFormSyncfusion(this._serviceProvider);
@@ -114,9 +118,7 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a maintenance record to delete.");
                 return;
             }
-
             if (!ConfirmDelete("maintenance record")) return;
-
             try
             {
                 _maintenanceRepository.DeleteMaintenanceRecord(selectedMaintenance.MaintenanceID);
@@ -137,19 +139,17 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a maintenance record to view details.");
                 return;
             }
-
             try
             {
                 var details = $"Maintenance Record Details:\n\n" +
-                            $"ID: {selectedMaintenance.MaintenanceID}\n" +
-                            $"Date: {selectedMaintenance.Date}\n" +
-                            $"Bus: {GetBusName(selectedMaintenance.BusId)}\n" +
-                            $"Odometer: {selectedMaintenance.OdometerReading:N0}\n" +
-                            $"Type: {selectedMaintenance.MaintenanceCompleted}\n" +
-                            $"Vendor: {selectedMaintenance.Vendor}\n" +
-                            $"Cost: {selectedMaintenance.RepairCost:C}\n" +
-                            $"Notes: {selectedMaintenance.Notes}";
-
+                              $"ID: {selectedMaintenance.MaintenanceID}\n" +
+                              $"Date: {selectedMaintenance.Date}\n" +
+                              $"Bus: {GetBusName(selectedMaintenance.BusId)}\n" +
+                              $"Odometer: {selectedMaintenance.OdometerReading:N0}\n" +
+                              $"Type: {selectedMaintenance.MaintenanceCompleted}\n" +
+                              $"Vendor: {selectedMaintenance.Vendor}\n" +
+                              $"Cost: {selectedMaintenance.RepairCost:C}\n" +
+                              $"Notes: {selectedMaintenance.Notes}";
                 ShowInfo(details, "Maintenance Details");
             }
             catch (Exception ex)
@@ -161,30 +161,25 @@ namespace BusBuddy.UI.Views
         protected override void SearchEntities()
         {
             if (_searchBox?.Text == null) return;
-
             try
             {
                 var searchTerm = _searchBox.Text.Trim();
-
                 if (string.IsNullOrEmpty(searchTerm) || searchTerm == SearchPlaceholder)
                 {
                     LoadData();
                     return;
                 }
-
                 // Ensure _entities is not null before performing LINQ operations
                 if (_entities == null)
                 {
                     _entities = new List<Maintenance>();
                     return;
                 }
-
                 var filteredMaintenance = _entities.Where(m =>
                     (m.MaintenanceCompleted?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (m.Vendor?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (GetBusName(m.BusId).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
-
                 _entities = filteredMaintenance;
                 PopulateMaintenanceGrid();
             }
@@ -197,10 +192,8 @@ namespace BusBuddy.UI.Views
         protected override void SetupDataGridColumns()
         {
             if (_dataGrid == null) return;
-
             _dataGrid.AutoGenerateColumns = false;
             _dataGrid.Columns.Clear();
-
             _dataGrid.Columns.Add(new GridNumericColumn() { MappingName = "MaintenanceID", HeaderText = "ID", Visible = false });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Date", HeaderText = "Date", Width = GetDpiAwareWidth(120) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "BusName", HeaderText = "Bus", Width = GetDpiAwareWidth(120) });
@@ -208,10 +201,11 @@ namespace BusBuddy.UI.Views
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "MaintenanceCompleted", HeaderText = "Type", Width = GetDpiAwareWidth(150) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "Vendor", HeaderText = "Vendor", Width = GetDpiAwareWidth(120) });
             _dataGrid.Columns.Add(new GridTextColumn() { MappingName = "RepairCost", HeaderText = "Cost", Width = GetDpiAwareWidth(100) });
-
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
+
         #region Helper Methods
+
         private void LoadBuses()
         {
             try
@@ -232,7 +226,6 @@ namespace BusBuddy.UI.Views
         private void PopulateMaintenanceGrid()
         {
             if (_dataGrid == null) return;
-
             try
             {
                 // Ensure _entities is not null before performing LINQ operations
@@ -240,7 +233,6 @@ namespace BusBuddy.UI.Views
                 {
                     _entities = new List<Maintenance>();
                 }
-
                 var maintenanceData = _entities.Select(m => new
                 {
                     MaintenanceID = m.MaintenanceID,
@@ -251,7 +243,6 @@ namespace BusBuddy.UI.Views
                     Vendor = m.Vendor ?? "Unknown",
                     RepairCost = m.RepairCost?.ToString("C") ?? "$0.00"
                 }).ToList();
-
                 _dataGrid.DataSource = maintenanceData;
             }
             catch (Exception ex)
@@ -263,18 +254,13 @@ namespace BusBuddy.UI.Views
         private string GetBusName(int? busId)
         {
             if (!busId.HasValue) return "Unknown";
-
             var bus = _buses.FirstOrDefault(b => b.BusId == busId.Value);
             return bus?.BusNumber ?? "Unknown";
         }
     }
-
-    #endregion
-
-    #endregion
-
-    #endregion
-
-    #endregion
+    #endregion // Helper Methods
+    #endregion // Base Implementation Override
+    #endregion // Constructors
+    #endregion // Properties Override
 }
 

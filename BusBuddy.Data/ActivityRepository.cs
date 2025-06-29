@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using BusBuddy.Models;
 using Dapper;
 
 namespace BusBuddy.Data
-{    public class ActivityRepository : BaseRepository, IActivityRepository
+{
+    public class ActivityRepository : BaseRepository, IActivityRepository
     {
         public ActivityRepository() : base()
         {
@@ -117,7 +119,6 @@ namespace BusBuddy.Data
         {
             // Format the date string to match the storage format in the database
             string formattedDate = date.ToString("yyyy-MM-dd");
-
             using (var connection = CreateConnection())
             {
                 connection.Open();
@@ -150,11 +151,11 @@ namespace BusBuddy.Data
                     new { BusId = busId }).AsList();
                 return activities;
             }
-        }        public int AddActivity(Activity activity)
-        {
-            if (activity == null)
-                throw new ArgumentNullException(nameof(activity));
+        }
 
+        public int AddActivity(Activity activity)
+        {
+            if (activity == null) throw new ArgumentNullException(nameof(activity));
             using (var connection = CreateConnection())
             {
                 connection.Open();
@@ -170,16 +171,13 @@ namespace BusBuddy.Data
                         @AssignedVehicleID, @DriverId
                     );
                     SELECT SCOPE_IDENTITY()";
-
                 return connection.QuerySingle<int>(sql, activity);
             }
         }
 
         public bool UpdateActivity(Activity activity)
         {
-            if (activity == null)
-                throw new ArgumentNullException(nameof(activity));
-
+            if (activity == null) throw new ArgumentNullException(nameof(activity));
             using (var connection = CreateConnection())
             {
                 connection.Open();
@@ -194,7 +192,6 @@ namespace BusBuddy.Data
                         AssignedVehicleID = @AssignedVehicleID,
                         DriverId = @DriverId
                     WHERE ActivityID = @ActivityID";
-
                 var rowsAffected = connection.Execute(sql, activity);
                 return rowsAffected > 0;
             }

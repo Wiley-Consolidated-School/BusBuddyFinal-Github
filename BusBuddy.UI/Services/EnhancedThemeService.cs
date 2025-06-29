@@ -24,7 +24,6 @@ namespace BusBuddy.UI.Services
         public static readonly Color HeaderTextColor = Color.White;
         public static readonly Color ButtonColor = ColorTranslator.FromHtml("#1976D2");
         public static readonly Color ButtonTextColor = Color.White;
-
         public static readonly string[] PreferredFonts = { "Segoe UI", "Arial", "Microsoft Sans Serif", "Tahoma" };
         public static readonly Font DefaultFont = GetSafeFont(10F, FontStyle.Regular);
         public static readonly Font HeaderFont = GetSafeFont(18F, FontStyle.Bold);
@@ -50,7 +49,6 @@ namespace BusBuddy.UI.Services
             control.BackColor = SurfaceColor;
             control.ForeColor = TextColor;
             control.Font = DefaultFont;
-
             switch (control)
             {
                 case Button button:

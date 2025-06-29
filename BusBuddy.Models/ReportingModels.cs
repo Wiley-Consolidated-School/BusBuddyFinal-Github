@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BusBuddy.Models;
 
 namespace BusBuddy.Models
 {
@@ -7,9 +8,7 @@ namespace BusBuddy.Models
     /// Comprehensive reporting models for rural school district management
     /// Supports compliance, safety tracking, and operational reporting
     /// </summary>
-
     #region Monthly Reporting Models
-
     public class MonthlyReport
     {
         public DateTime ReportMonth { get; set; }
@@ -23,7 +22,6 @@ namespace BusBuddy.Models
         public ComplianceStatus ComplianceStatus { get; set; } = new ComplianceStatus();
         public List<string> AIRecommendations { get; set; } = new List<string>();
     }
-
     public class FleetSummary
     {
         public int TotalBuses { get; set; }
@@ -33,7 +31,6 @@ namespace BusBuddy.Models
         public decimal TotalMileage { get; set; }
         public decimal UtilizationRate { get; set; }
     }
-
     public class MaintenanceOverview
     {
         public int TotalMaintenanceEvents { get; set; }
@@ -43,7 +40,6 @@ namespace BusBuddy.Models
         public decimal AverageDowntime { get; set; }
         public List<MaintenanceAlert> MaintenanceAlerts { get; set; } = new List<MaintenanceAlert>();
     }
-
     public class RoutePerformance
     {
         public int TotalRoutes { get; set; }
@@ -53,7 +49,6 @@ namespace BusBuddy.Models
         public int StudentCapacity { get; set; }
         public string RouteOptimization { get; set; } = string.Empty;
     }
-
     public class DriverSummary
     {
         public int TotalDrivers { get; set; }
@@ -63,7 +58,6 @@ namespace BusBuddy.Models
         public int SafetyIncidents { get; set; }
         public List<string> TrainingNeeds { get; set; } = new List<string>();
     }
-
     public class CostAnalysis
     {
         public decimal TotalOperatingCost { get; set; }
@@ -74,7 +68,6 @@ namespace BusBuddy.Models
         public decimal CostPerStudent { get; set; }
         public string BudgetVariance { get; set; } = string.Empty;
     }
-
     public class ComplianceStatus
     {
         public int BusesInspected { get; set; }
@@ -84,11 +77,8 @@ namespace BusBuddy.Models
         public decimal ComplianceScore { get; set; }
         public List<string> RequiredActions { get; set; } = new List<string>();
     }
-
     #endregion
-
     #region Compliance Reporting Models
-
     public class ComplianceReport
     {
         public DateTime ReportDate { get; set; }
@@ -100,7 +90,6 @@ namespace BusBuddy.Models
         public int OverallComplianceScore { get; set; }
         public List<string> RequiredActions { get; set; } = new List<string>();
     }
-
     public class BusComplianceStatus
     {
         public int TotalBuses { get; set; }
@@ -109,7 +98,6 @@ namespace BusBuddy.Models
         public int OverdueInspections { get; set; }
         public List<string> IssuesFound { get; set; } = new List<string>();
     }
-
     public class DriverComplianceStatus
     {
         public int TotalDrivers { get; set; }
@@ -118,7 +106,6 @@ namespace BusBuddy.Models
         public int PendingTraining { get; set; }
         public List<string> TrainingRequirements { get; set; } = new List<string>();
     }
-
     public class RouteComplianceStatus
     {
         public int TotalRoutes { get; set; }
@@ -126,7 +113,6 @@ namespace BusBuddy.Models
         public int RoutesNeedingReview { get; set; }
         public List<string> SafetyConcerns { get; set; } = new List<string>();
     }
-
     public class MaintenanceComplianceStatus
     {
         public int ScheduledMaintenance { get; set; }
@@ -134,11 +120,8 @@ namespace BusBuddy.Models
         public int OverdueMaintenance { get; set; }
         public decimal CompliancePercentage { get; set; }
     }
-
     #endregion
-
     #region Annual Reporting Models
-
     public class AnnualReport
     {
         public int Year { get; set; }
@@ -151,7 +134,6 @@ namespace BusBuddy.Models
         public List<string> ChallengesAndSolutions { get; set; } = new List<string>();
         public List<string> StrategicRecommendations { get; set; } = new List<string>();
     }
-
     public class AnnualSafetyMetrics
     {
         public int TotalSafetyIncidents { get; set; }
@@ -160,7 +142,6 @@ namespace BusBuddy.Models
         public int TrainingHours { get; set; }
         public List<string> SafetyAchievements { get; set; } = new List<string>();
     }
-
     public class AnnualFinancialSummary
     {
         public decimal TotalOperatingCost { get; set; }
@@ -169,7 +150,6 @@ namespace BusBuddy.Models
         public List<string> CostDrivers { get; set; } = new List<string>();
         public List<string> SavingOpportunities { get; set; } = new List<string>();
     }
-
     public class FleetLifecycleAnalysis
     {
         public decimal AverageFleetAge { get; set; }
@@ -177,7 +157,6 @@ namespace BusBuddy.Models
         public decimal ReplacementCost { get; set; }
         public List<string> LifecycleRecommendations { get; set; } = new List<string>();
     }
-
     public class OperationalEfficiencyMetrics
     {
         public decimal RouteEfficiency { get; set; }
@@ -185,11 +164,8 @@ namespace BusBuddy.Models
         public decimal MaintenanceEfficiency { get; set; }
         public List<string> ImprovementOpportunities { get; set; } = new List<string>();
     }
-
     #endregion
-
     #region Executive Dashboard Models
-
     public class ExecutiveDashboard
     {
         public DateTime ReportDate { get; set; }
@@ -201,7 +177,6 @@ namespace BusBuddy.Models
         public List<string> BudgetImpacts { get; set; } = new List<string>();
         public RiskAssessment RiskAssessment { get; set; } = new RiskAssessment();
     }
-
     public class SafetyKPIs
     {
         public int DaysSinceLastIncident { get; set; }
@@ -210,7 +185,6 @@ namespace BusBuddy.Models
         public decimal DriverComplianceRate { get; set; }
         public decimal BusInspectionRate { get; set; }
     }
-
     public class FinancialKPIs
     {
         public decimal MonthlyOperatingCost { get; set; }
@@ -219,7 +193,6 @@ namespace BusBuddy.Models
         public decimal MaintenanceCostTrend { get; set; }
         public decimal FuelCostTrend { get; set; }
     }
-
     public class OperationalKPIs
     {
         public decimal FleetUtilization { get; set; }
@@ -228,7 +201,6 @@ namespace BusBuddy.Models
         public decimal AverageRouteTime { get; set; }
         public int StudentsTransported { get; set; }
     }
-
     public class RiskAssessment
     {
         public List<string> HighRiskFactors { get; set; } = new List<string>();
@@ -236,7 +208,6 @@ namespace BusBuddy.Models
         public int OverallRiskScore { get; set; }
         public List<string> ImmediateActions { get; set; } = new List<string>();
     }
-
     #endregion
 }
 

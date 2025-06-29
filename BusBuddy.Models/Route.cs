@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using BusBuddy.Models; // Ensure Bus and Driver are available
 
 namespace BusBuddy.Models
 {
@@ -29,7 +30,6 @@ namespace BusBuddy.Models
             // SQL Server DateTime range: 1753-01-01 00:00:00 to 9999-12-31 23:59:59.997
             var minSqlDate = new DateTime(1753, 1, 1);
             var maxSqlDate = new DateTime(9999, 12, 31, 23, 59, 59, 997);
-
             if (dateTime < minSqlDate)
                 return minSqlDate;
             if (dateTime > maxSqlDate)

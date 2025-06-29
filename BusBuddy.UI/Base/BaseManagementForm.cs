@@ -14,10 +14,11 @@ using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Base
-{    /// <summary>
-     /// Base class for all management forms to ensure consistency across the application
-     /// Provides standard layout, controls, and behavior patterns
-     /// </summary>
+{
+    /// <summary>
+    /// Base class for all management forms to ensure consistency across the application
+    /// Provides standard layout, controls, and behavior patterns
+    /// </summary>
     public abstract class BaseManagementForm<T> : SyncfusionBaseForm, IDisposable where T : class
     {
         #region Protected Fields

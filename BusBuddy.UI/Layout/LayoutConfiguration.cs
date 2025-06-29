@@ -13,24 +13,20 @@ namespace BusBuddy.UI.Layout
         /// Gets or sets the number of rows in the grid.
         /// </summary>
         public int Rows { get; set; }
-
         /// <summary>
         /// Gets or sets the number of columns in the grid.
         /// </summary>
         public int Columns { get; set; }
-
         /// <summary>
         /// Gets or sets the percentage sizes for each row.
         /// If null or fewer items than Rows, remaining rows will have equal distribution.
         /// </summary>
         public List<float> RowSizes { get; set; }
-
         /// <summary>
         /// Gets or sets the percentage sizes for each column.
         /// If null or fewer items than Columns, remaining columns will have equal distribution.
         /// </summary>
         public List<float> ColumnSizes { get; set; }
-
         /// <summary>
         /// Creates a new layout configuration with the specified dimensions.
         /// </summary>
@@ -41,7 +37,6 @@ namespace BusBuddy.UI.Layout
             Rows = rows;
             Columns = columns;
         }
-
         /// <summary>
         /// Creates a predefined 2x2 grid layout with equal cell sizes.
         /// </summary>
@@ -50,7 +45,6 @@ namespace BusBuddy.UI.Layout
         {
             return new LayoutConfiguration(2, 2);
         }
-
         /// <summary>
         /// Creates a predefined dashboard layout with a header row and content area.
         /// The header row takes 20% of height, and the content area takes 80%.

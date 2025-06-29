@@ -6,10 +6,11 @@ using BusBuddy.Data;
 using BusBuddy.Models;
 
 namespace BusBuddy.Business
-{    /// <summary>
-     /// Service for analyzing route efficiency and providing optimization insights
-     /// Supports the roadmap goal of analytics for future web dashboard
-     /// </summary>
+{
+    /// <summary>
+    /// Service for analyzing route efficiency and providing optimization insights
+    /// Supports the roadmap goal of analytics for future web dashboard
+    /// </summary>
     public class RouteAnalyticsService : IRouteAnalyticsService
     {
         private readonly IRouteRepository _routeRepository;
@@ -61,13 +62,11 @@ namespace BusBuddy.Business
                     RouteId = route.RouteId,
                     RouteName = route.RouteName ?? "Unknown",
                     Date = route.DateAsDateTime,
-
                     // AM Period Metrics
                     AMTotalMiles = CalculatePeriodMiles(route.AMBeginMiles, route.AMEndMiles),
                     AMRiders = route.AMRiders ?? 0,
                     AMBusId = route.AMBusId,
                     AMDriverId = route.AMDriverId,
-
                     // PM Period Metrics
                     PMTotalMiles = CalculatePeriodMiles(route.PMBeginMiles, route.PMEndMiles),
                     PMRiders = route.PMRiders ?? 0,
@@ -134,7 +133,6 @@ namespace BusBuddy.Business
                             foreach (var route in routes)
                             {
                                 if (cts.Token.IsCancellationRequested) break;
-
                                 var routeMetrics = CalculateRouteEfficiency(route);
                                 if (routeMetrics != null)
                                 {
@@ -251,6 +249,7 @@ namespace BusBuddy.Business
                     var dayRoutes = _routeRepository.GetRoutesByDate(currentDate)
                         .Where(r => r.AMDriverId == DriverId || r.PMDriverId == DriverId);
                     allRoutes.AddRange(dayRoutes);
+
                     currentDate = currentDate.AddDays(1);
                     iterations++;
                 }
@@ -260,9 +259,7 @@ namespace BusBuddy.Business
                 metrics.TotalMiles = allRoutes.Sum(r =>
                     CalculatePeriodMiles(r.AMBeginMiles, r.AMEndMiles) +
                     CalculatePeriodMiles(r.PMBeginMiles, r.PMEndMiles));
-
                 metrics.TotalRiders = allRoutes.Sum(r => (r.AMRiders ?? 0) + (r.PMRiders ?? 0));
-
                 if (metrics.TotalRoutes > 0)
                 {
                     metrics.AverageMilesPerRoute = Math.Round(metrics.TotalMiles / metrics.TotalRoutes, 2);
@@ -380,7 +377,6 @@ namespace BusBuddy.Business
 
                 // Calculate route costs and student-days
                 metrics.TotalRouteStudentDays = routes.Sum(r => (r.AMRiders ?? 0) + (r.PMRiders ?? 0));
-
                 foreach (var route in routes)
                 {
                     // Calculate miles for each route
@@ -394,7 +390,6 @@ namespace BusBuddy.Business
 
                     // Driver cost - assume 2 hours per route (AM + PM) at $16.50/hour
                     var driverCost = 2m * 16.50m;
-
                     metrics.TotalRouteCosts += fuelCost + maintenanceCost + driverCost;
                 }
 
@@ -413,10 +408,8 @@ namespace BusBuddy.Business
                     var fuelCost = CalculateEstimatedFuelCost(estimatedMiles);
                     var maintenanceCost = (decimal)estimatedMiles * 0.20m;
                     var driverCost = 50m; // Flat rate for activity trips (teacher/coach stipend)
-
                     metrics.TotalSportsCosts += fuelCost + maintenanceCost + driverCost;
                 }
-
                 foreach (var activity in fieldTripActivities)
                 {
                     // Estimate 75 miles average for field trips
@@ -424,7 +417,6 @@ namespace BusBuddy.Business
                     var fuelCost = CalculateEstimatedFuelCost(estimatedMiles);
                     var maintenanceCost = (decimal)estimatedMiles * 0.20m;
                     var driverCost = 50m; // Flat rate for activity trips
-
                     metrics.TotalFieldTripCosts += fuelCost + maintenanceCost + driverCost;
                 }
 
@@ -436,11 +428,9 @@ namespace BusBuddy.Business
                 metrics.RouteCostPerStudentPerDay = metrics.TotalRouteStudentDays > 0
                     ? metrics.TotalRouteCosts / metrics.TotalRouteStudentDays
                     : 0;
-
                 metrics.SportsCostPerStudent = metrics.TotalSportsStudents > 0
                     ? metrics.TotalSportsCosts / metrics.TotalSportsStudents
                     : 0;
-
                 metrics.FieldTripCostPerStudent = metrics.TotalFieldTripStudents > 0
                     ? metrics.TotalFieldTripCosts / metrics.TotalFieldTripStudents
                     : 0;
@@ -460,12 +450,10 @@ namespace BusBuddy.Business
         }
 
         #region Private Helper Methods
-
         private double CalculatePeriodMiles(decimal? beginMiles, decimal? endMiles)
         {
             if (!beginMiles.HasValue || !endMiles.HasValue || endMiles <= beginMiles)
                 return 0;
-
             return (double)(endMiles.Value - beginMiles.Value);
         }
 
@@ -473,9 +461,7 @@ namespace BusBuddy.Business
         {
             // Efficiency score based on riders per mile and other factors
             // Higher score = more efficient (more riders, fewer miles)
-
             if (metrics.TotalMiles <= 0) return 0;
-
             var baseScore = 50.0; // Base efficiency score
 
             // Bonus for rider density (riders per mile)
@@ -484,7 +470,6 @@ namespace BusBuddy.Business
 
             // Penalty for very long routes with few riders
             var lengthPenalty = metrics.TotalMiles > 50 && metrics.TotalRiders < 10 ? 20 : 0;
-
             var score = baseScore + riderBonus - lengthPenalty;
             return Math.Max(0, Math.Min(100, score)); // Clamp between 0-100
         }
@@ -495,9 +480,7 @@ namespace BusBuddy.Business
             // Assumes ~6 MPG for school bus and $3.50/gallon
             const double mpg = 6.0;
             const decimal costPerGallon = 3.50m;
-
             if (totalMiles <= 0) return 0;
-
             var gallonsUsed = totalMiles / mpg;
             return Math.Round((decimal)gallonsUsed * costPerGallon, 2);
         }
@@ -524,7 +507,6 @@ namespace BusBuddy.Business
                 if (route.PMBusId.HasValue && route.PMBusId != route.AMBusId)
                     vehicleUsage[route.PMBusId.Value] = vehicleUsage.GetValueOrDefault(route.PMBusId.Value) + 1;
             }
-
             var underutilizedVehicles = vehicleUsage.Where(kv => kv.Value == 1).ToList();
             if (underutilizedVehicles.Any())
             {
@@ -550,7 +532,6 @@ namespace BusBuddy.Business
             if (metrics.OverallEfficiencyScore >= 50) return PerformanceRating.BelowAverage;
             return PerformanceRating.NeedsImprovement;
         }
-
         #endregion
     }
 }

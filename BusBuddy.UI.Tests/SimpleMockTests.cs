@@ -1,28 +1,2 @@
-using System;
-using System.Threading.Tasks;
-using Xunit;
-
-namespace BusBuddy.UI.Tests
-{
-    /// <summary>
-    /// Simple test class to verify test framework is working without dependencies
-    /// </summary>
-    public class SimpleMockTests
-    {
-        [Fact]
-        public async Task TestAsyncMethod_ShouldComplete()
-        {
-            // Simple test that will always pass
-            await Task.Delay(100);
-            Assert.True(true);
-        }
-
-        [Fact]
-        public void TestSyncMethod_ShouldComplete()
-        {
-            // Simple test that will always pass
-            Assert.True(true);
-        }
-    }
-}
+using System;using System.Threading.Tasks;using Xunit;namespace BusBuddy.UI.Tests{    /// <summary>    /// Simple test class to verify test framework is working without dependencies    /// </summary>    public class SimpleMockTests    {        [Fact]        public async Task TestAsyncMethod_ShouldComplete()        {            // Simple test that will always pass            await Task.Delay(100);            Assert.True(true);        }        [Fact]        public void TestSyncMethod_ShouldComplete()        {            // Simple test that will always pass            Assert.True(true);        }    }}
 

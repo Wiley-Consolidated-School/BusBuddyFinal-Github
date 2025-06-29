@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using BusBuddy.Models;
 
 namespace BusBuddy.Models
 {
@@ -23,6 +24,7 @@ namespace BusBuddy.Models
             }
             set => Date = value?.ToString("yyyy-MM-dd");
         }
+
         public decimal? OdometerReading { get; set; }
         public string? MaintenanceCompleted { get; set; }  // Tires, Windshield, Alignment, Mechanical, Car Wash, Cleaning, Accessory Install
         public string? Vendor { get; set; }

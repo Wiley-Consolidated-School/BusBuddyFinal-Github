@@ -1,6 +1,7 @@
 using System;
 using System.Data.Common;
 using System.Threading.Tasks;
+using BusBuddy.Data; // Add using directive for DatabaseConfiguration
 using BusBuddy.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,7 +72,6 @@ namespace BusBuddy.Data
                         // Use the new DatabaseConfiguration for automatic environment detection
                         var connectionString = DatabaseConfiguration.GetConnectionString();
                         var provider = DatabaseConfiguration.DatabaseProvider;
-
                         // Always use SQL Server
                         if (provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
                         {
@@ -92,17 +92,14 @@ namespace BusBuddy.Data
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error configuring database: {ex.Message}");
-
                         // Check if the error indicates a database offline issue
                         bool isDatabaseOffline = ex.Message.Contains("offline") ||
                                                ex.Message.Contains("database is not accessible") ||
                                                ex.Message.Contains("Cannot open database");
-
                         if (isDatabaseOffline && !_hasAttemptedRepair)
                         {
                             _hasAttemptedRepair = true;
                             Console.WriteLine("Database appears to be offline. Attempting to repair...");
-
                             try
                             {
                                 // Use fallback connection string for recovery attempts
@@ -147,7 +144,6 @@ namespace BusBuddy.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
             // Configure table names to match existing database schema
             modelBuilder.Entity<Bus>().ToTable("Buses"); // Explicitly map to Buses table
             modelBuilder.Entity<Fuel>().ToTable("Fuel"); // Use singular table name
@@ -169,63 +165,54 @@ namespace BusBuddy.Data
                 .HasForeignKey(r => r.AMBusId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Route>()
                 .HasOne<Bus>()
                 .WithMany()
                 .HasForeignKey(r => r.PMBusId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Route>()
                 .HasOne<Driver>()
                 .WithMany()
                 .HasForeignKey(r => r.AMDriverId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Route>()
                 .HasOne<Driver>()
                 .WithMany()
                 .HasForeignKey(r => r.PMDriverId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Maintenance>()
                 .HasOne<Bus>()
                 .WithMany()
                 .HasForeignKey(m => m.BusId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Fuel>()
                 .HasOne<Bus>()
                 .WithMany()
                 .HasForeignKey(f => f.VehicleFueledID)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<ActivitySchedule>()
                 .HasOne<Bus>()
                 .WithMany()
                 .HasForeignKey(a => a.ScheduledVehicleID)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<ActivitySchedule>()
                 .HasOne<Driver>()
                 .WithMany()
                 .HasForeignKey(a => a.ScheduledDriverID)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Activity>()
                 .HasOne<Bus>()
                 .WithMany()
                 .HasForeignKey(a => a.AssignedBusID)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Activity>()
                 .HasOne<Driver>()
                 .WithMany()

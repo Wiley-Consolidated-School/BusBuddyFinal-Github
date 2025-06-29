@@ -35,27 +35,20 @@ namespace BusBuddy.UI.Helpers
             lock (_lockObject)
             {
                 if (_initialized) return;
-
                 Console.WriteLine("🛡️ Initializing Comprehensive Environment Protection...");
                 Console.WriteLine($"📊 Protection Level: {level}");
-
                 try
                 {
                     // Initialize all protection systems
                     InitializeProtectionSystems(level);
-
                     // Perform initial threat assessment
                     var initialThreats = PerformInitialThreatAssessment();
-
                     // Apply immediate protections
                     ApplyImmediateProtections(initialThreats, level);
-
                     // Start monitoring systems
                     StartMonitoringSystems(level);
-
                     _initialized = true;
                     _lastFullScan = DateTime.Now;
-
                     Console.WriteLine($"✅ Environment Protection initialized with {_activeProtections.Count} active protections");
                     PrintProtectionSummary();
                 }
@@ -74,37 +67,29 @@ namespace BusBuddy.UI.Helpers
         public static EnvironmentHealthReport PerformHealthCheck()
         {
             Console.WriteLine("🔍 Performing comprehensive environment health check...");
-
             var report = new EnvironmentHealthReport
             {
                 Timestamp = DateTime.Now,
                 OverallHealth = EnvironmentHealth.Unknown
             };
-
             try
             {
                 // Get basic environmental resilience status
                 var basicHealth = EnvironmentalResilience.AssessEnvironmentHealth();
                 report.BasicEnvironmentHealth = basicHealth;
-
                 // Get advanced threat analysis
                 var threats = AdverseEnvironmentGuard.PerformComprehensiveThreatScan();
                 report.DetectedThreats = threats;
-
                 // Assess build system health
                 var buildHealth = AssessBuildSystemHealth();
                 report.BuildSystemHealth = buildHealth;
-
                 // Assess runtime stability
                 var runtimeHealth = AssessRuntimeStability();
                 report.RuntimeStabilityHealth = runtimeHealth;
-
                 // Calculate overall health
                 report.OverallHealth = CalculateOverallHealth(basicHealth, threats, buildHealth, runtimeHealth);
-
                 // Generate recommendations
                 report.Recommendations = GenerateHealthRecommendations(report);
-
                 Console.WriteLine($"📊 Health Check Complete - Overall Health: {report.OverallHealth}");
                 return report;
             }
@@ -122,32 +107,24 @@ namespace BusBuddy.UI.Helpers
         public static void ApplyEmergencyProtections()
         {
             Console.WriteLine("🚨 EMERGENCY: Applying emergency environment protections!");
-
             try
             {
                 // Force immediate garbage collection
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
-
                 // Kill all unnecessary processes
                 KillUnnecessaryProcesses();
-
                 // Force environment cleanup
                 EnvironmentalResilience.ForceEnvironmentCleanup();
-
                 // Clean all build artifacts
                 CleanAllBuildArtifacts();
-
                 // Set conservative environment variables
                 SetConservativeEnvironmentVariables();
-
                 // Force network offline mode
                 SetOfflineMode();
-
                 // Reduce system load
                 ReduceSystemLoad();
-
                 Console.WriteLine("✅ Emergency protections applied");
             }
             catch (Exception ex)
@@ -164,26 +141,21 @@ namespace BusBuddy.UI.Helpers
             _ = Task.Run(async () =>
             {
                 Console.WriteLine("🤖 Starting adaptive protection monitoring...");
-
                 while (true)
                 {
                     try
                     {
                         await Task.Delay(TimeSpan.FromMinutes(1)); // Check every minute
-
                         var currentHealth = PerformHealthCheck();
-
                         // Auto-adjust protection level based on health
                         var recommendedLevel = DetermineOptimalProtectionLevel(currentHealth);
                         AdjustProtectionLevel(recommendedLevel);
-
                         // Apply specific mitigations for detected issues
                         if (currentHealth.DetectedThreats.Any(t => t.Level >= AdverseEnvironmentGuard.ThreatLevel.High))
                         {
                             Console.WriteLine("🚨 High-level threats detected - applying targeted mitigations");
                             AdverseEnvironmentGuard.ApplyThreatMitigations(currentHealth.DetectedThreats);
                         }
-
                         // Check if emergency intervention is needed
                         if (currentHealth.OverallHealth == EnvironmentHealth.Critical)
                         {
@@ -206,20 +178,16 @@ namespace BusBuddy.UI.Helpers
         public static async Task<bool> PrepareForBuildAsync(string solutionPath)
         {
             Console.WriteLine("🔧 Preparing environment for build...");
-
             try
             {
                 // Perform health check
                 var health = PerformHealthCheck();
-
                 if (health.OverallHealth == EnvironmentHealth.Critical)
                 {
                     Console.WriteLine("🚨 Critical environment health - applying emergency measures");
                     ApplyEmergencyProtections();
-
                     // Wait for stabilization
                     await Task.Delay(5000);
-
                     // Re-check health
                     health = PerformHealthCheck();
                     if (health.OverallHealth == EnvironmentHealth.Critical)
@@ -228,16 +196,12 @@ namespace BusBuddy.UI.Helpers
                         return false;
                     }
                 }
-
                 // Apply build-specific protections
                 ApplyBuildSpecificProtections(health.OverallHealth);
-
                 // Clean build environment
                 await CleanBuildEnvironmentAsync(solutionPath);
-
                 // Optimize for build
                 OptimizeForBuild();
-
                 Console.WriteLine("✅ Environment prepared for build");
                 return true;
             }
@@ -254,21 +218,16 @@ namespace BusBuddy.UI.Helpers
         public static void PerformPostBuildCleanup()
         {
             Console.WriteLine("🧹 Performing post-build cleanup...");
-
             try
             {
                 // Kill any orphaned build processes
                 KillOrphanedBuildProcesses();
-
                 // Clean temporary build files
                 CleanBuildTemporaryFiles();
-
                 // Restore normal environment settings
                 RestoreNormalEnvironmentSettings();
-
                 // Force garbage collection
                 GC.Collect();
-
                 Console.WriteLine("✅ Post-build cleanup completed");
             }
             catch (Exception ex)
@@ -278,29 +237,24 @@ namespace BusBuddy.UI.Helpers
         }
 
         #region Private Methods
-
         private static void InitializeProtectionSystems(ProtectionLevel level)
         {
             _activeProtections.Clear();
-
             // Always initialize basic environmental resilience
             EnvironmentalResilience.Initialize();
             _activeProtections.Add("EnvironmentalResilience");
-
             if (level >= ProtectionLevel.Standard)
             {
                 // Initialize advanced threat detection
                 AdverseEnvironmentGuard.Initialize();
                 _activeProtections.Add("AdverseEnvironmentGuard");
             }
-
             if (level >= ProtectionLevel.Aggressive)
             {
                 // Initialize aggressive monitoring
                 StartAggressiveMonitoring();
                 _activeProtections.Add("AggressiveMonitoring");
             }
-
             if (level == ProtectionLevel.Emergency)
             {
                 // Apply immediate emergency measures
@@ -312,22 +266,17 @@ namespace BusBuddy.UI.Helpers
         private static List<AdverseEnvironmentGuard.EnvironmentThreat> PerformInitialThreatAssessment()
         {
             var threats = new List<AdverseEnvironmentGuard.EnvironmentThreat>();
-
             try
             {
                 // Get comprehensive threat scan
                 threats.AddRange(AdverseEnvironmentGuard.PerformComprehensiveThreatScan());
-
                 // Add custom threat detections
                 threats.AddRange(DetectCustomThreats());
-
                 Console.WriteLine($"🔍 Initial threat assessment: {threats.Count} threats detected");
-
                 if (threats.Any())
                 {
                     var criticalThreats = threats.Count(t => t.Level == AdverseEnvironmentGuard.ThreatLevel.Critical);
                     var highThreats = threats.Count(t => t.Level == AdverseEnvironmentGuard.ThreatLevel.High);
-
                     if (criticalThreats > 0 || highThreats > 2)
                     {
                         Console.WriteLine($"🚨 HIGH RISK ENVIRONMENT: {criticalThreats} critical, {highThreats} high threats");
@@ -338,14 +287,12 @@ namespace BusBuddy.UI.Helpers
             {
                 Console.WriteLine($"⚠️ Threat assessment error: {ex.Message}");
             }
-
             return threats;
         }
 
         private static List<AdverseEnvironmentGuard.EnvironmentThreat> DetectCustomThreats()
         {
             var threats = new List<AdverseEnvironmentGuard.EnvironmentThreat>();
-
             try
             {
                 // Check for Visual Studio running (can cause build conflicts)
@@ -360,7 +307,6 @@ namespace BusBuddy.UI.Helpers
                         MitigationAction = "Consider closing Visual Studio or using different MSBuild instance"
                     });
                 }
-
                 // Check for Docker Desktop running (high resource usage)
                 if (Process.GetProcessesByName("Docker Desktop").Any())
                 {
@@ -373,7 +319,6 @@ namespace BusBuddy.UI.Helpers
                         MitigationAction = "Consider pausing Docker or reducing container resource limits"
                     });
                 }
-
                 // Check for Windows Update in progress
                 if (IsWindowsUpdateInProgress())
                 {
@@ -391,7 +336,6 @@ namespace BusBuddy.UI.Helpers
             {
                 Console.WriteLine($"⚠️ Custom threat detection error: {ex.Message}");
             }
-
             return threats;
         }
 
@@ -402,7 +346,6 @@ namespace BusBuddy.UI.Helpers
             {
                 AdverseEnvironmentGuard.ApplyThreatMitigations(threats);
             }
-
             // Apply level-specific protections
             switch (level)
             {
@@ -449,13 +392,8 @@ namespace BusBuddy.UI.Helpers
             {
                 var msbuildCount = Process.GetProcessesByName("MSBuild").Length;
                 var dotnetCount = Process.GetProcessesByName("dotnet").Length;
-
-                if (msbuildCount > 5 || dotnetCount > 10)
-                    return EnvironmentHealth.Critical;
-
-                if (msbuildCount > 2 || dotnetCount > 5)
-                    return EnvironmentHealth.Degraded;
-
+                if (msbuildCount > 5 || dotnetCount > 10) return EnvironmentHealth.Critical;
+                if (msbuildCount > 2 || dotnetCount > 5) return EnvironmentHealth.Degraded;
                 return EnvironmentHealth.Optimal;
             }
             catch
@@ -470,10 +408,8 @@ namespace BusBuddy.UI.Helpers
             {
                 var uptime = Environment.TickCount;
                 var uptimeHours = uptime / (1000.0 * 60.0 * 60.0);
-
                 if (uptimeHours > 168) // More than a week
                     return EnvironmentHealth.Degraded;
-
                 return EnvironmentHealth.Optimal;
             }
             catch
@@ -496,7 +432,6 @@ namespace BusBuddy.UI.Helpers
                 (int)buildHealth,
                 (int)runtimeHealth
             };
-
             var worstHealth = healthValues.Max();
             return (EnvironmentHealth)worstHealth;
         }
@@ -504,41 +439,30 @@ namespace BusBuddy.UI.Helpers
         private static List<string> GenerateHealthRecommendations(EnvironmentHealthReport report)
         {
             var recommendations = new List<string>();
-
             if (report.OverallHealth >= EnvironmentHealth.Degraded)
             {
                 recommendations.Add("Consider restarting the development environment");
             }
-
             if (report.DetectedThreats.Any(t => t.Category == "Memory"))
             {
                 recommendations.Add("Close unnecessary applications to free memory");
             }
-
             if (report.DetectedThreats.Any(t => t.Category == "CPU"))
             {
                 recommendations.Add("Wait for CPU-intensive tasks to complete");
             }
-
             if (report.BuildSystemHealth >= EnvironmentHealth.Degraded)
             {
                 recommendations.Add("Clean build artifacts and restart build tools");
             }
-
             return recommendations;
         }
 
         private static ProtectionLevel DetermineOptimalProtectionLevel(EnvironmentHealthReport health)
         {
-            if (health.OverallHealth == EnvironmentHealth.Critical)
-                return ProtectionLevel.Emergency;
-
-            if (health.OverallHealth == EnvironmentHealth.Degraded)
-                return ProtectionLevel.Aggressive;
-
-            if (health.DetectedThreats.Any(t => t.Level >= AdverseEnvironmentGuard.ThreatLevel.High))
-                return ProtectionLevel.Aggressive;
-
+            if (health.OverallHealth == EnvironmentHealth.Critical) return ProtectionLevel.Emergency;
+            if (health.OverallHealth == EnvironmentHealth.Degraded) return ProtectionLevel.Aggressive;
+            if (health.DetectedThreats.Any(t => t.Level >= AdverseEnvironmentGuard.ThreatLevel.High)) return ProtectionLevel.Aggressive;
             return ProtectionLevel.Standard;
         }
 
@@ -604,7 +528,6 @@ namespace BusBuddy.UI.Helpers
         private static void KillUnnecessaryProcesses()
         {
             var processesToKill = new[] { "MSBuild", "VBCSCompiler" };
-
             foreach (var processName in processesToKill)
             {
                 try
@@ -627,7 +550,6 @@ namespace BusBuddy.UI.Helpers
         {
             var buildDirs = new[] { "bin", "obj", "TestResults" };
             var currentDir = Directory.GetCurrentDirectory();
-
             foreach (var buildDir in buildDirs)
             {
                 var fullPath = Path.Combine(currentDir, buildDir);
@@ -713,7 +635,6 @@ namespace BusBuddy.UI.Helpers
                 Console.WriteLine($"  ✓ {protection}");
             }
         }
-
         #endregion
 
         /// <summary>
@@ -726,19 +647,16 @@ namespace BusBuddy.UI.Helpers
             report += $"Initialized: {_initialized}\n";
             report += $"Last Full Scan: {_lastFullScan:yyyy-MM-dd HH:mm:ss}\n";
             report += $"Active Protections: {_activeProtections.Count}\n";
-
             foreach (var protection in _activeProtections)
             {
                 report += $"  - {protection}\n";
             }
-
             if (_initialized)
             {
                 var health = PerformHealthCheck();
                 report += $"Overall Health: {health.OverallHealth}\n";
                 report += $"Detected Threats: {health.DetectedThreats.Count}\n";
             }
-
             return report;
         }
     }

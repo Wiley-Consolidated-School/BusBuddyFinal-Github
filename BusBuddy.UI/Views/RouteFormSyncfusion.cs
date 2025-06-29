@@ -22,7 +22,6 @@ namespace BusBuddy.UI.Views
         private readonly IDriverRepository _driverRepository;
         private Route _route;
         private bool _isEditMode;
-
         private SfDateTimeEdit _dateEdit;
         private ComboBoxAdv _routeNameComboBox;
         private ComboBoxAdv _amVehicleComboBox;
@@ -38,7 +37,6 @@ namespace BusBuddy.UI.Views
         private TextBoxExt _notesTextBox;
         private SfButton _saveButton;
         private SfButton _cancelButton;
-
         private readonly ILogger<RouteFormSyncfusion> _logger;
 
         public Route Route
@@ -67,7 +65,6 @@ namespace BusBuddy.UI.Views
         private void InitializeComponent()
         {
             SuspendLayout();
-
             Text = _isEditMode ? "Edit Route" : "Add Route";
             Size = new Size(600, 700);
             StartPosition = FormStartPosition.CenterParent;
@@ -75,97 +72,72 @@ namespace BusBuddy.UI.Views
 
             var dateLabel = new Label { Text = "Date:", Location = new Point(20, 30), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(dateLabel);
-
             _dateEdit = new SfDateTimeEdit { Location = new Point(130, 30), Size = new Size(200, 30), Value = DateTime.Today };
             Controls.Add(_dateEdit);
 
             var routeNameLabel = new Label { Text = "Route Name:", Location = new Point(350, 30), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(routeNameLabel);
-
             _routeNameComboBox = new ComboBoxAdv { Location = new Point(460, 30), Size = new Size(120, 30) };
             _routeNameComboBox.Items.AddRange(new[] { "Truck Plaza", "East Route", "West Route", "SPED" });
             Controls.Add(_routeNameComboBox);
 
             var amSectionLabel = new Label { Text = "AM Route Information", Location = new Point(20, 80), Size = new Size(200, 23), Font = new Font("Segoe UI", 10F, FontStyle.Bold) };
             Controls.Add(amSectionLabel);
-
             var amVehicleLabel = new Label { Text = "AM Vehicle:", Location = new Point(20, 110), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(amVehicleLabel);
-
             _amVehicleComboBox = new ComboBoxAdv { Location = new Point(130, 110), Size = new Size(150, 30), DisplayMember = "BusNumber", ValueMember = "BusId" };
             Controls.Add(_amVehicleComboBox);
-
             var amBeginMilesLabel = new Label { Text = "AM Begin Miles:", Location = new Point(300, 110), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(amBeginMilesLabel);
-
             _amBeginMilesTextBox = new SfNumericTextBox { Location = new Point(410, 110), Size = new Size(100, 30), FormatMode = FormatMode.Numeric, AllowNull = true, MinValue = 0, MaxValue = 999999, WatermarkText = "Enter miles" };
             Controls.Add(_amBeginMilesTextBox);
-
             var amEndMilesLabel = new Label { Text = "AM End Miles:", Location = new Point(20, 160), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(amEndMilesLabel);
-
             _amEndMilesTextBox = new SfNumericTextBox { Location = new Point(130, 160), Size = new Size(100, 30), FormatMode = FormatMode.Numeric, AllowNull = true, MinValue = 0, MaxValue = 999999, WatermarkText = "Enter miles" };
             Controls.Add(_amEndMilesTextBox);
-
             var amRidersLabel = new Label { Text = "AM Riders:", Location = new Point(250, 160), Size = new Size(80, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(amRidersLabel);
-
             _amRidersTextBox = new SfNumericTextBox { Location = new Point(340, 160), Size = new Size(80, 30), FormatMode = FormatMode.Numeric, AllowNull = true, MinValue = 0, MaxValue = 999, WatermarkText = "Riders" };
             Controls.Add(_amRidersTextBox);
-
             var amDriverLabel = new Label { Text = "AM Driver:", Location = new Point(20, 210), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(amDriverLabel);
-
             _amDriverComboBox = new ComboBoxAdv { Location = new Point(130, 210), Size = new Size(200, 30), DisplayMember = "Name", ValueMember = "DriverId" };
             Controls.Add(_amDriverComboBox);
 
             var pmSectionLabel = new Label { Text = "PM Route Information", Location = new Point(20, 260), Size = new Size(200, 23), Font = new Font("Segoe UI", 10F, FontStyle.Bold) };
             Controls.Add(pmSectionLabel);
-
             var pmVehicleLabel = new Label { Text = "PM Vehicle:", Location = new Point(20, 290), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(pmVehicleLabel);
-
             _pmVehicleComboBox = new ComboBoxAdv { Location = new Point(130, 290), Size = new Size(150, 30), DisplayMember = "BusNumber", ValueMember = "BusId" };
             Controls.Add(_pmVehicleComboBox);
-
             var pmBeginMilesLabel = new Label { Text = "PM Begin Miles:", Location = new Point(300, 290), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(pmBeginMilesLabel);
-
             _pmBeginMilesTextBox = new SfNumericTextBox { Location = new Point(410, 290), Size = new Size(100, 30), FormatMode = FormatMode.Numeric, AllowNull = true, MinValue = 0, MaxValue = 999999, WatermarkText = "Enter miles" };
             Controls.Add(_pmBeginMilesTextBox);
-
             var pmEndMilesLabel = new Label { Text = "PM End Miles:", Location = new Point(20, 340), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(pmEndMilesLabel);
-
             _pmEndMilesTextBox = new SfNumericTextBox { Location = new Point(130, 340), Size = new Size(100, 30), FormatMode = FormatMode.Numeric, AllowNull = true, MinValue = 0, MaxValue = 999999, WatermarkText = "Enter miles" };
             Controls.Add(_pmEndMilesTextBox);
-
             var pmRidersLabel = new Label { Text = "PM Riders:", Location = new Point(250, 340), Size = new Size(80, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(pmRidersLabel);
-
             _pmRidersTextBox = new SfNumericTextBox { Location = new Point(340, 340), Size = new Size(80, 30), FormatMode = FormatMode.Numeric, AllowNull = true, MinValue = 0, MaxValue = 999, WatermarkText = "Riders" };
             Controls.Add(_pmRidersTextBox);
-
             var pmDriverLabel = new Label { Text = "PM Driver:", Location = new Point(20, 390), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(pmDriverLabel);
-
             _pmDriverComboBox = new ComboBoxAdv { Location = new Point(130, 390), Size = new Size(200, 30), DisplayMember = "Name", ValueMember = "DriverId" };
             Controls.Add(_pmDriverComboBox);
 
             var notesLabel = new Label { Text = "Notes:", Location = new Point(20, 440), Size = new Size(100, 23), Font = new Font("Segoe UI", 9F) };
             Controls.Add(notesLabel);
-
             _notesTextBox = new TextBoxExt { Location = new Point(130, 440), Size = new Size(400, 100), Multiline = true };
             Controls.Add(_notesTextBox);
 
             _saveButton = new SfButton { Text = "Save", Location = new Point(370, 570), Size = new Size(80, 35), BackColor = BusBuddyThemeManager.ThemeColors.GetSuccessColor(BusBuddyThemeManager.CurrentTheme) };
             _saveButton.Click += SaveButton_Click;
             Controls.Add(_saveButton);
-
             _cancelButton = new SfButton { Text = "Cancel", Location = new Point(460, 570), Size = new Size(80, 35), BackColor = BusBuddyThemeManager.ThemeColors.GetErrorColor(BusBuddyThemeManager.CurrentTheme) };
             _cancelButton.Click += CancelButton_Click;
             Controls.Add(_cancelButton);
-
             ResumeLayout(false);
             LoadVehiclesAndDrivers();
         }
@@ -184,7 +156,6 @@ namespace BusBuddy.UI.Views
                 _amVehicleComboBox.DataSource = new List<Bus>(buses) { new Bus { BusId = 0, BusNumber = "Unassigned" } };
                 _pmVehicleComboBox.DataSource = new List<Bus>(buses) { new Bus { BusId = 0, BusNumber = "Unassigned" } };
                 _logger?.LogInformation("Loaded {Count} buses for route form", buses.Count);
-
                 var drivers = _driverRepository.GetAllDrivers().ToList();
                 _amDriverComboBox.DataSource = new List<Driver>(drivers) { new Driver { DriverId = 0, Name = "Unassigned" } };
                 _pmDriverComboBox.DataSource = new List<Driver>(drivers) { new Driver { DriverId = 0, Name = "Unassigned" } };
@@ -204,35 +175,28 @@ namespace BusBuddy.UI.Views
             {
                 _dateEdit.Value = _route.DateAsDateTime;
                 _routeNameComboBox.SelectedItem = _route.RouteName;
-
                 if (_route.AMBusId.HasValue)
                     _amVehicleComboBox.SelectedValue = _route.AMBusId.Value;
                 else
                     _amVehicleComboBox.SelectedIndex = 0; // Unassigned
-
                 _amBeginMilesTextBox.Value = (double?)_route.AMBeginMiles;
                 _amEndMilesTextBox.Value = (double?)_route.AMEndMiles;
                 _amRidersTextBox.Value = (double?)_route.AMRiders;
-
                 if (_route.AMDriverId.HasValue)
                     _amDriverComboBox.SelectedValue = _route.AMDriverId.Value;
                 else
                     _amDriverComboBox.SelectedIndex = 0; // Unassigned
-
                 if (_route.PMBusId.HasValue)
                     _pmVehicleComboBox.SelectedValue = _route.PMBusId.Value;
                 else
                     _pmVehicleComboBox.SelectedIndex = 0; // Unassigned
-
                 _pmBeginMilesTextBox.Value = (double?)_route.PMBeginMiles;
                 _pmEndMilesTextBox.Value = (double?)_route.PMEndMiles;
                 _pmRidersTextBox.Value = (double?)_route.PMRiders;
-
                 if (_route.PMDriverId.HasValue)
                     _pmDriverComboBox.SelectedValue = _route.PMDriverId.Value;
                 else
                     _pmDriverComboBox.SelectedIndex = 0; // Unassigned
-
                 _notesTextBox.Text = _route.Notes ?? "";
                 _logger?.LogInformation("Route data loaded for route {RouteId}", _route.RouteId);
             }
@@ -253,28 +217,24 @@ namespace BusBuddy.UI.Views
                     _routeNameComboBox.Focus();
                     return;
                 }
-
                 if (_amEndMilesTextBox.Value.HasValue && _amBeginMilesTextBox.Value.HasValue && _amEndMilesTextBox.Value < _amBeginMilesTextBox.Value)
                 {
                     MessageBox.Show("AM End Miles must be greater than or equal to Begin Miles.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     _amEndMilesTextBox.Focus();
                     return;
                 }
-
                 if (_pmEndMilesTextBox.Value.HasValue && _pmBeginMilesTextBox.Value.HasValue && _pmEndMilesTextBox.Value < _pmBeginMilesTextBox.Value)
                 {
                     MessageBox.Show("PM End Miles must be greater than or equal to Begin Miles.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     _pmEndMilesTextBox.Focus();
                     return;
                 }
-
                 if (_amBeginMilesTextBox.Value.HasValue && _amBeginMilesTextBox.Value < 0) { /* Validation handled below */ }
                 if (_amEndMilesTextBox.Value.HasValue && _amEndMilesTextBox.Value < 0) { /* Validation handled below */ }
                 if (_amRidersTextBox.Value.HasValue && _amRidersTextBox.Value < 0) { /* Validation handled below */ }
                 if (_pmBeginMilesTextBox.Value.HasValue && _pmBeginMilesTextBox.Value < 0) { /* Validation handled below */ }
                 if (_pmEndMilesTextBox.Value.HasValue && _pmEndMilesTextBox.Value < 0) { /* Validation handled below */ }
                 if (_pmRidersTextBox.Value.HasValue && _pmRidersTextBox.Value < 0) { /* Validation handled below */ }
-
                 _route.DateAsDateTime = _dateEdit.Value ?? DateTime.Today;
                 _route.RouteName = _routeNameComboBox.SelectedItem?.ToString();
                 _route.AMBusId = (int?)_amVehicleComboBox.SelectedValue;
@@ -288,7 +248,6 @@ namespace BusBuddy.UI.Views
                 _route.PMRiders = _pmRidersTextBox.Value.HasValue ? (int?)_pmRidersTextBox.Value : null;
                 _route.PMDriverId = (int?)_pmDriverComboBox.SelectedValue;
                 _route.Notes = _notesTextBox.Text;
-
                 if (_isEditMode)
                 {
                     _routeRepository.UpdateRoute(_route);
@@ -327,3 +286,4 @@ namespace BusBuddy.UI.Views
         }
     }
 }
+

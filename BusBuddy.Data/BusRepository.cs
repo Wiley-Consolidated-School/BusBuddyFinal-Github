@@ -16,8 +16,7 @@ namespace BusBuddy.Data
         {
             using var connection = CreateConnection();
             const string sql = @"
-                SELECT BusId, BusNumber, Year, Make, Model, Capacity,
-                       VIN, LicenseNumber, LastInspectionDate, Status
+                SELECT BusId, BusNumber, Year, Make, Model, Capacity,                       VIN, LicenseNumber, LastInspectionDate, Status
                 FROM Buses
                 ORDER BY BusNumber";
             connection.Open();
@@ -29,8 +28,7 @@ namespace BusBuddy.Data
             using var connection = CreateConnection();
             connection.Open();
             const string sql = @"
-                SELECT BusId, BusNumber, Year, Make, Model, Capacity,
-                       VIN, LicenseNumber, LastInspectionDate, Status
+                SELECT BusId, BusNumber, Year, Make, Model, Capacity,                       VIN, LicenseNumber, LastInspectionDate, Status
                 FROM Buses
                 WHERE BusId = @BusId";
             return connection.QuerySingleOrDefault<Bus>(sql, new { BusId = busId });
@@ -40,7 +38,6 @@ namespace BusBuddy.Data
         {
             if (bus == null)
                 throw new ArgumentNullException(nameof(bus));
-
             using var connection = CreateConnection();
             connection.Open();
             const string sql = @"
@@ -83,19 +80,15 @@ namespace BusBuddy.Data
             {
                 using var connection = CreateConnection();
                 Console.WriteLine($"Testing BusRepository data retrieval (Buses table)...");
-
                 // Test basic connection
                 connection.Open();
                 Console.WriteLine($"✅ Database connection successful: {connection.State}");
-
                 // Test table existence and row count
                 var tableCount = connection.QuerySingle<int>("SELECT COUNT(*) FROM Buses");
                 Console.WriteLine($"Buses table has {tableCount} records");
-
                 // Test actual data retrieval
                 var buses = GetAllBuses().ToList();
                 Console.WriteLine($"✅ Successfully retrieved {buses.Count} buses from database");
-
                 foreach (var bus in buses.Take(3))
                 {
                     Console.WriteLine($"  - Bus {bus.BusNumber}: {bus.Year} {bus.Make} {bus.Model}");

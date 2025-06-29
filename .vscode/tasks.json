@@ -1,366 +1,380 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "shell",
-			"label": "build BusBuddy",
-			"command": "dotnet build BusBuddy.sln",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			}
-		},
-		{
-			"type": "shell",
-			"label": "check Syncfusion dependencies",
-			"command": "pwsh",
-			"args": [
-				"-ExecutionPolicy", "Bypass",
-				"-File", "${workspaceFolder}/check-syncfusion-deps.ps1"
-			],
-			"group": "build",
-			"problemMatcher": [],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			}
-		},
-		{
-			"type": "shell",
-			"label": "test BusBuddy",
-			"command": "dotnet test BusBuddy.sln",
-			"group": "test",
-			"problemMatcher": ["$msCompile"],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			}
-		},
-		{
-			"type": "shell",
-			"label": "test BusBuddy (verbose)",
-			"command": "dotnet test BusBuddy.sln --verbosity normal",
-			"group": "test",
-			"problemMatcher": ["$msCompile"],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			}
-		},
-		{
-			"type": "shell",
-			"label": "test BusBuddy (debug mode)",
-			"command": "dotnet test BusBuddy.sln --verbosity normal",
-			"group": "test",
-			"problemMatcher": ["$msCompile"],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			},
-			"options": {
-				"env": {
-					"VSTEST_HOST_DEBUG": "1"
-				}
-			}
-		},
-		{
-			"type": "shell",
-			"label": "Discover Tests",
-			"command": "dotnet test BusBuddy.sln --list-tests --nologo",
-			"group": "test",
-			"problemMatcher": ["$msCompile"],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			}
-		},
-		{
-			"label": "Generate Code Coverage",
-			"type": "shell",
-			"command": "powershell",
-			"args": [
-				"-ExecutionPolicy", "Bypass",
-				"-File", "${workspaceFolder}/run-coverage.ps1",
-				"-Clean"
-			],
-			"group": "test",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "new",
-				"showReuseMessage": true,
-				"clear": false
-			},
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": []
-		},
-		{
-			"label": "Generate Coverage (Quick)",
-			"type": "shell",
-			"command": "dotnet",
-			"args": [
-				"test",
-				"/p:CollectCoverage=true",
-				"/p:CoverletOutputFormat=lcov,cobertura",
-				"/p:CoverletOutput=./TestResults/coverage"
-			],
-			"group": "test",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared",
-				"showReuseMessage": true
-			},
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"label": "Clean Test Results",
-			"type": "shell",
-			"command": "powershell",
-			"args": [
-				"-Command",
-				"Remove-Item -Path './TestResults' -Recurse -Force -ErrorAction SilentlyContinue; Write-Host 'Test results cleaned' -ForegroundColor Green"
-			],
-			"group": "build",
-			"presentation": {
-				"echo": true,
-				"reveal": "silent",
-				"focus": false,
-				"panel": "shared"
-			},
-			"options": {
-				"cwd": "${workspaceFolder}"
-			}
-		},
-		{
-			"label": "Generate Coverage + Display",
-			"dependsOrder": "sequence",
-			"dependsOn": [
-				"Generate Code Coverage"
-			],
-			"group": "test",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false
-			}
-		},
-		{
-			"label": "Discover Tests (Detailed)",
-			"type": "shell",
-			"command": "dotnet",
-			"args": [
-				"test",
-				"--list-tests",
-				"--verbosity", "normal"
-			],
-			"group": "test",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "new"
-			},
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": []
-		},
-		{
-			"type": "shell",
-			"label": "check Syncfusion license",
-			"command": "powershell",
-			"args": [
-				"-Command",
-				"$licenseKeys = @(); $licenseKeys += Get-Content -Path '*.cs' -Recurse | Select-String -Pattern 'Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense' | Select-Object -First 5; $configKeys = Get-Content -Path 'App.*.config' -ErrorAction SilentlyContinue | Select-String -Pattern 'SyncfusionLicense' | Select-Object -First 5; if ($licenseKeys.Count -gt 0 -or $configKeys.Count -gt 0) { Write-Host '✅ Syncfusion license configuration found' -ForegroundColor Green; $licenseKeys | ForEach-Object { Write-Host \"  Found in: $($_.Filename)\" -ForegroundColor Cyan } } else { Write-Host '⚠️  No Syncfusion license configuration found' -ForegroundColor Yellow; Write-Host '   Consider adding license registration in Program.cs or App.config' -ForegroundColor Gray }"
-			],
-			"group": "build",
-			"problemMatcher": [],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			}
-		},
-		{
-			"type": "shell",
-			"label": "debug setup assistant",
-			"command": "powershell",
-			"args": [
-				"-ExecutionPolicy",
-				"Bypass",
-				"-File",
-				"${workspaceFolder}/debug-setup.ps1"
-			],
-			"group": "build",
-			"problemMatcher": [],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": true,
-				"panel": "new"
-			}
-		},
-		{
-			"type": "shell",
-			"label": "Generate xUnit Test for Current File",
-			"command": "powershell",
-			"args": [
-				"-ExecutionPolicy",
-				"Bypass",
-				"-Command",
-				"$sourcePath = '${file}'; $className = [System.IO.Path]::GetFileNameWithoutExtension('${file}'); $namespace = (Get-Content '${file}' | Select-String -Pattern 'namespace\\s+([^\\s{]+)' | ForEach-Object { $_.Matches.Groups[1].Value } | Select-Object -First 1); $testPath = Join-Path '${workspaceFolder}' 'BusBuddy.UI.Tests' \"$className`Test.cs\"; if (Test-Path $testPath) { Write-Host \"Test file already exists at: $testPath\" -ForegroundColor Yellow } else { $templateContent = Get-Content '${workspaceFolder}/copilot-examples.md' -Raw; $templateContent = $templateContent -replace 'DynamicLayoutManager', $className; $templateContent = $templateContent -replace 'BusBuddy.UI.Layout', $namespace; Set-Content -Path $testPath -Value $templateContent -Encoding UTF8; Write-Host \"Created test file at: $testPath\" -ForegroundColor Green }"
-			],
-			"group": "test",
-			"problemMatcher": [],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": true,
-				"panel": "shared"
-			}
-		},
-		{
-			"type": "shell",
-			"label": "Generate xUnit Test (Script)",
-			"command": "powershell",
-			"args": [
-				"-ExecutionPolicy",
-				"Bypass",
-				"-File",
-				"${workspaceFolder}/Generate-XUnitTest.ps1",
-				"-SourceFile",
-				"${file}"
-			],
-			"group": "test",
-			"problemMatcher": [],
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": true,
-				"panel": "shared"
-			}
-		},
-		{
-			"type": "shell",
-			"label": "Database Health Check",
-			"command": "sqlcmd",
-			"args": [
-				"-S", "localhost\\SQLEXPRESS",
-				"-d", "BusBuddy",
-				"-E",
-				"-i", "${workspaceFolder}\\BusBuddy.Data\\DatabaseHealthCheck.sql"
-			],
-			"group": "build",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			},
-			"problemMatcher": []
-		},
-		{
-			"type": "shell",
-			"label": "Database Backup",
-			"command": "sqlcmd",
-			"args": [
-				"-S", "localhost\\SQLEXPRESS",
-				"-E",
-				"-Q", "BACKUP DATABASE BusBuddy TO DISK = 'C:\\Backups\\BusBuddy\\BusBuddy_Manual_$(Get-Date -Format 'yyyyMMdd_HHmmss').bak' WITH COMPRESSION, INIT;"
-			],
-			"group": "build",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			},
-			"problemMatcher": []
-		},
-		{
-			"type": "shell",
-			"label": "Test Database Connectivity",
-			"command": "dotnet",
-			"args": [
-				"test",
-				"BusBuddy.Tests",
-				"--filter", "Category=Database",
-				"--logger", "console;verbosity=normal"
-			],
-			"group": "test",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			},
-			"problemMatcher": []
-		},
-		{
-			"type": "shell",
-			"label": "Query Store Analysis",
-			"command": "sqlcmd",
-			"args": [
-				"-S", "localhost\\SQLEXPRESS",
-				"-d", "BusBuddy",
-				"-E",
-				"-Q", "SELECT TOP 10 q.query_id, LEFT(qt.query_sql_text, 100) as query_text, rs.avg_duration/1000 as avg_duration_ms, rs.count_executions FROM sys.query_store_query q JOIN sys.query_store_query_text qt ON q.query_text_id = qt.query_text_id JOIN sys.query_store_runtime_stats rs ON q.query_id = rs.query_id ORDER BY rs.avg_duration DESC;"
-			],
-			"group": "build",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			},
-			"problemMatcher": []
-		},
-		{
-			"type": "shell",
-			"label": "Database Performance Monitor",
-			"command": "sqlcmd",
-			"args": [
-				"-S", "localhost\\SQLEXPRESS",
-				"-d", "BusBuddy",
-				"-E",
-				"-Q", "SELECT 'Database Size MB' as Metric, CAST(SUM(size * 8.0 / 1024) AS DECIMAL(10,2)) as Value FROM sys.master_files WHERE database_id = DB_ID(); SELECT 'Table Sizes' as Info, t.name as TableName, p.rows as RecordCount FROM sys.tables t INNER JOIN sys.indexes i ON t.object_id = i.object_id INNER JOIN sys.partitions p ON i.object_id = p.object_id AND i.index_id = p.index_id WHERE i.index_id <= 1 ORDER BY p.rows DESC;"
-			],
-			"group": "build",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			},
-			"problemMatcher": []
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "build BusBuddy",
+      "command": "dotnet build BusBuddy.sln",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "check Syncfusion dependencies",
+      "command": "pwsh",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/check-syncfusion-deps.ps1"
+      ],
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "test BusBuddy",
+      "command": "dotnet",
+      "group": "test",
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "test BusBuddy (verbose)",
+      "command": "dotnet",
+      "group": "test",
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "test BusBuddy (debug mode)",
+      "command": "dotnet",
+      "group": "test",
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "options": {
+        "env": {
+          "VSTEST_HOST_DEBUG": "1"
+        }
+      }
+    },
+    {
+      "type": "shell",
+      "label": "Discover Tests",
+      "command": "dotnet",
+      "group": "test",
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Generate Code Coverage",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/run-coverage.ps1",
+        "-Clean"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Generate Coverage (Quick)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "/p:CollectCoverage=true",
+        "/p:CoverletOutputFormat=lcov,cobertura",
+        "/p:CoverletOutput=./TestResults/coverage"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Clean Test Results",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "BusBuddy.UI.Tests/BusBuddy.UI.Tests.csproj"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Generate Coverage + Display",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Generate Code Coverage"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false
+      }
+    },
+    {
+      "label": "Discover Tests (Detailed)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "BusBuddy.UI.Tests/BusBuddy.UI.Tests.csproj"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "check Syncfusion license",
+      "command": "powershell",
+      "args": [
+        "-Command",
+        "$licenseKeys = @(); $licenseKeys += Get-Content -Path '*.cs' -Recurse | Select-String -Pattern 'Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense' | Select-Object -First 5; $configKeys = Get-Content -Path 'App.*.config' -ErrorAction SilentlyContinue | Select-String -Pattern 'SyncfusionLicense' | Select-Object -First 5; if ($licenseKeys.Count -gt 0 -or $configKeys.Count -gt 0) { Write-Host '✅ Syncfusion license configuration found' -ForegroundColor Green; $licenseKeys | ForEach-Object { Write-Host \"  Found in: $($_.Filename)\" -ForegroundColor Cyan } } else { Write-Host '⚠️  No Syncfusion license configuration found' -ForegroundColor Yellow; Write-Host '   Consider adding license registration in Program.cs or App.config' -ForegroundColor Gray }"
+      ],
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "debug setup assistant",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/debug-setup.ps1"
+      ],
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "Generate xUnit Test for Current File",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "BusBuddy.UI.Tests/BusBuddy.UI.Tests.csproj"
+      ],
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "Generate xUnit Test (Script)",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "BusBuddy.UI.Tests/BusBuddy.UI.Tests.csproj"
+      ],
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "Database Health Check",
+      "command": "sqlcmd",
+      "args": [
+        "-S",
+        "localhost\\SQLEXPRESS",
+        "-d",
+        "BusBuddy",
+        "-E",
+        "-i",
+        "${workspaceFolder}\\BusBuddy.Data\\DatabaseHealthCheck.sql"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Database Backup",
+      "command": "sqlcmd",
+      "args": [
+        "-S",
+        "localhost\\SQLEXPRESS",
+        "-E",
+        "-Q",
+        "BACKUP DATABASE BusBuddy TO DISK = 'C:\\Backups\\BusBuddy\\BusBuddy_Manual_$(Get-Date -Format 'yyyyMMdd_HHmmss').bak' WITH COMPRESSION, INIT;"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Test Database Connectivity",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "BusBuddy.UI.Tests/BusBuddy.UI.Tests.csproj"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Query Store Analysis",
+      "command": "sqlcmd",
+      "args": [
+        "-S",
+        "localhost\\SQLEXPRESS",
+        "-d",
+        "BusBuddy",
+        "-E",
+        "-Q",
+        "SELECT TOP 10 q.query_id, LEFT(qt.query_sql_text, 100) as query_text, rs.avg_duration/1000 as avg_duration_ms, rs.count_executions FROM sys.query_store_query q JOIN sys.query_store_query_text qt ON q.query_text_id = qt.query_text_id JOIN sys.query_store_runtime_stats rs ON q.query_id = rs.query_id ORDER BY rs.avg_duration DESC;"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Database Performance Monitor",
+      "command": "sqlcmd",
+      "args": [
+        "-S",
+        "localhost\\SQLEXPRESS",
+        "-d",
+        "BusBuddy",
+        "-E",
+        "-Q",
+        "SELECT 'Database Size MB' as Metric, CAST(SUM(size * 8.0 / 1024) AS DECIMAL(10,2)) as Value FROM sys.master_files WHERE database_id = DB_ID(); SELECT 'Table Sizes' as Info, t.name as TableName, p.rows as RecordCount FROM sys.tables t INNER JOIN sys.indexes i ON t.object_id = i.object_id INNER JOIN sys.partitions p ON i.object_id = p.object_id AND i.index_id = p.index_id WHERE i.index_id <= 1 ORDER BY p.rows DESC;"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
 }

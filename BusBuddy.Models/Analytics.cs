@@ -11,19 +11,16 @@ namespace BusBuddy.Models
         public int RouteId { get; set; }
         public string RouteName { get; set; } = string.Empty;
         public DateTime Date { get; set; }
-
         // AM Period Data
         public double AMTotalMiles { get; set; }
         public int AMRiders { get; set; }
         public int? AMBusId { get; set; }
         public int? AMDriverId { get; set; }
-
         // PM Period Data
         public double PMTotalMiles { get; set; }
         public int PMRiders { get; set; }
         public int? PMBusId { get; set; }
         public int? PMDriverId { get; set; }
-
         // Calculated Metrics
         public double TotalMiles { get; set; }
         public int TotalRiders { get; set; }
@@ -31,7 +28,6 @@ namespace BusBuddy.Models
         public double EfficiencyScore { get; set; }
         public decimal EstimatedFuelCost { get; set; }
     }
-
     /// <summary>
     /// Represents a route optimization suggestion
     /// </summary>
@@ -44,7 +40,6 @@ namespace BusBuddy.Models
         public decimal PotentialSavings { get; set; }
         public Priority Priority { get; set; }
     }
-
     /// <summary>
     /// Driver performance metrics for analytics
     /// </summary>
@@ -54,7 +49,6 @@ namespace BusBuddy.Models
         public string Name { get; set; } = string.Empty;
         public DateTime PeriodStart { get; set; }
         public DateTime PeriodEnd { get; set; }
-
         public int TotalRoutes { get; set; }
         public double TotalMiles { get; set; }
         public int TotalRiders { get; set; }
@@ -63,7 +57,6 @@ namespace BusBuddy.Models
         public double OverallEfficiencyScore { get; set; }
         public PerformanceRating PerformanceRating { get; set; }
     }
-
     /// <summary>
     /// Fleet-wide analytics summary
     /// </summary>
@@ -71,7 +64,6 @@ namespace BusBuddy.Models
     {
         public DateTime PeriodStart { get; set; }
         public DateTime PeriodEnd { get; set; }
-
         public int TotalRoutes { get; set; }
         public double TotalMiles { get; set; }
         public int TotalRiders { get; set; }
@@ -79,10 +71,8 @@ namespace BusBuddy.Models
         public double AverageMilesPerRider { get; set; }
         public double VehicleUtilizationRate { get; set; }
         public decimal EstimatedFuelCosts { get; set; }
-
         public List<string> TopPerformingRoutes { get; set; } = new List<string>();
     }
-
     /// <summary>
     /// Types of route optimizations
     /// </summary>
@@ -94,7 +84,6 @@ namespace BusBuddy.Models
         DriverOptimization,
         CostReduction
     }
-
     /// <summary>
     /// Priority levels for optimization suggestions
     /// </summary>
@@ -105,7 +94,6 @@ namespace BusBuddy.Models
         High,
         Critical
     }
-
     /// <summary>
     /// Driver performance rating levels
     /// </summary>
@@ -117,7 +105,6 @@ namespace BusBuddy.Models
         Good,
         Excellent
     }
-
     /// <summary>
     /// Represents a maintenance prediction for a bus
     /// </summary>
@@ -132,7 +119,6 @@ namespace BusBuddy.Models
         public bool BasedOnMileage { get; set; }
         public int PredictedMileage { get; set; }
     }
-
     /// <summary>
     /// Represents a maintenance recommendation for fleet scheduling
     /// </summary>
@@ -147,7 +133,6 @@ namespace BusBuddy.Models
         public string Reason { get; set; } = string.Empty;
         public decimal CurrentMileage { get; set; }
     }
-
     /// <summary>
     /// Represents a comprehensive bus health score
     /// </summary>
@@ -156,20 +141,17 @@ namespace BusBuddy.Models
         public int BusId { get; set; }
         public string BusNumber { get; set; } = string.Empty;
         public DateTime CalculatedDate { get; set; }
-
         // Component scores (0-100)
         public int MaintenanceComplianceScore { get; set; }
         public int AgeScore { get; set; }
         public int MileageScore { get; set; }
         public int ReliabilityScore { get; set; }
         public int CostEfficiencyScore { get; set; }
-
         // Overall health
         public int OverallScore { get; set; }
         public BusHealthStatus HealthStatus { get; set; }
         public List<string> Recommendations { get; set; } = new List<string>();
     }
-
     /// <summary>
     /// Represents maintenance cost analysis for a bus
     /// </summary>
@@ -187,7 +169,6 @@ namespace BusBuddy.Models
         public decimal ProjectedAnnualCost { get; set; }
         public string CostTrend { get; set; } = string.Empty;
     }
-
     /// <summary>
     /// Represents a maintenance alert
     /// </summary>
@@ -200,7 +181,6 @@ namespace BusBuddy.Models
         public DateTime DueDate { get; set; }
         public decimal EstimatedCost { get; set; }
     }
-
     /// <summary>
     /// Maintenance priority levels
     /// </summary>
@@ -211,7 +191,6 @@ namespace BusBuddy.Models
         High,
         Critical
     }
-
     /// <summary>
     /// Bus health status levels
     /// </summary>
@@ -223,7 +202,6 @@ namespace BusBuddy.Models
         Good,
         Excellent
     }
-
     /// <summary>
     /// Alert type levels
     /// </summary>
@@ -234,7 +212,6 @@ namespace BusBuddy.Models
         Urgent,
         Critical
     }
-
     /// <summary>
     /// Simplified cost metrics focused on cost per student calculations
     /// </summary>
@@ -244,38 +221,31 @@ namespace BusBuddy.Models
         /// Cost per student per day for regular bus routes
         /// </summary>
         public decimal RouteCostPerStudentPerDay { get; set; }
-
         /// <summary>
         /// Cost per student for sports activities/trips
         /// </summary>
         public decimal SportsCostPerStudent { get; set; }
-
         /// <summary>
         /// Cost per student for field trip activities
         /// </summary>
         public decimal FieldTripCostPerStudent { get; set; }
-
         /// <summary>
         /// Date range these metrics cover
         /// </summary>
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-
         /// <summary>
         /// Total number of regular route student-days
         /// </summary>
         public int TotalRouteStudentDays { get; set; }
-
         /// <summary>
         /// Total number of sports trip students
         /// </summary>
         public int TotalSportsStudents { get; set; }
-
         /// <summary>
         /// Total number of field trip students
         /// </summary>
         public int TotalFieldTripStudents { get; set; }
-
         /// <summary>
         /// Total costs broken down by category
         /// </summary>
@@ -283,7 +253,6 @@ namespace BusBuddy.Models
         public decimal TotalSportsCosts { get; set; }
         public decimal TotalFieldTripCosts { get; set; }
     }
-
     /// <summary>
     /// Driver pay report data structure
     /// </summary>
@@ -304,7 +273,6 @@ namespace BusBuddy.Models
         public List<string> Notes { get; set; } = new List<string>();
         public Dictionary<string, object> Details { get; set; } = new Dictionary<string, object>();
     }
-
     /// <summary>
     /// Analytics efficiency metrics
     /// </summary>
@@ -316,7 +284,6 @@ namespace BusBuddy.Models
         public Dictionary<string, decimal> KeyMetrics { get; set; } = new Dictionary<string, decimal>();
         public string AIInsights { get; set; } = string.Empty;
     }
-
     /// <summary>
     /// Route safety analysis for rural district challenges
     /// </summary>
@@ -327,7 +294,6 @@ namespace BusBuddy.Models
         public int StudentCount { get; set; }
         public decimal TotalMiles { get; set; }
         public TimeSpan EstimatedDuration { get; set; }
-
         // Safety metrics
         public int SafetyScore { get; set; }
         public List<string> SafetyConcerns { get; set; } = new List<string>();
@@ -335,7 +301,6 @@ namespace BusBuddy.Models
         public bool HasBackupBus { get; set; }
         public DateTime LastSafetyReview { get; set; }
     }
-
     /// <summary>
     /// Driver safety and performance tracking
     /// </summary>
@@ -346,14 +311,12 @@ namespace BusBuddy.Models
         public int YearsExperience { get; set; }
         public DateTime LastTraining { get; set; }
         public DateTime LastPhysical { get; set; }
-
         // Safety metrics
         public int SafetyScore { get; set; }
         public int IncidentCount { get; set; }
         public List<string> Certifications { get; set; } = new List<string>();
         public bool RequiresRetraining { get; set; }
     }
-
     /// <summary>
     /// Emergency preparedness assessment model
     /// </summary>
@@ -368,7 +331,6 @@ namespace BusBuddy.Models
         public int ReadinessScore { get; set; }
         public List<string> ImprovementActions { get; set; } = new List<string>();
     }
-
     /// <summary>
     /// Safety dashboard overview
     /// </summary>

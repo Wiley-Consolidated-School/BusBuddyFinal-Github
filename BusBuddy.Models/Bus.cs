@@ -22,7 +22,6 @@ namespace BusBuddy.Models
         // Computed properties for UI compatibility and display
         public string DisplayName => $"{BusNumber} ({Year} {Make} {Model})".Trim();
         public string FullDescription => $"Bus {BusNumber} - {Year} {Make} {Model} (Seats: {Capacity})";
-
         public override string ToString()
         {
             return BusNumber;

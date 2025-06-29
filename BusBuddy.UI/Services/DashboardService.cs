@@ -35,13 +35,11 @@ namespace BusBuddy.UI.Services
                 var driverRepository = (IDriverRepository)_serviceProvider.GetService(typeof(IDriverRepository));
                 var activityRepository = (IActivityRepository)_serviceProvider.GetService(typeof(IActivityRepository));
                 var errorHandler = (IErrorHandlerService)_serviceProvider.GetService(typeof(IErrorHandlerService));
-
                 // Fetch or create data for the dashboard (placeholders, adapt as needed)
                 var vehicleData = new VehicleData();
                 var routeData = new RouteData();
                 var activityData = new ActivityData();
                 var chartData = new List<ChartDataPoint>();
-
                 var viewModel = new DashboardViewModel
                 {
                     VehicleData = vehicleData,
@@ -49,7 +47,6 @@ namespace BusBuddy.UI.Services
                     ActivityData = activityData,
                     ChartData = chartData
                 };
-
                 Console.WriteLine("✅ DashboardViewModel created with proper DI");
                 return viewModel;
             }

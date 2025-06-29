@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using BusBuddy.Models;
 
 namespace BusBuddy.Models
 {
@@ -36,13 +37,11 @@ namespace BusBuddy.Models
             get => string.IsNullOrEmpty(LeaveTime) ? null : TimeSpan.Parse(LeaveTime);
             set => LeaveTime = value?.ToString(@"hh\:mm");
         }
-
         public TimeSpan? EventTimeSpan
         {
             get => string.IsNullOrEmpty(EventTime) ? null : TimeSpan.Parse(EventTime);
             set => EventTime = value?.ToString(@"hh\:mm");
         }
-
         public TimeSpan? ReturnTimeSpan
         {
             get => string.IsNullOrEmpty(ReturnTime) ? null : TimeSpan.Parse(ReturnTime);

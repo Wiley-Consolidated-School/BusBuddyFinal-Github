@@ -28,15 +28,12 @@ namespace BusBuddy.Models
                     CalendarDate = fallbackResult;
             }
         }
-
         public DateTime? DateAsDateTime
         {
             get => CalendarDate;
             set => CalendarDate = value ?? DateTime.Today;
         }
-
         public string? EndDate { get; set; } // For multi-day events
-
         public DateTime? EndDateAsDateTime
         {
             get
@@ -50,7 +47,6 @@ namespace BusBuddy.Models
             }
             set => EndDate = value?.ToString("yyyy-MM-dd");
         }
-
         public int RouteNeeded { get; set; }
 
         // Alias properties for form compatibility

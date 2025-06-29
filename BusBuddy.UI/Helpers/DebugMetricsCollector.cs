@@ -1,11 +1,11 @@
 using System;
-using System.Diagnostics;
-using System.Configuration;
-using System.IO;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 using BusBuddy.UI.Helpers;
 
 namespace BusBuddy.UI.Helpers
@@ -54,7 +54,6 @@ namespace BusBuddy.UI.Helpers
         public static void StartMonitoring(string module = "Application")
         {
             if (!EnabledMetrics) return;
-
             BusBuddyLogger.Debug("Metrics", $"Starting performance monitoring for {module}");
             CollectSnapshot(module);
         }
@@ -77,24 +76,20 @@ namespace BusBuddy.UI.Helpers
                     ActiveModule = state?.ToString() ?? "Runtime",
                     CpuUsagePercent = GetCpuUsage()
                 };
-
                 lock (_lockObject)
                 {
                     _snapshots.Add(snapshot);
-
                     // Keep only last 100 snapshots
                     if (_snapshots.Count > 100)
                     {
                         _snapshots.RemoveAt(0);
                     }
                 }
-
                 // Log significant changes
                 if (DebugLevel == "Verbose")
                 {
                     LogSnapshot(snapshot);
                 }
-
                 // Check for performance alerts
                 CheckPerformanceAlerts(snapshot);
             }
@@ -114,16 +109,12 @@ namespace BusBuddy.UI.Helpers
                 using var process = Process.GetCurrentProcess();
                 var startTime = DateTime.UtcNow;
                 var startCpuUsage = process.TotalProcessorTime;
-
                 Thread.Sleep(100); // Small delay for accurate measurement
-
                 var endTime = DateTime.UtcNow;
                 var endCpuUsage = process.TotalProcessorTime;
-
                 var cpuUsedMs = (endCpuUsage - startCpuUsage).TotalMilliseconds;
                 var totalMsPassed = (endTime - startTime).TotalMilliseconds;
                 var cpuUsageTotal = cpuUsedMs / (Environment.ProcessorCount * totalMsPassed);
-
                 return Math.Round(cpuUsageTotal * 100, 2);
             }
             catch
@@ -141,7 +132,6 @@ namespace BusBuddy.UI.Helpers
                          $"CPU: {snapshot.CpuUsagePercent:F1}%, " +
                          $"Threads: {snapshot.ThreadCount}, " +
                          $"Handles: {snapshot.HandleCount}";
-
             Console.WriteLine($"📊 {message}");
             BusBuddyLogger.Debug("Metrics", message);
         }
@@ -152,21 +142,18 @@ namespace BusBuddy.UI.Helpers
         private static void CheckPerformanceAlerts(PerformanceSnapshot snapshot)
         {
             var memoryThresholdMB = int.Parse(ConfigurationManager.AppSettings["MemoryThresholdMB"] ?? "50");
-
             // Memory usage alert
             if (snapshot.MemoryUsageMB > memoryThresholdMB)
             {
                 BusBuddyLogger.Warning("Performance",
                     $"High memory usage detected: {snapshot.MemoryUsageMB}MB > {memoryThresholdMB}MB threshold");
             }
-
             // High CPU usage alert
             if (snapshot.CpuUsagePercent > 50)
             {
                 BusBuddyLogger.Warning("Performance",
                     $"High CPU usage detected: {snapshot.CpuUsagePercent:F1}% > 50% threshold");
             }
-
             // Excessive thread count
             if (snapshot.ThreadCount > 20)
             {
@@ -181,18 +168,15 @@ namespace BusBuddy.UI.Helpers
         public static string GeneratePerformanceReport()
         {
             if (!EnabledMetrics) return "Performance metrics collection is disabled.";
-
             lock (_lockObject)
             {
                 if (_snapshots.Count == 0) return "No performance data collected yet.";
-
                 var latest = _snapshots[^1];
                 var oldest = _snapshots[0];
                 var avgMemory = _snapshots.Average(s => s.MemoryUsageMB);
                 var maxMemory = _snapshots.Max(s => s.MemoryUsageMB);
                 var avgCpu = _snapshots.Average(s => s.CpuUsagePercent);
                 var maxCpu = _snapshots.Max(s => s.CpuUsagePercent);
-
                 return $"📊 BusBuddy Performance Report\n" +
                        $"   📅 Collection Period: {oldest.Timestamp:HH:mm:ss} - {latest.Timestamp:HH:mm:ss}\n" +
                        $"   🧠 Memory Usage: Current {latest.MemoryUsageMB}MB | Avg {avgMemory:F1}MB | Peak {maxMemory}MB\n" +
@@ -225,7 +209,6 @@ namespace BusBuddy.UI.Helpers
                 _operationName = operationName;
                 _stopwatch = Stopwatch.StartNew();
                 _startMemory = GC.GetTotalMemory(false);
-
                 if (DebugLevel == "Verbose")
                 {
                     BusBuddyLogger.Debug("Operation", $"Starting: {operationName}");
@@ -237,14 +220,11 @@ namespace BusBuddy.UI.Helpers
                 _stopwatch.Stop();
                 var endMemory = GC.GetTotalMemory(false);
                 var memoryDelta = (endMemory - _startMemory) / 1024 / 1024; // MB
-
                 var performanceThreshold = int.Parse(ConfigurationManager.AppSettings["PerformanceThresholdMs"] ?? "100");
                 var isSlowOperation = _stopwatch.ElapsedMilliseconds > performanceThreshold;
-
                 var logLevel = isSlowOperation ? "Warning" : "Debug";
                 var message = $"Operation '{_operationName}' completed in {_stopwatch.ElapsedMilliseconds}ms, " +
                              $"Memory delta: {memoryDelta:+0;-0;0}MB";
-
                 if (isSlowOperation)
                 {
                     BusBuddyLogger.Warning("Performance", message);
@@ -253,7 +233,6 @@ namespace BusBuddy.UI.Helpers
                 {
                     BusBuddyLogger.Debug("Performance", message);
                 }
-
                 Console.WriteLine($"⏱️ {message}");
             }
         }
@@ -264,7 +243,6 @@ namespace BusBuddy.UI.Helpers
         public static void Shutdown()
         {
             _metricsTimer?.Dispose();
-
             if (EnabledMetrics && _snapshots.Count > 0)
             {
                 Console.WriteLine("\n" + GeneratePerformanceReport());

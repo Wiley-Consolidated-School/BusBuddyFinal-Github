@@ -4,14 +4,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 namespace BusBuddy.Models
-{    public class Vehicle
+{
+    public class Vehicle
     {
         public int BusId { get; set; } // Primary key as it exists in database
         public string? BusNumber { get; set; } // This matches the actual database column
 
         // Properties for UI compatibility
         public int Id { get; set; } // UI expects Id property with setter for tests
-
         public string? Make { get; set; }
         public string? Model { get; set; }
         public int Year { get; set; }
@@ -39,7 +39,9 @@ namespace BusBuddy.Models
                 return null;
             }
             set => LastInspectionDate = value?.ToString("yyyy-MM-dd");
-        }        // Additional properties for compatibility
+        }
+
+        // Additional properties for compatibility
         public string? VIN => VINNumber;
 
         // Add concurrency control

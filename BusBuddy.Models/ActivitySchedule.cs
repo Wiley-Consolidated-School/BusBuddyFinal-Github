@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using BusBuddy.Models;
 
 namespace BusBuddy.Models
 {
@@ -21,37 +22,29 @@ namespace BusBuddy.Models
             get => ActivityName;
             set => ActivityName = value;
         }
-
         public DateTime? DateAsDateTime
         {
             get => Date;
             set => Date = value ?? DateTime.Today;
         }
-
         public int? ScheduledVehicleID
         {
             get => VehicleID;
             set => VehicleID = value;
         }
-
         public string? ScheduledDestination { get; set; } // Additional field for destination
-
         public TimeSpan? ScheduledLeaveTime
         {
             get => StartTime;
             set => StartTime = value;
         }
-
         public TimeSpan? ScheduledEventTime { get; set; } // Additional field for event time
-
         public TimeSpan? ScheduledReturnTime
         {
             get => EndTime;
             set => EndTime = value;
         }
-
         public int? ScheduledRiders { get; set; } // Additional field for rider count
-
         public int? ScheduledDriverID
         {
             get => DriverID;

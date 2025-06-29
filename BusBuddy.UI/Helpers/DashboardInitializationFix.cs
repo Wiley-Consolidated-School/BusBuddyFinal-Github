@@ -31,7 +31,6 @@ namespace BusBuddy.UI.Helpers
                     _isTestMode = true;
                     Console.WriteLine("🧪 DashboardInitializationFix detected TEST MODE - using short timeouts");
                 }
-
                 // Dispose any existing token source
                 if (_cancellationTokenSource != null)
                 {
@@ -41,17 +40,14 @@ namespace BusBuddy.UI.Helpers
                     }
                     _cancellationTokenSource.Dispose();
                 }
-
                 // Create a new token source with timeout for test mode
                 _cancellationTokenSource = new CancellationTokenSource();
-
                 // In test mode, set a short timeout to prevent hanging
                 if (_isTestMode)
                 {
                     _cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(5));
                     Console.WriteLine("⏱️ Set 5-second timeout for dashboard initialization in test mode");
                 }
-
                 return _cancellationTokenSource;
             }
         }
@@ -93,7 +89,6 @@ namespace BusBuddy.UI.Helpers
                     if (_cancellationTokenSource == null)
                     {
                         _cancellationTokenSource = new CancellationTokenSource();
-
                         // In test mode, set a short timeout
                         if (_isTestMode)
                         {
@@ -102,18 +97,15 @@ namespace BusBuddy.UI.Helpers
                     }
                 }
             }
-
             try
             {
                 // Create a timeout task to prevent hanging
                 var actionTask = action(_cancellationTokenSource.Token);
-
                 if (_isTestMode)
                 {
                     // In test mode, use a timeout task
                     var timeoutTask = Task.Delay(TimeSpan.FromSeconds(3));
                     var completedTask = await Task.WhenAny(actionTask, timeoutTask);
-
                     if (completedTask == timeoutTask)
                     {
                         Console.WriteLine("⚠️ Operation timed out after 3 seconds in test mode");
@@ -154,7 +146,6 @@ namespace BusBuddy.UI.Helpers
                 Console.WriteLine("⚠️ Cannot invoke on disposed control");
                 return;
             }
-
             try
             {
                 if (_isTestMode)
@@ -171,7 +162,6 @@ namespace BusBuddy.UI.Helpers
                             action();
                         }
                     });
-
                     // Don't wait more than 2 seconds in test mode
                     if (!task.Wait(TimeSpan.FromSeconds(2)))
                     {

@@ -34,21 +34,16 @@ namespace BusBuddy.UI.Helpers
             lock (_lockObject)
             {
                 if (_initialized) return;
-
                 Console.WriteLine("🛡️ Initializing Environmental Resilience...");
-
                 try
                 {
                     // Check system health
                     var health = AssessEnvironmentHealth();
                     _lastHealth = health;
-
                     // Apply mitigation strategies based on health
                     ApplyMitigationStrategies(health);
-
                     // Set up monitoring
                     SetupContinuousMonitoring();
-
                     _initialized = true;
                     Console.WriteLine($"✅ Environmental Resilience initialized - Health: {health}");
                 }
@@ -68,28 +63,22 @@ namespace BusBuddy.UI.Helpers
             try
             {
                 int healthScore = 100;
-
                 // Check available memory
                 var availableMemory = GetAvailableMemoryMB();
                 if (availableMemory < 500) healthScore -= 30;
                 else if (availableMemory < 1000) healthScore -= 15;
-
                 // Check CPU usage
                 var cpuUsage = GetCurrentCpuUsage();
                 if (cpuUsage > 90) healthScore -= 25;
                 else if (cpuUsage > 70) healthScore -= 10;
-
                 // Check for antivirus real-time scanning
                 if (IsAntivirusActivelyScanning()) healthScore -= 20;
-
                 // Check for excessive background processes
                 if (GetDotNetProcessCount() > 10) healthScore -= 15;
-
                 // Check temp space
                 var tempSpace = GetTempSpaceGB();
                 if (tempSpace < 1) healthScore -= 20;
                 else if (tempSpace < 2) healthScore -= 10;
-
                 // Determine health level
                 if (healthScore >= 80) return EnvironmentHealth.Optimal;
                 if (healthScore >= 60) return EnvironmentHealth.Degraded;
@@ -107,7 +96,6 @@ namespace BusBuddy.UI.Helpers
         private static void ApplyMitigationStrategies(EnvironmentHealth health)
         {
             Console.WriteLine($"🔧 Applying mitigation strategies for {health} environment");
-
             switch (health)
             {
                 case EnvironmentHealth.Critical:
@@ -117,13 +105,11 @@ namespace BusBuddy.UI.Helpers
                     EnableGarbageCollectionOptimizations();
                     CleanupBuildArtifacts();
                     break;
-
                 case EnvironmentHealth.Degraded:
                     // Moderate mitigations
                     ReduceBuildParallelism();
                     EnableGarbageCollectionOptimizations();
                     break;
-
                 case EnvironmentHealth.Optimal:
                     // Minimal mitigations
                     EnableOptimalGarbageCollection();
@@ -145,7 +131,6 @@ namespace BusBuddy.UI.Helpers
                     {
                         await Task.Delay(30000); // 30 seconds
                         var currentHealth = AssessEnvironmentHealth();
-
                         if (currentHealth != _lastHealth)
                         {
                             Console.WriteLine($"🔄 Environment health changed: {_lastHealth} → {currentHealth}");
@@ -162,7 +147,6 @@ namespace BusBuddy.UI.Helpers
         }
 
         #region Health Assessment Methods
-
         private static long GetAvailableMemoryMB()
         {
             try
@@ -174,10 +158,8 @@ namespace BusBuddy.UI.Helpers
                 process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.CreateNoWindow = true;
                 process.Start();
-
                 string output = process.StandardOutput.ReadToEnd();
                 process.WaitForExit();
-
                 // Parse the output to get free memory
                 foreach (string line in output.Split('\n'))
                 {
@@ -196,7 +178,6 @@ namespace BusBuddy.UI.Helpers
                 // Fallback using GC
                 return GC.GetTotalMemory(false) / (1024 * 1024);
             }
-
             return 1000; // Default assumption
         }
 
@@ -207,16 +188,12 @@ namespace BusBuddy.UI.Helpers
                 using var process = Process.GetCurrentProcess();
                 var startTime = DateTime.UtcNow;
                 var startCpuUsage = process.TotalProcessorTime;
-
                 Thread.Sleep(100); // Sample for 100ms
-
                 var endTime = DateTime.UtcNow;
                 var endCpuUsage = process.TotalProcessorTime;
-
                 var cpuUsedMs = (endCpuUsage - startCpuUsage).TotalMilliseconds;
                 var totalMsPassed = (endTime - startTime).TotalMilliseconds;
                 var cpuUsageTotal = cpuUsedMs / (Environment.ProcessorCount * totalMsPassed);
-
                 return (float)(cpuUsageTotal * 100);
             }
             catch
@@ -231,7 +208,6 @@ namespace BusBuddy.UI.Helpers
             {
                 // Check for common antivirus processes with high CPU
                 string[] antivirusProcesses = { "MsMpEng", "avp", "avgnt", "mcshield", "nod32krn" };
-
                 foreach (string avProcess in antivirusProcesses)
                 {
                     var processes = Process.GetProcessesByName(avProcess);
@@ -251,7 +227,6 @@ namespace BusBuddy.UI.Helpers
                 }
             }
             catch { }
-
             return false;
         }
 
@@ -282,11 +257,9 @@ namespace BusBuddy.UI.Helpers
                 return 5.0; // Default assumption
             }
         }
-
         #endregion
 
         #region Mitigation Methods
-
         private static void SetLowMemoryMode()
         {
             try
@@ -295,11 +268,9 @@ namespace BusBuddy.UI.Helpers
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
-
                 // Set server GC mode if available
                 Environment.SetEnvironmentVariable("DOTNET_gcServer", "0");
                 Environment.SetEnvironmentVariable("DOTNET_gcConcurrent", "1");
-
                 Console.WriteLine("🔧 Low memory mode activated");
             }
             catch (Exception ex)
@@ -315,7 +286,6 @@ namespace BusBuddy.UI.Helpers
                 // Limit MSBuild parallelism
                 Environment.SetEnvironmentVariable("MSBuildNodeCount", "1");
                 Environment.SetEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1");
-
                 Console.WriteLine("🔧 Build parallelism reduced to prevent pipe breaks");
             }
             catch (Exception ex)
@@ -330,7 +300,6 @@ namespace BusBuddy.UI.Helpers
             {
                 // Configure GC for better performance under pressure
                 Environment.SetEnvironmentVariable("DOTNET_gcRetainVM", "1");
-
                 Console.WriteLine("🔧 GC optimizations enabled");
             }
             catch (Exception ex)
@@ -346,7 +315,6 @@ namespace BusBuddy.UI.Helpers
                 // Configure GC for optimal performance
                 Environment.SetEnvironmentVariable("DOTNET_gcServer", "1");
                 Environment.SetEnvironmentVariable("DOTNET_gcConcurrent", "1");
-
                 Console.WriteLine("🔧 Optimal GC settings applied");
             }
             catch (Exception ex)
@@ -369,7 +337,6 @@ namespace BusBuddy.UI.Helpers
                         try { File.Delete(file); } catch { }
                     }
                 }
-
                 Console.WriteLine("🧹 Build artifacts cleaned");
             }
             catch (Exception ex)
@@ -377,7 +344,6 @@ namespace BusBuddy.UI.Helpers
                 Console.WriteLine($"⚠️ Failed to cleanup build artifacts: {ex.Message}");
             }
         }
-
         #endregion
 
         /// <summary>
@@ -387,21 +353,16 @@ namespace BusBuddy.UI.Helpers
         public static void ForceEnvironmentCleanup()
         {
             Console.WriteLine("🚨 Forcing comprehensive environment cleanup...");
-
             try
             {
                 // Kill orphaned build processes
                 KillOrphanedBuildProcesses();
-
                 // Clean all temp files
                 CleanupAllTempFiles();
-
                 // Force garbage collection
                 SetLowMemoryMode();
-
                 // Reset environment variables
                 ResetBuildEnvironment();
-
                 Console.WriteLine("✅ Comprehensive environment cleanup completed");
             }
             catch (Exception ex)
@@ -444,7 +405,6 @@ namespace BusBuddy.UI.Helpers
                     Path.Combine(Path.GetTempPath(), "MSBuildTemp"),
                     Path.Combine(Path.GetTempPath(), ".NETCoreApp,Version=v8.0.AssemblyAttributes.cs")
                 };
-
                 foreach (var tempPath in tempPaths)
                 {
                     if (Directory.Exists(tempPath))

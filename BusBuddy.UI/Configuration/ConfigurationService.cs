@@ -1,7 +1,7 @@
 using System;
+using System.Drawing;
 using System.IO;
 using System.Text.Json;
-using System.Drawing;
 
 namespace BusBuddy.UI.Configuration
 {
@@ -35,7 +35,6 @@ namespace BusBuddy.UI.Configuration
             var configDir = Path.Combine(appData, "BusBuddy");
             Directory.CreateDirectory(configDir);
             _configPath = Path.Combine(configDir, "preferences.json");
-
             LoadPreferences();
         }
 

@@ -83,9 +83,7 @@ namespace BusBuddy.Data
                     )
                     VALUES (
                         @Date, @EndDate, @Category, @Description, @RouteNeeded
-                    );
-                    SELECT SCOPE_IDENTITY()";
-
+                    );                    SELECT SCOPE_IDENTITY()";
                 return connection.QuerySingle<int>(sql, calendarEntry);
             }
         }
@@ -103,7 +101,6 @@ namespace BusBuddy.Data
                         Description = @Description,
                         RouteNeeded = @RouteNeeded
                     WHERE CalendarID = @CalendarID";
-
                 var rowsAffected = connection.Execute(sql, calendarEntry);
                 return rowsAffected > 0;
             }
@@ -115,9 +112,12 @@ namespace BusBuddy.Data
             {
                 connection.Open();
                 var sql = "DELETE FROM SchoolCalendar WHERE CalendarID = @CalendarID";
-                var rowsAffected = connection.Execute(sql, new { CalendarID = id });                return rowsAffected > 0;
+                var rowsAffected = connection.Execute(sql, new { CalendarID = id });
+                return rowsAffected > 0;
             }
-        }        // Additional methods for form compatibility
+        }
+
+        // Additional methods for form compatibility
         public List<SchoolCalendar> GetAllCalendarEvents()
         {
             return GetAllCalendarEntries();

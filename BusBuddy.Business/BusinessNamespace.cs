@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 
 namespace BusBuddy.Business
 {

@@ -6,8 +6,8 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using BusBuddy.Models;
 using BusBuddy.Business;
+using BusBuddy.Models;
 
 namespace BusBuddy.UI.Services
 {
@@ -71,13 +71,11 @@ namespace BusBuddy.UI.Services
             _uiDataService = uiDataService ?? throw new ArgumentNullException(nameof(uiDataService));
             _httpClient = httpClient ?? new HttpClient();
             _xaiApiKey = Environment.GetEnvironmentVariable("XAI_API_KEY") ?? string.Empty;
-
             if (!string.IsNullOrEmpty(_xaiApiKey))
             {
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _xaiApiKey);
             }
-
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "BusBuddy-CDE40-Reporter/1.0");
             LogInfo("ReportService initialized with xAI Grok 3 API integration");
         }
@@ -90,22 +88,18 @@ namespace BusBuddy.UI.Services
         public async Task<object> GenerateCDE40ReportAsync(string schoolYear = "2024-25")
         {
             LogInfo($"Starting CDE-40 report generation for school year {schoolYear}");
-
             try
             {
                 // Step 1: Collect data from database
                 var reportData = CollectReportData(schoolYear);
-
                 // Step 2: Validate data
                 if (!ValidateReportData(reportData))
                 {
                     LogError("Report data validation failed");
                     return new { Error = "Report data validation failed", IsValid = false };
                 }
-
                 // Step 3: Generate AI insights using xAI Grok 3 API
                 var aiInsights = await GenerateAIInsightsAsync(reportData);
-
                 // Step 4: Format final report
                 var finalReport = new CDE40Report
                 {
@@ -120,7 +114,6 @@ namespace BusBuddy.UI.Services
                     FinancialContributions = GenerateFinancialContributionsAnalysis(reportData),
                     IsValid = true
                 };
-
                 LogInfo("CDE-40 report generation completed successfully");
                 return finalReport;
             }
@@ -144,7 +137,6 @@ namespace BusBuddy.UI.Services
         public bool ValidateReportData(object reportData)
         {
             if (reportData == null) return false;
-
             if (reportData is CDE40ReportData cdeData)
             {
                 // Validate required data points for CDE-40 compliance
@@ -153,23 +145,19 @@ namespace BusBuddy.UI.Services
                     LogError("No route data available for CDE-40 report");
                     return false;
                 }
-
                 if (cdeData.TotalMiles <= 0)
                 {
                     LogError("Total mileage must be greater than zero");
                     return false;
                 }
-
                 if (cdeData.TotalPupilCount <= 0)
                 {
                     LogError("Total pupil count must be greater than zero");
                     return false;
                 }
-
                 LogInfo("Report data validation passed");
                 return true;
             }
-
             return false;
         }
 
@@ -185,16 +173,13 @@ namespace BusBuddy.UI.Services
             try
             {
                 LogInfo($"Exporting report to {format} format at {filePath}");
-
                 if (reportData == null || string.IsNullOrEmpty(filePath))
                 {
                     LogError("Invalid export parameters");
                     return false;
                 }
-
                 // TODO: Implement Syncfusion Bold Reports export functionality
                 // This would integrate with Bold Reports API for professional formatting
-
                 // For now, simulate export success
                 await Task.Delay(100);
                 LogInfo($"Report exported successfully to {filePath}");
@@ -208,20 +193,17 @@ namespace BusBuddy.UI.Services
         }
 
         #region Private Helper Methods
-
         /// <summary>
         /// Collect all data required for CDE-40 reporting
         /// </summary>
         private CDE40ReportData CollectReportData(string schoolYear)
         {
             var reportData = new CDE40ReportData();
-
             try
             {
                 // Collect route data for mileage and pupil counts - prioritize this per user requirements
                 var routes = _uiDataService.GetAllRoutesWithDetails();
                 reportData.Routes = routes ?? new List<Route>();
-
                 // Calculate totals from routes data
                 foreach (var route in reportData.Routes)
                 {
@@ -229,22 +211,18 @@ namespace BusBuddy.UI.Services
                     decimal amMiles = (route.AMEndMiles ?? 0) - (route.AMBeginMiles ?? 0);
                     decimal pmMiles = (route.PMEndMiles ?? 0) - (route.PMBeginMiles ?? 0);
                     reportData.TotalMiles += amMiles + pmMiles;
-
                     // Calculate pupil counts
                     reportData.TotalPupilCount += (route.AMRiders ?? 0) + (route.PMRiders ?? 0);
                 }
-
                 // Set financial contributions (from prompt requirements)
                 reportData.StateContribution = 5100000000m; // $5.1B
                 reportData.LocalPropertyTaxes = 4300000000m; // $4.3B
                 reportData.LocalVehicleTaxes = 241700000m; // $241.7M
-
                 // Calculate cost per student (~$2.70/day as mentioned in requirements)
                 if (reportData.TotalPupilCount > 0)
                 {
                     reportData.CostPerStudent = 2.70m; // Based on prompt requirements
                 }
-
                 LogInfo($"Collected data: {reportData.TotalMiles} miles, {reportData.TotalPupilCount} pupils");
                 return reportData;
             }
@@ -265,7 +243,6 @@ namespace BusBuddy.UI.Services
                 LogInfo("xAI API key not available, generating static insights");
                 return GenerateStaticInsights(reportData);
             }
-
             try
             {
                 var prompt = CreateCDE40AnalysisPrompt(reportData);
@@ -280,26 +257,21 @@ namespace BusBuddy.UI.Services
                     max_tokens = 1000,
                     temperature = 0.7
                 };
-
                 var content = new StringContent(
                     JsonSerializer.Serialize(requestBody),
                     Encoding.UTF8,
                     "application/json"
                 );
-
                 var response = await _httpClient.PostAsync(XAI_API_URL, content);
                 response.EnsureSuccessStatusCode();
-
                 var responseJson = await response.Content.ReadAsStringAsync();
                 var aiResponse = JsonSerializer.Deserialize<JsonElement>(responseJson);
-
                 if (aiResponse.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
                 {
                     var message = choices[0].GetProperty("message").GetProperty("content").GetString();
                     LogInfo("AI insights generated successfully via xAI Grok 3 API");
                     return message ?? GenerateStaticInsights(reportData);
                 }
-
                 return GenerateStaticInsights(reportData);
             }
             catch (Exception ex)
@@ -311,36 +283,12 @@ namespace BusBuddy.UI.Services
 
         private string CreateCDE40AnalysisPrompt(CDE40ReportData reportData)
         {
-            return $@"Analyze this CDE-40 transportation data and provide insights:
-
-Total Miles: {reportData.TotalMiles:N0}
-Total Pupils: {reportData.TotalPupilCount:N0}
-Cost per Student: ${reportData.CostPerStudent:N2}/day
-State Contribution: ${reportData.StateContribution:N0}
-Local Property Taxes: ${reportData.LocalPropertyTaxes:N0}
-Local Vehicle Taxes: ${reportData.LocalVehicleTaxes:N0}
-
-Please provide:
-1. Executive summary highlighting transportation value
-2. Key performance indicators and efficiency metrics
-3. Financial impact analysis showing state vs local contributions
-4. Recommendations for optimization
-5. Compliance insights for CDE-40 reporting
-
-Focus on demonstrating the value and efficiency of the transportation program.";
+            return $@"Analyze this CDE-40 transportation data and provide insights:Total Miles: {reportData.TotalMiles:N0}Total Pupils: {reportData.TotalPupilCount:N0}Cost per Student: ${reportData.CostPerStudent:N2}/dayState Contribution: ${reportData.StateContribution:N0}Local Property Taxes: ${reportData.LocalPropertyTaxes:N0}Local Vehicle Taxes: ${reportData.LocalVehicleTaxes:N0}Please provide:1. Executive summary highlighting transportation value2. Key performance indicators and efficiency metrics3. Financial impact analysis showing state vs local contributions4. Recommendations for optimization5. Compliance insights for CDE-40 reportingFocus on demonstrating the value and efficiency of the transportation program.";
         }
 
         private string GenerateStaticInsights(CDE40ReportData reportData)
         {
-            return $@"CDE-40 Transportation Analysis Summary:
-
-Our transportation program demonstrates significant value and efficiency:
-• Total Miles Driven: {reportData.TotalMiles:N0} miles serving {reportData.TotalPupilCount:N0} students
-• Cost Efficiency: ${reportData.CostPerStudent:N2} per student per day
-• Financial Support: State contribution of ${reportData.StateContribution / 1000000000:N1}B combined with local support of ${(reportData.LocalPropertyTaxes + reportData.LocalVehicleTaxes) / 1000000000:N1}B
-• Value Proposition: Safe, reliable transportation enabling educational access for all students
-
-This data supports our CDE-40 compliance and demonstrates the transportation program's essential role in student success.";
+            return $@"CDE-40 Transportation Analysis Summary:Our transportation program demonstrates significant value and efficiency:• Total Miles Driven: {reportData.TotalMiles:N0} miles serving {reportData.TotalPupilCount:N0} students• Cost Efficiency: ${reportData.CostPerStudent:N2} per student per day• Financial Support: State contribution of ${reportData.StateContribution / 1000000000:N1}B combined with local support of ${(reportData.LocalPropertyTaxes + reportData.LocalVehicleTaxes) / 1000000000:N1}B• Value Proposition: Safe, reliable transportation enabling educational access for all studentsThis data supports our CDE-40 compliance and demonstrates the transportation program's essential role in student success.";
         }
 
         private string GenerateExecutiveSummary(CDE40ReportData reportData)
@@ -377,7 +325,6 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
         {
             Console.WriteLine($"[ERROR] {DateTime.Now:yyyy-MM-dd HH:mm:ss} - ReportService: {message}");
         }
-
         #endregion
 
         /// <summary>
@@ -391,7 +338,6 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
                 GenerateFallbackInsights(report);
                 return;
             }
-
             try
             {
                 // Executive Summary
@@ -404,7 +350,6 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
                     $"Vehicles: {report.Data.VehicleCount}. " +
                     $"Generate executive summary highlighting transportation value and efficiency for state funding justification."
                 );
-
                 // Mileage Analysis
                 report.MileageAnalysis = await CallXAIAPIAsync(
                     $"Analyze daily route efficiency: total miles {report.Data.TotalMiles:F1}, " +
@@ -412,7 +357,6 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
                     $"routes served {report.Data.Routes.Count}. " +
                     $"Provide insights on route optimization and mileage efficiency trends."
                 );
-
                 // Pupil Count Analysis
                 report.PupilCountAnalysis = await CallXAIAPIAsync(
                     $"Summarize pupil transportation impact: {report.Data.TotalPupilCount} students transported, " +
@@ -420,7 +364,6 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
                     $"across {report.Data.Routes.Count} routes. " +
                     $"Analyze ridership patterns and transportation accessibility."
                 );
-
                 // Cost Analysis
                 report.CostAnalysis = await CallXAIAPIAsync(
                     $"Generate cost insights: fuel costs ${report.Data.FuelCosts:F2}, " +
@@ -428,7 +371,6 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
                     $"total operating costs ${report.Data.TotalOperatingCosts:F2}. " +
                     $"Identify cost optimization opportunities and spending patterns."
                 );
-
                 // Financial Contributions Context
                 report.FinancialContributions = await CallXAIAPIAsync(
                     $"Contextualize transportation funding: State contribution ~$5.1B (Public School Finance Act), " +
@@ -436,7 +378,6 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
                     $"Our district costs ${report.Data.TotalOperatingCosts:F2} serving {report.Data.TotalPupilCount} students. " +
                     $"Demonstrate value and efficiency relative to state funding levels."
                 );
-
                 Console.WriteLine("✅ AI insights generated successfully");
             }
             catch (Exception ex)
@@ -462,17 +403,13 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
                 max_tokens = 500,
                 temperature = 0.3
             };
-
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             var response = await _httpClient.PostAsync(XAI_API_URL, content);
-
             if (response.IsSuccessStatusCode)
             {
                 var responseJson = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<JsonElement>(responseJson);
-
                 if (result.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
                 {
                     var choice = choices[0];
@@ -483,7 +420,6 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
                     }
                 }
             }
-
             return "Analysis temporarily unavailable - API response error";
         }
 
@@ -493,26 +429,20 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
         private void GenerateFallbackInsights(CDE40Report report)
         {
             var data = report.Data;
-
             report.ExecutiveSummary = $"CDE-40 Transportation Summary: This district operates {data.VehicleCount} vehicles " +
                 $"across {data.Routes.Count} routes, transporting {data.TotalPupilCount} students over {data.TotalMiles:F1} miles " +
                 $"with total operating costs of ${data.TotalOperatingCosts:F2}. Cost efficiency of ${data.CostPerStudent:F2} per student " +
                 $"demonstrates effective resource utilization in support of educational access.";
-
             report.MileageAnalysis = $"Route Analysis: Total mileage of {data.TotalMiles:F1} miles across {data.Routes.Count} routes " +
                 $"with cost efficiency of ${data.CostPerMile:F2} per mile indicates operational effectiveness in route planning and execution.";
-
             report.PupilCountAnalysis = $"Student Transportation: {data.TotalPupilCount} students served with cost per student of " +
                 $"${data.CostPerStudent:F2}, demonstrating commitment to educational access and transportation equity.";
-
             report.CostAnalysis = $"Financial Overview: Operating costs totaling ${data.TotalOperatingCosts:F2} include " +
                 $"${data.FuelCosts:F2} in fuel costs and ${data.MaintenanceCosts:F2} in maintenance, reflecting responsible " +
                 $"fleet management and operational efficiency.";
-
             report.FinancialContributions = $"Funding Context: This district's transportation costs of ${data.TotalOperatingCosts:F2} " +
                 $"represent efficient utilization of state funding (~$5.1B Public School Finance Act) and local contributions " +
                 $"(~$4.3B property taxes, $241.7M vehicle taxes) to ensure student transportation access.";
-
             report.Recommendations = "Continue current operational practices while monitoring fuel costs and route efficiency. " +
                 "Consider vehicle replacement planning for maintenance cost optimization.";
         }
@@ -523,29 +453,21 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
         public List<string> ValidateCDE40Data(CDE40ReportData reportData)
         {
             var errors = new List<string>();
-
             if (reportData.TotalMiles <= 0)
                 errors.Add("Total mileage must be greater than zero");
-
             if (reportData.TotalPupilCount <= 0)
                 errors.Add("Total pupil count must be greater than zero");
-
             if (reportData.VehicleCount <= 0)
                 errors.Add("Vehicle count must be greater than zero");
-
             if (reportData.Routes.Count == 0)
                 errors.Add("At least one route record is required");
-
             if (reportData.SchoolDays <= 0)
                 errors.Add("School days count must be greater than zero");
-
             // Data consistency checks
             if (reportData.TotalOperatingCosts < 0)
                 errors.Add("Operating costs cannot be negative");
-
             if (reportData.CostPerStudent > 50) // Reasonable upper limit
                 errors.Add($"Cost per student (${reportData.CostPerStudent:F2}) appears unusually high");
-
             return errors;
         }
 
@@ -576,41 +498,33 @@ This data supports our CDE-40 compliance and demonstrates the transportation pro
             sb.AppendLine($"Generated: {report.GeneratedDate:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine($"Report ID: {report.ReportId}");
             sb.AppendLine();
-
             sb.AppendLine("EXECUTIVE SUMMARY");
             sb.AppendLine(report.ExecutiveSummary);
             sb.AppendLine();
-
             sb.AppendLine("MILEAGE ANALYSIS");
             sb.AppendLine(report.MileageAnalysis);
             sb.AppendLine();
-
             sb.AppendLine("PUPIL COUNT ANALYSIS");
             sb.AppendLine(report.PupilCountAnalysis);
             sb.AppendLine();
-
             sb.AppendLine("COST ANALYSIS");
             sb.AppendLine(report.CostAnalysis);
             sb.AppendLine();
-
             sb.AppendLine("FINANCIAL CONTRIBUTIONS");
             sb.AppendLine(report.FinancialContributions);
             sb.AppendLine();
-
             if (!string.IsNullOrEmpty(report.Recommendations))
             {
                 sb.AppendLine("RECOMMENDATIONS");
                 sb.AppendLine(report.Recommendations);
                 sb.AppendLine();
             }
-
             sb.AppendLine("=== DATA SUMMARY ===");
             sb.AppendLine($"Total Miles: {report.Data.TotalMiles:F1}");
             sb.AppendLine($"Total Pupils: {report.Data.TotalPupilCount}");
             sb.AppendLine($"Operating Costs: ${report.Data.TotalOperatingCosts:F2}");
             sb.AppendLine($"Cost per Student: ${report.Data.CostPerStudent:F2}");
             sb.AppendLine($"Vehicle Count: {report.Data.VehicleCount}");
-
             return sb.ToString();
         }
 

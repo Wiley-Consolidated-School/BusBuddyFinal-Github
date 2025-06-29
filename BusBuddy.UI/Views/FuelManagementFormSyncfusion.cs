@@ -25,6 +25,7 @@ namespace BusBuddy.UI.Views
         private readonly BusRepository _busRepository;
         private new readonly System.IServiceProvider _serviceProvider;
         private List<Bus> _buses = new();
+
         #region Properties Override
         protected override string FormTitle => "\u26fd Fuel Management";
         protected override string SearchPlaceholder => "Search fuels...";
@@ -44,7 +45,6 @@ namespace BusBuddy.UI.Views
             {
                 // Load buses first for dropdowns/lookups
                 LoadVehicles();
-
                 var fuelRecords = _fuelRepository.GetAllFuelRecords();
                 _entities = fuelRecords?.ToList() ?? new List<Fuel>();
                 PopulateFuelGrid();
@@ -55,12 +55,10 @@ namespace BusBuddy.UI.Views
                 _entities = new List<Fuel>(); // Ensure _entities is never null
             }
         }
-
         protected override void LoadDataFromRepository()
         {
             LoadData(); // Delegate to existing LoadData implementation
         }
-
         protected override void AddNewEntity()
         {
             try
@@ -76,7 +74,6 @@ namespace BusBuddy.UI.Views
                 HandleError($"Error adding fuel record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
-
         protected override void EditSelectedEntity()
         {
             var selectedFuel = GetSelectedEntity();
@@ -85,7 +82,6 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a fuel record to edit.");
                 return;
             }
-
             try
             {
                 var editForm = new FuelEditFormSyncfusion(_serviceProvider);
@@ -100,7 +96,6 @@ namespace BusBuddy.UI.Views
                 HandleError($"Error editing fuel record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
-
         protected override void DeleteSelectedEntity()
         {
             var selectedFuel = GetSelectedEntity();
@@ -109,9 +104,7 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a fuel record to delete.");
                 return;
             }
-
             if (!ConfirmDelete("fuel record")) return;
-
             try
             {
                 _fuelRepository.DeleteFuelRecord(selectedFuel.FuelID);
@@ -123,7 +116,6 @@ namespace BusBuddy.UI.Views
                 HandleError($"Error deleting fuel record: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
-
         protected override void ViewEntityDetails()
         {
             var selectedFuel = GetSelectedEntity();
@@ -132,19 +124,17 @@ namespace BusBuddy.UI.Views
                 ShowInfo("Please select a fuel record to view details.");
                 return;
             }
-
             try
             {
                 var details = $"Fuel Record Details:\n\n" +
-                            $"ID: {selectedFuel.FuelID}\n" +
-                            $"Date: {selectedFuel.FuelDate}\n" +
-                            $"Location: {selectedFuel.FuelLocation}\n" +
-                            $"Vehicle: {GetVehicleNumber(selectedFuel.VehicleFueledID)}\n" +
-                            $"Gallons: {selectedFuel.FuelAmount:F2}\n" +
-                            $"Cost: {selectedFuel.FuelCost:C}\n" +
-                            $"Odometer: {selectedFuel.VehicleOdometerReading:N0}\n" +
-                            $"Type: {selectedFuel.FuelType}";
-
+                              $"ID: {selectedFuel.FuelID}\n" +
+                              $"Date: {selectedFuel.FuelDate}\n" +
+                              $"Location: {selectedFuel.FuelLocation}\n" +
+                              $"Vehicle: {GetVehicleNumber(selectedFuel.VehicleFueledID)}\n" +
+                              $"Gallons: {selectedFuel.FuelAmount:F2}\n" +
+                              $"Cost: {selectedFuel.FuelCost:C}\n" +
+                              $"Odometer: {selectedFuel.VehicleOdometerReading:N0}\n" +
+                              $"Type: {selectedFuel.FuelType}";
                 ShowInfo(details, "Fuel Details");
             }
             catch (Exception ex)
@@ -152,34 +142,28 @@ namespace BusBuddy.UI.Views
                 HandleError($"Error viewing fuel details: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
-
         protected override void SearchEntities()
         {
             if (_searchBox?.Text == null) return;
-
             try
             {
                 var searchTerm = _searchBox.Text.Trim();
-
                 if (string.IsNullOrEmpty(searchTerm) || searchTerm == SearchPlaceholder)
                 {
                     LoadData();
                     return;
                 }
-
                 // Ensure _entities is not null before performing LINQ operations
                 if (_entities == null)
                 {
                     _entities = new List<Fuel>();
                     return;
                 }
-
                 var filteredFuels = _entities.Where(f =>
                     (f.FuelLocation?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (f.FuelType?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
                     (GetVehicleNumber(f.VehicleFueledID).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
-
                 _entities = filteredFuels;
                 PopulateFuelGrid();
             }
@@ -188,14 +172,11 @@ namespace BusBuddy.UI.Views
                 HandleError($"Error searching fuels: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
-
         protected override void SetupDataGridColumns()
         {
             if (_dataGrid == null) return;
-
             _dataGrid.AutoGenerateColumns = false;
             _dataGrid.Columns.Clear();
-
             // Define columns for Fuel records
             var columns = new[]
             {
@@ -208,7 +189,6 @@ namespace BusBuddy.UI.Views
                 new { Name = "OdometerReading", Header = "📊 Odometer", Width = 120, Visible = true },
                 new { Name = "FuelType", Header = "🛢️ Type", Width = 100, Visible = true }
             };
-
             foreach (var col in columns)
             {
                 var gridColumn = new Syncfusion.WinForms.DataGrid.GridTextColumn();
@@ -216,10 +196,8 @@ namespace BusBuddy.UI.Views
                 gridColumn.HeaderText = col.Header;
                 gridColumn.Width = GetDpiAwareSize(new Size(col.Width, 0)).Width;
                 gridColumn.Visible = col.Visible;
-
                 _dataGrid.Columns.Add(gridColumn);
             }
-
             Console.WriteLine($"✅ ENHANCED GRID: Setup {_dataGrid.Columns.Count} columns for {this.Text}");
         }
         #region Helper Methods
@@ -239,11 +217,9 @@ namespace BusBuddy.UI.Views
                 HandleError($"Error loading vehicles: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
-
         private void PopulateFuelGrid()
         {
             if (_dataGrid == null) return;
-
             try
             {
                 // Ensure _entities is not null before performing LINQ operations
@@ -251,7 +227,6 @@ namespace BusBuddy.UI.Views
                 {
                     _entities = new List<Fuel>();
                 }
-
                 var fuelData = _entities.Select(f => new
                 {
                     FuelID = f.FuelID,
@@ -263,7 +238,6 @@ namespace BusBuddy.UI.Views
                     OdometerReading = f.VehicleOdometerReading?.ToString("N0") ?? "0",
                     FuelType = f.FuelType ?? "Gasoline"
                 }).ToList();
-
                 _dataGrid.DataSource = fuelData;
             }
             catch (Exception ex)
@@ -271,23 +245,16 @@ namespace BusBuddy.UI.Views
                 HandleError($"Error populating fuel grid: {ex.Message}", "$($EntityName) Error", ex);
             }
         }
-
         private string GetVehicleNumber(int? BusId)
         {
             if (!BusId.HasValue) return "Unknown";
-
             var bus = _buses.FirstOrDefault(v => v.BusId == BusId.Value);
             return bus?.BusNumber?.ToString() ?? "Unknown";
         }
-
+        #endregion // Helper Methods
+        #endregion // Base Implementation Override
+        #endregion // Constructors
+        #endregion // Properties Override
     }
-
-    #endregion
-
-    #endregion
-
-    #endregion
-
-    #endregion
 }
 

@@ -24,16 +24,13 @@ namespace BusBuddy
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-
             try
             {
                 // Syncfusion license registration
                 SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NNaF5cXmBCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXlcdHRdRGNcWENxXkZWYUA=");
                 _logger?.LogInformation("Syncfusion license registered successfully.");
-
                 // Ensure database is online
                 EnsureDatabaseOnline();
-
                 // Configure host
                 var host = Host.CreateDefaultBuilder(args)
                     .ConfigureAppConfiguration((context, config) =>
@@ -54,7 +51,6 @@ namespace BusBuddy
                         // Register configuration and logger
                         services.AddSingleton<IConfiguration>(context.Configuration);
                         services.AddLogging();
-
                         // Register repositories
                         services.AddScoped<IBusRepository, BusRepository>();
                         services.AddScoped<IRouteRepository, RouteRepository>();
@@ -63,10 +59,8 @@ namespace BusBuddy
                         services.AddScoped<IFuelRepository, FuelRepository>();
                         services.AddScoped<IMaintenanceRepository, MaintenanceRepository>();
                         services.AddScoped<IActivityScheduleRepository, ActivityScheduleRepository>();
-
                         // Register UI messaging
                         services.AddScoped<IMessageService, MessageBoxService>();
-
                         // Register UI forms (use only existing forms)
                         services.AddScoped<RouteManagementFormSyncfusion>(provider =>
                         {
@@ -92,7 +86,6 @@ namespace BusBuddy
                         });
                     })
                     .Build();
-
                 // Get logger
                 using (var scope = host.Services.CreateScope())
                 {
@@ -100,7 +93,6 @@ namespace BusBuddy
                     // In the DI scope, get logger factory and create logger for Program
                     var loggerFactory = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ILoggerFactory>(provider);
                     _logger = loggerFactory.CreateLogger("Program");
-
                     // Validate DI
                     try
                     {
@@ -113,7 +105,6 @@ namespace BusBuddy
                         _logger.LogError(ex, "DI validation failed");
                         throw;
                     }
-
                     // Start main form (use RouteManagementFormSyncfusion as main form)
                     var mainForm = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<RouteManagementFormSyncfusion>(provider);
                     Application.Run(mainForm);
@@ -147,3 +138,4 @@ namespace BusBuddy
         }
     }
 }
+

@@ -54,7 +54,6 @@ namespace BusBuddy.UI.Services
         public static void RegisterForm(Form form)
         {
             if (form == null) return;
-
             lock (_shutdownLock)
             {
                 _trackedForms.Add(new WeakReference(form));
@@ -74,23 +73,17 @@ namespace BusBuddy.UI.Services
                     Console.WriteLine("⚠️ Shutdown already in progress, skipping duplicate call");
                     return;
                 }
-
                 _shutdownInProgress = true;
             }
-
             try
             {
                 Console.WriteLine($"🔥 ApplicationShutdownManager: Starting shutdown (Test mode: {_isTestEnvironment})...");
-
                 // Step 1: Close all tracked forms
                 CloseTrackedForms();
-
                 // Step 2: Close all remaining application forms
                 CloseAllApplicationForms();
-
                 // Step 3: Force garbage collection
                 ForceGarbageCollection();
-
                 // Step 4: Only kill orphaned processes in production mode
                 if (!_isTestEnvironment)
                 {
@@ -100,14 +93,12 @@ namespace BusBuddy.UI.Services
                 {
                     Console.WriteLine("🧪 Test mode: Skipping orphaned process cleanup");
                 }
-
                 // Step 5: Exit application safely
                 ExitApplicationSafely();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error during shutdown: {ex.Message}");
-
                 if (!_isTestEnvironment)
                 {
                     // Only emergency exit in production mode
@@ -139,10 +130,8 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                Console.WriteLine("🧽 Closing tracked forms...");
-
+                Console.WriteLine("🧼 Closing tracked forms...");
                 var formsToClose = new List<Form>();
-
                 lock (_shutdownLock)
                 {
                     foreach (var weakRef in _trackedForms)
@@ -153,12 +142,11 @@ namespace BusBuddy.UI.Services
                         }
                     }
                 }
-
                 foreach (var form in formsToClose)
                 {
                     try
                     {
-                        Console.WriteLine($"🧽 Closing tracked form: {form.GetType().Name}");
+                        Console.WriteLine($"🧼 Closing tracked form: {form.GetType().Name}");
                         form.Close();
                         form.Dispose();
                     }
@@ -167,7 +155,6 @@ namespace BusBuddy.UI.Services
                         Console.WriteLine($"⚠️ Error closing form {form.GetType().Name}: {ex.Message}");
                     }
                 }
-
                 Console.WriteLine("✅ Tracked forms closed");
             }
             catch (Exception ex)
@@ -180,11 +167,9 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                Console.WriteLine("🧽 Closing all remaining application forms...");
-
+                Console.WriteLine("🧼 Closing all remaining application forms...");
                 var openForms = Application.OpenForms.Cast<Form>().ToList();
                 Console.WriteLine($"🔍 Found {openForms.Count} open forms to close");
-
                 foreach (var form in openForms)
                 {
                     try
@@ -200,7 +185,6 @@ namespace BusBuddy.UI.Services
                         Console.WriteLine($"⚠️ Error closing form {form.GetType().Name}: {ex.Message}");
                     }
                 }
-
                 Console.WriteLine("✅ All application forms closed");
             }
             catch (Exception ex)
@@ -213,7 +197,7 @@ namespace BusBuddy.UI.Services
         {
             try
             {
-                Console.WriteLine("🧽 Forcing garbage collection...");
+                Console.WriteLine("🧼 Forcing garbage collection...");
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
@@ -230,21 +214,17 @@ namespace BusBuddy.UI.Services
             try
             {
                 Console.WriteLine("🔍 Checking for orphaned BusBuddy.UI processes...");
-
                 var currentProcessId = Process.GetCurrentProcess().Id;
                 var orphanedProcesses = Process.GetProcesses()
                     .Where(p => p.ProcessName.Contains("BusBuddy", StringComparison.OrdinalIgnoreCase))
                     .Where(p => p.Id != currentProcessId)
                     .ToList();
-
                 if (orphanedProcesses.Count == 0)
                 {
                     Console.WriteLine("✅ No orphaned BusBuddy.UI processes found");
                     return;
                 }
-
-                Console.WriteLine($"🗡️ Found {orphanedProcesses.Count} orphaned BusBuddy processes");
-
+                Console.WriteLine($"🛡️ Found {orphanedProcesses.Count} orphaned BusBuddy processes");
                 foreach (var process in orphanedProcesses)
                 {
                     try
@@ -255,10 +235,8 @@ namespace BusBuddy.UI.Services
                             Console.WriteLine("⚠️ Process already exited or null, skipping");
                             continue;
                         }
-
-                        Console.WriteLine($"🗡️ Killing orphaned process: {process.ProcessName} (PID: {process.Id})");
+                        Console.WriteLine($"🛡️ Killing orphaned process: {process.ProcessName} (PID: {process.Id})");
                         process.Kill();
-
                         // Wait with proper validation
                         if (!process.WaitForExit(3000))
                         {
@@ -303,13 +281,10 @@ namespace BusBuddy.UI.Services
                     Console.WriteLine("✅ Test-safe shutdown completed");
                     return;
                 }
-
                 Console.WriteLine("🔥 Calling Application.Exit() to terminate all UI threads...");
                 Application.Exit();
-
                 // Wait a moment for Application.Exit() to work
                 System.Threading.Thread.Sleep(2000);
-
                 // If we're still running, use Environment.Exit() as backup
                 Console.WriteLine("🔥 Calling Environment.Exit(0) as backup termination...");
                 Environment.Exit(0);
@@ -317,7 +292,6 @@ namespace BusBuddy.UI.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error during application exit: {ex.Message}");
-
                 if (!_isTestEnvironment)
                 {
                     try

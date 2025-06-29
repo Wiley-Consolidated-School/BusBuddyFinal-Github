@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.IO;
-using System.Collections.Concurrent;
 using Microsoft.Data.SqlClient;
 
 namespace BusBuddy.Data
@@ -54,12 +54,10 @@ namespace BusBuddy.Data
                     using (var masterConnection = new SqlConnection(masterBuilder.ConnectionString))
                     {
                         masterConnection.Open();
-
                         var checkDbCommand = new SqlCommand(
                             "SELECT COUNT(*) FROM sys.databases WHERE name = @databaseName",
                             masterConnection);
                         checkDbCommand.Parameters.AddWithValue("@databaseName", databaseName);
-
                         var dbExists = (int)checkDbCommand.ExecuteScalar() > 0;
 
                         if (!dbExists)
@@ -80,7 +78,6 @@ namespace BusBuddy.Data
 
                     // Mark this database as initialized
                     _initializedDatabases.TryAdd(databaseName, true);
-
                     Console.WriteLine("✅ SQL Server database initialized successfully!");
                 }
                 catch (Exception ex)
@@ -95,13 +92,11 @@ namespace BusBuddy.Data
         {
             // Try to find and execute the SQL Server schema script
             var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "BusBuddy.Data", "DatabaseScript.SqlServer.sql");
-
             if (!File.Exists(scriptPath))
             {
                 // Try alternative path for deployed version
                 scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DatabaseScript.SqlServer.sql");
             }
-
             if (!File.Exists(scriptPath))
             {
                 Console.WriteLine("⚠️ SQL Server schema script not found, creating basic tables...");
@@ -111,15 +106,12 @@ namespace BusBuddy.Data
 
             Console.WriteLine($"📄 Reading SQL script from: {scriptPath}");
             var script = File.ReadAllText(scriptPath);
-
             using var connection = new SqlConnection(_connectionString);
             connection.Open();
-
             try
             {
                 // Execute the script (split by GO statements for SQL Server)
                 var batches = script.Split(new[] { "\nGO\n", "\nGO\r\n", "\r\nGO\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-
                 foreach (var batch in batches)
                 {
                     if (!string.IsNullOrWhiteSpace(batch))
@@ -142,7 +134,6 @@ namespace BusBuddy.Data
                         }
                     }
                 }
-
                 Console.WriteLine("✅ Schema initialized successfully!");
             }
             catch (Exception ex)
@@ -156,7 +147,6 @@ namespace BusBuddy.Data
         {
             using var connection = new SqlConnection(_connectionString);
             connection.Open();
-
             var createTablesScript = @"
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Vehicles' AND xtype='U')
                 CREATE TABLE Vehicles (
@@ -172,7 +162,6 @@ namespace BusBuddy.Data
                     LicenseNumber nvarchar(20),
                     LastInspectionDate datetime
                 );
-
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Drivers' AND xtype='U')
                 CREATE TABLE Drivers (
                     DriverId int IDENTITY(1,1) PRIMARY KEY,
@@ -191,7 +180,6 @@ namespace BusBuddy.Data
                     LastName nvarchar(100),
                     CDLExpirationDate datetime
                 );
-
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Activities' AND xtype='U')
                 CREATE TABLE Activities (
                     ActivityID int IDENTITY(1,1) PRIMARY KEY,
@@ -204,7 +192,6 @@ namespace BusBuddy.Data
                     AssignedVehicleID int,
                     DriverId int
                 );
-
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Routes' AND xtype='U')
                 CREATE TABLE Routes (
                     RouteId int IDENTITY(1,1) PRIMARY KEY,
@@ -215,7 +202,6 @@ namespace BusBuddy.Data
                     EstimatedTime nvarchar(20),
                     Notes nvarchar(max)
                 );
-
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Fuel' AND xtype='U')
                 CREATE TABLE Fuel (
                     FuelID int IDENTITY(1,1) PRIMARY KEY,
@@ -228,7 +214,6 @@ namespace BusBuddy.Data
                     FuelCost money,
                     Notes nvarchar(max)
                 );
-
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Maintenance' AND xtype='U')
                 CREATE TABLE Maintenance (
                     MaintenanceID int IDENTITY(1,1) PRIMARY KEY,
@@ -240,7 +225,6 @@ namespace BusBuddy.Data
                     RepairCost money,
                     Notes nvarchar(max)
                 );
-
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='SchoolCalendar' AND xtype='U')
                 CREATE TABLE SchoolCalendar (
                     CalendarID int IDENTITY(1,1) PRIMARY KEY,
@@ -250,7 +234,6 @@ namespace BusBuddy.Data
                     IsSchoolDay bit,
                     Notes nvarchar(max)
                 );
-
                 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ActivitySchedule' AND xtype='U')
                 CREATE TABLE ActivitySchedule (
                     ActivityScheduleID int IDENTITY(1,1) PRIMARY KEY,
@@ -262,10 +245,8 @@ namespace BusBuddy.Data
                     Notes nvarchar(max)
                 );
             ";
-
             var command = new SqlCommand(createTablesScript, connection);
             command.ExecuteNonQuery();
-
             Console.WriteLine("✅ All basic tables created successfully!");
         }
 
