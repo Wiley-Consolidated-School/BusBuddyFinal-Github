@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using BusBuddy.Models;
-using BusBuddy.Data;
 using BusBuddy.Business;
+using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Services;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
 
@@ -20,9 +21,8 @@ namespace BusBuddy.UI.Views
     public class RouteManagementFormSyncfusion : BaseManagementForm<Route>
     {
         private readonly IRouteRepository _routeRepository;
-        private readonly BusRepository _busRepository;
+        private readonly IBusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
-        private IDatabaseHelperService _databaseHelperService;
         private List<Bus> _buses = new List<Bus>();
         private List<Driver> _drivers = new List<Driver>();
         #region Properties Override
@@ -32,23 +32,14 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public RouteManagementFormSyncfusion() : this(new RouteRepository(), new BusRepository(), new DriverRepository()) { }
-
-        public RouteManagementFormSyncfusion(IRouteRepository routeRepository, BusRepository busRepository, IDriverRepository driverRepository)
+        public RouteManagementFormSyncfusion(IServiceProvider serviceProvider, IRouteRepository routeRepository, IBusRepository busRepository, IDriverRepository driverRepository, IMessageService messageService)
+            : base(serviceProvider, messageService)
         {
-            try
-            {
-                _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
-                _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
-                _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
-                _databaseHelperService = UnifiedServiceManager.Instance.GetService<DatabaseHelperService>();
+            _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
+            _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
+            _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
 
-                // NOTE: LoadData() and LoadVehiclesAndDrivers() are called by the base class after all controls are initialized
-            }
-            catch (Exception ex)
-            {
-                HandleError($"Error initializing Route Management Form: {ex.Message}", "$($EntityName) Error", ex);
-            }
+            // NOTE: LoadData() and LoadVehiclesAndDrivers() are called by the base class after all controls are initialized
         }
         #endregion
 
@@ -136,7 +127,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                var routeForm = new RouteEditFormSyncfusion();
+                var routeForm = new RouteEditFormSyncfusion(this._serviceProvider);
                 if (routeForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGrid();
@@ -159,7 +150,8 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                var routeForm = new RouteEditFormSyncfusion(selectedRoute);
+                var routeForm = new RouteEditFormSyncfusion(this._serviceProvider);
+                routeForm.Route = selectedRoute;
                 if (routeForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGrid();

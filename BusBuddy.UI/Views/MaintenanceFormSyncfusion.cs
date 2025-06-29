@@ -29,19 +29,13 @@ namespace BusBuddy.UI.Views
         private SfButton _saveButton;
         private SfButton _cancelButton;
 
-        public MaintenanceFormSyncfusion()
+        public MaintenanceFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
             InitializeComponent();
             _maintenanceRepository = new MaintenanceRepository();
             _busRepository = new BusRepository();
             _maintenance = new Maintenance();
             _isEditMode = false;
-        }
-
-        public MaintenanceFormSyncfusion(Maintenance maintenance) : this()
-        {
-            _maintenance = maintenance ?? new Maintenance();
-            _isEditMode = maintenance != null && maintenance.MaintenanceID > 0;
         }
 
         private void InitializeComponent()

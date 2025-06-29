@@ -25,8 +25,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.6" />
+    <!-- Remove obsolete System.Data.SqlClient -->
+    <!-- <PackageReference Include="System.Data.SqlClient" Version="4.9.0" /> -->
   </ItemGroup>
 
   <ItemGroup>

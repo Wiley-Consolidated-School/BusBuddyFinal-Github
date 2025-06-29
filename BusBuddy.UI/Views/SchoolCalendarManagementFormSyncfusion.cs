@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
@@ -32,15 +32,17 @@ namespace BusBuddy.UI.Views
         protected override string SearchPlaceholder => "Search calendar events...";
         protected override string EntityName => "SchoolCalendar";
         #region Constructors
-        public SchoolCalendarManagementFormSyncfusion() : this(new SchoolCalendarRepository()) { }
-
-        public SchoolCalendarManagementFormSyncfusion(ISchoolCalendarRepository schoolCalendarRepository)
+        public SchoolCalendarManagementFormSyncfusion(System.IServiceProvider serviceProvider, ISchoolCalendarRepository schoolCalendarRepository, IMessageService messageService)
+            : base(serviceProvider, messageService)
         {
             _schoolCalendarRepository = schoolCalendarRepository ?? throw new ArgumentNullException(nameof(schoolCalendarRepository));
-
-            CreateEnhancedCalendarLayout();
-            // NOTE: LoadData() is called by the base class after all controls are initialized
         }
+
+        private void InitializeComponent()
+        {
+            // Initialization code for components
+        }
+
         #region Base Implementation Override
         protected override void LoadData()
         {
@@ -237,7 +239,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                var calendarForm = new SchoolCalendarEditFormSyncfusion();
+                var calendarForm = new SchoolCalendarEditFormSyncfusion(this._serviceProvider, this._messageService);
                 if (calendarForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGridAndCalendar();
@@ -260,7 +262,7 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                var calendarForm = new SchoolCalendarEditFormSyncfusion(selectedEvent);
+                var calendarForm = new SchoolCalendarEditFormSyncfusion(this._serviceProvider, this._messageService, selectedEvent);
                 if (calendarForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGridAndCalendar();

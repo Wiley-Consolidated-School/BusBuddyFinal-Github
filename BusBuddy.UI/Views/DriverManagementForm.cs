@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
+using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
-using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.Input;
 using Syncfusion.WinForms.ListView;
-using Syncfusion.Windows.Forms.Tools;
 
 namespace BusBuddy.UI.Views
 {
@@ -46,15 +46,8 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public DriverManagementForm() : this(new DriverRepository(), new MessageBoxService())
-        {
-        }
-
-        public DriverManagementForm(IDriverRepository driverRepository) : this(driverRepository, new MessageBoxService())
-        {
-        }
-
-        public DriverManagementForm(IDriverRepository driverRepository, IMessageService messageService) : base(messageService)
+        public DriverManagementForm(System.IServiceProvider serviceProvider, IDriverRepository driverRepository, IMessageService messageService)
+            : base(serviceProvider, messageService)
         {
             _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
             SetRepository(_driverRepository);

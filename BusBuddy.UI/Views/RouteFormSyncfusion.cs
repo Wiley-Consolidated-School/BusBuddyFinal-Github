@@ -39,7 +39,7 @@ namespace BusBuddy.UI.Views
         private SfButton _saveButton;
         private SfButton _cancelButton;
 
-        public RouteFormSyncfusion()
+        public RouteFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
             InitializeComponent();
             _routeRepository = new RouteRepository();
@@ -47,12 +47,6 @@ namespace BusBuddy.UI.Views
             _driverRepository = new DriverRepository();
             _route = new Route();
             _isEditMode = false;
-        }
-
-        public RouteFormSyncfusion(Route route) : this()
-        {
-            _route = route ?? new Route();
-            _isEditMode = route != null && route.RouteId > 0;
         }
 
         private void InitializeComponent()

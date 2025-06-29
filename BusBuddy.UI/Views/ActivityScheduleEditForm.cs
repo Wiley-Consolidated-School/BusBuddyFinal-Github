@@ -1,14 +1,15 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
+using Syncfusion.Windows.Forms;
+using Syncfusion.Windows.Forms.Tools;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.Input;
-using Syncfusion.Windows.Forms.Tools;
 
 namespace BusBuddy.UI.Views
 {
@@ -23,11 +24,11 @@ namespace BusBuddy.UI.Views
     /// - ComboBoxAdv: https://help.syncfusion.com/windowsforms/combobox/getting-started
     /// - SfButton: https://help.syncfusion.com/windowsforms/button/getting-started
     /// </summary>
-    public partial class ActivityScheduleEditForm : SyncfusionBaseForm
+    public partial class ActivityScheduleEditForm : MetroForm
     {
         #region Private Fields
         private readonly IActivityScheduleRepository _activityScheduleRepository;
-        private readonly BusRepository _busRepository;
+        private readonly IBusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IMessageService _messageService;
 
@@ -55,8 +56,8 @@ namespace BusBuddy.UI.Views
         private SfButton _copyToActivityButton;
 
         // Layout panels
-        private new Panel _mainPanel;
-        private new Panel _buttonPanel;
+        private Panel _mainPanel;
+        private Panel _buttonPanel;
         private GroupBox _basicInfoGroup;
         private GroupBox _timingGroup;
         private GroupBox _assignmentGroup;
@@ -70,30 +71,28 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public ActivityScheduleEditForm() : this(new ActivitySchedule())
+        public ActivityScheduleEditForm(System.IServiceProvider serviceProvider)
         {
+            _activitySchedule = new ActivitySchedule();
+            _isEditMode = false;
+            _isReadOnlyMode = false;
+            _activityScheduleRepository = serviceProvider.GetService(typeof(IActivityScheduleRepository)) as IActivityScheduleRepository;
+            _busRepository = serviceProvider.GetService(typeof(IBusRepository)) as IBusRepository;
+            _driverRepository = serviceProvider.GetService(typeof(IDriverRepository)) as IDriverRepository;
+            _messageService = serviceProvider.GetService(typeof(IMessageService)) as IMessageService;
+            InitializeComponent();
         }
 
-        public ActivityScheduleEditForm(ActivitySchedule activitySchedule) : this(activitySchedule, false)
-        {
-        }
-
-        public ActivityScheduleEditForm(ActivitySchedule activitySchedule, bool readOnlyMode)
+        public ActivityScheduleEditForm(ActivitySchedule activitySchedule, System.IServiceProvider serviceProvider, bool readOnlyMode = false)
         {
             _activitySchedule = activitySchedule ?? new ActivitySchedule();
             _isEditMode = activitySchedule != null && activitySchedule.ScheduleID > 0;
             _isReadOnlyMode = readOnlyMode;
-
-            // Initialize repositories through service container
-            var serviceContainer = new ServiceContainer();
-            _activityScheduleRepository = serviceContainer.GetService<IActivityScheduleRepository>();
-            _busRepository = serviceContainer.GetService<BusRepository>();
-            _driverRepository = serviceContainer.GetService<IDriverRepository>();
-            _messageService = new MessageBoxService();
-
+            _activityScheduleRepository = serviceProvider.GetService(typeof(IActivityScheduleRepository)) as IActivityScheduleRepository;
+            _busRepository = serviceProvider.GetService(typeof(IBusRepository)) as IBusRepository;
+            _driverRepository = serviceProvider.GetService(typeof(IDriverRepository)) as IDriverRepository;
+            _messageService = serviceProvider.GetService(typeof(IMessageService)) as IMessageService;
             InitializeComponent();
-
-            // TODO: Populate fields with activity schedule data (next prompt)
             if (_activitySchedule != null)
             {
                 PopulateFields();
@@ -339,7 +338,7 @@ namespace BusBuddy.UI.Views
             return new ActivitySchedule();
         }
 
-        private new bool ValidateForm()
+        private bool ValidateForm()
         {
             // TODO: Implement form validation
             return true;

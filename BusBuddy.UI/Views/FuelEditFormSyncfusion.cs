@@ -16,7 +16,7 @@ namespace BusBuddy.UI.Views
 {
     public class FuelEditFormSyncfusion : SyncfusionBaseForm
     {
-        public Fuel Fuel { get; private set; }
+        public Fuel Fuel { get; set; }
 
         private ComboBoxAdv? cboVehicle;
         private DateTimePicker? dtpFuelDate;
@@ -26,17 +26,9 @@ namespace BusBuddy.UI.Views
         private SfButton? btnSave;
         private SfButton? btnCancel;
 
-        public FuelEditFormSyncfusion(Fuel? fuel = null)
+        public FuelEditFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
-            Fuel = fuel != null ? new Fuel
-            {
-                FuelID = fuel.FuelID,
-                VehicleFueledID = fuel.VehicleFueledID,
-                FuelDate = fuel.FuelDate,
-                FuelAmount = fuel.FuelAmount,
-                FuelCost = fuel.FuelCost
-            } : new Fuel();
-
+            Fuel = new Fuel();
             InitializeComponent();
             LoadFuelData();
             LoadVehicles();

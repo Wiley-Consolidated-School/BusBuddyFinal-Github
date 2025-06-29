@@ -60,19 +60,13 @@ namespace BusBuddy.UI.Views
         private TableLayoutPanel _formLayout;
         private new Panel _buttonPanel;
 
-        public Route? Route { get; private set; }
+        public Route Route { get; set; }
 
-        public RouteEditFormSyncfusion() : this(null)
-        {
-        }
-
-        public RouteEditFormSyncfusion(Route? route)
+        public RouteEditFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
             _routeRepository = new RouteRepository();
             _busRepository = new BusRepository();
             _driverRepository = new DriverRepository();
-
-            Route = route;
             InitializeComponent();
             SetupForm();
             PopulateFields();

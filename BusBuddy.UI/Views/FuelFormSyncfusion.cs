@@ -24,18 +24,10 @@ namespace BusBuddy.UI.Views
 
         public Fuel Fuel { get; private set; }
 
-        public FuelFormSyncfusion() : this(new Fuel())
+        public FuelFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
-        }
-
-        public FuelFormSyncfusion(Fuel fuel)
-        {
-            Fuel = fuel;
+            Fuel = new Fuel();
             InitializeComponent();
-            if (fuel != null)
-            {
-                PopulateFields(fuel);
-            }
         }
 
         private void InitializeComponent()

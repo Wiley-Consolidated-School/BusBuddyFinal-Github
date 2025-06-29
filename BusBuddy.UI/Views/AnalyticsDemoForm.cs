@@ -39,7 +39,7 @@ namespace BusBuddy.UI.Views
         private Button? _validateTimeCardButton;
         private Panel? _validationResultsPanel;
 
-        public AnalyticsDemoFormSyncfusion()
+        public AnalyticsDemoFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
             _routeAnalyticsService = new RouteAnalyticsService();
             _predictiveMaintenanceService = new PredictiveMaintenanceService();

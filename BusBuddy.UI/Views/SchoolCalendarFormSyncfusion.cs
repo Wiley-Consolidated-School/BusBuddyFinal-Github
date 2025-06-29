@@ -27,18 +27,12 @@ namespace BusBuddy.UI.Views
         private SfButton _saveButton;
         private SfButton _cancelButton;
 
-        public SchoolCalendarFormSyncfusion()
+        public SchoolCalendarFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
             InitializeComponent();
             _schoolCalendarRepository = new SchoolCalendarRepository();
             _schoolCalendar = new SchoolCalendar();
             _isEditMode = false;
-        }
-
-        public SchoolCalendarFormSyncfusion(SchoolCalendar schoolCalendar) : this()
-        {
-            _schoolCalendar = schoolCalendar ?? new SchoolCalendar();
-            _isEditMode = schoolCalendar != null && schoolCalendar.CalendarID > 0;
         }
 
         private void InitializeComponent()

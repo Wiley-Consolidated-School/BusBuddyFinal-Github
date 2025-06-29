@@ -8,16 +8,16 @@ using System.Windows.Forms;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
 using BusBuddy.UI.Views;
+using Syncfusion.Windows.Forms.Tools;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
-using Syncfusion.Windows.Forms.Tools;
 
 namespace BusBuddy.UI.Base
 {    /// <summary>
-    /// Base class for all management forms to ensure consistency across the application
-    /// Provides standard layout, controls, and behavior patterns
-    /// </summary>
+     /// Base class for all management forms to ensure consistency across the application
+     /// Provides standard layout, controls, and behavior patterns
+     /// </summary>
     public abstract class BaseManagementForm<T> : SyncfusionBaseForm, IDisposable where T : class
     {
         #region Protected Fields
@@ -67,19 +67,14 @@ namespace BusBuddy.UI.Base
         #endregion
 
         #region Constructor and Initialization
-        protected BaseManagementForm() : this(new MessageBoxService())
-        {
-        }
-
-        protected BaseManagementForm(IMessageService messageService)
+        // Constructor and Initialization
+        protected BaseManagementForm(System.IServiceProvider serviceProvider, IMessageService messageService) : base(serviceProvider)
         {
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             InitializeComponent();
-
             // Register this form with the shutdown manager for proper cleanup
             try
             {
-                // Use reflection to find and call TestSafeApplicationShutdownManager.RegisterForm
                 var shutdownManagerType = Type.GetType("BusBuddy.UI.Services.TestSafeApplicationShutdownManager");
                 if (shutdownManagerType != null)
                 {

@@ -32,20 +32,12 @@ namespace BusBuddy.UI.Views
         private SfButton _saveButton;
         private SfButton _cancelButton;
 
-        public Driver? Driver { get; private set; }
+        public Driver? Driver { get; set; }
 
-        public DriverEditFormSyncfusion() : this(null)
+        public DriverEditFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
-        }
-
-        public DriverEditFormSyncfusion(Driver? driver)
-        {
-            Driver = driver;
+            Driver = null;
             InitializeComponent();
-            if (driver != null)
-            {
-                PopulateFields(driver);
-            }
         }
 
         private void InitializeComponent()

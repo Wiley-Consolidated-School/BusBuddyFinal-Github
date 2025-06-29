@@ -6,12 +6,12 @@ using System.Runtime.Versioning;
 using System.Windows.Forms;
 using BusBuddy.Business;
 using BusBuddy.UI.Helpers;
-using BusBuddy.UI.Theme;
 using BusBuddy.UI.Services;
-using ThemeService = BusBuddy.UI.Theme.EnhancedThemeService;
+using BusBuddy.UI.Theme;
 using Syncfusion.Windows.Forms;
 using Syncfusion.Windows.Forms.Tools;
 using Syncfusion.WinForms.Controls;
+using ThemeService = BusBuddy.UI.Theme.EnhancedThemeService;
 
 namespace BusBuddy.UI.Base
 {
@@ -23,7 +23,7 @@ namespace BusBuddy.UI.Base
     public class SyncfusionBaseForm : SfForm
     {
         protected readonly ErrorProvider _errorProvider;
-        protected readonly BusBuddy.Business.IDatabaseHelperService _databaseService;
+        protected readonly System.IServiceProvider _serviceProvider;
         // BannerTextProvider removed - causes license popups, not needed per official Syncfusion docs
 
         // Common UI elements
@@ -59,19 +59,21 @@ namespace BusBuddy.UI.Base
             _testModeEnabled = false;
         }
 
-        public SyncfusionBaseForm()
+        public SyncfusionBaseForm(System.IServiceProvider serviceProvider)
         {
-            // Syncfusion license is already registered in Program.cs Main() method
-            // No additional license validation should be performed here
-            Console.WriteLine("✅ SyncfusionBaseForm: License already registered at application startup");
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _errorProvider = new ErrorProvider();
+            // _databaseService = (BusBuddy.Business.IDatabaseHelperService)_serviceProvider.GetService(typeof(BusBuddy.Business.IDatabaseHelperService));
+            // BannerTextProvider removed - causes license popups, not needed per official Syncfusion docs
 
             // Set consistent initialization before component initialization
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
 
             // Initialize common components
             _errorProvider = new ErrorProvider();
-            _databaseService = UnifiedServiceManager.Instance.GetService<BusBuddy.Business.IDatabaseHelperService>();
-            // BannerTextProvider removed - causes license popups, not needed per official Syncfusion docs
+            // Remove UnifiedServiceManager usage and use DI for database service
+            // _databaseService = UnifiedServiceManager.Instance.GetService<BusBuddy.Business.IDatabaseHelperService>();
+            // Use DI to inject IDatabaseHelperService instead
 
             // Initialize DPI awareness for proper scaling
             InitializeDpiAwareness();
@@ -363,22 +365,22 @@ namespace BusBuddy.UI.Base
                 // BannerTextProvider disposal removed - not needed per official Syncfusion docs
 
                 // Database service cleanup (if it implements IDisposable)
-                if (_databaseService != null)
-                {
-                    try
-                    {
-                        // Check if the service implements IDisposable
-                        if (_databaseService is IDisposable disposableService)
-                        {
-                            disposableService.Dispose();
-                            Console.WriteLine("🧽 DatabaseService disposed");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"⚠️ Error disposing DatabaseService: {ex.Message}");
-                    }
-                }
+                // if (_databaseService != null)
+                // {
+                //     try
+                //     {
+                //         // Check if the service implements IDisposable
+                //         if (_databaseService is IDisposable disposableService)
+                //         {
+                //             disposableService.Dispose();
+                //             Console.WriteLine("🧽 DatabaseService disposed");
+                //         }
+                //     }
+                //     catch (Exception ex)
+                //     {
+                //         Console.WriteLine($"⚠️ Error disposing DatabaseService: {ex.Message}");
+                //     }
+                // }
 
                 // Clean up all Syncfusion controls recursively
                 CleanupSyncfusionControlsRecursively(this.Controls);

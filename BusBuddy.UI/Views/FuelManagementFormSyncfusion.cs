@@ -8,6 +8,7 @@ using BusBuddy.Data;
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Services;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Enums;
 using Syncfusion.WinForms.DataGrid.Events;
@@ -23,19 +24,19 @@ namespace BusBuddy.UI.Views
     {
         private readonly FuelRepository _fuelRepository;
         private readonly BusRepository _busRepository;
+        private new readonly System.IServiceProvider _serviceProvider;
         private List<Bus> _buses = new();
         #region Properties Override
-        protected override string FormTitle => "⛽ Fuel Management";
+        protected override string FormTitle => "\u26fd Fuel Management";
         protected override string SearchPlaceholder => "Search fuels...";
         protected override string EntityName => "Fuel";
         #region Constructors
-        public FuelManagementFormSyncfusion() : this(new FuelRepository(), new BusRepository()) { }
-
-        public FuelManagementFormSyncfusion(FuelRepository fuelRepository, BusRepository busRepository)
+        public FuelManagementFormSyncfusion(System.IServiceProvider serviceProvider, FuelRepository fuelRepository, BusRepository busRepository, IMessageService messageService)
+            : base(serviceProvider, messageService)
         {
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _fuelRepository = fuelRepository ?? throw new ArgumentNullException(nameof(fuelRepository));
             _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
-            // NOTE: LoadData() and LoadVehicles() are called by the base class after all controls are initialized
         }
         #region Base Implementation Override
         protected override void LoadData()
@@ -65,7 +66,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                var editForm = new FuelEditFormSyncfusion();
+                var editForm = new FuelEditFormSyncfusion(_serviceProvider);
                 if (editForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGrid();
@@ -88,7 +89,8 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                var editForm = new FuelEditFormSyncfusion(selectedFuel);
+                var editForm = new FuelEditFormSyncfusion(_serviceProvider);
+                editForm.Fuel = selectedFuel;
                 if (editForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGrid();

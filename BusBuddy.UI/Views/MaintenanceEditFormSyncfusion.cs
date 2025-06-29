@@ -17,7 +17,7 @@ namespace BusBuddy.UI.Views
 {
     public class MaintenanceEditFormSyncfusion : SyncfusionBaseForm
     {
-        public Maintenance Maintenance { get; private set; }        private ComboBoxAdv? cboVehicle;
+        public Maintenance Maintenance { get; set; }        private ComboBoxAdv? cboVehicle;
         private TextBoxExt? txtMaintenanceCompleted;
         private DateTimePicker? dtpDate;
         private TextBoxExt? txtVendor;
@@ -26,18 +26,9 @@ namespace BusBuddy.UI.Views
         private SfButton? btnSave;
         private SfButton? btnCancel;
 
-        public MaintenanceEditFormSyncfusion(Maintenance? maintenance = null)
+        public MaintenanceEditFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
-            Maintenance = maintenance != null ? new Maintenance
-            {
-                MaintenanceID = maintenance.MaintenanceID,
-                BusId = maintenance.BusId,
-                MaintenanceCompleted = maintenance.MaintenanceCompleted,
-                Date = maintenance.Date,
-                Vendor = maintenance.Vendor,
-                Notes = maintenance.Notes
-            } : new Maintenance();
-
+            Maintenance = new Maintenance();
             InitializeComponent();
             LoadMaintenanceData();
             LoadVehicles();

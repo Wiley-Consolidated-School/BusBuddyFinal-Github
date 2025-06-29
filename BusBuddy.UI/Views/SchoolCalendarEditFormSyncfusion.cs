@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Services;
 
 namespace BusBuddy.UI.Views
 {
@@ -13,6 +14,7 @@ namespace BusBuddy.UI.Views
     /// </summary>
     public partial class SchoolCalendarEditFormSyncfusion : SyncfusionBaseForm
     {
+        private IMessageService _messageService;
         private Control? _descriptionTextBox;
         private Control? _notesTextBox;
         private ComboBox? _categoryComboBox;
@@ -22,15 +24,12 @@ namespace BusBuddy.UI.Views
         private Control? _saveButton;
         private Control? _cancelButton;
 
-        public SchoolCalendar? SchoolCalendar { get; private set; }
+        public SchoolCalendar? SchoolCalendar { get; set; }
 
-        public SchoolCalendarEditFormSyncfusion() : this(null)
-        {
-        }
-
-        public SchoolCalendarEditFormSyncfusion(SchoolCalendar? schoolCalendar)
+        public SchoolCalendarEditFormSyncfusion(System.IServiceProvider serviceProvider, IMessageService messageService, SchoolCalendar? schoolCalendar = null) : base(serviceProvider)
         {
             SchoolCalendar = schoolCalendar;
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             InitializeComponent();
             if (schoolCalendar != null)
             {
@@ -180,7 +179,8 @@ namespace BusBuddy.UI.Views
         }
 
         private void SetPlaceholderText(Control? textBox, string placeholder)
-        {            if (textBox is TextBox tb)
+        {
+            if (textBox is TextBox tb)
             {
                 tb.Text = placeholder;
                 tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
@@ -225,8 +225,8 @@ namespace BusBuddy.UI.Views
                 }
 
                 if (_categoryComboBox != null && !string.IsNullOrEmpty(schoolCalendar.Category))
-                    _categoryComboBox.SelectedItem = schoolCalendar.Category;                if (_routeNeededCheckBox != null)
-                    _routeNeededCheckBox.Checked = schoolCalendar.IsRouteNeeded;                if (_startDatePicker != null && schoolCalendar.DateAsDateTime.HasValue)
+                    _categoryComboBox.SelectedItem = schoolCalendar.Category; if (_routeNeededCheckBox != null)
+                    _routeNeededCheckBox.Checked = schoolCalendar.IsRouteNeeded; if (_startDatePicker != null && schoolCalendar.DateAsDateTime.HasValue)
                     _startDatePicker.Value = schoolCalendar.DateAsDateTime.Value;
 
                 if (_endDatePicker != null && schoolCalendar.EndDateAsDateTime.HasValue)
@@ -264,8 +264,8 @@ namespace BusBuddy.UI.Views
                     SchoolCalendar.Notes = notesTb.Text.Trim();
 
                 if (_categoryComboBox?.SelectedItem != null)
-                    SchoolCalendar.Category = _categoryComboBox.SelectedItem.ToString();                if (_routeNeededCheckBox != null)
-                    SchoolCalendar.IsRouteNeeded = _routeNeededCheckBox.Checked;                if (_startDatePicker != null)
+                    SchoolCalendar.Category = _categoryComboBox.SelectedItem.ToString(); if (_routeNeededCheckBox != null)
+                    SchoolCalendar.IsRouteNeeded = _routeNeededCheckBox.Checked; if (_startDatePicker != null)
                     SchoolCalendar.DateAsDateTime = _startDatePicker.Value;
 
                 if (_endDatePicker != null)

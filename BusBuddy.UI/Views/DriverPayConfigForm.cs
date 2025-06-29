@@ -22,8 +22,6 @@ namespace BusBuddy.UI.Views
     /// </summary>
     public partial class DriverPayConfigForm : SyncfusionBaseForm
     {
-        private readonly IErrorHandlerService _errorHandler;
-        private readonly PayRateManager _payRateManager;
         private List<PayRateDisplay> _payRates;
         private SfDataGrid _payRatesGrid;
         private SfButton _updateButton;
@@ -32,16 +30,8 @@ namespace BusBuddy.UI.Views
         private Panel _payButtonPanel;
         private Label _titleLabel;
 
-        public DriverPayConfigForm() : this(
-            BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<IErrorHandlerService>(),
-            BusBuddy.UI.Helpers.UnifiedServiceManager.Instance.GetService<PayRateManager>())
+        public DriverPayConfigForm(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
-        }
-
-        public DriverPayConfigForm(IErrorHandlerService errorHandler, PayRateManager payRateManager)
-        {
-            _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
-            _payRateManager = payRateManager ?? throw new ArgumentNullException(nameof(payRateManager));
             InitializeComponent();
             InitializeControls();
             LoadPayRates();
@@ -171,7 +161,7 @@ namespace BusBuddy.UI.Views
                 ColumnCount = 1
             };
             _mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            _mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));            _mainLayout.Controls.Add(_payRatesGrid, 0, 0);
+            _mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); _mainLayout.Controls.Add(_payRatesGrid, 0, 0);
             _mainLayout.Controls.Add(_payButtonPanel, 0, 1);
 
             // Add controls to form
@@ -183,38 +173,18 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                // Task 6.7: Use PayRateManager for loading pay rates
-                var payRates = _payRateManager.LoadPayRates();
-
-                _payRates = payRates.Select(rate => new PayRateDisplay
-                {
-                    RouteType = rate.RouteType,
-                    Rate = rate.Rate,
-                    Description = GetRateDescription(rate.RouteType)
-                }).ToList();
-
-                _payRatesGrid.DataSource = _payRates;
-            }
-            catch (Exception ex)
-            {
-                _errorHandler.HandleError($"Failed to load pay rates: {ex.Message}", "Pay Rate Error");
-
-                // Fallback to default rates
+                // PayRateManager removed. Use default rates for now. TODO: Load from repository or config if needed.
                 _payRates = new List<PayRateDisplay>
                 {
                     new PayRateDisplay { RouteType = "CDL", Rate = 33.00m, Description = "Per trip (AM or PM)" },
                     new PayRateDisplay { RouteType = "SmallBus", Rate = 15.00m, Description = "Per trip (AM or PM)" },
                     new PayRateDisplay { RouteType = "SPED", Rate = 66.00m, Description = "Per day (both AM/PM)" }
                 };
-
-                try
-                {
-                    _payRatesGrid.DataSource = _payRates;
-                }
-                catch (Exception dataEx)
-                {
-                    MessageBox.Show($"Error loading pay rates data: {dataEx.Message}", "Data Loading Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                _payRatesGrid.DataSource = _payRates;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load pay rates: {ex.Message}", "Pay Rate Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -233,19 +203,9 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                // Task 6.7: Use PayRateManager for saving pay rates
-                // Convert display objects to PayRate objects for saving
-                var payRatesToSave = _payRates.Select(displayRate => new PayRate
-                {
-                    RouteType = displayRate.RouteType,
-                    Rate = displayRate.Rate
-                }).ToList();
-
-                // Use PayRateManager to save rates
-                _payRateManager.SavePayRates(payRatesToSave);
-
+                // PayRateManager removed. Stub out persistence. TODO: Save to repository or config if needed.
                 MessageBox.Show(
-                    "Pay rates updated successfully!\n\n" +
+                    "Pay rates updated (not persisted in this version)!\n\n" +
                     $"CDL Trip Rate: ${_payRates.First(r => r.RouteType == "CDL").Rate:F2}\n" +
                     $"Small Bus Trip Rate: ${_payRates.First(r => r.RouteType == "SmallBus").Rate:F2}\n" +
                     $"SPED Day Rate: ${_payRates.First(r => r.RouteType == "SPED").Rate:F2}",
@@ -256,7 +216,7 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
-                _errorHandler.HandleError($"Failed to update pay rates: {ex.Message}", "Update Error");
+                MessageBox.Show($"Failed to update pay rates: {ex.Message}", "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

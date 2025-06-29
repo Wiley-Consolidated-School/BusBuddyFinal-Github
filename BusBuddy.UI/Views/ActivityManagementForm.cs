@@ -5,17 +5,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
+using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
-using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.Input;
 using Syncfusion.WinForms.ListView;
-using Syncfusion.Windows.Forms.Tools;
 
 namespace BusBuddy.UI.Views
 {
@@ -48,20 +48,11 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public ActivityManagementForm() : this(new ActivityRepository(), new MessageBoxService())
-        {
-        }
-
-        public ActivityManagementForm(IActivityRepository activityRepository) : this(activityRepository, new MessageBoxService())
-        {
-        }
-
-        public ActivityManagementForm(IActivityRepository activityRepository, IMessageService messageService) : base(messageService)
+        public ActivityManagementForm(System.IServiceProvider serviceProvider, IActivityRepository activityRepository, IMessageService messageService)
+            : base(serviceProvider, messageService)
         {
             _activityRepository = activityRepository ?? throw new ArgumentNullException(nameof(activityRepository));
             SetRepository(_activityRepository);
-
-            // Initialize additional controls (implementation will be added in next prompt)
             InitializeActivitySpecificControls();
         }
         #endregion
@@ -206,7 +197,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                using (var addForm = new ActivityEditForm())
+                using (var addForm = new ActivityEditForm(_serviceProvider))
                 {
                     if (addForm.ShowDialog(this) == DialogResult.OK)
                     {
@@ -232,7 +223,7 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                using (var editForm = new ActivityEditForm(selectedActivity))
+                using (var editForm = new ActivityEditForm(selectedActivity, _serviceProvider))
                 {
                     if (editForm.ShowDialog(this) == DialogResult.OK)
                     {
@@ -295,7 +286,7 @@ namespace BusBuddy.UI.Views
                     return;
                 }
 
-                using (var viewForm = new ActivityEditForm(selectedActivity, readOnlyMode: true))
+                using (var viewForm = new ActivityEditForm(selectedActivity, _serviceProvider, readOnlyMode: true))
                 {
                     viewForm.ShowDialog(this);
                 }

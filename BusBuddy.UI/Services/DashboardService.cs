@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using BusBuddy.Business;
 using BusBuddy.Data;
 using BusBuddy.UI.Helpers;
@@ -13,32 +12,28 @@ namespace BusBuddy.UI.Services
     /// </summary>
     public class DashboardService
     {
-        private readonly UnifiedServiceManager _serviceManager;
+        private readonly System.IServiceProvider _serviceProvider;
 
-        public DashboardService()
+        public DashboardService(System.IServiceProvider serviceProvider)
         {
-            _serviceManager = UnifiedServiceManager.Instance;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
         /// Creates a properly initialized DashboardViewModel with dependency injection
         /// </summary>
-        public async Task<DashboardViewModel> CreateDashboardViewModelAsync()
+        public DashboardViewModel CreateDashboardViewModel()
         {
             try
             {
                 Console.WriteLine("🔧 Creating DashboardViewModel with proper DI...");
-
-                // Ensure services are initialized
-                await _serviceManager.EnsureInitializedAsync();
-
                 // Get services from DI container
-                var routeAnalyticsService = await _serviceManager.GetServiceAsync<IRouteAnalyticsService>();
-                var busService = await _serviceManager.GetServiceAsync<IBusService>();
-                var routeRepository = await _serviceManager.GetServiceAsync<IRouteRepository>();
-                var driverRepository = await _serviceManager.GetServiceAsync<IDriverRepository>();
-                var activityRepository = await _serviceManager.GetServiceAsync<IActivityRepository>();
-                var errorHandler = await _serviceManager.GetServiceAsync<IErrorHandlerService>();
+                var routeAnalyticsService = (IRouteAnalyticsService)_serviceProvider.GetService(typeof(IRouteAnalyticsService));
+                var busService = (IBusService)_serviceProvider.GetService(typeof(IBusService));
+                var routeRepository = (IRouteRepository)_serviceProvider.GetService(typeof(IRouteRepository));
+                var driverRepository = (IDriverRepository)_serviceProvider.GetService(typeof(IDriverRepository));
+                var activityRepository = (IActivityRepository)_serviceProvider.GetService(typeof(IActivityRepository));
+                var errorHandler = (IErrorHandlerService)_serviceProvider.GetService(typeof(IErrorHandlerService));
 
                 // Create ViewModel with injected dependencies
                 var viewModel = new DashboardViewModel(
@@ -60,38 +55,6 @@ namespace BusBuddy.UI.Services
                 // Fallback to parameterless constructor
                 Console.WriteLine("🔄 Falling back to parameterless DashboardViewModel constructor");
                 return new DashboardViewModel();
-            }
-        }
-
-        /// <summary>
-        /// Gets a service from the unified service manager
-        /// </summary>
-        public async Task<T> GetServiceAsync<T>() where T : notnull
-        {
-            return await _serviceManager.GetServiceAsync<T>();
-        }
-
-        /// <summary>
-        /// Gets a service synchronously (blocks if needed)
-        /// </summary>
-        public T GetService<T>() where T : notnull
-        {
-            return _serviceManager.GetService<T>();
-        }
-
-        /// <summary>
-        /// Checks if services are initialized
-        /// </summary>
-        public async Task<bool> AreServicesReadyAsync()
-        {
-            try
-            {
-                await _serviceManager.EnsureInitializedAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
             }
         }
     }

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Services;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Enums;
 
@@ -19,17 +20,17 @@ namespace BusBuddy.UI.Views
     public class DriverManagementFormSyncfusion : BaseManagementForm<Driver>
     {
         private readonly IDriverRepository _driverRepository;
+        private new readonly System.IServiceProvider _serviceProvider;
         #region Properties Override
-        protected override string FormTitle => "👨‍✈️ Driver Management";
+        protected override string FormTitle => "\ud83d\udc68\u200d\u2708\ufe0f Driver Management";
         protected override string SearchPlaceholder => "Search drivers...";
         protected override string EntityName => "Driver";
         #region Constructors
-        public DriverManagementFormSyncfusion() : this(new DriverRepository()) { }
-
-        public DriverManagementFormSyncfusion(IDriverRepository driverRepository)
+        public DriverManagementFormSyncfusion(System.IServiceProvider serviceProvider, IDriverRepository driverRepository, IMessageService messageService)
+            : base(serviceProvider, messageService)
         {
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _driverRepository = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
-            // NOTE: LoadData() is called by the base class after all controls are initialized
         }
         #region Base Implementation Override
         protected override void LoadData()
@@ -95,7 +96,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                var driverForm = new DriverEditFormSyncfusion();
+                var driverForm = new DriverEditFormSyncfusion(_serviceProvider);
                 if (driverForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGrid();
@@ -118,7 +119,8 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                var driverForm = new DriverEditFormSyncfusion(selectedDriver);
+                var driverForm = new DriverEditFormSyncfusion(_serviceProvider);
+                driverForm.Driver = selectedDriver;
                 if (driverForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGrid();
@@ -266,14 +268,16 @@ namespace BusBuddy.UI.Views
             catch (Exception ex)
             {
                 HandleError($"Error populating driver grid: {ex.Message}", "$($EntityName) Error", ex);
-            }        }    }
+            }
+        }
+    }
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 
-        #endregion
+    #endregion
 }
 

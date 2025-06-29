@@ -4,11 +4,11 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Include="..\TestRouteForm.cs" Link="TestRouteForm.cs" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\BusBuddy.Models\BusBuddy.Models.csproj" />
     <ProjectReference Include="..\BusBuddy.Data\BusBuddy.Data.csproj" />

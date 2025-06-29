@@ -16,8 +16,8 @@ namespace BusBuddy.Data
         {
             using var connection = CreateConnection();
             const string sql = @"
-                SELECT BusId, BusNumber, Year, Make, Model, SeatingCapacity,
-                       VIN, LicenseNumber, LastInspectionDate
+                SELECT BusId, BusNumber, Year, Make, Model, Capacity,
+                       VIN, LicenseNumber, LastInspectionDate, Status
                 FROM Vehicles
                 ORDER BY BusNumber";
             connection.Open();
@@ -29,8 +29,8 @@ namespace BusBuddy.Data
             using var connection = CreateConnection();
             connection.Open();
             const string sql = @"
-                SELECT BusId, BusNumber, Year, Make, Model, SeatingCapacity,
-                       VIN, LicenseNumber, LastInspectionDate
+                SELECT BusId, BusNumber, Year, Make, Model, Capacity,
+                       VIN, LicenseNumber, LastInspectionDate, Status
                 FROM Vehicles
                 WHERE BusId = @BusId";
             return connection.QuerySingleOrDefault<Bus>(sql, new { BusId = busId });
@@ -41,8 +41,8 @@ namespace BusBuddy.Data
             using var connection = CreateConnection();
             connection.Open();
             const string sql = @"
-                INSERT INTO Vehicles (BusNumber, Year, Make, Model, SeatingCapacity, VIN, LicenseNumber, LastInspectionDate)
-                VALUES (@BusNumber, @Year, @Make, @Model, @SeatingCapacity, @VIN, @LicenseNumber, @LastInspectionDate)";
+                INSERT INTO Vehicles (BusNumber, Year, Make, Model, Capacity, VIN, LicenseNumber, LastInspectionDate, Status)
+                VALUES (@BusNumber, @Year, @Make, @Model, @Capacity, @VIN, @LicenseNumber, @LastInspectionDate, @Status)";
             connection.Execute(sql, bus);
         }
 
@@ -56,10 +56,11 @@ namespace BusBuddy.Data
                     Year = @Year,
                     Make = @Make,
                     Model = @Model,
-                    SeatingCapacity = @SeatingCapacity,
+                    Capacity = @Capacity,
                     VIN = @VIN,
                     LicenseNumber = @LicenseNumber,
-                    LastInspectionDate = @LastInspectionDate
+                    LastInspectionDate = @LastInspectionDate,
+                    Status = @Status
                 WHERE BusId = @BusId";
             connection.Execute(sql, bus);
         }
@@ -78,7 +79,7 @@ namespace BusBuddy.Data
             try
             {
                 using var connection = CreateConnection();
-                Console.WriteLine($"Testing BusRepository data retrieval...");
+                Console.WriteLine($"Testing BusRepository data retrieval (Vehicles table)...");
 
                 // Test basic connection
                 connection.Open();
@@ -90,11 +91,11 @@ namespace BusBuddy.Data
 
                 // Test actual data retrieval
                 var buses = GetAllBuses().ToList();
-                Console.WriteLine($"✅ Successfully retrieved {buses.Count} buses from database");
+                Console.WriteLine($"✅ Successfully retrieved {buses.Count} vehicles from database");
 
                 foreach (var bus in buses.Take(3))
                 {
-                    Console.WriteLine($"  - Bus {bus.BusNumber}: {bus.Year} {bus.Make} {bus.Model}");
+                    Console.WriteLine($"  - Vehicle {bus.BusNumber}: {bus.Year} {bus.Make} {bus.Model}");
                 }
             }
             catch (Exception ex)

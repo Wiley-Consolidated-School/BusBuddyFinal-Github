@@ -42,15 +42,7 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public DriverEditForm() : this(null, new MessageBoxService())
-        {
-        }
-
-        public DriverEditForm(Driver driver) : this(driver, new MessageBoxService())
-        {
-        }
-
-        public DriverEditForm(Driver driver, IMessageService messageService) : base()
+        public DriverEditForm(Driver driver, IServiceProvider serviceProvider, IMessageService messageService) : base(serviceProvider)
         {
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             Driver = driver;

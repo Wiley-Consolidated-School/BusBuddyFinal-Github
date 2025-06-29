@@ -24,18 +24,10 @@ namespace BusBuddy.UI.Views
 
         public Driver Driver { get; private set; }
 
-        public DriverFormSyncfusion() : this(new Driver())
+        public DriverFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
         {
-        }
-
-        public DriverFormSyncfusion(Driver driver)
-        {
-            Driver = driver;
+            Driver = new Driver();
             InitializeComponent();
-            if (driver != null)
-            {
-                PopulateFields(driver);
-            }
         }
 
         private void InitializeComponent()

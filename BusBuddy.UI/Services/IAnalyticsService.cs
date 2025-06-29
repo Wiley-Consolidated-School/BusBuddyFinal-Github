@@ -57,19 +57,6 @@ namespace BusBuddy.UI.Services
         /// <param name="endDate">End date for analysis period</param>
         /// <returns>Dictionary with dashboard metrics</returns>
         Task<Dictionary<string, object>> GetManagementDashboardDataAsync(DateTime startDate, DateTime endDate);
-
-        /// <summary>
-        /// Gets the current pay scheme configuration
-        /// </summary>
-        /// <returns>Current pay scheme configuration</returns>
-        Task<PayScheme> GetPaySchemeAsync();
-
-        /// <summary>
-        /// Saves the updated pay scheme configuration
-        /// </summary>
-        /// <param name="payScheme">Updated pay scheme configuration</param>
-        /// <returns>Task for async operation</returns>
-        Task SavePaySchemeAsync(PayScheme payScheme);
     }
 }
 

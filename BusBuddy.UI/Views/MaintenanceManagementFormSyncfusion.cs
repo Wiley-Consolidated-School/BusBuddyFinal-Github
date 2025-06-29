@@ -7,6 +7,7 @@ using BusBuddy.Data;
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Services;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
 
@@ -21,18 +22,18 @@ namespace BusBuddy.UI.Views
         private readonly IMaintenanceRepository _maintenanceRepository;
         private readonly BusRepository _busRepository;
         private List<Bus> _buses = new List<Bus>();
+        private new System.IServiceProvider _serviceProvider;
         #region Properties Override
         protected override string FormTitle => "🔧 Maintenance Management";
         protected override string SearchPlaceholder => "Search maintenance...";
         protected override string EntityName => "Maintenance";
         #region Constructors
-        public MaintenanceManagementFormSyncfusion() : this(new MaintenanceRepository(), new BusRepository()) { }
-
-        public MaintenanceManagementFormSyncfusion(IMaintenanceRepository maintenanceRepository, BusRepository busRepository)
+        public MaintenanceManagementFormSyncfusion(System.IServiceProvider serviceProvider, IMaintenanceRepository maintenanceRepository, BusRepository busRepository, IMessageService messageService)
+            : base(serviceProvider, messageService)
         {
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _maintenanceRepository = maintenanceRepository ?? throw new ArgumentNullException(nameof(maintenanceRepository));
             _busRepository = busRepository ?? throw new ArgumentNullException(nameof(busRepository));
-            // NOTE: LoadData() and LoadBuses() are called by the base class after all controls are initialized
         }
         #region Base Implementation Override
         protected override void LoadData()
@@ -68,7 +69,7 @@ namespace BusBuddy.UI.Views
         {
             try
             {
-                var maintenanceForm = new MaintenanceEditFormSyncfusion();
+                var maintenanceForm = new MaintenanceEditFormSyncfusion(this._serviceProvider);
                 if (maintenanceForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGrid();
@@ -91,7 +92,8 @@ namespace BusBuddy.UI.Views
 
             try
             {
-                var maintenanceForm = new MaintenanceEditFormSyncfusion(selectedMaintenance);
+                var maintenanceForm = new MaintenanceEditFormSyncfusion(this._serviceProvider);
+                maintenanceForm.Maintenance = selectedMaintenance;
                 if (maintenanceForm.ShowDialog() == DialogResult.OK)
                 {
                     RefreshGrid();

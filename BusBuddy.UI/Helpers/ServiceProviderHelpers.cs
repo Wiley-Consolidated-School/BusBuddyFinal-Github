@@ -13,7 +13,7 @@ namespace BusBuddy.UI.Helpers
         /// <summary>
         /// Get service with explicit Microsoft DI implementation
         /// </summary>
-        public static T GetService<T>(IServiceProvider provider) where T : class
+        public static T GetService<T>(System.IServiceProvider provider) where T : class
         {
             return Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetService<T>(provider);
         }
@@ -21,7 +21,7 @@ namespace BusBuddy.UI.Helpers
         /// <summary>
         /// Get required service with explicit Microsoft DI implementation
         /// </summary>
-        public static T GetRequiredService<T>(IServiceProvider provider) where T : notnull
+        public static T GetRequiredService<T>(System.IServiceProvider provider) where T : notnull
         {
             return Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<T>(provider);
         }

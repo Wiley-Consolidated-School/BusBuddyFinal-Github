@@ -1,14 +1,14 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
+using Syncfusion.Windows.Forms.Tools;
 using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.Input;
-using Syncfusion.Windows.Forms.Tools;
 
 namespace BusBuddy.UI.Views
 {
@@ -27,7 +27,7 @@ namespace BusBuddy.UI.Views
     {
         #region Private Fields
         private readonly IActivityRepository _activityRepository;
-        private readonly BusRepository _busRepository;
+        private readonly IBusRepository _busRepository;
         private readonly IDriverRepository _driverRepository;
         private readonly IMessageService _messageService;
 
@@ -68,30 +68,31 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public ActivityEditForm() : this(new Activity())
+        public ActivityEditForm(IServiceProvider serviceProvider) : base(serviceProvider)
         {
+            _activity = new Activity();
+            _isEditMode = false;
+            _isReadOnlyMode = false;
+            _activityRepository = serviceProvider.GetService(typeof(IActivityRepository)) as IActivityRepository;
+            _busRepository = serviceProvider.GetService(typeof(IBusRepository)) as IBusRepository;
+            _driverRepository = serviceProvider.GetService(typeof(IDriverRepository)) as IDriverRepository;
+            _messageService = serviceProvider.GetService(typeof(IMessageService)) as IMessageService;
+            InitializeComponent();
+            PopulateComboBoxes();
         }
 
-        public ActivityEditForm(Activity activity) : this(activity, false)
-        {
-        }
-
-        public ActivityEditForm(Activity activity, bool readOnlyMode)
+        public ActivityEditForm(Activity activity, IServiceProvider serviceProvider, bool readOnlyMode = false)
+            : base(serviceProvider)
         {
             _activity = activity ?? new Activity();
             _isEditMode = activity != null && activity.ActivityID > 0;
             _isReadOnlyMode = readOnlyMode;
-
-            // Initialize repositories through service container
-            var serviceContainer = new ServiceContainer();
-            _activityRepository = serviceContainer.GetService<IActivityRepository>();
-            _busRepository = serviceContainer.GetService<BusRepository>();
-            _driverRepository = serviceContainer.GetService<IDriverRepository>();
-            _messageService = new MessageBoxService();
-
+            _activityRepository = serviceProvider.GetService(typeof(IActivityRepository)) as IActivityRepository;
+            _busRepository = serviceProvider.GetService(typeof(IBusRepository)) as IBusRepository;
+            _driverRepository = serviceProvider.GetService(typeof(IDriverRepository)) as IDriverRepository;
+            _messageService = serviceProvider.GetService(typeof(IMessageService)) as IMessageService;
             InitializeComponent();
             PopulateComboBoxes();
-
             if (_activity != null)
             {
                 PopulateFields();

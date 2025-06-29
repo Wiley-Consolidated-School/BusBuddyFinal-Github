@@ -41,6 +41,15 @@
     <PackageReference Include="Syncfusion.SfInput.WinForms" Version="29.2.10" />
     <PackageReference Include="Syncfusion.SfListView.WinForms" Version="29.2.10" />
     <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
+  </ItemGroup>
+
+  <!-- Microsoft.Extensions.* packages at version 8.0.0 for compatibility -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
   </ItemGroup>
 
   <!-- Embedded Resources for Map Data -->

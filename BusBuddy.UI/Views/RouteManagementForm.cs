@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
+using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.DataGrid;
 using Syncfusion.WinForms.DataGrid.Events;
-using Syncfusion.WinForms.Controls;
 using Syncfusion.WinForms.Input;
 using Syncfusion.WinForms.ListView;
-using Syncfusion.Windows.Forms.Tools;
 
 namespace BusBuddy.UI.Views
 {
@@ -46,15 +46,8 @@ namespace BusBuddy.UI.Views
         #endregion
 
         #region Constructors
-        public RouteManagementForm() : this(new RouteRepository(), new MessageBoxService())
-        {
-        }
-
-        public RouteManagementForm(IRouteRepository routeRepository) : this(routeRepository, new MessageBoxService())
-        {
-        }
-
-        public RouteManagementForm(IRouteRepository routeRepository, IMessageService messageService) : base(messageService)
+        public RouteManagementForm(System.IServiceProvider serviceProvider, IRouteRepository routeRepository, IMessageService messageService)
+            : base(serviceProvider, messageService)
         {
             _routeRepository = routeRepository ?? throw new ArgumentNullException(nameof(routeRepository));
             SetRepository(_routeRepository);
