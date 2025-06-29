@@ -267,6 +267,100 @@
 				"focus": true,
 				"panel": "shared"
 			}
+		},
+		{
+			"type": "shell",
+			"label": "Database Health Check",
+			"command": "sqlcmd",
+			"args": [
+				"-S", "localhost\\SQLEXPRESS",
+				"-d", "BusBuddy",
+				"-E",
+				"-i", "${workspaceFolder}\\BusBuddy.Data\\DatabaseHealthCheck.sql"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Database Backup",
+			"command": "sqlcmd",
+			"args": [
+				"-S", "localhost\\SQLEXPRESS",
+				"-E",
+				"-Q", "BACKUP DATABASE BusBuddy TO DISK = 'C:\\Backups\\BusBuddy\\BusBuddy_Manual_$(Get-Date -Format 'yyyyMMdd_HHmmss').bak' WITH COMPRESSION, INIT;"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Test Database Connectivity",
+			"command": "dotnet",
+			"args": [
+				"test",
+				"BusBuddy.Tests",
+				"--filter", "Category=Database",
+				"--logger", "console;verbosity=normal"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Query Store Analysis",
+			"command": "sqlcmd",
+			"args": [
+				"-S", "localhost\\SQLEXPRESS",
+				"-d", "BusBuddy",
+				"-E",
+				"-Q", "SELECT TOP 10 q.query_id, LEFT(qt.query_sql_text, 100) as query_text, rs.avg_duration/1000 as avg_duration_ms, rs.count_executions FROM sys.query_store_query q JOIN sys.query_store_query_text qt ON q.query_text_id = qt.query_text_id JOIN sys.query_store_runtime_stats rs ON q.query_id = rs.query_id ORDER BY rs.avg_duration DESC;"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Database Performance Monitor",
+			"command": "sqlcmd",
+			"args": [
+				"-S", "localhost\\SQLEXPRESS",
+				"-d", "BusBuddy",
+				"-E",
+				"-Q", "SELECT 'Database Size MB' as Metric, CAST(SUM(size * 8.0 / 1024) AS DECIMAL(10,2)) as Value FROM sys.master_files WHERE database_id = DB_ID(); SELECT 'Table Sizes' as Info, t.name as TableName, p.rows as RecordCount FROM sys.tables t INNER JOIN sys.indexes i ON t.object_id = i.object_id INNER JOIN sys.partitions p ON i.object_id = p.object_id AND i.index_id = p.index_id WHERE i.index_id <= 1 ORDER BY p.rows DESC;"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
 		}
 	]
 }

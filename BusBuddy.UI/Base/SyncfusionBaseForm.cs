@@ -11,7 +11,7 @@ using BusBuddy.UI.Theme;
 using Syncfusion.Windows.Forms;
 using Syncfusion.Windows.Forms.Tools;
 using Syncfusion.WinForms.Controls;
-using ThemeService = BusBuddy.UI.Theme.EnhancedThemeService;
+using Syncfusion.WinForms.DataGrid;
 
 namespace BusBuddy.UI.Base
 {
@@ -310,12 +310,25 @@ namespace BusBuddy.UI.Base
 
         #region DPI Awareness Helpers
 
-        protected Size GetDpiAwareSize(Size originalSize) => ThemeService.GetDpiAwareSize(originalSize, _dpiScale);
-        protected Padding GetDpiAwarePadding(Padding originalPadding) => ThemeService.GetDpiAwarePadding(originalPadding, _dpiScale);
-        protected int GetDpiAwareX(int x) => ThemeService.ScaleByDpi(x, _dpiScale);
-        protected int GetDpiAwareY(int y) => ThemeService.ScaleByDpi(y, _dpiScale);
-        protected int GetDpiAwareWidth(int width) => ThemeService.ScaleByDpi(width, _dpiScale);
-        protected int GetDpiAwareHeight(int height) => ThemeService.ScaleByDpi(height, _dpiScale);
+        protected Size GetDpiAwareSize(Size originalSize)
+        {
+            return new Size((int)(originalSize.Width * _dpiScale), (int)(originalSize.Height * _dpiScale));
+        }
+
+        protected Padding GetDpiAwarePadding(Padding originalPadding)
+        {
+            return new Padding(
+                (int)(originalPadding.Left * _dpiScale),
+                (int)(originalPadding.Top * _dpiScale),
+                (int)(originalPadding.Right * _dpiScale),
+                (int)(originalPadding.Bottom * _dpiScale)
+            );
+        }
+
+        protected int GetDpiAwareX(int x) => (int)(x * _dpiScale);
+        protected int GetDpiAwareY(int y) => (int)(y * _dpiScale);
+        protected int GetDpiAwareWidth(int width) => (int)(width * _dpiScale);
+        protected int GetDpiAwareHeight(int height) => (int)(height * _dpiScale);
 
         #endregion
 
@@ -424,9 +437,9 @@ namespace BusBuddy.UI.Base
                         if (control.GetType().FullName?.Contains("Syncfusion") == true)
                         {
                             // Special handling for ChartControl
-                            if (control is Syncfusion.Windows.Forms.Chart.ChartControl chartControl)
+                            if (control.GetType().FullName == "Syncfusion.Windows.Forms.Chart.ChartControl")
                             {
-                                CleanupChartControlSafely(chartControl);
+                                CleanupChartControlSafely((Syncfusion.Windows.Forms.Chart.ChartControl)control);
                             }
                             else if (control is Syncfusion.WinForms.DataGrid.SfDataGrid dataGrid)
                             {
@@ -849,6 +862,58 @@ namespace BusBuddy.UI.Base
             {
                 return MessageBox.Show($"Are you sure you want to delete this {itemType}?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
             }
+        }
+
+        #endregion
+
+        #region Shared Controls Helpers
+
+        // Shared helper for label creation
+        protected Label CreateLabel(string text)
+        {
+            return new Label
+            {
+                Text = text,
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Regular)
+            };
+        }
+
+        // Shared helper for textbox creation
+        protected TextBox CreateTextBox(string placeholder = "", bool multiline = false)
+        {
+            return new TextBox
+            {
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                Multiline = multiline,
+                PlaceholderText = placeholder
+            };
+        }
+
+        // Shared helper for combobox creation
+        protected ComboBox CreateComboBox(string placeholder = "", int x = 0, int y = 0, int width = 200)
+        {
+            var combo = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                Location = new Point(x, y),
+                Size = new Size(width, 30)
+            };
+            if (!string.IsNullOrEmpty(placeholder))
+                combo.Items.Add(placeholder);
+            return combo;
+        }
+
+        // Shared helper for checkbox creation
+        protected CheckBox CreateCheckBox(string text, int x = 0, int y = 0)
+        {
+            return new CheckBox
+            {
+                Text = text,
+                Location = new Point(x, y),
+                Font = new Font("Segoe UI", 10, FontStyle.Regular)
+            };
         }
 
         #endregion

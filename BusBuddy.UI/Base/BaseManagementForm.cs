@@ -22,12 +22,12 @@ namespace BusBuddy.UI.Base
     {
         #region Protected Fields
         protected SfDataGrid? _dataGrid;
-        protected SfButton? _addButton;
-        protected SfButton? _editButton;
-        protected SfButton? _deleteButton;
-        protected SfButton? _detailsButton;
-        protected SfButton? _searchButton;
-        protected TextBoxExt? _searchBox;
+        protected Button? _addButton;
+        protected Button? _editButton;
+        protected Button? _deleteButton;
+        protected Button? _detailsButton;
+        protected Button? _searchButton;
+        protected TextBox? _searchBox;
         protected List<T> _entities = new List<T>();
 
         // Disposal support
@@ -130,14 +130,14 @@ namespace BusBuddy.UI.Base
             var buttonSize = GetDpiAwareSize(new Size(100, 35));
 
             // Standard CRUD buttons using ControlFactory for consistency
-            _addButton = ControlFactory.CreateButton($"➕ Add New", buttonSize, (s, e) => AddNewEntity());
-            _editButton = ControlFactory.CreateButton("✏️ Edit", buttonSize, (s, e) => EditSelectedEntity());
-            _deleteButton = ControlFactory.CreateButton("🗑️ Delete", buttonSize, (s, e) => DeleteSelectedEntity());
-            _detailsButton = ControlFactory.CreateButton("👁️ Details", buttonSize, (s, e) => ViewEntityDetails());
-            _searchButton = ControlFactory.CreateButton("🔍 Search", GetDpiAwareSize(new Size(80, 35)), (s, e) => SearchEntities());
+            _addButton = ControlFactory.CreateButton($"➕ Add New", buttonSize.Width, buttonSize.Height, buttonSize.Width, buttonSize.Height);
+            _editButton = ControlFactory.CreateButton("✏️ Edit", buttonSize.Width, buttonSize.Height, buttonSize.Width, buttonSize.Height);
+            _deleteButton = ControlFactory.CreateButton("🗑️ Delete", buttonSize.Width, buttonSize.Height, buttonSize.Width, buttonSize.Height);
+            _detailsButton = ControlFactory.CreateButton("👁️ Details", buttonSize.Width, buttonSize.Height, buttonSize.Width, buttonSize.Height);
+            _searchButton = ControlFactory.CreateButton("🔍 Search", 80, 35, 80, 35);
 
             // Standard search box using ControlFactory
-            _searchBox = ControlFactory.CreateSearchBox(SearchPlaceholder);
+            _searchBox = ControlFactory.CreateSearchBox(SearchPlaceholder, 0, 0, 200, 30);
 
             // Standard grid creation
             _dataGrid = BusBuddyThemeManager.CreateEnhancedMaterialSfDataGrid();
@@ -165,7 +165,7 @@ namespace BusBuddy.UI.Base
             if (_detailsButton != null) _detailsButton.Location = new Point(GetDpiAwareX(350), buttonY);
 
             // Search controls
-            var searchLabel = ControlFactory.CreateLabel("🔍 Search:");
+            var searchLabel = CreateLabel("🔍 Search:");
             if (searchLabel != null)
             {
                 searchLabel.Location = new Point(GetDpiAwareX(500), GetDpiAwareY(25));
@@ -680,6 +680,54 @@ namespace BusBuddy.UI.Base
             }
         }
         #endregion
+
+        // Shared helper for label creation
+        public new Label CreateLabel(string text)
+        {
+            return new Label
+            {
+                Text = text,
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Regular)
+            };
+        }
+
+        // Shared helper for textbox creation
+        public new TextBox CreateTextBox(string name, bool readOnly = false)
+        {
+            return new TextBox
+            {
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                Multiline = readOnly,
+                PlaceholderText = name
+            };
+        }
+
+        // Shared helper for combobox creation
+        public new ComboBox CreateComboBox(string name, int width, int x, int y)
+        {
+            var combo = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                Location = new Point(x, y),
+                Size = new Size(width, 30)
+            };
+            if (!string.IsNullOrEmpty(name))
+                combo.Items.Add(name);
+            return combo;
+        }
+
+        // Shared helper for checkbox creation
+        public new CheckBox CreateCheckBox(string name, int x, int y)
+        {
+            return new CheckBox
+            {
+                Text = name,
+                Location = new Point(x, y),
+                Font = new Font("Segoe UI", 10, FontStyle.Regular)
+            };
+        }
     }
 }
 

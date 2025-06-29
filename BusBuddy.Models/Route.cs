@@ -63,9 +63,9 @@ namespace BusBuddy.Models
 
         // Computed properties for form compatibility
         public string? AMBusNumber => AMBus?.BusNumber;
-        public string? AMDriverName => AMDriver?.Name;
+        public string? AMDriverName => AMDriver?.DriverName;
         public string? PMBusNumber => PMBus?.BusNumber;
-        public string? PMDriverName => PMDriver?.Name;
+        public string? PMDriverName => PMDriver?.DriverName;
 
         // Computed mileage properties for backward compatibility
         public int? AMMiles => AMEndMiles.HasValue && AMBeginMiles.HasValue ? AMEndMiles - AMBeginMiles : null;

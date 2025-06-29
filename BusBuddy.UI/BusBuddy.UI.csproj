@@ -28,18 +28,20 @@
 
   <ItemGroup>
     <!-- Keep MaterialSkin.2 during gradual transition to Syncfusion -->
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
     <PackageReference Include="Svg" Version="3.4.7" />
-    <PackageReference Include="Syncfusion.Chart.Windows" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.Gauge.Windows" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.Maps.Windows" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.Shared.Base" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.Tools.Windows" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.DataGridExport.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Chart.Windows" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Gauge.Windows" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Licensing" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Maps.Windows" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Shared.Base" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Tools.Windows" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.DataGridExport.WinForms" Version="30.1.37" />
     <!-- Native Syncfusion controls for compliance -->
-    <PackageReference Include="Syncfusion.Core.WinForms" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.SfInput.WinForms" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.SfListView.WinForms" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.Core.WinForms" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.SfInput.WinForms" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.SfListView.WinForms" Version="30.1.37" />
     <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
   </ItemGroup>
@@ -59,4 +61,16 @@
     <EmbeddedResource Include="tl_2024_us_state.shx" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Syncfusion.WinForms.DataGrid">
+      <HintPath>C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\WindowsForms\Assemblies\Syncfusion.WinForms.DataGrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.Windows.Forms.Tools">
+      <HintPath>C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\WindowsForms\Assemblies\Syncfusion.Windows.Forms.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.WinForms.Buttons">
+      <HintPath>C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\WindowsForms\Assemblies\Syncfusion.WinForms.Buttons.dll</HintPath>
+    </Reference>
+    <!-- Add more as needed for other controls (e.g., Chart, Scheduler, etc.) -->
+  </ItemGroup>
 </Project>

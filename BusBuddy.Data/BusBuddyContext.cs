@@ -1,8 +1,8 @@
 using System;
 using System.Data.Common;
+using System.Threading.Tasks;
 using BusBuddy.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace BusBuddy.Data
 {
@@ -30,8 +30,8 @@ namespace BusBuddy.Data
             _connection = connection;
         }
 
-        // DbSet properties for entities
-        public DbSet<Bus> Vehicles { get; set; } = null!;
+        // DbSet properties for entities - Updated to match database table names
+        public DbSet<Bus> Buses { get; set; } = null!; // Renamed from Vehicles to Buses
         public DbSet<Driver> Drivers { get; set; } = null!;
         public DbSet<Fuel> Fuels { get; set; } = null!;
         public DbSet<Route> Routes { get; set; } = null!;
@@ -121,7 +121,7 @@ namespace BusBuddy.Data
                             {
                                 Console.WriteLine($"Database repair failed: {repairEx.Message}");
                                 // Fall back to default connection
-                                var defaultConnectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
+                                var defaultConnectionString = "Server=localhost\\SQLEXPRESS;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
                                 Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
                                 optionsBuilder.UseSqlServer(defaultConnectionString, options =>
                                 {
@@ -132,7 +132,7 @@ namespace BusBuddy.Data
                         else
                         {
                             // Fallback to SQL Server Express with local server name and database
-                            var defaultConnectionString = "Server=.\\SQLEXPRESS01;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
+                            var defaultConnectionString = "Server=localhost\\SQLEXPRESS;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
                             Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
                             optionsBuilder.UseSqlServer(defaultConnectionString, options =>
                             {
@@ -149,6 +149,7 @@ namespace BusBuddy.Data
             base.OnModelCreating(modelBuilder);
 
             // Configure table names to match existing database schema
+            modelBuilder.Entity<Bus>().ToTable("Buses"); // Explicitly map to Buses table
             modelBuilder.Entity<Fuel>().ToTable("Fuel"); // Use singular table name
 
             // Configure primary keys for entities that don't follow default naming conventions

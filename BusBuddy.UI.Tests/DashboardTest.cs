@@ -950,7 +950,7 @@ namespace BusBuddy.UI.Tests
         {
             var exception = Record.Exception(() =>
             {
-                Dashboard.LogToSharedFile("TEST", "Unit test logging verification");
+                BusBuddyLogger.Dashboard("TEST", "Unit test logging verification");
             });
 
             Assert.Null(exception);

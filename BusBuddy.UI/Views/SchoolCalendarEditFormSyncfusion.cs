@@ -59,8 +59,8 @@ namespace BusBuddy.UI.Views
         private void CreateControls()
         {
             // Create text boxes
-            _descriptionTextBox = ControlFactory.CreateTextBox("Enter description");
-            _notesTextBox = ControlFactory.CreateTextBox("Enter notes", true);
+            _descriptionTextBox = CreateTextBox("Enter description");
+            _notesTextBox = CreateTextBox("Enter notes", true);
 
             // Make notes textbox multiline
             if (_notesTextBox is TextBox notesTextBox)
@@ -125,11 +125,11 @@ namespace BusBuddy.UI.Views
         private void LayoutControls()
         {
             // Labels
-            ControlFactory.CreateLabel("Description:");
-            ControlFactory.CreateLabel("Category:");
-            ControlFactory.CreateLabel("Start Date:");
-            ControlFactory.CreateLabel("End Date:");
-            ControlFactory.CreateLabel("Notes:");
+            CreateLabel("Description:");
+            CreateLabel("Category:");
+            CreateLabel("Start Date:");
+            CreateLabel("End Date:");
+            CreateLabel("Notes:");
 
             // Set placeholder text
             SetPlaceholderText(_descriptionTextBox, "Enter event description");
@@ -142,7 +142,7 @@ namespace BusBuddy.UI.Views
         }
         #region Control Creation Helpers
 
-        private ComboBox CreateComboBox(string placeholder, int x, int y, int width)
+        public new ComboBox CreateComboBox(string name, int width, int x, int y)
         {
             var comboBox = new ComboBox
             {
@@ -160,11 +160,11 @@ namespace BusBuddy.UI.Views
             return comboBox;
         }
 
-        private CheckBox CreateCheckBox(string text, int x, int y)
+        public new CheckBox CreateCheckBox(string name, int x, int y)
         {
             var checkBox = new CheckBox
             {
-                Text = text,
+                Text = name,
                 Location = new Point(GetDpiAwareX(x), GetDpiAwareY(y)),
                 AutoSize = true
             };

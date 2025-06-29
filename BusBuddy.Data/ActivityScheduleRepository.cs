@@ -14,13 +14,23 @@ namespace BusBuddy.Data
 
         public List<ActivitySchedule> GetAllScheduledActivities()
         {
-            // Return sample data when database is not available
             try
             {
                 using (var connection = CreateConnection())
                 {
                     connection.Open();
-                    var schedules = connection.Query<ActivitySchedule>("SELECT * FROM ActivitySchedules").AsList();
+                    var schedules = connection.Query<ActivitySchedule>(@"
+                        SELECT
+                            ScheduleID,
+                            Date AS Date,
+                            ActivityName,
+                            StartTime,
+                            EndTime,
+                            VehicleID,
+                            DriverID,
+                            Notes,
+                            CalendarID
+                        FROM ActivitySchedule").AsList();
                     return schedules;
                 }
             }
@@ -29,9 +39,9 @@ namespace BusBuddy.Data
                 Console.WriteLine($"Database not available: {ex.Message}. Returning sample data.");
                 return new List<ActivitySchedule>
                 {
-                    new ActivitySchedule { ScheduleID = 1, TripType = "Field Trip", ScheduledDestination = "Park", Date = DateTime.Today.ToString("yyyy-MM-dd"), ScheduledLeaveTime = TimeSpan.FromHours(9), ScheduledReturnTime = TimeSpan.FromHours(15) },
-                    new ActivitySchedule { ScheduleID = 2, TripType = "Sports Trip", ScheduledDestination = "Sports Complex", Date = DateTime.Today.AddDays(2).ToString("yyyy-MM-dd"), ScheduledLeaveTime = TimeSpan.FromHours(8.5), ScheduledReturnTime = TimeSpan.FromHours(17) },
-                    new ActivitySchedule { ScheduleID = 3, TripType = "Academic Trip", ScheduledDestination = "University", Date = DateTime.Today.AddDays(5).ToString("yyyy-MM-dd"), ScheduledLeaveTime = TimeSpan.FromHours(8), ScheduledReturnTime = TimeSpan.FromHours(16.5) }
+                    new ActivitySchedule { ScheduleID = 1, ActivityName = "Field Trip", Date = DateTime.Today, StartTime = TimeSpan.FromHours(9), EndTime = TimeSpan.FromHours(15) },
+                    new ActivitySchedule { ScheduleID = 2, ActivityName = "Sports Trip", Date = DateTime.Today.AddDays(2), StartTime = TimeSpan.FromHours(8.5), EndTime = TimeSpan.FromHours(17) },
+                    new ActivitySchedule { ScheduleID = 3, ActivityName = "Academic Trip", Date = DateTime.Today.AddDays(5), StartTime = TimeSpan.FromHours(8), EndTime = TimeSpan.FromHours(16.5) }
                 };
             }
         }
@@ -41,35 +51,62 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                return connection.QuerySingleOrDefault<ActivitySchedule>(
-                    "SELECT * FROM ActivitySchedule WHERE ScheduleID = @ScheduleID",
+                return connection.QuerySingleOrDefault<ActivitySchedule>(@"
+                    SELECT
+                        ScheduleID,
+                        Date AS Date,
+                        ActivityName,
+                        StartTime,
+                        EndTime,
+                        VehicleID,
+                        DriverID,
+                        Notes,
+                        CalendarID
+                    FROM ActivitySchedule WHERE ScheduleID = @ScheduleID",
                     new { ScheduleID = id });
             }
         }
 
         public List<ActivitySchedule> GetScheduledActivitiesByDate(DateTime date)
         {
-            // Format the date string to match the storage format in the database
-            string formattedDate = date.ToString("yyyy-MM-dd");
-
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                var scheduledActivities = connection.Query<ActivitySchedule>(
-                    "SELECT * FROM ActivitySchedule WHERE Date = @Date",
-                    new { Date = formattedDate }).AsList();
+                var scheduledActivities = connection.Query<ActivitySchedule>(@"
+                    SELECT
+                        ScheduleID,
+                        Date AS Date,
+                        ActivityName,
+                        StartTime,
+                        EndTime,
+                        VehicleID,
+                        DriverID,
+                        Notes,
+                        CalendarID
+                    FROM ActivitySchedule WHERE Date = @Date",
+                    new { Date = date }).AsList();
                 return scheduledActivities;
             }
         }
 
-        public List<ActivitySchedule> GetScheduledActivitiesByDriver(int DriverId)
+        public List<ActivitySchedule> GetScheduledActivitiesByDriver(int driverId)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                var scheduledActivities = connection.Query<ActivitySchedule>(
-                    "SELECT * FROM ActivitySchedule WHERE ScheduledDriverID = @DriverId",
-                    new { DriverId = DriverId }).AsList();
+                var scheduledActivities = connection.Query<ActivitySchedule>(@"
+                    SELECT
+                        ScheduleID,
+                        Date AS Date,
+                        ActivityName,
+                        StartTime,
+                        EndTime,
+                        VehicleID,
+                        DriverID,
+                        Notes,
+                        CalendarID
+                    FROM ActivitySchedule WHERE DriverID = @DriverID",
+                    new { DriverID = driverId }).AsList();
                 return scheduledActivities;
             }
         }
@@ -79,21 +116,41 @@ namespace BusBuddy.Data
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                var scheduledActivities = connection.Query<ActivitySchedule>(
-                    "SELECT * FROM ActivitySchedule WHERE ScheduledVehicleID = @BusId",
+                var scheduledActivities = connection.Query<ActivitySchedule>(@"
+                    SELECT
+                        ScheduleID,
+                        Date AS Date,
+                        ActivityName,
+                        StartTime,
+                        EndTime,
+                        VehicleID,
+                        DriverID,
+                        Notes,
+                        CalendarID
+                    FROM ActivitySchedule WHERE VehicleID = @BusId",
                     new { BusId = busId }).AsList();
                 return scheduledActivities;
             }
         }
 
-        public List<ActivitySchedule> GetScheduledActivitiesByTripType(string tripType)
+        public List<ActivitySchedule> GetScheduledActivitiesByTripType(string activityName)
         {
             using (var connection = CreateConnection())
             {
                 connection.Open();
-                var scheduledActivities = connection.Query<ActivitySchedule>(
-                    "SELECT * FROM ActivitySchedule WHERE TripType = @TripType",
-                    new { TripType = tripType }).AsList();
+                var scheduledActivities = connection.Query<ActivitySchedule>(@"
+                    SELECT
+                        ScheduleID,
+                        Date AS Date,
+                        ActivityName,
+                        StartTime,
+                        EndTime,
+                        VehicleID,
+                        DriverID,
+                        Notes,
+                        CalendarID
+                    FROM ActivitySchedule WHERE ActivityName = @ActivityName",
+                    new { ActivityName = activityName }).AsList();
                 return scheduledActivities;
             }
         }
@@ -105,17 +162,12 @@ namespace BusBuddy.Data
                 connection.Open();
                 var sql = @"
                     INSERT INTO ActivitySchedule (
-                        Date, TripType, ScheduledVehicleID,
-                        ScheduledDestination, ScheduledLeaveTime,
-                        ScheduledEventTime, ScheduledRiders, ScheduledDriverID
+                        Date, ActivityName, StartTime, EndTime, VehicleID, DriverID, Notes, CalendarID
                     )
                     VALUES (
-                        @Date, @TripType, @ScheduledVehicleID,
-                        @ScheduledDestination, @ScheduledLeaveTime,
-                        @ScheduledEventTime, @ScheduledRiders, @ScheduledDriverID
+                        @Date, @ActivityName, @StartTime, @EndTime, @VehicleID, @DriverID, @Notes, @CalendarID
                     );
-                    SELECT SCOPE_IDENTITY();";
-
+                    SELECT CAST(SCOPE_IDENTITY() as int);";
                 return connection.QuerySingle<int>(sql, scheduledActivity);
             }
         }
@@ -128,15 +180,14 @@ namespace BusBuddy.Data
                 var sql = @"
                     UPDATE ActivitySchedule
                     SET Date = @Date,
-                        TripType = @TripType,
-                        ScheduledVehicleID = @ScheduledVehicleID,
-                        ScheduledDestination = @ScheduledDestination,
-                        ScheduledLeaveTime = @ScheduledLeaveTime,
-                        ScheduledEventTime = @ScheduledEventTime,
-                        ScheduledRiders = @ScheduledRiders,
-                        ScheduledDriverID = @ScheduledDriverID
+                        ActivityName = @ActivityName,
+                        StartTime = @StartTime,
+                        EndTime = @EndTime,
+                        VehicleID = @VehicleID,
+                        DriverID = @DriverID,
+                        Notes = @Notes,
+                        CalendarID = @CalendarID
                     WHERE ScheduleID = @ScheduleID";
-
                 var rowsAffected = connection.Execute(sql, scheduledActivity);
                 return rowsAffected > 0;
             }

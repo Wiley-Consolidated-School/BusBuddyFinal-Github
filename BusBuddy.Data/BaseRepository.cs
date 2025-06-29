@@ -1,10 +1,11 @@
 using System;
-using System.Data;
 using System.Configuration;
+using System.Data;
 using Microsoft.Data.SqlClient;
 
 namespace BusBuddy.Data
-{    public abstract class BaseRepository
+{
+    public abstract class BaseRepository
     {
         protected readonly string _connectionString;
         protected readonly string _providerName;
@@ -15,7 +16,7 @@ namespace BusBuddy.Data
         /// <summary>
         /// Gets whether the database connection is available
         /// </summary>
-        public bool IsDatabaseAvailable => _isDatabaseAvailable;        protected BaseRepository()
+        public bool IsDatabaseAvailable => _isDatabaseAvailable; protected BaseRepository()
         {
             // Check if we're in a test environment first
             if (IsTestEnvironment())
@@ -33,8 +34,8 @@ namespace BusBuddy.Data
                 }
                 else
                 {
-                    // Fallback to hardcoded connection string
-                    _connectionString = "Data Source=.\\SQLEXPRESS01;Initial Catalog=BusBuddy_Test;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30;";
+                    // Fallback to hardcoded connection string - Updated to match actual SQL Server instance
+                    _connectionString = "Data Source=localhost\\SQLEXPRESS;Initial Catalog=BusBuddy_Test;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30;";
                     _providerName = "Microsoft.Data.SqlClient";
                     Console.WriteLine("Using fallback test connection string");
                 }
@@ -44,8 +45,8 @@ namespace BusBuddy.Data
                 var conn = ConfigurationManager.ConnectionStrings["DefaultConnection"];
                 if (conn == null)
                 {
-                    // Fallback - use SQL Server Express for production
-                    _connectionString = "Data Source=.\\SQLEXPRESS01;Initial Catalog=BusBuddy;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30;";
+                    // Fallback - use SQL Server Express for production - Updated to match actual SQL Server instance
+                    _connectionString = "Data Source=localhost\\SQLEXPRESS;Initial Catalog=BusBuddy;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30;";
                     _providerName = "Microsoft.Data.SqlClient";
                     Console.WriteLine("Using fallback production connection string");
                 }
@@ -59,7 +60,8 @@ namespace BusBuddy.Data
 
             // Test the connection but don't initialize database on every repository creation
             TestConnection();
-        }        private void TestConnection()
+        }
+        private void TestConnection()
         {
             int retryCount = 5; // Increased from 3 to 5
             int currentRetry = 0;
@@ -104,7 +106,7 @@ namespace BusBuddy.Data
                     }
 
                     // Wait before retrying - increased timeout between attempts
-                    Console.WriteLine($"Waiting 1 second before retry {currentRetry+1}/{retryCount}...");
+                    Console.WriteLine($"Waiting 1 second before retry {currentRetry + 1}/{retryCount}...");
                     System.Threading.Thread.Sleep(1000);
                 }
             }

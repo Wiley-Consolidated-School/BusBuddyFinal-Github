@@ -1,0 +1,26 @@
+// Dev Container configuration for BusBuddy WinForms/.NET 8.0 development
+{
+    "name": "BusBuddy .NET 8 WinForms DevContainer",
+    "image": "mcr.microsoft.com/dotnet/sdk:8.0",
+    "features": {
+        "ghcr.io/devcontainers/features/powershell:1": {},
+        "ghcr.io/devcontainers/features/dotnet:1": {
+            "version": "8.0"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.shell.windows": "pwsh"
+            },
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-vscode.powershell"
+            ]
+        }
+    },
+    "mounts": [
+        "source=${localWorkspaceFolder}/.nuget,target=/root/.nuget,type=bind"
+    ],
+    "postCreateCommand": "dotnet restore"
+}

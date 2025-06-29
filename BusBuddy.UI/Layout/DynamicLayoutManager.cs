@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using BusBuddy.UI.Helpers;
 using Syncfusion.Windows.Forms.Tools;
-using System.Collections.Generic;
 
 namespace BusBuddy.UI.Layout
 {
@@ -119,7 +120,7 @@ namespace BusBuddy.UI.Layout
                 {
                     // Fallback to standard layout if Syncfusion FlowLayout fails
                     // This can happen during testing or if licensing issues occur
-                    BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
+                    BusBuddyLogger.Info("DynamicLayoutManager",
                         $"FlowLayout creation failed, using standard layout: {ex.Message}");
 
                     // Use standard panel with manual layout as fallback
@@ -240,8 +241,8 @@ namespace BusBuddy.UI.Layout
                 throw new ArgumentNullException(nameof(parent));
 
             // Use Dashboard's shared logging method
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"CreateCardLayoutContainer called with parent: {parent.GetType().Name} '{parent.Name}'");
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"Parent state - Size: {parent.Size}, Controls: {parent.Controls.Count}, Visible: {parent.Visible}");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"CreateCardLayoutContainer called with parent: {parent.GetType().Name} '{parent.Name}'");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"Parent state - Size: {parent.Size}, Controls: {parent.Controls.Count}, Visible: {parent.Visible}");
 
             var container = new Panel
             {
@@ -249,32 +250,32 @@ namespace BusBuddy.UI.Layout
                 BackColor = DefaultBackgroundColor
             };
 
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"Created container panel - Size: {container.Size}, Dock: {container.Dock}");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"Created container panel - Size: {container.Size}, Dock: {container.Dock}");
 
             try
             {
                 // Create Syncfusion CardLayout using documented method
-                BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", "Creating Syncfusion CardLayout...");
+                BusBuddyLogger.Info("DynamicLayoutManager", "Creating Syncfusion CardLayout...");
                 var cardLayout = new CardLayout
                 {
                     ContainerControl = container
                 };
                 container.Tag = cardLayout; // Store reference for later use
-                BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", "✅ CardLayout created and assigned to container");
+                BusBuddyLogger.Info("DynamicLayoutManager", "✅ CardLayout created and assigned to container");
             }
             catch (Exception ex)
             {
-                BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"❌ Error creating CardLayout: {ex.GetType().Name}: {ex.Message}");
-                BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"CardLayout error stack: {ex.StackTrace}");
+                BusBuddyLogger.Info("DynamicLayoutManager", $"❌ Error creating CardLayout: {ex.GetType().Name}: {ex.Message}");
+                BusBuddyLogger.Info("DynamicLayoutManager", $"CardLayout error stack: {ex.StackTrace}");
             }
 
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"Adding container to parent '{parent.Name}'...");
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"Parent controls count before add: {parent.Controls.Count}");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"Adding container to parent '{parent.Name}'...");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"Parent controls count before add: {parent.Controls.Count}");
 
             parent.Controls.Add(container);
 
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"✅ Container added to parent. Parent controls count after add: {parent.Controls.Count}");
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"Container final state - Size: {container.Size}, Parent: {container.Parent?.Name ?? "null"}, Visible: {container.Visible}");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"✅ Container added to parent. Parent controls count after add: {parent.Controls.Count}");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"Container final state - Size: {container.Size}, Parent: {container.Parent?.Name ?? "null"}, Visible: {container.Visible}");
 
             return container;
         }
@@ -562,7 +563,7 @@ namespace BusBuddy.UI.Layout
             if (splitContainer == null)
                 throw new ArgumentNullException(nameof(splitContainer));
 
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"Configuring SplitContainer - Initial Size: {splitContainer.Width}x{splitContainer.Height}");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"Configuring SplitContainer - Initial Size: {splitContainer.Width}x{splitContainer.Height}");
 
             // Set panel minimum sizes
             splitContainer.Panel1MinSize = panel1MinSize;
@@ -575,19 +576,17 @@ namespace BusBuddy.UI.Layout
             // Ensure valid splitter distance within bounds
             int safeDistance = Math.Max(minDistance, Math.Min(desiredDistance, maxDistance));
 
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
-                $"SplitContainer - Min: {minDistance}, Max: {maxDistance}, Desired: {desiredDistance}, Safe: {safeDistance}");
+            BusBuddyLogger.Info("DynamicLayoutManager", $"SplitContainer - Min: {minDistance}, Max: {maxDistance}, Desired: {desiredDistance}, Safe: {safeDistance}");
 
             // Apply safe distance only if the control has a valid size
             if (splitContainer.Width > panel1MinSize + panel2MinSize)
             {
                 splitContainer.SplitterDistance = safeDistance;
-                BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager", $"✅ SplitterDistance set to {safeDistance}");
+                BusBuddyLogger.Info("DynamicLayoutManager", $"✅ SplitterDistance set to {safeDistance}");
             }
             else
             {
-                BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
-                    $"⚠️ Deferring SplitterDistance - Container too small ({splitContainer.Width}px)");
+                BusBuddyLogger.Info("DynamicLayoutManager", $"⚠️ Deferring SplitterDistance - Container too small ({splitContainer.Width}px)");
 
                 // Add resize handler to set splitter distance once the container has a valid size
                 splitContainer.Resize += (sender, e) =>
@@ -601,8 +600,7 @@ namespace BusBuddy.UI.Layout
                         if (container.SplitterDistance != dynamicSafe)
                         {
                             container.SplitterDistance = dynamicSafe;
-                            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
-                                $"✅ SplitterDistance updated on resize to {dynamicSafe}");
+                            BusBuddyLogger.Info("DynamicLayoutManager", $"✅ SplitterDistance updated on resize to {dynamicSafe}");
                         }
                     }
                 };
@@ -706,7 +704,7 @@ namespace BusBuddy.UI.Layout
             };
 
             // Log initial setup
-            BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
+            BusBuddyLogger.Info("DynamicLayoutManager",
                 $"Creating responsive dashboard - Width: {parent.Width}, Height: {parent.Height}, Threshold: {widthThreshold}");
 
             // Configure initial splitter distance based on orientation
@@ -748,7 +746,7 @@ namespace BusBuddy.UI.Layout
                 // Log orientation change if needed
                 if (splitContainer.Orientation != newOrientation)
                 {
-                    BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
+                    BusBuddyLogger.Info("DynamicLayoutManager",
                         $"Changing orientation from {splitContainer.Orientation} to {newOrientation}");
                     splitContainer.Orientation = newOrientation;
                 }
@@ -780,14 +778,14 @@ namespace BusBuddy.UI.Layout
                     if (splitContainer.SplitterDistance != safeDistance)
                     {
                         splitContainer.SplitterDistance = safeDistance;
-                        BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
+                        BusBuddyLogger.Info("DynamicLayoutManager",
                             $"Updated SplitterDistance to {safeDistance} for {newOrientation} layout");
                     }
                 }
             }
             catch (Exception ex)
             {
-                BusBuddy.UI.Views.Dashboard.LogToSharedFile("DynamicLayoutManager",
+                BusBuddyLogger.Info("DynamicLayoutManager",
                     $"Error updating splitter: {ex.GetType().Name}: {ex.Message}");
             }
         }

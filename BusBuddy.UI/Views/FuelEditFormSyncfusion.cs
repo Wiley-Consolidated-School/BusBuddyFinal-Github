@@ -1,32 +1,27 @@
 using System;
-using Syncfusion.Windows.Forms;
-using Syncfusion.Windows.Forms.Tools;
-using Syncfusion.Windows.Forms.Grid;
-using Syncfusion.WinForms.Controls;
-using Syncfusion.WinForms.DataGrid;
-using Syncfusion.WinForms.Input;
-using BusBuddy.UI.Helpers;
-using BusBuddy.UI.Views;
 using System.Drawing;
 using System.Windows.Forms;
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
+using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.WinForms.DataGrid;
 
 namespace BusBuddy.UI.Views
 {
-    public class FuelEditFormSyncfusion : SyncfusionBaseForm
+    public class FuelEditFormSyncfusion : Form
     {
         public Fuel Fuel { get; set; }
 
-        private ComboBoxAdv? cboVehicle;
+        private ComboBox? cboVehicle;
         private DateTimePicker? dtpFuelDate;
-        private TextBoxExt? txtFuelAmount;
-        private TextBoxExt? txtFuelCost;
-        private TextBoxExt? txtNotes;
-        private SfButton? btnSave;
-        private SfButton? btnCancel;
+        private TextBox? txtFuelAmount;
+        private TextBox? txtFuelCost;
+        private TextBox? txtNotes;
+        private Button? btnSave;
+        private Button? btnCancel;
+        private ErrorProvider _errorProvider = new ErrorProvider();
 
-        public FuelEditFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
+        public FuelEditFormSyncfusion(System.IServiceProvider serviceProvider) : base()
         {
             Fuel = new Fuel();
             InitializeComponent();
@@ -42,11 +37,8 @@ namespace BusBuddy.UI.Views
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-
-            // Configure for high DPI
             this.AutoScaleMode = AutoScaleMode.Dpi;
             this.AutoScaleDimensions = new SizeF(96F, 96F);
-
             SetupFormLayout();
         }
 
@@ -56,109 +48,52 @@ namespace BusBuddy.UI.Views
             int labelX = 30;
             int controlX = 150;
             int spacing = 60;
-            int controlWidth = 250;            // Vehicle
-            var lblBus = ControlFactory.CreateLabel("🚌 Vehicle:");
-            lblBus.Location = new Point(labelX, y);
+            int controlWidth = 250;
+            var lblBus = ControlFactory.CreateLabel("🚌 Vehicle:", labelX, y, 110, 30);
             this.Controls.Add(lblBus);
-            cboVehicle = ControlFactory.CreateComboBox();
-            cboVehicle.Location = new Point(controlX, y);
-            cboVehicle.Size = new Size(controlWidth, 30);
+            cboVehicle = ControlFactory.CreateComboBox(Array.Empty<string>(), controlX, y, controlWidth, 30);
             this.Controls.Add(cboVehicle);
             y += spacing;
-
-            // Fuel Date
-            var lblFuelDate = ControlFactory.CreateLabel("📅 Date:");
-            lblFuelDate.Location = new Point(labelX, y);
+            var lblFuelDate = ControlFactory.CreateLabel("📅 Date:", labelX, y, 110, 30);
             this.Controls.Add(lblFuelDate);
-            dtpFuelDate = new DateTimePicker
-            {
-                Location = new Point(controlX, y),
-                Size = new Size(controlWidth, 30),
-                Format = DateTimePickerFormat.Short
-            };
+            dtpFuelDate = ControlFactory.CreateDateTimePicker(controlX, y, controlWidth, 30);
             this.Controls.Add(dtpFuelDate);
             y += spacing;
-
-            // Fuel Amount
-            var lblFuelAmount = ControlFactory.CreateLabel("⛽ Gallons:");
-            lblFuelAmount.Location = new Point(labelX, y);
+            var lblFuelAmount = ControlFactory.CreateLabel("⛽ Gallons:", labelX, y, 110, 30);
             this.Controls.Add(lblFuelAmount);
-            txtFuelAmount = ControlFactory.CreateTextBox("Enter gallons (e.g., 15.50)");
-            txtFuelAmount.Location = new Point(controlX, y);
-            txtFuelAmount.Size = new Size(controlWidth, 30);
+            txtFuelAmount = ControlFactory.CreateTextBox("", controlX, y, controlWidth, 30);
             this.Controls.Add(txtFuelAmount);
             y += spacing;
-
-            // Fuel Cost
-            var lblFuelCost = ControlFactory.CreateLabel("💰 Total Cost:");
-            lblFuelCost.Location = new Point(labelX, y);
+            var lblFuelCost = ControlFactory.CreateLabel("💰 Total Cost:", labelX, y, 110, 30);
             this.Controls.Add(lblFuelCost);
-            txtFuelCost = ControlFactory.CreateTextBox("Enter cost (e.g., 45.75)");
-            txtFuelCost.Location = new Point(controlX, y);
-            txtFuelCost.Size = new Size(controlWidth, 30);
+            txtFuelCost = ControlFactory.CreateTextBox("", controlX, y, controlWidth, 30);
             this.Controls.Add(txtFuelCost);
             y += spacing;
-
-            // Notes
-            var lblNotes = ControlFactory.CreateLabel("📝 Notes:");
-            lblNotes.Location = new Point(labelX, y);
+            var lblNotes = ControlFactory.CreateLabel("📝 Notes:", labelX, y, 110, 30);
             this.Controls.Add(lblNotes);
-            txtNotes = ControlFactory.CreateTextBox("Optional notes", true);
-            txtNotes.Location = new Point(controlX, y);
-            txtNotes.Size = new Size(controlWidth, 60);
+            txtNotes = ControlFactory.CreateTextBox("", controlX, y, controlWidth, 60);
+            txtNotes.Multiline = true;
+            txtNotes.ScrollBars = ScrollBars.Vertical;
             this.Controls.Add(txtNotes);
             y += 80;
-
-            // Buttons
-            btnSave = ControlFactory.CreatePrimaryButton("💾 Save", btnSave_Click);
-            btnSave.Location = new Point(controlX, y);
-            btnSave.BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme);
-            btnSave.Size = new Size(120, 36);
+            btnSave = ControlFactory.CreatePrimaryButton("💾 Save", controlX, y, 120, 36);
+            btnSave.Click += btnSave_Click;
             this.Controls.Add(btnSave);
-
-            btnCancel = ControlFactory.CreateSecondaryButton("❌ Cancel", btnCancel_Click);
-            btnCancel.Location = new Point(controlX + 130, y);
-            btnCancel.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
-            btnCancel.Size = new Size(120, 36);
-
-            // Apply Syncfusion Material Design styling
-            ApplySyncfusionStyling();
-        }
-
-        private void ApplySyncfusionStyling()
-        {
-            // Apply Syncfusion Material theme to the form
-            BusBuddyThemeManager.ApplyTheme(this, BusBuddyThemeManager.SupportedThemes.Office2016White);
-
-            // Configure date picker for Material Design
-            dtpFuelDate.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-            dtpFuelDate.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
-
-            // Style all labels
-            foreach (Control control in this.Controls)
-            {
-                if (control is Label label)
-                {
-                    label.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-                    label.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
-                }
-            }
+            btnCancel = ControlFactory.CreateSecondaryButton("❌ Cancel", controlX + 130, y, 120, 36);
+            btnCancel.Click += btnCancel_Click;
+            this.Controls.Add(btnCancel);
         }
 
         private void LoadVehicles()
         {
             try
             {
-                // Add placeholder vehicles - in a real implementation,
-                // this would load from the vehicle repository
                 cboVehicle.Items.Clear();
                 cboVehicle.Items.Add("Vehicle 1 - Bus #001");
                 cboVehicle.Items.Add("Vehicle 2 - Bus #002");
                 cboVehicle.Items.Add("Vehicle 3 - Bus #003");
                 cboVehicle.Items.Add("Vehicle 4 - Bus #004");
                 cboVehicle.Items.Add("Vehicle 5 - Bus #005");
-
-                // For demonstration, map VehicleFueledID to display text
                 if (Fuel.VehicleFueledID.HasValue)
                 {
                     var vehicleIndex = Fuel.VehicleFueledID.Value - 1;
@@ -185,18 +120,12 @@ namespace BusBuddy.UI.Views
         {
             if (!ValidateFuel())
                 return;
-
-            // Extract vehicle ID from selection (in real implementation,
-            // this would get the actual vehicle ID)
             Fuel.VehicleFueledID = cboVehicle.SelectedIndex + 1;
             Fuel.FuelDateAsDateTime = dtpFuelDate.Value;
-
             if (decimal.TryParse(txtFuelAmount.Text, out decimal amount))
                 Fuel.FuelAmount = amount;
-
             if (decimal.TryParse(txtFuelCost.Text, out decimal cost))
                 Fuel.FuelCost = cost;
-
             DialogResult = DialogResult.OK;
             Close();
         }
@@ -204,14 +133,12 @@ namespace BusBuddy.UI.Views
         private bool ValidateFuel()
         {
             ClearAllValidationErrors();
-
             if (cboVehicle.SelectedIndex < 0)
             {
                 SetValidationError(cboVehicle, "Please select a vehicle.");
                 ShowErrorMessage("Please select a vehicle.");
                 return false;
             }
-
             if (string.IsNullOrWhiteSpace(txtFuelAmount.Text) ||
                 !decimal.TryParse(txtFuelAmount.Text, out decimal amount) ||
                 amount <= 0)
@@ -220,7 +147,6 @@ namespace BusBuddy.UI.Views
                 ShowErrorMessage("Please enter a valid fuel amount greater than 0.");
                 return false;
             }
-
             if (string.IsNullOrWhiteSpace(txtFuelCost.Text) ||
                 !decimal.TryParse(txtFuelCost.Text, out decimal cost) ||
                 cost < 0)
@@ -229,14 +155,12 @@ namespace BusBuddy.UI.Views
                 ShowErrorMessage("Please enter a valid fuel cost (0 or greater).");
                 return false;
             }
-
             if (dtpFuelDate.Value > DateTime.Today)
             {
                 SetValidationError(dtpFuelDate, "Fuel date cannot be in the future.");
                 ShowErrorMessage("Fuel date cannot be in the future.");
                 return false;
             }
-
             return true;
         }
 
@@ -246,91 +170,17 @@ namespace BusBuddy.UI.Views
             Close();
         }
 
-        // Helper methods for Syncfusion form creation
-        private ComboBox CreateComboBox(string placeholder, int x, int y, int width)
-        {
-            var comboBox = new ComboBox
-            {
-                Location = new Point(x, y),
-                Size = new Size(width, 35),
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-
-            // Apply Material theming
-            comboBox.BackColor = BusBuddyThemeManager.ThemeColors.GetBackgroundColor(BusBuddyThemeManager.CurrentTheme);
-            comboBox.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
-            comboBox.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-
-            this.Controls.Add(comboBox);
-            return comboBox;
-        }
-
-        private void SetPlaceholderText(Control textBox, string placeholder)
-        {
-            if (textBox is TextBox tb)
-            {
-                tb.Text = placeholder;
-                tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
-
-                tb.GotFocus += (s, e) =>
-                {
-                    if (tb.Text == placeholder)
-                    {
-                        tb.Text = "";
-                        tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
-                    }
-                };
-
-                tb.LostFocus += (s, e) =>
-                {
-                    if (string.IsNullOrEmpty(tb.Text))
-                    {
-                        tb.Text = placeholder;
-                        tb.ForeColor = BusBuddyThemeManager.ThemeColors.GetTextColor(BusBuddyThemeManager.CurrentTheme);
-                    }
-                };
-            }
-        }
-
-        private void SetTextBoxMultiline(Control textBox, int height)
-        {
-            if (textBox is TextBox tb)
-            {
-                tb.Multiline = true;
-                tb.Height = height;
-                tb.ScrollBars = ScrollBars.Vertical;
-            }
-        }
-
-        private Control CreateButton(string text, int x, int y, EventHandler clickHandler)
-        {
-            var button = new Button
-            {
-                Text = text,
-                Location = new Point(x, y),
-                Size = new Size(120, 36),
-                Font = new Font("Segoe UI", 9, FontStyle.Regular),
-                BackColor = BusBuddyThemeManager.ThemeColors.GetPrimaryColor(BusBuddyThemeManager.CurrentTheme),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-
-            button.FlatAppearance.BorderSize = 0;
-            button.Click += clickHandler;
-            this.Controls.Add(button);
-            return button;
-        }        // Validation methods
-        protected override void ClearAllValidationErrors()
+        protected virtual void ClearAllValidationErrors()
         {
             _errorProvider.Clear();
         }
 
-        protected override void SetValidationError(Control control, string message)
+        protected virtual void SetValidationError(Control control, string message)
         {
             _errorProvider.SetError(control, message);
         }
 
-        protected new void ShowErrorMessage(string message)
+        protected void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 
 namespace BusBuddy.Business
 {
@@ -76,14 +76,14 @@ namespace BusBuddy.Business
                 // Validate driver qualifications
                 if (string.IsNullOrWhiteSpace(driver.DriversLicenseType))
                 {
-                    validations.Add(ValidationResult.Failed($"Driver {driver.Name} does not have a valid license type."));
+                    validations.Add(ValidationResult.Failed($"Driver {driver.DriverName} does not have a valid license type."));
                 }
 
-            // Check if training is complete
-            if (!driver.IsTrainingComplete)
-            {
-                validations.Add(ValidationResult.Failed($"Driver {driver.Name} has not completed required training."));
-            }
+                // Check if training is complete
+                if (!driver.TrainingComplete)
+                {
+                    validations.Add(ValidationResult.Failed($"Driver {driver.DriverName} has not completed required training."));
+                }
 
                 // Validate driver availability
                 validations.Add(ValidateDriverAvailability(DriverId, date, assignmentType));
@@ -584,7 +584,7 @@ namespace BusBuddy.Business
                 return ValidationResult.Failed(errors);
             }
 
-            if (string.IsNullOrWhiteSpace(driver.Name))
+            if (string.IsNullOrWhiteSpace(driver.DriverName))
                 errors.Add("Driver name is required");
 
             if (string.IsNullOrWhiteSpace(driver.DriversLicenseType))

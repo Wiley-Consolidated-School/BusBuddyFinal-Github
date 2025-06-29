@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BusBuddy.Models;
 using BusBuddy.Data;
+using BusBuddy.Models;
 
 namespace BusBuddy.Business
 {    /// <summary>
-    /// Service for analyzing route efficiency and providing optimization insights
-    /// Supports the roadmap goal of analytics for future web dashboard
-    /// </summary>
+     /// Service for analyzing route efficiency and providing optimization insights
+     /// Supports the roadmap goal of analytics for future web dashboard
+     /// </summary>
     public class RouteAnalyticsService : IRouteAnalyticsService
     {
         private readonly IRouteRepository _routeRepository;
@@ -52,44 +52,44 @@ namespace BusBuddy.Business
                     !route.PMDriverId.HasValue &&
                 (!route.AMBeginMiles.HasValue || !route.AMEndMiles.HasValue) &&
                 (!route.PMBeginMiles.HasValue || !route.PMEndMiles.HasValue))
-            {
-                return null;
-            }
+                {
+                    return null;
+                }
 
-            var metrics = new RouteEfficiencyMetrics
-            {
-                RouteId = route.RouteId,
-                RouteName = route.RouteName ?? "Unknown",
-                Date = route.DateAsDateTime,
+                var metrics = new RouteEfficiencyMetrics
+                {
+                    RouteId = route.RouteId,
+                    RouteName = route.RouteName ?? "Unknown",
+                    Date = route.DateAsDateTime,
 
-                // AM Period Metrics
-                AMTotalMiles = CalculatePeriodMiles(route.AMBeginMiles, route.AMEndMiles),
-                AMRiders = route.AMRiders ?? 0,
-                AMBusId = route.AMBusId,
-                AMDriverId = route.AMDriverId,
+                    // AM Period Metrics
+                    AMTotalMiles = CalculatePeriodMiles(route.AMBeginMiles, route.AMEndMiles),
+                    AMRiders = route.AMRiders ?? 0,
+                    AMBusId = route.AMBusId,
+                    AMDriverId = route.AMDriverId,
 
-                // PM Period Metrics
-                PMTotalMiles = CalculatePeriodMiles(route.PMBeginMiles, route.PMEndMiles),
-                PMRiders = route.PMRiders ?? 0,
-                PMBusId = route.PMBusId,
-                PMDriverId = route.PMDriverId
-            };
+                    // PM Period Metrics
+                    PMTotalMiles = CalculatePeriodMiles(route.PMBeginMiles, route.PMEndMiles),
+                    PMRiders = route.PMRiders ?? 0,
+                    PMBusId = route.PMBusId,
+                    PMDriverId = route.PMDriverId
+                };
 
-            // Calculate derived metrics
-            metrics.TotalMiles = metrics.AMTotalMiles + metrics.PMTotalMiles;
-            metrics.TotalRiders = metrics.AMRiders + metrics.PMRiders;
+                // Calculate derived metrics
+                metrics.TotalMiles = metrics.AMTotalMiles + metrics.PMTotalMiles;
+                metrics.TotalRiders = metrics.AMRiders + metrics.PMRiders;
 
-            // Efficiency calculations
-            if (metrics.TotalRiders > 0)
-            {
-                metrics.MilesPerRider = Math.Round(metrics.TotalMiles / metrics.TotalRiders, 2);
-                metrics.EfficiencyScore = CalculateEfficiencyScore(metrics);
-            }
+                // Efficiency calculations
+                if (metrics.TotalRiders > 0)
+                {
+                    metrics.MilesPerRider = Math.Round(metrics.TotalMiles / metrics.TotalRiders, 2);
+                    metrics.EfficiencyScore = CalculateEfficiencyScore(metrics);
+                }
 
-            // Cost estimates (basic calculation - could be enhanced with fuel data)
-            metrics.EstimatedFuelCost = CalculateEstimatedFuelCost(metrics.TotalMiles);
+                // Cost estimates (basic calculation - could be enhanced with fuel data)
+                metrics.EstimatedFuelCost = CalculateEstimatedFuelCost(metrics.TotalMiles);
 
-            return metrics;
+                return metrics;
             }
             catch (Exception ex)
             {
@@ -235,7 +235,7 @@ namespace BusBuddy.Business
                 var metrics = new DriverPerformanceMetrics
                 {
                     DriverId = DriverId,
-                    Name = driver.Name,
+                    Name = driver.DriverName,
                     PeriodStart = startDate,
                     PeriodEnd = endDate
                 };

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace BusBuddy.Models
@@ -6,24 +7,35 @@ namespace BusBuddy.Models
     public class SchoolCalendar
     {
         public int CalendarID { get; set; }
-        public string? Date { get; set; }
-        public string? EndDate { get; set; }
-        public string? Category { get; set; }  // School Day, Holiday, Thanksgiving Break, Christmas Break, Spring Break, Key Event
+        public DateTime CalendarDate { get; set; }
+        public string? DayType { get; set; } // School Day, Holiday, Weekend, etc.
+        public string? Category { get; set; } // Regular, Holiday, Break, etc.
+        public string? Description { get; set; }
+        public bool IsSchoolDay { get; set; } = true;
+        public string? Notes { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime ModifiedDate { get; set; } = DateTime.Now;
 
-        // Helper properties to get/set Date as DateTime
+        // Legacy properties for backward compatibility
+        public string? Date
+        {
+            get => CalendarDate.ToString("yyyy-MM-dd");
+            set
+            {
+                if (DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+                    CalendarDate = result;
+                else if (DateTime.TryParse(value, out var fallbackResult))
+                    CalendarDate = fallbackResult;
+            }
+        }
+
         public DateTime? DateAsDateTime
         {
-            get
-            {
-                if (string.IsNullOrEmpty(Date)) return null;
-                if (DateTime.TryParseExact(Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
-                    return result;
-                if (DateTime.TryParse(Date, out var fallbackResult))
-                    return fallbackResult;
-                return null;
-            }
-            set => Date = value?.ToString("yyyy-MM-dd");
+            get => CalendarDate;
+            set => CalendarDate = value ?? DateTime.Today;
         }
+
+        public string? EndDate { get; set; } // For multi-day events
 
         public DateTime? EndDateAsDateTime
         {
@@ -38,21 +50,19 @@ namespace BusBuddy.Models
             }
             set => EndDate = value?.ToString("yyyy-MM-dd");
         }
-        public string? Description { get; set; }
+
         public int RouteNeeded { get; set; }
-        public string? Notes { get; set; }        // Additional properties for form compatibility
-        public int Id => CalendarID;
-        public string? DayType => Category;
 
         // Alias properties for form compatibility
+        public int Id => CalendarID;
         public string? EventName => Description;
         public string? EventDate => Date;
         public string? EventType => Category;
         public string? EventDescription => Description;
-        public string? EventLocation => Notes; // Using Notes as location placeholder
-        public bool IsAllDay => true; // Default to all day for school calendar events
-        public string? StartTime => "08:00"; // Default school start time
-        public string? EndTime => "15:00"; // Default school end time
+        public string? EventLocation => Notes;
+        public bool IsAllDay => true;
+        public string? StartTime => "08:00";
+        public string? EndTime => "15:00";
 
         // Helper property to convert between int and bool
         public bool IsRouteNeeded
@@ -60,6 +70,9 @@ namespace BusBuddy.Models
             get { return RouteNeeded > 0; }
             set { RouteNeeded = value ? 1 : 0; }
         }
+
+        // Navigation property
+        public ICollection<ActivitySchedule> ActivitySchedules { get; set; } = new List<ActivitySchedule>();
     }
 }
 

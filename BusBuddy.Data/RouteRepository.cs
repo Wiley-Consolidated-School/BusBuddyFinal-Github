@@ -32,7 +32,14 @@ namespace BusBuddy.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Database error in GetAllRoutes: {ex.Message}");
+                if (ex.Message.Contains("Invalid column name"))
+                {
+                    Console.WriteLine($"[OFFLINE FALLBACK] Schema error in GetAllRoutes: {ex.Message} - returning sample data");
+                }
+                else
+                {
+                    Console.WriteLine($"Database error in GetAllRoutes: {ex.Message}");
+                }
                 // Return sample data that matches the SQL schema
                 return new List<Route>
                 {
@@ -84,13 +91,17 @@ namespace BusBuddy.Data
                     catch (Exception ex)
                     {
                         Console.WriteLine($"⚠️ Query failed: {ex.Message}");
-                        try {
+                        try
+                        {
                             var allRoutes = connection.Query<Route>("SELECT TOP 10 RouteId, RouteDate, RouteName, AMBusId, AMBeginMiles, AMEndMiles, AMRiders, AMDriverId, PMBusId, PMBeginMiles, PMEndMiles, PMRiders, PMDriverId, Notes, RouteType FROM Routes").AsList();
                             Console.WriteLine($"🔍 Found {allRoutes.Count} routes in total (without date filter)");
-                            if (allRoutes.Count > 0) {
+                            if (allRoutes.Count > 0)
+                            {
                                 Console.WriteLine($"⚠️ Routes table has data but date filtering isn't working. Sample route date: {allRoutes[0].RouteDate:yyyy-MM-dd}");
                             }
-                        } catch (Exception ex2) {
+                        }
+                        catch (Exception ex2)
+                        {
                             Console.WriteLine($"⚠️ Failed to query Routes table: {ex2.Message}");
                         }
                     }
@@ -203,7 +214,7 @@ namespace BusBuddy.Data
                             VALUES (
                                 @RouteDate, @RouteName,
                                 @AMBusId, @AMBeginMiles, @AMEndMiles, @AMRiders, @AMDriverId,
-                                NULL, NULL, NULL, NULL, NULL,
+                                @PMBusId, @PMBeginMiles, @PMEndMiles, @PMRiders, @PMDriverId,
                                 @Notes, @RouteType
                             );
                             SELECT SCOPE_IDENTITY()";
@@ -216,6 +227,11 @@ namespace BusBuddy.Data
                             AMEndMiles = route.AMEndMiles.HasValue ? (int)route.AMEndMiles.Value : (int?)null,
                             route.AMRiders,
                             route.AMDriverId,
+                            route.PMBusId,
+                            PMBeginMiles = route.PMBeginMiles.HasValue ? (int)route.PMBeginMiles.Value : (int?)null,
+                            PMEndMiles = route.PMEndMiles.HasValue ? (int)route.PMEndMiles.Value : (int?)null,
+                            route.PMRiders,
+                            route.PMDriverId,
                             route.Notes,
                             route.RouteType
                         };
@@ -255,11 +271,11 @@ namespace BusBuddy.Data
                                 AMEndMiles = @AMEndMiles,
                                 AMRiders = @AMRiders,
                                 AMDriverId = @AMDriverId,
-                                PMBusId = NULL,
-                                PMBeginMiles = NULL,
-                                PMEndMiles = NULL,
-                                PMRiders = NULL,
-                                PMDriverId = NULL,
+                                PMBusId = @PMBusId,
+                                PMBeginMiles = @PMBeginMiles,
+                                PMEndMiles = @PMEndMiles,
+                                PMRiders = @PMRiders,
+                                PMDriverId = @PMDriverId,
                                 Notes = @Notes,
                                 RouteType = @RouteType
                             WHERE RouteId = @RouteId";
@@ -273,6 +289,11 @@ namespace BusBuddy.Data
                             AMEndMiles = route.AMEndMiles.HasValue ? (int)route.AMEndMiles.Value : (int?)null,
                             route.AMRiders,
                             route.AMDriverId,
+                            route.PMBusId,
+                            PMBeginMiles = route.PMBeginMiles.HasValue ? (int)route.PMBeginMiles.Value : (int?)null,
+                            PMEndMiles = route.PMEndMiles.HasValue ? (int)route.PMEndMiles.Value : (int?)null,
+                            route.PMRiders,
+                            route.PMDriverId,
                             route.Notes,
                             route.RouteType
                         };

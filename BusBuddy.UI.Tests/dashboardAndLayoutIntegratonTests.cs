@@ -32,7 +32,7 @@ namespace BusBuddy.UI.Tests
             // This ensures the license is registered before any UI controls are created in tests
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NNaF5cXmBCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXlcdHRdRGNcWENxXkZWYUA=");
 
-            ControlFactory.EnableTestMode();
+            EnableTestMode();
             Console.WriteLine("🧪 Test mode enabled for Dashboard integration tests");
         }
 

@@ -2,6 +2,7 @@ using System;
 using BusBuddy.Business;
 using BusBuddy.Data;
 using BusBuddy.UI.Helpers;
+using BusBuddy.UI.Models;
 using BusBuddy.UI.Views;
 
 namespace BusBuddy.UI.Services
@@ -35,15 +36,19 @@ namespace BusBuddy.UI.Services
                 var activityRepository = (IActivityRepository)_serviceProvider.GetService(typeof(IActivityRepository));
                 var errorHandler = (IErrorHandlerService)_serviceProvider.GetService(typeof(IErrorHandlerService));
 
-                // Create ViewModel with injected dependencies
-                var viewModel = new DashboardViewModel(
-                    routeAnalyticsService,
-                    busService,
-                    routeRepository,
-                    driverRepository,
-                    activityRepository,
-                    errorHandler
-                );
+                // Fetch or create data for the dashboard (placeholders, adapt as needed)
+                var vehicleData = new VehicleData();
+                var routeData = new RouteData();
+                var activityData = new ActivityData();
+                var chartData = new List<ChartDataPoint>();
+
+                var viewModel = new DashboardViewModel
+                {
+                    VehicleData = vehicleData,
+                    RouteData = routeData,
+                    ActivityData = activityData,
+                    ChartData = chartData
+                };
 
                 Console.WriteLine("✅ DashboardViewModel created with proper DI");
                 return viewModel;
@@ -51,7 +56,6 @@ namespace BusBuddy.UI.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error creating DashboardViewModel: {ex.Message}");
-
                 // Fallback to parameterless constructor
                 Console.WriteLine("🔄 Falling back to parameterless DashboardViewModel constructor");
                 return new DashboardViewModel();

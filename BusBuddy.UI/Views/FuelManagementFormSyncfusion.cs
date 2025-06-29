@@ -9,9 +9,8 @@ using BusBuddy.Models;
 using BusBuddy.UI.Base;
 using BusBuddy.UI.Helpers;
 using BusBuddy.UI.Services;
+using Syncfusion.Windows.Forms.Tools;
 using Syncfusion.WinForms.DataGrid;
-using Syncfusion.WinForms.DataGrid.Enums;
-using Syncfusion.WinForms.DataGrid.Events;
 
 namespace BusBuddy.UI.Views
 {

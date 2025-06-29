@@ -1,12 +1,12 @@
-using BusBuddy.Models;
-using BusBuddy.UI.Base;
-using BusBuddy.UI.Views;
-using Syncfusion.WinForms.Controls;
-using Syncfusion.WinForms.Input;
-using Syncfusion.Windows.Forms.Tools;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using BusBuddy.Models;
+using BusBuddy.UI.Base;
+using BusBuddy.UI.Views;
+using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.WinForms.Controls;
+using Syncfusion.WinForms.DataGrid;
 
 namespace BusBuddy.UI.Views
 {
@@ -16,21 +16,21 @@ namespace BusBuddy.UI.Views
     /// </summary>
     public partial class DriverEditFormSyncfusion : SyncfusionBaseForm
     {
-        private TextBoxExt _firstNameTextBox;
-        private TextBoxExt _lastNameTextBox;
-        private TextBoxExt _phoneTextBox;
-        private TextBoxExt _emailTextBox;
-        private TextBoxExt _addressTextBox;
-        private TextBoxExt _cityTextBox;
-        private TextBoxExt _stateTextBox;
-        private TextBoxExt _zipTextBox;
-        private TextBoxExt _notesTextBox;
-        private ComboBoxAdv _licenseTypeComboBox;
-        private ComboBoxAdv _statusComboBox;
-        private CheckBox _trainingCompleteCheckBox; // Using standard CheckBox as Syncfusion CheckBox is not available
-        private SfDateTimeEdit _cdlExpirationDatePicker;
-        private SfButton _saveButton;
-        private SfButton _cancelButton;
+        private TextBox _firstNameTextBox;
+        private TextBox _lastNameTextBox;
+        private TextBox _phoneTextBox;
+        private TextBox _emailTextBox;
+        private TextBox _addressTextBox;
+        private TextBox _cityTextBox;
+        private TextBox _stateTextBox;
+        private TextBox _zipTextBox;
+        private TextBox _notesTextBox;
+        private ComboBox _licenseTypeComboBox;
+        private ComboBox _statusComboBox;
+        private CheckBox _trainingCompleteCheckBox;
+        private DateTimePicker _cdlExpirationDatePicker;
+        private Button _saveButton;
+        private Button _cancelButton;
 
         public Driver? Driver { get; set; }
 
@@ -54,97 +54,78 @@ namespace BusBuddy.UI.Views
         private void CreateControls()
         {
             // Labels - create and position manually
-            var firstNameLabel = ControlFactory.CreateLabel("First Name:");
+            var firstNameLabel = ControlFactory.CreateLabel("First Name:", 20, 25, 100, 30);
             firstNameLabel.Location = new Point(20, 25);
             _mainPanel.Controls.Add(firstNameLabel);
 
-            var lastNameLabel = ControlFactory.CreateLabel("Last Name:");
+            var lastNameLabel = ControlFactory.CreateLabel("Last Name:", 300, 25, 100, 30);
             lastNameLabel.Location = new Point(300, 25);
             _mainPanel.Controls.Add(lastNameLabel);
 
-            var phoneLabel = ControlFactory.CreateLabel("Phone:");
+            var phoneLabel = ControlFactory.CreateLabel("Phone:", 20, 95, 100, 30);
             phoneLabel.Location = new Point(20, 95);
             _mainPanel.Controls.Add(phoneLabel);
 
-            var emailLabel = ControlFactory.CreateLabel("Email:");
+            var emailLabel = ControlFactory.CreateLabel("Email:", 300, 95, 100, 30);
             emailLabel.Location = new Point(300, 95);
             _mainPanel.Controls.Add(emailLabel);
 
-            var addressLabel = ControlFactory.CreateLabel("Address:");
+            var addressLabel = ControlFactory.CreateLabel("Address:", 20, 165, 100, 30);
             addressLabel.Location = new Point(20, 165);
             _mainPanel.Controls.Add(addressLabel);
 
-            var cityLabel = ControlFactory.CreateLabel("City:");
+            var cityLabel = ControlFactory.CreateLabel("City:", 20, 235, 100, 30);
             cityLabel.Location = new Point(20, 235);
             _mainPanel.Controls.Add(cityLabel);
 
-            var stateLabel = ControlFactory.CreateLabel("State:");
+            var stateLabel = ControlFactory.CreateLabel("State:", 240, 235, 80, 30);
             stateLabel.Location = new Point(240, 235);
             _mainPanel.Controls.Add(stateLabel);
 
-            var zipLabel = ControlFactory.CreateLabel("ZIP:");
+            var zipLabel = ControlFactory.CreateLabel("ZIP:", 340, 235, 100, 30);
             zipLabel.Location = new Point(340, 235);
             _mainPanel.Controls.Add(zipLabel);
 
-            var licenseTypeLabel = ControlFactory.CreateLabel("License Type:");
+            var licenseTypeLabel = ControlFactory.CreateLabel("License Type:", 20, 305, 120, 30);
             licenseTypeLabel.Location = new Point(20, 305);
             _mainPanel.Controls.Add(licenseTypeLabel);
 
-            var statusLabel = ControlFactory.CreateLabel("Status:");
+            var statusLabel = ControlFactory.CreateLabel("Status:", 300, 305, 100, 30);
             statusLabel.Location = new Point(300, 305);
             _mainPanel.Controls.Add(statusLabel);
 
-            var notesLabel = ControlFactory.CreateLabel("Notes:");
+            var notesLabel = ControlFactory.CreateLabel("Notes:", 20, 375, 100, 30);
             notesLabel.Location = new Point(20, 375);
             _mainPanel.Controls.Add(notesLabel);
 
-            var cdlExpirationLabel = ControlFactory.CreateLabel("CDL Expiration:");
+            var cdlExpirationLabel = ControlFactory.CreateLabel("CDL Expiration:", 300, 445, 120, 30);
             cdlExpirationLabel.Location = new Point(300, 445);
-            _mainPanel.Controls.Add(cdlExpirationLabel);            // Text boxes - using PlaceholderText instead of BannerTextProvider
-            _firstNameTextBox = ControlFactory.CreateTextBox("Enter first name");
-            _lastNameTextBox = ControlFactory.CreateTextBox("Enter last name");
-            _phoneTextBox = ControlFactory.CreateTextBox("Enter phone number");
-            _emailTextBox = ControlFactory.CreateTextBox("Enter email address");
-            _addressTextBox = ControlFactory.CreateTextBox("Enter address");
-            _cityTextBox = ControlFactory.CreateTextBox("Enter city");
-            _stateTextBox = ControlFactory.CreateTextBox("Enter state");
-            _zipTextBox = ControlFactory.CreateTextBox("Enter ZIP code");
-            _notesTextBox = ControlFactory.CreateTextBox("Enter notes", multiline: true);
+            _mainPanel.Controls.Add(cdlExpirationLabel);
+
+            // Text boxes
+            _firstNameTextBox = ControlFactory.CreateTextBox("Enter first name", 20, 50, 200, 30);
+            _lastNameTextBox = ControlFactory.CreateTextBox("Enter last name", 300, 50, 200, 30);
+            _phoneTextBox = ControlFactory.CreateTextBox("Enter phone number", 20, 120, 200, 30);
+            _emailTextBox = ControlFactory.CreateTextBox("Enter email address", 300, 120, 200, 30);
+            _addressTextBox = ControlFactory.CreateTextBox("Enter address", 20, 190, 530, 30);
+            _cityTextBox = ControlFactory.CreateTextBox("Enter city", 20, 260, 200, 30);
+            _stateTextBox = ControlFactory.CreateTextBox("Enter state", 240, 260, 80, 30);
+            _zipTextBox = ControlFactory.CreateTextBox("Enter ZIP code", 340, 260, 100, 30);
+            _notesTextBox = ControlFactory.CreateTextBox("Enter notes", 20, 400, 530, 60);
 
             // Combo boxes
-            _licenseTypeComboBox = ControlFactory.CreateComboBox();
-            _statusComboBox = ControlFactory.CreateStatusComboBox();
+            _licenseTypeComboBox = new ComboBox { Location = new Point(20, 330), Size = new Size(200, 30) };
+            _statusComboBox = new ComboBox { Location = new Point(300, 330), Size = new Size(200, 30) };
 
             // Checkbox
-            _trainingCompleteCheckBox = new CheckBox { Text = "Training Complete", AutoSize = true, BackColor = Color.Transparent };
+            _trainingCompleteCheckBox = new CheckBox { Text = "Training Complete", AutoSize = true, BackColor = Color.Transparent, Location = new Point(20, 470) };
 
             // Date picker
-            _cdlExpirationDatePicker = ControlFactory.CreateDateTimePicker();
+            _cdlExpirationDatePicker = new DateTimePicker { Location = new Point(300, 470), Size = new Size(200, 30) };
 
             // Buttons
-            _saveButton = ControlFactory.CreatePrimaryButton("Save");
-            _cancelButton = ControlFactory.CreateSecondaryButton("Cancel");
-
-            // Set locations and add to panel
-            _firstNameTextBox.Location = new Point(20, 50);
-            _lastNameTextBox.Location = new Point(300, 50);
-            _phoneTextBox.Location = new Point(20, 120);
-            _emailTextBox.Location = new Point(300, 120);
-            _addressTextBox.Location = new Point(20, 190);
-            _addressTextBox.Size = new Size(530, 30);
-            _cityTextBox.Location = new Point(20, 260);
-            _stateTextBox.Location = new Point(240, 260);
-            _stateTextBox.Size = new Size(80, 30);
-            _zipTextBox.Location = new Point(340, 260);
-            _zipTextBox.Size = new Size(100, 30);
-            _notesTextBox.Location = new Point(20, 400);
-            _notesTextBox.Size = new Size(530, 60);
-            _licenseTypeComboBox.Location = new Point(20, 330);
-            _statusComboBox.Location = new Point(300, 330);
-            _trainingCompleteCheckBox.Location = new Point(20, 470);
-            _cdlExpirationDatePicker.Location = new Point(300, 470);
-            _saveButton.Location = new Point(20, 550);
-            _cancelButton.Location = new Point(150, 550);
+            _saveButton = ControlFactory.CreatePrimaryButton("Save", 20, 550, 100, 35);
+            _cancelButton = ControlFactory.CreateSecondaryButton("Cancel", 150, 550, 100, 35);
 
             _mainPanel.Controls.AddRange(new Control[]
             {

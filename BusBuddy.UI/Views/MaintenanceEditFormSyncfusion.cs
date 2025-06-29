@@ -1,32 +1,29 @@
 using System;
-using Syncfusion.Windows.Forms;
-using Syncfusion.Windows.Forms.Tools;
-using Syncfusion.Windows.Forms.Grid;
-using Syncfusion.WinForms.Controls;
-using Syncfusion.WinForms.DataGrid;
-using Syncfusion.WinForms.Input;
-using Syncfusion.WinForms.ListView;
-using BusBuddy.UI.Helpers;
 using System.Drawing;
 using System.Windows.Forms;
-
 using BusBuddy.Models;
 using BusBuddy.UI.Base;
+using BusBuddy.UI.Helpers; // Ensure correct logger namespace
+using Syncfusion.Windows.Forms.Tools;
+using Syncfusion.WinForms.DataGrid;
 
 namespace BusBuddy.UI.Views
 {
-    public class MaintenanceEditFormSyncfusion : SyncfusionBaseForm
+    public class MaintenanceEditFormSyncfusion : Form
     {
-        public Maintenance Maintenance { get; set; }        private ComboBoxAdv? cboVehicle;
-        private TextBoxExt? txtMaintenanceCompleted;
-        private DateTimePicker? dtpDate;
-        private TextBoxExt? txtVendor;
-        private TextBoxExt? txtCost;
-        private ComboBoxAdv? cboMaintenanceType;        private TextBoxExt? txtNotes;
-        private SfButton? btnSave;
-        private SfButton? btnCancel;
+        public Maintenance Maintenance { get; set; }
+        private ComboBox cboVehicle;
+        private TextBox txtMaintenanceCompleted;
+        private DateTimePicker dtpDate;
+        private TextBox txtVendor;
+        private TextBox txtCost;
+        private ComboBox cboMaintenanceType;
+        private TextBox txtNotes;
+        private Button btnSave;
+        private Button btnCancel;
+        private ErrorProvider _errorProvider = new ErrorProvider();
 
-        public MaintenanceEditFormSyncfusion(System.IServiceProvider serviceProvider) : base(serviceProvider)
+        public MaintenanceEditFormSyncfusion(System.IServiceProvider serviceProvider) : base()
         {
             Maintenance = new Maintenance();
             InitializeComponent();
@@ -42,11 +39,8 @@ namespace BusBuddy.UI.Views
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-
-            // Configure for high DPI
             this.AutoScaleMode = AutoScaleMode.Dpi;
             this.AutoScaleDimensions = new SizeF(96F, 96F);
-
             SetupFormLayout();
         }
 
@@ -57,20 +51,20 @@ namespace BusBuddy.UI.Views
             int controlX = 150;
             int spacing = 60;
             int controlWidth = 280;            // Vehicle
-            var lblBus = ControlFactory.CreateLabel("🚌 Vehicle:");
+            var lblBus = CreateLabel("🚌 Vehicle:");
             lblBus.Location = new Point(labelX, y);
             this.Controls.Add(lblBus);
-            cboVehicle = ControlFactory.CreateComboBox();
+            cboVehicle = CreateComboBox();
             cboVehicle.Location = new Point(controlX, y);
             cboVehicle.Size = new Size(controlWidth, 30);
             this.Controls.Add(cboVehicle);
             y += spacing;
 
             // Maintenance Type
-            var lblMaintenanceType = ControlFactory.CreateLabel("🔧 Type:");
+            var lblMaintenanceType = CreateLabel("🔧 Type:");
             lblMaintenanceType.Location = new Point(labelX, y);
             this.Controls.Add(lblMaintenanceType);
-            cboMaintenanceType = ControlFactory.CreateComboBox();
+            cboMaintenanceType = CreateComboBox();
             cboMaintenanceType.Location = new Point(controlX, y);
             cboMaintenanceType.Size = new Size(controlWidth, 30);
             cboMaintenanceType.Items.AddRange(new[] {
@@ -81,17 +75,17 @@ namespace BusBuddy.UI.Views
             y += spacing;
 
             // Maintenance Completed
-            var lblMaintenanceCompleted = ControlFactory.CreateLabel("📋 Description:");
+            var lblMaintenanceCompleted = CreateLabel("📋 Description:");
             lblMaintenanceCompleted.Location = new Point(labelX, y);
             this.Controls.Add(lblMaintenanceCompleted);
-            txtMaintenanceCompleted = ControlFactory.CreateTextBox("Describe the maintenance performed", true);
+            txtMaintenanceCompleted = CreateTextBox("Describe the maintenance performed", true);
             txtMaintenanceCompleted.Location = new Point(controlX, y);
             txtMaintenanceCompleted.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtMaintenanceCompleted);
             y += 80;
 
             // Date
-            var lblDate = ControlFactory.CreateLabel("📅 Date:");
+            var lblDate = CreateLabel("📅 Date:");
             lblDate.Location = new Point(labelX, y);
             this.Controls.Add(lblDate);
             dtpDate = new DateTimePicker
@@ -104,40 +98,40 @@ namespace BusBuddy.UI.Views
             y += spacing;
 
             // Vendor
-            var lblVendor = ControlFactory.CreateLabel("🏢 Vendor:");
+            var lblVendor = CreateLabel("🏢 Vendor:");
             lblVendor.Location = new Point(labelX, y);
             this.Controls.Add(lblVendor);
-            txtVendor = ControlFactory.CreateTextBox("Maintenance vendor/shop");
+            txtVendor = CreateTextBox("Maintenance vendor/shop");
             txtVendor.Location = new Point(controlX, y);
             txtVendor.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtVendor);
             y += spacing;
 
             // Cost
-            var lblCost = ControlFactory.CreateLabel("💰 Cost:");
+            var lblCost = CreateLabel("💰 Cost:");
             lblCost.Location = new Point(labelX, y);
             this.Controls.Add(lblCost);
-            txtCost = ControlFactory.CreateTextBox("Total cost (e.g., 125.50)");
+            txtCost = CreateTextBox("Total cost (e.g., 125.50)");
             txtCost.Location = new Point(controlX, y);
             txtCost.Size = new Size(controlWidth, 30);
             this.Controls.Add(txtCost);
             y += spacing;
 
             // Notes
-            var lblNotes = ControlFactory.CreateLabel("📝 Notes:");
+            var lblNotes = CreateLabel("📝 Notes:");
             lblNotes.Location = new Point(labelX, y);
             this.Controls.Add(lblNotes);
-            txtNotes = ControlFactory.CreateTextBox("Additional notes", true);
+            txtNotes = CreateTextBox("Additional notes", true);
             txtNotes.Location = new Point(controlX, y);
             txtNotes.Size = new Size(controlWidth, 60);
             this.Controls.Add(txtNotes);
             y += 80;            // Buttons
-            btnSave = ControlFactory.CreatePrimaryButton("💾 Save", btnSave_Click);
+            btnSave = CreatePrimaryButton("💾 Save", btnSave_Click);
             btnSave.Location = new Point(controlX, y);
             btnSave.Size = new Size(120, 36);
             this.Controls.Add(btnSave);
 
-            btnCancel = ControlFactory.CreateSecondaryButton("❌ Cancel", btnCancel_Click);
+            btnCancel = CreateSecondaryButton("❌ Cancel", btnCancel_Click);
             btnCancel.Location = new Point(controlX + 140, y);
             btnCancel.Size = new Size(120, 36);
             this.Controls.Add(btnCancel);
@@ -189,16 +183,17 @@ namespace BusBuddy.UI.Views
             }
             catch (Exception ex)
             {
+                BusBuddyLogger.Info("MaintenanceEditForm", $"Error loading vehicles: {ex.Message}");
                 ShowErrorMessage($"Error loading vehicles: {ex.Message}");
             }
         }
 
         private void LoadMaintenanceData()
         {
-            txtMaintenanceCompleted.Text = Maintenance.MaintenanceCompleted ?? "";
+            txtMaintenanceCompleted.Text = Maintenance.MaintenanceCompleted ?? string.Empty;
             dtpDate.Value = Maintenance.DateAsDateTime ?? DateTime.Today;
-            txtVendor.Text = Maintenance.Vendor ?? "";
-            txtNotes.Text = Maintenance.Notes ?? "";
+            txtVendor.Text = Maintenance.Vendor ?? string.Empty;
+            txtNotes.Text = Maintenance.Notes ?? string.Empty;
 
             // Set default maintenance type if adding new
             if (Maintenance.MaintenanceID == 0)
@@ -207,7 +202,7 @@ namespace BusBuddy.UI.Views
             }
         }
 
-        private void btnSave_Click(object? sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             if (!ValidateMaintenance())
                 return;
@@ -220,6 +215,7 @@ namespace BusBuddy.UI.Views
             Maintenance.Vendor = txtVendor.Text.Trim();
             Maintenance.Notes = txtNotes.Text.Trim();
 
+            BusBuddyLogger.Info("MaintenanceEditForm", "Maintenance record saved.");
             DialogResult = DialogResult.OK;
             Close();
         }
@@ -269,24 +265,85 @@ namespace BusBuddy.UI.Views
             return true;
         }
 
-        private void btnCancel_Click(object? sender, EventArgs e)
+        private void btnCancel_Click(object sender, EventArgs e)
         {
+            BusBuddyLogger.Info("MaintenanceEditForm", "Maintenance edit cancelled.");
             DialogResult = DialogResult.Cancel;
             Close();
         }        // Helper methods for validation and form management
-        protected override void ClearAllValidationErrors()
+        protected void ClearAllValidationErrors()
         {
             _errorProvider.Clear();
         }
 
-        protected override void SetValidationError(Control control, string message)
+        protected void SetValidationError(Control control, string message)
         {
             _errorProvider.SetError(control, message);
         }
 
-        protected new void ShowErrorMessage(string message)
+        protected void ShowErrorMessage(string message)
         {
+            BusBuddyLogger.Info("MaintenanceEditForm", $"Validation error: {message}");
             MessageBox.Show(message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private Label CreateLabel(string text)
+        {
+            return new Label
+            {
+                Text = text,
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Regular)
+            };
+        }
+
+        private ComboBox CreateComboBox()
+        {
+            return new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 10, FontStyle.Regular)
+            };
+        }
+
+        private TextBox CreateTextBox(string placeholder = "", bool multiline = false)
+        {
+            return new TextBox
+            {
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                Multiline = multiline,
+                PlaceholderText = placeholder
+            };
+        }
+
+        private Button CreatePrimaryButton(string text, EventHandler onClick)
+        {
+            var btn = new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                BackColor = Color.FromArgb(0, 120, 215),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Size = new Size(120, 36)
+            };
+            btn.Click += onClick;
+            return btn;
+        }
+
+        private Button CreateSecondaryButton(string text, EventHandler onClick)
+        {
+            var btn = new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                BackColor = Color.LightGray,
+                ForeColor = Color.Black,
+                FlatStyle = FlatStyle.Flat,
+                Size = new Size(120, 36)
+            };
+            btn.Click += onClick;
+            return btn;
         }
     }
 }

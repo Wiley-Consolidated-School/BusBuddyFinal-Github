@@ -97,10 +97,10 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.6" />
 
     <!-- Syncfusion community packages -->
-    <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.Tools.Windows" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.Grid.Windows" Version="29.2.10" />
-    <PackageReference Include="Syncfusion.Licensing" Version="29.2.10" />
+    <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Tools.Windows" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Grid.Windows" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Licensing" Version="30.1.37" />
   </ItemGroup>
 
 </Project>

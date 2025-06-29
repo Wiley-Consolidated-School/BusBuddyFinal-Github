@@ -5,7 +5,8 @@ using BusBuddy.Models;
 using Dapper;
 
 namespace BusBuddy.Data
-{    public class DriverRepository : BaseRepository, IDriverRepository
+{
+    public class DriverRepository : BaseRepository, IDriverRepository
     {
         public DriverRepository() : base()
         {
@@ -23,10 +24,10 @@ namespace BusBuddy.Data
                 {
                     connection.Open();
                     const string sql = @"
-                        SELECT DriverId, Name, FirstName, LastName, DriverPhone, DriverEmail, Address, City, State, Zip,
-                               DriversLicenseType, IsTrainingComplete, Notes, Status, CDLExpirationDate
+                        SELECT DriverID, DriverName, DriverPhone, DriverEmail, Address, City, State, Zip,
+                               DriversLicenseType, TrainingComplete
                         FROM Drivers
-                        ORDER BY Name";
+                        ORDER BY DriverName";
                     var drivers = connection.Query<Driver>(sql).AsList();
                     return drivers;
                 }
@@ -37,9 +38,9 @@ namespace BusBuddy.Data
                 // Return sample data that matches the SQL schema
                 return new List<Driver>
                 {
-                    new Driver { DriverId = 1, Name = "John Doe", DriversLicenseType = "CDL", IsTrainingComplete = true, DriverPhone = "555-0101" },
-                    new Driver { DriverId = 2, Name = "Jane Smith", DriversLicenseType = "Passenger", IsTrainingComplete = true, DriverPhone = "555-0102" },
-                    new Driver { DriverId = 3, Name = "Bob Johnson", DriversLicenseType = "CDL", IsTrainingComplete = false, DriverPhone = "555-0103" }
+                    new Driver { DriverId = 1, DriverName = "John Doe", DriversLicenseType = "CDL", TrainingComplete = true, DriverPhone = "555-0101" },
+                    new Driver { DriverId = 2, DriverName = "Jane Smith", DriversLicenseType = "Passenger", TrainingComplete = true, DriverPhone = "555-0102" },
+                    new Driver { DriverId = 3, DriverName = "Bob Johnson", DriversLicenseType = "CDL", TrainingComplete = false, DriverPhone = "555-0103" }
                 };
             }
         }
@@ -67,7 +68,7 @@ namespace BusBuddy.Data
                     }
                     else
                     {
-                        Console.WriteLine($"Driver found: ID={driver.DriverId}, Name={driver.Name}");
+                        Console.WriteLine($"Driver found: ID={driver.DriverId}, Name={driver.DriverName}");
                     }
 
                     return driver;
@@ -97,18 +98,16 @@ namespace BusBuddy.Data
 
             using (var connection = CreateConnection())
             {
-                connection.Open();                var sql = @"
+                connection.Open(); var sql = @"
                     INSERT INTO Drivers (
-                        Name, FirstName, LastName, DriverPhone, DriverEmail,
+                        DriverName, DriverPhone, DriverEmail,
                         Address, City, State, Zip,
-                        DriversLicenseType, IsTrainingComplete, Notes,
-                        Status, CDLExpirationDate
+                        DriversLicenseType, TrainingComplete
                     )
                     VALUES (
-                        @Name, @FirstName, @LastName, @DriverPhone, @DriverEmail,
+                        @DriverName, @DriverPhone, @DriverEmail,
                         @Address, @City, @State, @Zip,
-                        @DriversLicenseType, @IsTrainingComplete, @Notes,
-                        @Status, @CDLExpirationDate
+                        @DriversLicenseType, @TrainingComplete
                     );
                     SELECT SCOPE_IDENTITY()";
 
@@ -122,11 +121,9 @@ namespace BusBuddy.Data
 
             using (var connection = CreateConnection())
             {
-                connection.Open();                var sql = @"
+                connection.Open(); var sql = @"
                     UPDATE Drivers
-                    SET Name = @Name,
-                        FirstName = @FirstName,
-                        LastName = @LastName,
+                    SET DriverName = @DriverName,
                         DriverPhone = @DriverPhone,
                         DriverEmail = @DriverEmail,
                         Address = @Address,
@@ -134,11 +131,8 @@ namespace BusBuddy.Data
                         State = @State,
                         Zip = @Zip,
                         DriversLicenseType = @DriversLicenseType,
-                        IsTrainingComplete = @IsTrainingComplete,
-                        Notes = @Notes,
-                        Status = @Status,
-                        CDLExpirationDate = @CDLExpirationDate
-                    WHERE DriverId = @DriverId";
+                        TrainingComplete = @TrainingComplete
+                    WHERE DriverID = @DriverId";
 
                 var rowsAffected = connection.Execute(sql, driver);
                 return rowsAffected > 0;
