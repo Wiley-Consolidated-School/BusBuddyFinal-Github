@@ -14,6 +14,12 @@ namespace BusBuddy.Models
         public string? Make { get; set; } // Matches SQL Make
         public string? Model { get; set; } // Matches SQL Model
         public int Capacity { get; set; } // Matches SQL Capacity
+        // For backward compatibility with tests and UI
+        public int SeatingCapacity
+        {
+            get => Capacity;
+            set => Capacity = value;
+        }
         public string? VIN { get; set; } // Matches SQL VIN
         public string? LicenseNumber { get; set; } // Matches SQL LicenseNumber
         public DateTime? LastInspectionDate { get; set; } // Matches SQL LastInspectionDate

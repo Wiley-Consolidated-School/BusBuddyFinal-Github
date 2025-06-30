@@ -9,6 +9,11 @@ namespace BusBuddy.UI.Views
     {
         private readonly IServiceProvider _serviceProvider;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnalyticsDemoFormSyncfusion"/> class.
+        /// Uses dependency injection to receive an <see cref="IServiceProvider"/> for resolving services.
+        /// </summary>
+        /// <param name="serviceProvider">The service provider used for dependency injection.</param>
         public AnalyticsDemoFormSyncfusion(IServiceProvider serviceProvider) : base()
         {
             _serviceProvider = serviceProvider;

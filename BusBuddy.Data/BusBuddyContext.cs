@@ -118,7 +118,7 @@ namespace BusBuddy.Data
                             {
                                 Console.WriteLine($"Database repair failed: {repairEx.Message}");
                                 // Fall back to default connection
-                                var defaultConnectionString = "Server=localhost\\SQLEXPRESS;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
+                                var defaultConnectionString = "Server=localhost\\SQLEXPRESS;Database=BusBuddy;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
                                 Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
                                 optionsBuilder.UseSqlServer(defaultConnectionString, options =>
                                 {
@@ -129,7 +129,7 @@ namespace BusBuddy.Data
                         else
                         {
                             // Fallback to SQL Server Express with local server name and database
-                            var defaultConnectionString = "Server=localhost\\SQLEXPRESS;Database=BusBuddy;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
+                            var defaultConnectionString = "Server=localhost\\SQLEXPRESS;Database=BusBuddy;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=60;Integrated Security=True;";
                             Console.WriteLine($"Using fallback connection string: {defaultConnectionString}");
                             optionsBuilder.UseSqlServer(defaultConnectionString, options =>
                             {
