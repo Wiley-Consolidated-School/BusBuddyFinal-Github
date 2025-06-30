@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Removed excessive warning suppressions - only suppress what's necessary -->
-    <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8602;CS8604;CS8625;CS8603;CS8601;CS8600</NoWarn>
+    <NoWarn>$(NoWarn);CA1416;CS8618;CS8622;CS8602;CS8604;CS8625;CS8603;CS8601;CS8600;NU1701;MSB3825</NoWarn>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
@@ -24,53 +24,26 @@
     <ProjectReference Include="..\BusBuddy.Business\BusBuddy.Business.csproj" />
   </ItemGroup>
 
-  <!-- BusBuddyDarkTheme.dll removed - using Syncfusion theming instead -->
-
   <ItemGroup>
-    <!-- Keep MaterialSkin.2 during gradual transition to Syncfusion -->
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
-    <PackageReference Include="Svg" Version="3.4.7" />
-    <PackageReference Include="Syncfusion.Chart.Windows" Version="30.1.37" />
-    <PackageReference Include="Syncfusion.Gauge.Windows" Version="30.1.37" />
-    <PackageReference Include="Syncfusion.Licensing" Version="30.1.37" />
-    <PackageReference Include="Syncfusion.Maps.Windows" Version="30.1.37" />
+    <!-- Syncfusion NuGet package references only; all manual DLL references removed -->
     <PackageReference Include="Syncfusion.SfDataGrid.WinForms" Version="30.1.37" />
-    <PackageReference Include="Syncfusion.Shared.Base" Version="30.1.37" />
-    <PackageReference Include="Syncfusion.Tools.Windows" Version="30.1.37" />
-    <PackageReference Include="Syncfusion.DataGridExport.WinForms" Version="30.1.37" />
-    <!-- Native Syncfusion controls for compliance -->
-    <PackageReference Include="Syncfusion.Core.WinForms" Version="30.1.37" />
     <PackageReference Include="Syncfusion.SfInput.WinForms" Version="30.1.37" />
     <PackageReference Include="Syncfusion.SfListView.WinForms" Version="30.1.37" />
-    <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
-  </ItemGroup>
-
-  <!-- Microsoft.Extensions.* packages at version 8.0.0 for compatibility -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
-  </ItemGroup>
-
-  <!-- Embedded Resources for Map Data -->
-  <ItemGroup>
-    <EmbeddedResource Include="tl_2024_us_state.shp" />
-    <EmbeddedResource Include="tl_2024_us_state.dbf" />
-    <EmbeddedResource Include="tl_2024_us_state.shx" />
+    <PackageReference Include="Syncfusion.Chart.Windows" Version="30.1.37" />
+    <PackageReference Include="Syncfusion.Tools.Windows" Version="30.1.37" />
+    <PackageReference Include="ScottPlot.WinForms" Version="5.0.15" />
+    <!-- Add other required Syncfusion NuGet packages here if needed -->
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Syncfusion.WinForms.DataGrid">
-      <HintPath>C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\WindowsForms\Assemblies\Syncfusion.WinForms.DataGrid.dll</HintPath>
-    </Reference>
-    <Reference Include="Syncfusion.Windows.Forms.Tools">
-      <HintPath>C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\WindowsForms\Assemblies\Syncfusion.Windows.Forms.Tools.dll</HintPath>
-    </Reference>
-    <Reference Include="Syncfusion.WinForms.Buttons">
-      <HintPath>C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\WindowsForms\Assemblies\Syncfusion.WinForms.Buttons.dll</HintPath>
-    </Reference>
-    <!-- Add more as needed for other controls (e.g., Chart, Scheduler, etc.) -->
+    <Compile Remove="libs\30.1.37\Utilities\Diagram\Windows Forms\DiagramBuilder\src\DiagramForm.cs" />
+    <EmbeddedResource Remove="libs\30.1.37\Utilities\Diagram\Windows Forms\DiagramBuilder\src\DiagramForm.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="**/PrintZoomingDialog.cs" />
+    <EmbeddedResource Remove="**/PrintZoomingDialog.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="libs\**\*.resx" />
   </ItemGroup>
 </Project>

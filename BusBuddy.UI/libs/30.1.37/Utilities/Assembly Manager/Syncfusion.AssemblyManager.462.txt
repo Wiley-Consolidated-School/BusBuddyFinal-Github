@@ -1,0 +1,159 @@
+Information: Date Time : 6/29/2025 11:07:55 AM Framework : 462 Action: Installing specific assembly into the GAC using C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.7.2 Tools\gacutil.exe.
+Information: Date Time : 6/29/2025 11:07:55 AM Assembly : Syncfusion.Licensing Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:55 AM Assembly : DemoCommon Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:56 AM Assembly : Syncfusion.Calculate.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:56 AM Assembly : Syncfusion.PMML.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:56 AM Assembly : Syncfusion.Calculate.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:56 AM Assembly : Syncfusion.Spreadsheet.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:56 AM Assembly : Syncfusion.SpreadsheetHelper.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:57 AM Assembly : Syncfusion.PivotConverter.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:57 AM Assembly : Syncfusion.BulletGraph.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:57 AM Assembly : Syncfusion.PivotChart.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:57 AM Assembly : Syncfusion.Chart.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:58 AM Assembly : Syncfusion.Chart.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:58 AM Assembly : Syncfusion.Compression.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:58 AM Assembly : Syncfusion.Diagram.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:59 AM Assembly : Syncfusion.Diagram.Utility.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:59 AM Assembly : Syncfusion.Diagram.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:07:59 AM Assembly : Syncfusion.DocIO.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Warning: Date Time : 6/29/2025 11:07:59 AM Assembly : Syncfusion.DocIO.Windows Framework : 462 Action: File not found in the disk path :C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\precompiledassemblies\4.6.2\Syncfusion.DocIO.Windows.dll Status: failure.
+Information: Date Time : 6/29/2025 11:07:59 AM Assembly : Syncfusion.DocToPDFConverter.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:00 AM Assembly : Syncfusion.Edit.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:00 AM Assembly : Syncfusion.Gauge.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:00 AM Assembly : Syncfusion.Grid.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:00 AM Assembly : Syncfusion.Grid.Grouping.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:01 AM Assembly : Syncfusion.Grid.Grouping.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:01 AM Assembly : Syncfusion.Grid.Grouping.Windows.XmlSerializers Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:01 AM Assembly : Syncfusion.Grid.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:02 AM Assembly : Syncfusion.Grid.Windows.XmlSerializers Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:02 AM Assembly : Syncfusion.GridConverter.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:02 AM Assembly : Syncfusion.GridHelperClasses.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:02 AM Assembly : Syncfusion.Grouping.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:02 AM Assembly : Syncfusion.Grouping.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:03 AM Assembly : Syncfusion.HtmlConverter.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:03 AM Assembly : Syncfusion.HTMLUI.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:03 AM Assembly : Syncfusion.HTMLUI.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:03 AM Assembly : Syncfusion.Linq.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:04 AM Assembly : Syncfusion.MIME.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:04 AM Assembly : Syncfusion.Olap.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:04 AM Assembly : Syncfusion.Pdf.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:04 AM Assembly : Syncfusion.PdfToImageConverter.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Warning: Date Time : 6/29/2025 11:08:04 AM Assembly : Syncfusion.Pdf.Windows Framework : 462 Action: File not found in the disk path :C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\precompiledassemblies\4.6.2\Syncfusion.Pdf.Windows.dll Status: failure.
+Information: Date Time : 6/29/2025 11:08:05 AM Assembly : Syncfusion.Schedule.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:05 AM Assembly : Syncfusion.Schedule.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:05 AM Assembly : Syncfusion.Scripting.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:05 AM Assembly : Syncfusion.Scripting.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:06 AM Assembly : Syncfusion.Shared.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:06 AM Assembly : Syncfusion.Shared.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:07 AM Assembly : Syncfusion.Tools.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:07 AM Assembly : Syncfusion.Tools.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:07 AM Assembly : Syncfusion.XlsIO.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Warning: Date Time : 6/29/2025 11:08:07 AM Assembly : Syncfusion.XlsIO.Windows Framework : 462 Action: File not found in the disk path :C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\precompiledassemblies\4.6.2\Syncfusion.XlsIO.Windows.dll Status: failure.
+Information: Date Time : 6/29/2025 11:08:07 AM Assembly : Syncfusion.ExcelChartToImageConverter.WPF Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:08 AM Assembly : Syncfusion.ExcelToPDFConverter.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:08 AM Assembly : Syncfusion.PivotAnalysis.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:08 AM Assembly : Syncfusion.Maps.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:08 AM Assembly : Syncfusion.SpellChecker.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:09 AM Assembly : Syncfusion.PdfViewer.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:09 AM Assembly : Syncfusion.DICOM.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:09 AM Assembly : Syncfusion.ProjIO.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:09 AM Assembly : Syncfusion.PivotAnalysis.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:10 AM Assembly : Syncfusion.SfChart.WPF Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:10 AM Assembly : Syncfusion.SfBarcode.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:10 AM Assembly : Syncfusion.TreeMap.Windows Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:10 AM Assembly : Syncfusion.Presentation.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:11 AM Assembly : Syncfusion.PresentationToPdfConverter.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:11 AM Assembly : Syncfusion.OfficeChart.Base Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:11 AM Assembly : Syncfusion.OfficeChartToImageConverter.WPF Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:11 AM Assembly : Syncfusion.SfInput.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:12 AM Assembly : Syncfusion.GridCommon.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:12 AM Assembly : Syncfusion.Data.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:12 AM Assembly : Syncfusion.SfDataGrid.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:12 AM Assembly : Syncfusion.Core.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:13 AM Assembly : Syncfusion.SfSmithChart.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:13 AM Assembly : Syncfusion.SfDataGridConverter.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:13 AM Assembly : Syncfusion.Shared.WPF Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:13 AM Assembly : Syncfusion.SfListView.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:13 AM Assembly : Syncfusion.DataSource.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Office2016Theme.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Office2019Theme.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.HighContrastTheme.WinForms Framework : 462 Action: Installing specific assembly into the GAC. Status: success.
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Licensing Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : DemoCommon Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Calculate.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.PMML.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Calculate.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Spreadsheet.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.SpreadsheetHelper.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.PivotConverter.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.BulletGraph.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.PivotChart.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Chart.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Chart.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Compression.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Diagram.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Diagram.Utility.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Diagram.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.DocIO.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Warning: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.DocIO.Windows Framework : 462 Action: File not found in the disk path :C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\precompiledassemblies\4.6.2\Syncfusion.DocIO.Windows.dll Status: failure.
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.DocToPDFConverter.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Edit.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Gauge.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Grid.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Grid.Grouping.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Grid.Grouping.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Grid.Grouping.Windows.XmlSerializers Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Grid.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Grid.Windows.XmlSerializers Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.GridConverter.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.GridHelperClasses.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Grouping.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Grouping.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.HtmlConverter.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.HTMLUI.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.HTMLUI.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Linq.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.MIME.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Olap.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Pdf.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.PdfToImageConverter.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Warning: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Pdf.Windows Framework : 462 Action: File not found in the disk path :C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\precompiledassemblies\4.6.2\Syncfusion.Pdf.Windows.dll Status: failure.
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Schedule.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Schedule.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Scripting.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Scripting.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:14 AM Assembly : Syncfusion.Shared.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Shared.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Tools.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Tools.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.XlsIO.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Warning: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.XlsIO.Windows Framework : 462 Action: File not found in the disk path :C:\Program Files (x86)\Syncfusion\Essential Studio\Windows\30.1.37\precompiledassemblies\4.6.2\Syncfusion.XlsIO.Windows.dll Status: failure.
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.ExcelChartToImageConverter.WPF Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.ExcelToPDFConverter.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.PivotAnalysis.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Maps.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.SpellChecker.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.PdfViewer.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.DICOM.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.ProjIO.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.PivotAnalysis.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.SfChart.WPF Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.SfBarcode.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.TreeMap.Windows Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Presentation.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.PresentationToPdfConverter.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.OfficeChart.Base Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.OfficeChartToImageConverter.WPF Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.SfInput.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.GridCommon.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Data.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.SfDataGrid.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Core.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.SfSmithChart.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.SfDataGridConverter.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Shared.WPF Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.SfListView.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.DataSource.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Office2016Theme.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.Office2019Theme.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
+Information: Date Time : 6/29/2025 11:08:15 AM Assembly : Syncfusion.HighContrastTheme.WinForms Framework : 462 Action: Installing specific assembly into the assemblies folder. Status: success
